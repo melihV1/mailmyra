@@ -6,3 +6,4 @@ dist/
 .turbo/
 coverage/
 .claude/settings.local.json
+packages/renderer/out/
