@@ -1,9 +1,6 @@
 import { fixtures, renderSignature } from '@mailmyra/renderer';
-import { ExportButtons } from './ExportButtons';
-
-function wrapDoc(fragment: string, bg: string): string {
-  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:16px;background:${bg};">${fragment}</body></html>`;
-}
+import { ExportButtons } from '../../../components/ExportButtons';
+import { wrapPreviewDoc } from '../../../components/preview-doc';
 
 export default function DevRenderPage() {
   return (
@@ -35,16 +32,20 @@ export default function DevRenderPage() {
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <iframe
                 title={`${fx.id}-light`}
-                srcDoc={wrapDoc(html, '#ffffff')}
+                srcDoc={wrapPreviewDoc(html, '#ffffff')}
                 style={{ width: 620, height: 280, border: '1px solid #ddd' }}
               />
               <iframe
                 title={`${fx.id}-dark`}
-                srcDoc={wrapDoc(html, '#1a1a1a')}
+                srcDoc={wrapPreviewDoc(html, '#1a1a1a')}
                 style={{ width: 620, height: 280, border: '1px solid #ddd' }}
               />
             </div>
-            <ExportButtons html={html} filename={`classic-horizontal--${fx.id}`} />
+            <ExportButtons
+              html={html}
+              filename={`classic-horizontal--${fx.id}`}
+              gated={false}
+            />
           </section>
         );
       })}

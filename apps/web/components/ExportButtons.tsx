@@ -1,13 +1,23 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 export function ExportButtons({
   html,
   filename,
+  gated,
 }: {
   html: string;
   filename: string;
+  gated: boolean;
 }) {
+  const router = useRouter();
+
   async function copyHtml() {
+    if (gated) {
+      router.push('/login');
+      return;
+    }
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
@@ -21,6 +31,10 @@ export function ExportButtons({
   }
 
   function downloadHtm() {
+    if (gated) {
+      router.push('/login');
+      return;
+    }
     const doc = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
     const blob = new Blob([doc], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
