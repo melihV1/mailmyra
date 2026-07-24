@@ -30,6 +30,19 @@ export function saveDraft(storage: StorageLike, data: SignatureData, now: number
   storage.setItem(DRAFT_KEY, JSON.stringify(envelope));
 }
 
+function isValidSignatureData(data: unknown): data is SignatureData {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    typeof (data as SignatureData).identity !== 'object' ||
+    (data as SignatureData).identity === null ||
+    typeof (data as SignatureData).identity?.fullName !== 'string'
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export function loadDraft(storage: StorageLike, now: number): SignatureData | null {
   const raw = storage.getItem(DRAFT_KEY);
   if (!raw) return null;
@@ -38,6 +51,9 @@ export function loadDraft(storage: StorageLike, now: number): SignatureData | nu
     if (envelope.version !== 1 || typeof envelope.savedAt !== 'number') return null;
     if (now - envelope.savedAt > TTL_MS) {
       storage.removeItem(DRAFT_KEY);
+      return null;
+    }
+    if (!isValidSignatureData(envelope.data)) {
       return null;
     }
     return envelope.data;

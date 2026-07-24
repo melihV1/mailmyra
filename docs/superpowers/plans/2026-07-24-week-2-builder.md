@@ -1350,6 +1350,45 @@ git add apps/web/lib/draft.ts apps/web/test/draft.test.ts
 git commit -m "feat(web): add localStorage draft with ttl and data-uri guard"
 ```
 
+**Kod incelemesi sonrası düzeltmeler (bu Task 8 bloğu geriye dönük güncellendi):**
+
+`loadDraft` şu ana kadar yalnızca `version` ve `savedAt` kontrol ediyordu; `envelope.data` hiç doğrulanmadığından eksik veya çöp `data` alanı `undefined` veya bozulmuş değer döndürebiliyordu, bu da `SignatureData | null` kontratını ve "corrupt → null" politikasını ihlal ediyordu.
+
+Eklenen testler:
+- `envelope.data` eksikse → null (başarısız olmuş: `undefined` dönüyordu)
+- `data` garbage string veya boş obje ise → null (başarısız olmuş: değer olduğu gibi dönüyordu)
+- `logoUrl` ve `handSignatureUrl` üzerindeki `data:` URI'ları da stripleştirilip undefined yapılıyor (zaten çalışıyordu)
+- 30 günün tam sınırında taslak tutulması → not çıkılırken henüz silinmemeli
+
+Düzeltme: `isValidSignatureData` yardımcı fonksiyonu eklendi:
+```ts
+function isValidSignatureData(data: unknown): data is SignatureData {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    typeof (data as SignatureData).identity !== 'object' ||
+    (data as SignatureData).identity === null ||
+    typeof (data as SignatureData).identity?.fullName !== 'string'
+  ) {
+    return false;
+  }
+  return true;
+}
+```
+
+`loadDraft`'ın return noktasından önce data shape kontrolü eklendi. Böylece:
+- TTL kontrolü: ✓
+- Version kontrolü: ✓ (mevcut)
+- SavedAt kontrolü: ✓ (mevcut)
+- **Data shape kontrolü: ✓ (YENİ)** — identity.fullName minimal kontract (diğer alanlar opsiyonel)
+
+Yeni testler RED → GREEN (10/10 PASS, typecheck 0 error).
+
+```bash
+git add apps/web/lib/draft.ts apps/web/test/draft.test.ts
+git commit -m "fix(web): validate draft data shape on load"
+```
+
 ---
 
 ### Task 9: Builder reducer + boş veri fabrikası

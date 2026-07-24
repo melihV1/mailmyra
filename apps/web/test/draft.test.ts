@@ -53,4 +53,39 @@ describe('draft', () => {
     clearDraft(storage);
     expect(loadDraft(storage, 1)).toBeNull();
   });
+
+  it('returns null when data is missing from the envelope', () => {
+    storage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, savedAt: 1000 }));
+    expect(loadDraft(storage, 2000)).toBeNull();
+  });
+
+  it('returns null when data is not a shaped signature object', () => {
+    storage.setItem(
+      DRAFT_KEY,
+      JSON.stringify({ version: 1, savedAt: 1000, data: 'garbage' }),
+    );
+    expect(loadDraft(storage, 2000)).toBeNull();
+    storage.setItem(DRAFT_KEY, JSON.stringify({ version: 1, savedAt: 1000, data: {} }));
+    expect(loadDraft(storage, 2000)).toBeNull();
+  });
+
+  it('strips data: URIs from logo and hand-signature fields too', () => {
+    const dirty = {
+      ...data,
+      visuals: {
+        ...data.visuals,
+        logoUrl: 'data:image/png;base64,AAAA',
+        handSignatureUrl: 'data:image/png;base64,BBBB',
+      },
+    };
+    saveDraft(storage, dirty, 1000);
+    const loaded = loadDraft(storage, 2000)!;
+    expect(loaded.visuals.logoUrl).toBeUndefined();
+    expect(loaded.visuals.handSignatureUrl).toBeUndefined();
+  });
+
+  it('keeps a draft exactly at the 30-day boundary', () => {
+    saveDraft(storage, data, 0);
+    expect(loadDraft(storage, 30 * DAY)).not.toBeNull();
+  });
 });
