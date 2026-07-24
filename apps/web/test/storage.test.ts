@@ -19,11 +19,24 @@ describe('FsStorageAdapter', () => {
     expect(res.url).toBe('https://cdn.mailmyra.com/a3f9c2e1.png');
     expect(readFileSync(join(dir, 'a3f9c2e1.png'), 'utf8')).toBe('img');
   });
-  it('never overwrites an existing file (immutability)', async () => {
+  it('never overwrites an existing file with different content (immutability) — rejects instead of silently keeping the old content', async () => {
+    // Semantik değişikliği (bu review dalgasında karara bağlandı): önceden bu
+    // durum sessizce başarıyla dönüp eski içeriği koruyordu. Artık içerik
+    // adresli (content-addressed) bir dosya adında FARKLI içerik görülmesi
+    // bir çakışma (collision) sinyalidir ve reddedilir — sessizce yutulmaz.
     const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
     writeFileSync(join(dir, 'x.png'), 'original');
-    await adapter.save('x.png', Buffer.from('new-content'));
+    await expect(adapter.save('x.png', Buffer.from('new-content'))).rejects.toThrow(
+      /Content collision for immutable file: x\.png/,
+    );
     expect(readFileSync(join(dir, 'x.png'), 'utf8')).toBe('original');
+  });
+  it('resolves without rewriting when an existing file has identical content', async () => {
+    const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
+    writeFileSync(join(dir, 'same.png'), 'same-content');
+    const res = await adapter.save('same.png', Buffer.from('same-content'));
+    expect(res.url).toBe('https://cdn.mailmyra.com/same.png');
+    expect(readFileSync(join(dir, 'same.png'), 'utf8')).toBe('same-content');
   });
   it('creates the write path if missing', async () => {
     const nested = join(dir, 'deep/cdn');
@@ -52,25 +65,29 @@ describe('FsStorageAdapter — path traversal', () => {
 });
 
 describe('FsStorageAdapter — atomic exclusive write (TOCTOU)', () => {
-  it('resolves successfully and keeps the original content when the file already exists', async () => {
+  it('resolves and keeps the content when the same content already exists (race)', async () => {
+    // Gerçek çağıranlar dosya adını içeriğin hash'inden türetir, bu yüzden
+    // "aynı dosya adına eşzamanlı yazma" senaryosunda içerik de her zaman
+    // aynıdır. `wx` ile oluşturma yarışını kaybeden taraf EEXIST alır, sonra
+    // diskteki içerikle kendi buffer'ını karşılaştırır — eşleştiği için
+    // başarıyla döner.
     const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
-    writeFileSync(join(dir, 'atomic.png'), 'original');
-    const res = await adapter.save('atomic.png', Buffer.from('different-content'));
+    writeFileSync(join(dir, 'atomic.png'), 'same-content');
+    const res = await adapter.save('atomic.png', Buffer.from('same-content'));
     expect(res.url).toBe('https://cdn.mailmyra.com/atomic.png');
-    expect(readFileSync(join(dir, 'atomic.png'), 'utf8')).toBe('original');
+    expect(readFileSync(join(dir, 'atomic.png'), 'utf8')).toBe('same-content');
   });
-  it('handles concurrent saves to the same new filename without interleaving corruption', async () => {
+  it('handles concurrent saves of identical content to the same new filename without interleaving corruption', async () => {
     const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
-    const contents = ['one', 'two', 'three', 'four', 'five'];
+    const content = 'identical-content';
     const results = await Promise.all(
-      contents.map((c) => adapter.save('concurrent.png', Buffer.from(c))),
+      Array.from({ length: 5 }, () => adapter.save('concurrent.png', Buffer.from(content))),
     );
     for (const r of results) {
       expect(r.url).toBe('https://cdn.mailmyra.com/concurrent.png');
     }
     expect(existsSync(join(dir, 'concurrent.png'))).toBe(true);
-    const final = readFileSync(join(dir, 'concurrent.png'), 'utf8');
-    expect(contents).toContain(final);
+    expect(readFileSync(join(dir, 'concurrent.png'), 'utf8')).toBe(content);
   });
 });
 

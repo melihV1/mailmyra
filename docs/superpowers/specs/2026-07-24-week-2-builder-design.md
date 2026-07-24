@@ -88,9 +88,11 @@ packages/renderer/
 - Alfa kanalı var → PNG, yok → JPG
 - Bütçe hedefi: logo <60KB · avatar <40KB · el imzası <50KB. JPG'de kalite kademeli düşürülür (80→60→40), PNG'de `compressionLevel: 9` + `palette: true`. Bütçeye sığmazsa **en yakın sonuç kaydedilir**, response'ta `warning` alanı döner ("önerilen boyutu aşıyor, e-postaları yavaşlatabilir").
 
-**Adlandırma:** çıktı buffer'ının SHA-256 hash'inden ilk 8 hex + uzantı
-(`a3f9c2e1.png`) — içerik-adresli: benzersiz, değişmez, aynı içerik aynı URL
-(bedava dedup).
+**Adlandırma:** çıktı buffer'ının SHA-256 hash'inden ilk 16 hex + uzantı
+(`a3f9c2e1b4d07f11.png`) — içerik-adresli: benzersiz, değişmez, aynı içerik aynı URL
+(bedava dedup). (Final review dalgası, 2026-07-24: 8 → 16 hex — `storage.ts`
+artık aynı dosya adında farklı içerik gördüğünde reddediyor, 16 hex bu
+çakışma riskini üretim ölçeğinde pratikte ortadan kaldırıyor.)
 
 **Depolama:** `StorageAdapter.save(filename, buffer): Promise<{ url }>`
 - Tek implementasyon: `FsStorageAdapter` — `CDN_WRITE_PATH`'e yazar, URL'yi `CDN_PUBLIC_URL`'den kurar

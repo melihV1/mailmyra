@@ -85,7 +85,7 @@ describe('processImage — doğrulama', () => {
 describe('processImage — işleme', () => {
   it('converts SVG to PNG output', async () => {
     const res = await processImage(svgImage, 'logo');
-    expect(res.filename).toMatch(/^[0-9a-f]{8}\.png$/);
+    expect(res.filename).toMatch(/^[0-9a-f]{16}\.png$/);
     const meta = await sharp(res.buffer).metadata();
     expect(meta.format).toBe('png');
   });

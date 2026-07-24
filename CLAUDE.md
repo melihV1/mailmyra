@@ -83,7 +83,7 @@ Cloudflare **kullanılmayacak** — CDN domaini doğrudan kendi sunucumuzdan ser
 - Çıktı 2x boyutlar: logo **360px/<60KB** · avatar **180px/<40KB** · el imzası **300px/<50KB**
 - Uzun kenar max **600px**
 - Şeffaflık varsa **PNG**, yoksa **JPG**
-- Dosya adları **benzersiz ve değişmez** (ör. `a3f9c2e1.png`) — bir kez üretilen URL asla değişmez
+- Dosya adları **benzersiz ve değişmez** (ör. `a3f9c2e1b4d07f11.png`, 16 hex karakter) — bir kez üretilen URL asla değişmez
 
 ---
 

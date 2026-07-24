@@ -125,7 +125,13 @@ export async function processImage(
   // ve route handler'ın PipelineError-olmayan yolundan (500) geçmelidir.
   const { buffer, ext, warning } = await compressToBudget(resized.clone(), hasAlpha, target.budgetBytes);
   const meta = await sharp(buffer).metadata();
-  const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 8);
+  // 16 hex karakter (64 bit): 8 karakterlik (32 bit) önceki uzunluk, tesadüfi
+  // çarpışma (collision) olasılığını pratikte anlamlı kılacak kadar dardı —
+  // storage.ts artık aynı dosya adında FARKLI içerik gördüğünde reddediyor
+  // (bkz. FsStorageAdapter.save), bu yüzden bir çarpışma artık sessiz veri
+  // bozulması değil açık bir hata olsa da, üretimde meşru bir yükleme akışını
+  // reddetmemesi için hash alanı genişletildi.
+  const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 16);
   return {
     buffer,
     filename: `${hash}.${ext}`,

@@ -46,7 +46,7 @@ describe('POST /api/upload', () => {
     const res = await POST(await makeRequest(await pngBlob(), 'avatar'));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.url).toMatch(/^http:\/\/cdn\.test\/[0-9a-f]{8}\.(png|jpg)$/);
+    expect(body.url).toMatch(/^http:\/\/cdn\.test\/[0-9a-f]{16}\.(png|jpg)$/);
     expect(body.width).toBeGreaterThan(0);
   });
   it('rejects a missing file with 400', async () => {

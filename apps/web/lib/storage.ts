@@ -1,4 +1,4 @@
-import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export interface StorageAdapter {
@@ -37,12 +37,21 @@ export class FsStorageAdapter implements StorageAdapter {
     const target = join(this.writePath, filename);
     // İçerik-adresli dosyalar değişmezdir: var olanı asla yeniden yazma.
     // TOCTOU'suz atomik dışlayıcı oluşturma: 'wx' iki işlemi (kontrol + yazma)
-    // tek bir atomik syscall'a indirger. EEXIST => dosya zaten var, başarı
-    // say (mevcut içerik korunur); başka bir hata ise yeniden fırlat.
+    // tek bir atomik syscall'a indirger. EEXIST => dosya zaten var. Bu
+    // yasal iki durumdan biri olabilir: (a) aynı içerik daha önce yazılmış
+    // (aynı hash → aynı isim, eşzamanlı yükleme veya tekrar deneme) — başarı
+    // sayılır, mevcut içerik korunur; (b) FARKLI içerik aynı dosya adına
+    // çarpışmış — bu, içerik-adresleme varsayımını ihlal eden bir çakışmadır
+    // (hash fonksiyonunda regresyon, elle dosya yerleştirme, vb.) ve
+    // SESSİZCE yutulmaz — dosya üzerine yazılmaz, hata fırlatılır.
     try {
       await writeFile(target, buffer, { flag: 'wx' });
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
+      const existing = await readFile(target);
+      if (!existing.equals(buffer)) {
+        throw new Error(`Content collision for immutable file: ${filename}`);
+      }
     }
     return { url: `${this.publicUrl.replace(/\/$/, '')}/${filename}` };
   }
