@@ -124,6 +124,13 @@ describe('processImage — işleme', () => {
     const res = await processImage(largeSvgImage, 'logo');
     expect(Math.max(res.width, res.height)).toBe(360);
   });
+  it('rasterizes small declared SVGs up to the kind target (density boost)', async () => {
+    const tiny = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="#719ad1"/></svg>',
+    );
+    const res = await processImage(tiny, 'logo');
+    expect(Math.max(res.width, res.height)).toBe(360);
+  });
   it('handSignature targets 300px', async () => {
     const res = await processImage(await opaqueJpeg(900, 400), 'handSignature');
     expect(Math.max(res.width, res.height)).toBe(300);

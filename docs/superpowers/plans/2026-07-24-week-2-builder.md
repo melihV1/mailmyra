@@ -525,7 +525,7 @@ git commit -m "feat(web): add fs storage adapter with immutable writes"
 **Interfaces:**
 - Produces:
   - `type UploadKind = 'logo' | 'avatar' | 'handSignature'`
-  - `class PipelineError extends Error { status: number }`
+  - `class PipelineError extends Error { status: number; constructor(status: number, message: string, options?: ErrorOptions) }`
   - `processImage(input: Buffer, kind: UploadKind): Promise<{ buffer: Buffer; filename: string; width: number; height: number; warning?: string }>`
   - `KIND_TARGETS` sabiti (test ve UI metinleri için export).
 
@@ -658,6 +658,13 @@ describe('processImage — işleme', () => {
   });
   it('accepts a legitimate large declared-size SVG (1400x1400) and resizes to target', async () => {
     const res = await processImage(largeSvgImage, 'logo');
+    expect(Math.max(res.width, res.height)).toBe(360);
+  });
+  it('rasterizes small declared SVGs up to the kind target (density boost)', async () => {
+    const tiny = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="#719ad1"/></svg>',
+    );
+    const res = await processImage(tiny, 'logo');
     expect(Math.max(res.width, res.height)).toBe(360);
   });
   it('handSignature targets 300px', async () => {
@@ -819,7 +826,7 @@ export async function processImage(
 }
 ```
 
-- [ ] **Step 5: Yeşili doğrula** — Run: `corepack pnpm --filter web test image-pipeline` → tümü PASS (15/15). Not: `compressToBudget`'ın `warning` dönüşü artık gerçek bir test tarafından da tetikleniyor (seeded-PRNG gürültü PNG'si, düz renkli fixture'ların aksine sıkıştırılamıyor) — önceki "testte üretilen görseller sığdığı için warning undefined olur" notu artık geçerli değil.
+- [ ] **Step 5: Yeşili doğrula** — Run: `corepack pnpm --filter web test image-pipeline` → tümü PASS (16/16). Not: `compressToBudget`'ın `warning` dönüşü artık gerçek bir test tarafından da tetikleniyor (seeded-PRNG gürültü PNG'si, düz renkli fixture'ların aksine sıkıştırılamıyor) — önceki "testte üretilen görseller sığdığı için warning undefined olur" notu artık geçerli değil.
 
 - [ ] **Step 6: Commit**
 
