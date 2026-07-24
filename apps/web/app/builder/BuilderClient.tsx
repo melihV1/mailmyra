@@ -39,6 +39,7 @@ export function BuilderClient({ gated }: { gated: boolean }) {
   // Debounce'lu taslak kaydı + "Taslak kaydedildi" göstergesi.
   useEffect(() => {
     if (!loadedRef.current) return;
+    if (JSON.stringify(data) === JSON.stringify(createEmptyData())) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       saveDraft(window.localStorage, data, Date.now());
