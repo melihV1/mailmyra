@@ -61,7 +61,10 @@ export function VisualsStep({
                 <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{url}</code>
                 <button
                   type="button"
-                  onClick={() => dispatch({ type: 'patchVisuals', value: { [slot.key]: undefined } })}
+                  onClick={() => {
+                    dispatch({ type: 'patchVisuals', value: { [slot.key]: undefined } });
+                    setMessages((m) => ({ ...m, [slot.key]: undefined }));
+                  }}
                 >
                   Kaldır
                 </button>
