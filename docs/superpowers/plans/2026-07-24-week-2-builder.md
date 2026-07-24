@@ -163,7 +163,7 @@ git commit -m "feat(web): add vitest and export gate flag"
 - Test: `apps/web/test/rate-limit.test.ts`
 
 **Interfaces:**
-- Produces: `createRateLimiter(opts: { limit: number; windowMs: number; maxKeys?: number }): { check(key: string, now: number): boolean; size(): number }` — `true` = izinli. Bellek içi sabit pencere. `maxKeys` (varsayılan `10_000`) map büyüklüğünü sınırlar; aşıldığında süresi dolmuş pencereler `now`'a göre süpürülür. `size()` map'teki anahtar sayısını döner (test/gözlemlenebilirlik için). `limit <= 0` ise `check` her zaman `false` döner.
+- Produces: `createRateLimiter(opts: { limit: number; windowMs: number; maxKeys?: number }): { check(key: string, now: number): boolean; size(): number }` — `true` = izinli. Bellek içi sabit pencere. `maxKeys` (varsayılan `10_000`) map büyüklüğünü **sert bir tavan** ile sınırlar: haritada henüz bulunmayan yeni bir anahtar eklenmeden önce, `windows.size >= maxKeys` ise en eski kayıt (insertion-order, O(1)) silinir — süresi dolmuş kayıtları arayan bir süpürme YAPILMAZ (çoklu-IP baskısı altında hiçbir şey süresi dolmamış olabilir, bu yüzden süpürme gerçek bir sınır sağlamaz). `size()` map'teki anahtar sayısını döner (test/gözlemlenebilirlik için). `limit <= 0` ise `check` her zaman `false` döner.
 
 - [ ] **Step 1: Başarısız test** — `apps/web/test/rate-limit.test.ts`:
 
@@ -197,24 +197,40 @@ describe('createRateLimiter', () => {
     expect(rl.check('a', 1)).toBe(false);
     expect(rl.check('a', 2000)).toBe(false);
   });
-  it('sweeps expired entries once the map exceeds maxKeys, bounding memory', () => {
+  it('evicts the oldest key once size reaches maxKeys, keeping size bounded', () => {
     const rl = createRateLimiter({ limit: 1, windowMs: 1000, maxKeys: 2 });
     expect(rl.check('a', 0)).toBe(true);
     expect(rl.check('b', 0)).toBe(true);
     expect(rl.size()).toBe(2);
-    // Both 'a' and 'b' windows expire by t=1000. A 3rd key pushes size past
-    // maxKeys, which should trigger a sweep of expired entries.
-    expect(rl.check('c', 1000)).toBe(true);
-    // 'a' and 'b' were expired at the time of the sweep and should have been
-    // evicted, leaving only 'c'.
-    expect(rl.size()).toBe(1);
-    // Evicted keys behave as fresh: allowed again despite limit: 1.
-    expect(rl.check('a', 1000)).toBe(true);
+    // Neither 'a' nor 'b' has expired (windowMs: 1000, still at t=0), so a
+    // sweep-of-expired-entries mechanism would evict nothing here. The hard
+    // cap must still bound memory regardless: inserting a 3rd distinct key
+    // evicts the oldest entry ('a', inserted first) to make room.
+    expect(rl.check('c', 0)).toBe(true);
+    expect(rl.size()).toBe(2);
+    // Evicted key 'a' behaves as fresh: allowed again despite limit: 1 and
+    // no time having passed.
+    expect(rl.check('a', 0)).toBe(true);
+    expect(rl.size()).toBe(2);
+  });
+  it('never evicts when re-checking keys already in the map', () => {
+    const rl = createRateLimiter({ limit: 5, windowMs: 1000, maxKeys: 2 });
+    expect(rl.check('a', 0)).toBe(true);
+    expect(rl.check('b', 0)).toBe(true);
+    expect(rl.size()).toBe(2);
+    // Map is already at maxKeys. Re-checking existing keys within their
+    // window must never trigger eviction, even at cap.
+    expect(rl.check('a', 1)).toBe(true);
+    expect(rl.check('b', 2)).toBe(true);
+    expect(rl.size()).toBe(2);
+    expect(rl.check('a', 3)).toBe(true);
+    expect(rl.check('b', 4)).toBe(true);
+    expect(rl.size()).toBe(2);
   });
 });
 ```
 
-- [ ] **Step 2: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test rate-limit` → FAIL (2 yeni test kırmızı: `limit: 0` ilk isteği yanlışlıkla kabul ediyor; `rl.size` fonksiyonu yok).
+- [ ] **Step 2: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test rate-limit` → FAIL (eski sweep tabanlı implementasyona karşı: "evicts the oldest key..." testi kırmızı — 3. anahtar eklenince map 3'e büyüyor, hiçbir kayıt süresi dolmadığı için süpürme hiçbir şey silmiyor, `size()` 2 yerine 3 dönüyor).
 
 - [ ] **Step 3: Implementasyon** — `apps/web/lib/rate-limit.ts`:
 
@@ -226,18 +242,23 @@ interface RateWindow {
 
 const DEFAULT_MAX_KEYS = 10_000;
 
-/** Bellek içi sabit pencere. Tek Node süreci varsayımı (spec'e kayıtlı). */
+/**
+ * Bellek içi sabit pencere. Tek Node süreci varsayımı (spec'e kayıtlı).
+ *
+ * Bellek sınırı sert bir tavan (hard cap) ile sağlanır: `maxKeys`'e
+ * ulaşıldığında, haritada henüz bulunmayan YENİ bir anahtar eklenmeden önce
+ * en eski kayıt (Map'in insertion-order'ına göre, `keys().next().value`) O(1)
+ * silinir. Süresi dolmuş kayıtları arayan bir süpürme YAPILMAZ — çoklu-IP
+ * saldırısı gibi sürekli yüksek anahtar çeşitliliği altında hiçbir kayıt
+ * süresi dolmadığı için böyle bir süpürme hiçbir şey silmez ve her istekte
+ * O(n) tarama yapardı. Trade-off: baskı altında en eski anahtar, penceresi
+ * henüz dolmamış olsa bile silinip sayacı sıfırlanabilir (canlı bir sayaç
+ * erken reset olabilir). MVP ölçeğinde kabul edilir; karşılığında bellek
+ * KESİN olarak `maxKeys` ile sınırlı kalır ve `check()` her zaman O(1)'dir.
+ */
 export function createRateLimiter(opts: { limit: number; windowMs: number; maxKeys?: number }) {
   const maxKeys = opts.maxKeys ?? DEFAULT_MAX_KEYS;
   const windows = new Map<string, RateWindow>();
-
-  function sweepExpired(now: number): void {
-    for (const [key, w] of windows) {
-      if (now - w.start >= opts.windowMs) {
-        windows.delete(key);
-      }
-    }
-  }
 
   return {
     check(key: string, now: number): boolean {
@@ -246,6 +267,10 @@ export function createRateLimiter(opts: { limit: number; windowMs: number; maxKe
       const w = windows.get(key);
       let allowed: boolean;
       if (!w || now - w.start >= opts.windowMs) {
+        if (!w && windows.size >= maxKeys) {
+          const oldestKey = windows.keys().next().value;
+          if (oldestKey !== undefined) windows.delete(oldestKey);
+        }
         windows.set(key, { start: now, count: 1 });
         allowed = true;
       } else if (w.count >= opts.limit) {
@@ -253,10 +278,6 @@ export function createRateLimiter(opts: { limit: number; windowMs: number; maxKe
       } else {
         w.count += 1;
         allowed = true;
-      }
-
-      if (windows.size > maxKeys) {
-        sweepExpired(now);
       }
 
       return allowed;
@@ -270,7 +291,7 @@ export function createRateLimiter(opts: { limit: number; windowMs: number; maxKe
 
 - [ ] **Step 4: Yeşil + commit**
 
-Run: `corepack pnpm --filter web test rate-limit` → PASS (5/5).
+Run: `corepack pnpm --filter web test rate-limit` → PASS (6/6).
 
 ```bash
 git add apps/web/lib/rate-limit.ts apps/web/test/rate-limit.test.ts
