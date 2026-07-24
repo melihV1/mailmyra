@@ -8,3 +8,5 @@ coverage/
 .claude/settings.local.json
 packages/renderer/out/
 .superpowers/
+.env*.local
+apps/web/public/cdn-dev/
