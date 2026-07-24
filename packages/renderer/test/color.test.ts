@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isValidHex, normalizeHex, readableTextOn } from '../src/utils/color';
+import { isValidHex, normalizeHex, readableTextOn, contrastRatio } from '../src/utils/color';
 
 describe('isValidHex', () => {
   it('accepts #abc and #aabbcc', () => {
@@ -33,5 +33,25 @@ describe('readableTextOn', () => {
   });
   it('returns white text on the brand blue', () => {
     expect(readableTextOn('#719ad1')).toBe('#ffffff');
+  });
+});
+
+describe('contrastRatio', () => {
+  it('is 21 for black on white', () => {
+    expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 0);
+  });
+  it('is 1 for identical colors', () => {
+    expect(contrastRatio('#719ad1', '#719ad1')).toBeCloseTo(1, 5);
+  });
+  it('is symmetric', () => {
+    expect(contrastRatio('#1a1a1a', '#ffffff')).toBeCloseTo(
+      contrastRatio('#ffffff', '#1a1a1a'),
+      5,
+    );
+  });
+  it('brand blue on white is below 4.5 (known mid-contrast)', () => {
+    const r = contrastRatio('#719ad1', '#ffffff');
+    expect(r).toBeGreaterThan(2);
+    expect(r).toBeLessThan(4.5);
   });
 });
