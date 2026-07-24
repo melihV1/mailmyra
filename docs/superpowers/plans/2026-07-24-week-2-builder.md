@@ -1000,6 +1000,21 @@ git add apps/web/app/api/upload apps/web/test/upload-route.test.ts
 git commit -m "feat(web): add upload API with rate limit and disk quota"
 ```
 
+**Kod incelemesi sonrası düzeltmeler (bu Task 6 bloğu geriye dönük güncellendi):**
+1. **Missing-env 500 branch coverage.** Route'da `CDN_WRITE_PATH` kontrolü yapılıyor ama testte bu 500 durumu doğrulanmıyordu. Eklenen test:
+
+```ts
+it('returns 500 when CDN env config is missing', async () => {
+  delete process.env.CDN_WRITE_PATH;
+  const res = await POST(await makeRequest(await pngBlob(), 'avatar'));
+  expect(res.status).toBe(500);
+  const body = await res.json();
+  expect(body.error).toContain('CDN_WRITE_PATH');
+});
+```
+
+Not: `beforeEach` her testten sonra `CDN_WRITE_PATH` yeniden ayarladığı için silme işlemi güvenli — sonraki testleri etkilemez.
+
 ---
 
 ### Task 7: `cleanup-orphans` (elle, --dry-run)

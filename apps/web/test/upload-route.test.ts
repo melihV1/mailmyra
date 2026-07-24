@@ -69,4 +69,11 @@ describe('POST /api/upload', () => {
     const res = await POST(await makeRequest(await pngBlob(), 'avatar'));
     expect(res.status).toBe(507);
   });
+  it('returns 500 when CDN env config is missing', async () => {
+    delete process.env.CDN_WRITE_PATH;
+    const res = await POST(await makeRequest(await pngBlob(), 'avatar'));
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error).toContain('CDN_WRITE_PATH');
+  });
 });
