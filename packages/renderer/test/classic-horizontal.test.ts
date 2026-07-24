@@ -42,6 +42,14 @@ describe('classicHorizontal', () => {
     expect(html).not.toContain('<script>x</script>');
     expect(html).toContain('&lt;script&gt;');
   });
+  it('renders every anchor without underline (text-decoration:none)', () => {
+    const html = classicHorizontal(full);
+    const anchors = html.match(/<a [^>]*>/gi) ?? [];
+    expect(anchors.length).toBeGreaterThan(0);
+    for (const a of anchors) {
+      expect(a).toContain('text-decoration:none');
+    }
+  });
   it('scales the name font size with layout.size', () => {
     const small = classicHorizontal({
       ...full,

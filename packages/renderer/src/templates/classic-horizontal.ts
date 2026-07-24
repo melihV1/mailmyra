@@ -57,6 +57,7 @@ export function classicHorizontal(data: SignatureData): string {
     'font-size': `${s.body}px`,
     color: text,
     'line-height': '1.4',
+    'text-decoration': 'none',
   });
 
   const lines: string[] = [];
