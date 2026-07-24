@@ -311,7 +311,7 @@ git commit -m "fix(web): bound rate limiter memory and honor zero limit"
 **Interfaces:**
 - Produces:
   - `interface StorageAdapter { save(filename: string, buffer: Buffer): Promise<{ url: string }> }`
-  - `class FsStorageAdapter implements StorageAdapter` — `constructor(writePath: string, publicUrl: string)`; var olan dosyayı **yeniden yazmaz** (değişmezlik).
+  - `class FsStorageAdapter implements StorageAdapter` — `constructor(writePath: string, publicUrl: string)`; var olan dosyayı **yeniden yazmaz** (değişmezlik), atomik dışlayıcı oluşturma (`wx`) ile TOCTOU'suz; `filename` bare basename olarak doğrulanır (yol ayırıcı veya `..` içeremez) — path traversal reddedilir.
   - `dirSizeBytes(dir: string): Promise<number>` — kota kontrolü için.
   - `getStorageAdapter(env?): FsStorageAdapter` — `CDN_WRITE_PATH`/`CDN_PUBLIC_URL` yoksa açıklayıcı hata fırlatır.
 
@@ -353,6 +353,47 @@ describe('FsStorageAdapter', () => {
   });
 });
 
+describe('FsStorageAdapter — path traversal', () => {
+  it('rejects a filename with a parent-directory segment', async () => {
+    const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
+    await expect(adapter.save('../evil.png', Buffer.from('x'))).rejects.toThrow();
+    expect(existsSync(join(dir, '..', 'evil.png'))).toBe(false);
+  });
+  it('rejects a filename containing a path separator', async () => {
+    const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
+    await expect(adapter.save('a/b.png', Buffer.from('x'))).rejects.toThrow();
+    expect(existsSync(join(dir, 'a', 'b.png'))).toBe(false);
+  });
+  it('rejects a filename that looks like an absolute path', async () => {
+    const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
+    await expect(adapter.save('/abs.png', Buffer.from('x'))).rejects.toThrow();
+    expect(existsSync(join(dir, 'abs.png'))).toBe(false);
+  });
+});
+
+describe('FsStorageAdapter — atomic exclusive write (TOCTOU)', () => {
+  it('resolves successfully and keeps the original content when the file already exists', async () => {
+    const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
+    writeFileSync(join(dir, 'atomic.png'), 'original');
+    const res = await adapter.save('atomic.png', Buffer.from('different-content'));
+    expect(res.url).toBe('https://cdn.mailmyra.com/atomic.png');
+    expect(readFileSync(join(dir, 'atomic.png'), 'utf8')).toBe('original');
+  });
+  it('handles concurrent saves to the same new filename without interleaving corruption', async () => {
+    const adapter = new FsStorageAdapter(dir, 'https://cdn.mailmyra.com');
+    const contents = ['one', 'two', 'three', 'four', 'five'];
+    const results = await Promise.all(
+      contents.map((c) => adapter.save('concurrent.png', Buffer.from(c))),
+    );
+    for (const r of results) {
+      expect(r.url).toBe('https://cdn.mailmyra.com/concurrent.png');
+    }
+    expect(existsSync(join(dir, 'concurrent.png'))).toBe(true);
+    const final = readFileSync(join(dir, 'concurrent.png'), 'utf8');
+    expect(contents).toContain(final);
+  });
+});
+
 describe('dirSizeBytes', () => {
   it('sums file sizes, 0 for missing dir', async () => {
     writeFileSync(join(dir, 'a.bin'), Buffer.alloc(10));
@@ -374,11 +415,31 @@ describe('getStorageAdapter', () => {
 - [ ] **Step 3: Implementasyon** — `apps/web/lib/storage.ts`:
 
 ```ts
-import { mkdir, readdir, stat, writeFile, access } from 'node:fs/promises';
+import { mkdir, readdir, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 export interface StorageAdapter {
   save(filename: string, buffer: Buffer): Promise<{ url: string }>;
+}
+
+const SAFE_FILENAME_RE = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+
+/**
+ * `filename` sunucu dosya sistemine doğrudan iletilir. Bare basename dışında
+ * her şey (yol ayırıcı veya üst dizin geçişi) reddedilir — CDN dizini dışına
+ * yazma girişimlerine karşı.
+ */
+function assertSafeFilename(filename: string): void {
+  if (
+    !SAFE_FILENAME_RE.test(filename) ||
+    filename.includes('/') ||
+    filename.includes('\\') ||
+    filename.includes('..')
+  ) {
+    throw new Error(
+      `Invalid CDN filename: "${filename}". Must be a bare basename matching ${SAFE_FILENAME_RE} with no path separators or "..".`,
+    );
+  }
 }
 
 export class FsStorageAdapter implements StorageAdapter {
@@ -388,13 +449,17 @@ export class FsStorageAdapter implements StorageAdapter {
   ) {}
 
   async save(filename: string, buffer: Buffer): Promise<{ url: string }> {
+    assertSafeFilename(filename);
     await mkdir(this.writePath, { recursive: true });
     const target = join(this.writePath, filename);
     // İçerik-adresli dosyalar değişmezdir: var olanı asla yeniden yazma.
+    // TOCTOU'suz atomik dışlayıcı oluşturma: 'wx' iki işlemi (kontrol + yazma)
+    // tek bir atomik syscall'a indirger. EEXIST => dosya zaten var, başarı
+    // say (mevcut içerik korunur); başka bir hata ise yeniden fırlat.
     try {
-      await access(target);
-    } catch {
-      await writeFile(target, buffer);
+      await writeFile(target, buffer, { flag: 'wx' });
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code !== 'EEXIST') throw err;
     }
     return { url: `${this.publicUrl.replace(/\/$/, '')}/${filename}` };
   }
