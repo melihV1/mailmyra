@@ -113,7 +113,10 @@ geçilir. Bu sınırlama spec'e bilinçli kayıt edilir.
 
 **Hafta 2 (lansmandan önce, kapı açıkken):**
 - `scripts/cleanup-orphans.ts`: `CDN_WRITE_PATH`'te mtime'ı `ORPHAN_TTL_DAYS`
-  (varsayılan 7) günden eski dosyaları siler. Elle veya cron'la çalıştırılır.
+  (varsayılan 7) günden eski dosyaları siler.
+- **Yalnızca elle çalıştırılır — cron'a bağlanmaz.** `--dry-run` bayrağı
+  vardır: hiçbir şey silmez, silinecek dosyaları listeler. Standart prosedür:
+  önce `--dry-run`, çıktı incelenir, sonra gerçek çalıştırma.
 - Bu dönemde export kapısı açık olduğundan hiçbir imza sahaya çıkmış olamaz —
   TTL silmesi güvenlidir.
 
@@ -140,10 +143,16 @@ gidip gelir; state ortak.
 3. **Sosyal** — platform seç + URL, ekle/sil, sırala (yukarı/aşağı)
 4. **Stil** — brand/text/muted renk seçiciler, font (WebSafeFont listesi), boyut (S/M/L), ayraç aç/kapa, ikon stili (Hafta 2'de görsel etkisi yok — metin-link; seçim saklanır)
 
-**Kontrast uyarısı (Stil adımında):** `contrastRatio(textColor, '#ffffff') < 3`
-veya `contrastRatio(mutedColor, '#ffffff') < 2` ise uyarı bandı: "Bu renkler
-beyaz zeminde zor okunur". Engellemez, sadece uyarır. `contrastRatio`
-`packages/renderer/src/utils/color.ts`'e eklenir (WCAG formülü, saf, test edilir).
+**Kontrast uyarısı (Stil adımında):** iki zemine karşı kontrol edilir —
+açık `#ffffff` ve koyu `#1a1a1a` (Hafta 1'de görülen sorun koyu zemindeydi;
+alıcı e-postayı dark mode'da açabilir). Eşikler:
+- `textColor`: oran **< 4.5** ise uyar (WCAG küçük metin asgarisi)
+- `mutedColor`: oran **< 3** ise uyar
+
+Hangi zemin başarısızsa mesaj onu söyler: "Bu renkler beyaz zeminde zor
+okunur" / "Bu renkler koyu zeminde (dark mode) zor okunur". Engellemez,
+sadece uyarır. `contrastRatio(a, b)` `packages/renderer/src/utils/color.ts`'e
+eklenir (WCAG formülü, saf, test edilir).
 
 **Taslak (lib/draft.ts):**
 - Şekil: `{ version: 1, savedAt: epoch_ms, data: SignatureData }`
@@ -201,6 +210,8 @@ davranışının açık bırakılması; kök sebep implementasyonda doğrulanır
 - `rate-limit`: pencere içinde N+1'inci istek reddedilir, pencere geçince sıfırlanır
 - `draft`: round-trip · 30 gün expiry · `data:` URL yazılmıyor · temizle
 - `export-gate`: bayrak true/false davranışı
+- `cleanup-orphans`: TTL'den eski dosya silinir, yenisi kalır · `--dry-run`
+  hiçbir dosyayı silmez ama listeler
 
 **Manuel (tarayıcı):** builder akışı uçtan uca — doldur → yükle → önizle →
 (kapı kapalıyken) kopyala/indir; mobil genişlikte Düzenle/Önizle geçişi.
