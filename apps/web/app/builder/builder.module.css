@@ -1,0 +1,61 @@
+.shell {
+  font-family: system-ui, sans-serif;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: minmax(380px, 1fr) minmax(420px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.mobileTabs {
+  display: none;
+}
+
+.stepTabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.stepTab {
+  padding: 8px 14px;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px 8px 0 0;
+  background: #fafafa;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.stepTabActive {
+  background: #719ad1;
+  color: #fff;
+  border-color: #719ad1;
+}
+
+.previewPane {
+  position: sticky;
+  top: 16px;
+}
+
+@media (max-width: 1023px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
+  .mobileTabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .mobileHidden {
+    display: none;
+  }
+  .previewPane {
+    position: static;
+  }
+}
