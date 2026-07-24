@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { renderSignature } from '@mailmyra/renderer';
-import { builderReducer, createEmptyData } from './reducer';
+import { builderReducer, createEmptyData, mergeWithEmpty } from './reducer';
 import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
 import { InfoStep } from './steps/InfoStep';
 import { VisualsStep } from './steps/VisualsStep';
@@ -29,10 +29,13 @@ export function BuilderClient({ gated }: { gated: boolean }) {
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Açılışta taslağı yükle (30 gün TTL draft.ts içinde).
+  // Açılışta taslağı yükle (30 gün TTL draft.ts içinde). `loadDraft` şekil
+  // doğrulaması yapsa da (bkz. draft.ts) eksik bir alt-alan render sırasında
+  // çökmeye yol açabilir — `mergeWithEmpty` taslağı `createEmptyData()`
+  // varsayılanlarıyla tamamlayarak bu çökme dikişini kapatır.
   useEffect(() => {
     const draft = loadDraft(window.localStorage, Date.now());
-    if (draft) dispatch({ type: 'load', value: draft });
+    if (draft) dispatch({ type: 'load', value: mergeWithEmpty(draft) });
     loadedRef.current = true;
   }, []);
 

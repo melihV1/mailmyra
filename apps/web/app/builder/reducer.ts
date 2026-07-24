@@ -21,6 +21,29 @@ export function createEmptyData(): SignatureData {
   };
 }
 
+/**
+ * Bozuk/kısmi bir taslağı (ör. eski bir şemadan kalan veya elle bozulmuş
+ * localStorage kaydı) eksiksiz bir `SignatureData`'ya tamamlar. Bölüm bazlı
+ * (identity/contact/visuals/layout) object-spread yapılır — böylece kısmi
+ * bir bölüm, o bölümün TAMAMINI değil yalnızca verdiği alanları geçersiz
+ * kılar; eksik alanlar `createEmptyData()` varsayılanlarından gelir.
+ * `dispatch({ type: 'load', ... })` bunu atlayıp doğrudan `action.value`'yu
+ * state yaparsa, eksik bir zorunlu alan (ör. `visuals.brandColor`) render
+ * sırasında beyaz ekrana (crash) yol açabilir — bu fonksiyon o çökme
+ * dikişini (crash seam) builder mount noktasında kapatır.
+ */
+export function mergeWithEmpty(partial: Partial<SignatureData>): SignatureData {
+  const empty = createEmptyData();
+  return {
+    identity: { ...empty.identity, ...partial.identity },
+    contact: { ...empty.contact, ...partial.contact },
+    visuals: { ...empty.visuals, ...partial.visuals },
+    social: partial.social ?? empty.social,
+    extras: { ...empty.extras, ...partial.extras },
+    layout: { ...empty.layout, ...partial.layout },
+  };
+}
+
 export type BuilderAction =
   | { type: 'patchIdentity'; value: Partial<SignatureData['identity']> }
   | { type: 'patchContact'; value: Partial<SignatureData['contact']> }

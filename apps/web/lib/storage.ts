@@ -48,6 +48,12 @@ export class FsStorageAdapter implements StorageAdapter {
   }
 }
 
+/**
+ * Bir dizindeki dosyaların toplam boyutu. Yalnızca ÜST DÜZEY (top-level)
+ * girdilere bakar — alt dizinlere ÖZYİNELİ (recursive) İNMEZ; bir alt dizin
+ * girdisi `s.isFile()` false olduğu için basitçe atlanır ve içeriği kota
+ * hesabına katılmaz.
+ */
 export async function dirSizeBytes(dir: string): Promise<number> {
   let total = 0;
   let entries: string[];
@@ -57,8 +63,14 @@ export async function dirSizeBytes(dir: string): Promise<number> {
     return 0;
   }
   for (const name of entries) {
-    const s = await stat(join(dir, name));
-    if (s.isFile()) total += s.size;
+    try {
+      const s = await stat(join(dir, name));
+      if (s.isFile()) total += s.size;
+    } catch {
+      // Girdi readdir() ile stat() arasında kayboldu (silindi) ya da kırık
+      // bir symlink — bu girdiyi atla, taramanın geri kalanına devam et.
+      continue;
+    }
   }
   return total;
 }

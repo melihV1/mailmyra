@@ -1,8 +1,14 @@
+import { notFound } from 'next/navigation';
 import { fixtures, renderSignature } from '@mailmyra/renderer';
 import { ExportButtons } from '../../../components/ExportButtons';
 import { wrapPreviewDoc } from '../../../components/preview-doc';
 
 export default function DevRenderPage() {
+  // Bu geliştirici harness'ı üretimde asla servis edilmemeli — canlı
+  // ortamda kazara erişilebilir kalırsa dahili test fixture'larını ve
+  // ExportButtons davranışını sızdırır.
+  if (process.env.NODE_ENV === 'production') notFound();
+
   return (
     <main
       style={{
@@ -32,11 +38,13 @@ export default function DevRenderPage() {
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               <iframe
                 title={`${fx.id}-light`}
+                sandbox=""
                 srcDoc={wrapPreviewDoc(html, '#ffffff')}
                 style={{ width: 620, height: 280, border: '1px solid #ddd' }}
               />
               <iframe
                 title={`${fx.id}-dark`}
+                sandbox=""
                 srcDoc={wrapPreviewDoc(html, '#1a1a1a')}
                 style={{ width: 620, height: 280, border: '1px solid #ddd' }}
               />

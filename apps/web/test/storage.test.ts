@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync, writeFileSync, existsSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { FsStorageAdapter, dirSizeBytes, getStorageAdapter } from '../lib/storage';
@@ -80,6 +80,11 @@ describe('dirSizeBytes', () => {
     writeFileSync(join(dir, 'b.bin'), Buffer.alloc(5));
     expect(await dirSizeBytes(dir)).toBe(15);
     expect(await dirSizeBytes(join(dir, 'yok'))).toBe(0);
+  });
+  it('skips an entry that vanishes or is a broken symlink instead of throwing', async () => {
+    writeFileSync(join(dir, 'a.bin'), Buffer.alloc(10));
+    symlinkSync(join(dir, 'nonexistent-target-xyz'), join(dir, 'broken-link'));
+    await expect(dirSizeBytes(dir)).resolves.toBe(10);
   });
 });
 

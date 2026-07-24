@@ -17,6 +17,7 @@ export function Preview({ html }: { html: string }) {
       </div>
       <iframe
         title="signature-preview"
+        sandbox=""
         srcDoc={wrapPreviewDoc(html, dark ? '#1a1a1a' : '#ffffff')}
         style={{
           width: '100%',

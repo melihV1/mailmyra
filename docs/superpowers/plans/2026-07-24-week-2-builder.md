@@ -513,6 +513,11 @@ git add apps/web/lib/storage.ts apps/web/test/storage.test.ts .env.example .giti
 git commit -m "feat(web): add fs storage adapter with immutable writes"
 ```
 
+**Kod incelemesi sonrası düzeltmeler (final review dalgası, 2026-07-24 — bu Task 4 bloğu geriye dönük güncellendi):**
+1. **`dirSizeBytes` per-entry izolasyon.** `readdir` ile `stat` arasında bir dosya kaybolursa veya kırık bir symlink varsa döngü artık `ENOENT` ile tüm taramayı reddetmiyor — her girdi kendi try/catch'i içinde, hatalı girdi atlanıp tarama devam ediyor (bkz. `apps/web/test/storage.test.ts` — `symlinkSync` ile kırık sembolik bağlantı testi). Fonksiyona ayrıca yalnızca ÜST DÜZEY (top-level, özyinesiz) tarama yaptığını belirten bir doc-comment eklendi.
+2. **`.env.example` yanlış yol.** `CDN_WRITE_PATH=./apps/web/public/cdn-dev` kök dizinden çalıştırılan bir komut için doğruydu ama dosyanın gerçek kullanım şekli (`apps/web/.env.local` olarak kopyalanıp Next'in `apps/web` içinden yüklemesi) ile uyuşmuyordu — kopyalandığında yol `apps/web/apps/web/public/cdn-dev`'e karşılık gelen bir konumu işaret ederdi. `./public/cdn-dev` olarak düzeltildi, dosyanın başına kopyalama talimatı yorumu eklendi.
+(Bu düzeltmelerin gerçek commit'i tek bir birleşik "final review dalgası" commit'i içinde — bkz. dosya sonundaki özet.)
+
 ---
 
 ### Task 5: `image-pipeline` (doğrulama + sharp işleme + adlandırma)
@@ -1014,6 +1019,12 @@ it('returns 500 when CDN env config is missing', async () => {
 ```
 
 Not: `beforeEach` her testten sonra `CDN_WRITE_PATH` yeniden ayarladığı için silme işlemi güvenli — sonraki testleri etkilemez.
+
+**Kod incelemesi sonrası düzeltmeler (final review dalgası, 2026-07-24 — bu Task 6 bloğu geriye dönük güncellendi):**
+1. **Gövdeye dokunmadan boyut ön-kontrolü.** `req.formData()` çağrılmadan ÖNCE `content-length` header'ı okunur; sayıya çevrilebiliyor (`Number.isFinite`) ve `5MB + 64KB` (multipart çerçeveleme payı) sınırını aşıyorsa gövde HİÇ okunmadan `413` dönülür. Eksik veya ayrıştırılamayan header varsayılan olarak akışa devam eder — gerçek boyut sınırı zaten `image-pipeline.ts`'te uygulanıyor. Test: küçük bir gövdeyle ama şişirilmiş `content-length` header'ıyla istek → 413; header yok/çöp → pipeline'a düşer, normal akış.
+2. **`X-Forwarded-For` sertleştirmesi.** Önceki kod zincirdeki İLK girdiyi (`split(',')[0]`) alıyordu — bu, ekleme yapan (append eden) bir proxy zincirinin arkasında saldırganın serbestçe sahteleyebileceği bir değerdi ve rate limit anahtarı olarak güvenilemezdi. Artık SON girdi alınıyor (`.pop()`), trim ediliyor; boş/whitespace-only veya header'ın kendisi yoksa `'local'`. Test: aynı SON girdiyi paylaşan ama farklı (sahte) İLK girdilere sahip iki istek + limit 1 → ikinci istek 429 (eski first-entry davranışında bu iki istek FARKLI anahtarlara düşer ve ikinci istek de 200 dönerdi — test bu farkı kanıtlıyor); boş XFF header'ın hiç header göndermeyen istekle AYNI ('local') anahtarı paylaştığı ayrıca doğrulandı.
+3. **NaN fail-safe env ayrıştırma.** Yeni `apps/web/lib/env.ts` → `envInt(value: string | undefined, fallback: number): number` — `Number(value)` yalnızca `Number.isFinite` ise kullanılır, aksi halde `fallback`. `UPLOAD_RATE_LIMIT_PER_HOUR` ve `CDN_DISK_QUOTA_MB` artık `Number(x ?? 20)` yerine bunu kullanıyor — önceden çöp bir env değeri (`Number('abc') === NaN`) sınırı sessizce devre dışı bırakabiliyordu (`count >= NaN` her zaman `false`), artık varsayılana (20 / 5120) düşüyor. Testler: `apps/web/test/env.test.ts` (birim) + route üzerinden uçtan uca (`UPLOAD_RATE_LIMIT_PER_HOUR='not-a-number'` iken 20. istekte hâlâ 429; `CDN_DISK_QUOTA_MB='not-a-number'` iken kota hâlâ 5120MB varsayılanına düşüyor).
+(Bu düzeltmelerin gerçek commit'i tek bir birleşik "final review dalgası" commit'i içinde — bkz. dosya sonundaki özet.)
 
 ---
 
@@ -1521,6 +1532,30 @@ git add apps/web/app/builder/reducer.ts apps/web/test/builder-reducer.test.ts
 git commit -m "feat(web): add builder reducer and empty data factory"
 ```
 
+**Kod incelemesi sonrası düzeltme (final review dalgası, 2026-07-24 — bu Task 9 bloğu geriye dönük güncellendi): draft çökme dikişi (crash seam).**
+
+`loadDraft` (Task 8) yalnızca `envelope.version`/`savedAt` ve `identity.fullName`'in tipini doğruluyor — `visuals`, `layout` gibi diğer zorunlu alt-alanların TAMAMEN eksik olması ihtimaline karşı korumuyor (ör. eski bir şema sürümünden kalan veya elle bozulmuş bir localStorage kaydı). `BuilderClient`'ın mount effect'i `dispatch({ type: 'load', value: draft })` ile bunu doğrudan state yapıyordu; eksik bir alan (ör. `visuals.brandColor`) render sırasında beyaz ekrana (crash) yol açabilirdi. `SignatureData` tip olarak eksiksiz göründüğü için TypeScript bunu yakalamaz — `loadDraft`'ın dönüş tipi `SignatureData | null` olduğundan derleyici `draft`'ın gerçekten eksiksiz olduğuna güvenir.
+
+Eklenen fonksiyon — `apps/web/app/builder/reducer.ts`:
+```ts
+export function mergeWithEmpty(partial: Partial<SignatureData>): SignatureData {
+  const empty = createEmptyData();
+  return {
+    identity: { ...empty.identity, ...partial.identity },
+    contact: { ...empty.contact, ...partial.contact },
+    visuals: { ...empty.visuals, ...partial.visuals },
+    social: partial.social ?? empty.social,
+    extras: { ...empty.extras, ...partial.extras },
+    layout: { ...empty.layout, ...partial.layout },
+  };
+}
+```
+
+`BuilderClient.tsx`'teki mount effect'i artık `dispatch({ type: 'load', value: mergeWithEmpty(draft) })` çağırıyor.
+
+Testler (`apps/web/test/builder-reducer.test.ts`): `mergeWithEmpty({ identity: { fullName: 'x' } })` eksiksiz bir `SignatureData` üretir (varsayılan `layout.templateId`, `visuals` renkleri dahil); `mergeWithEmpty({})` tam olarak `createEmptyData()`'ya eşittir; bir bölümün kısmi verilmesi o bölümün TAMAMINI değil yalnızca verilen alanları geçersiz kılar (tip sistemini atlatan `as unknown as Partial<SignatureData>` ile gerçek dünyadaki "eksik alanlı ama SignatureData tipiyle akan" senaryo simüle edildi); sağlanan bir `social` listesi boşa düşürülmeden korunur.
+(Bu düzeltmelerin gerçek commit'i tek bir birleşik "final review dalgası" commit'i içinde — bkz. dosya sonundaki özet.)
+
 ---
 
 ### Task 10: Ortak önizleme sarmalayıcı + ExportButtons (kapılı) + /login + harness düzeltmesi
@@ -1665,6 +1700,10 @@ export default function LoginPage() {
 git add apps/web/components apps/web/app/login apps/web/app/dev/render
 git commit -m "feat(web): shared preview doc, gated export buttons, login placeholder"
 ```
+
+**Kod incelemesi sonrası düzeltmeler (final review dalgası, 2026-07-24 — bu Task 10 bloğu geriye dönük güncellendi):**
+1. **`/dev/render` üretimde gizlendi.** Bu geliştirici harness'ı canlı ortamda kazara erişilebilir kalırsa dahili test fixture'larını sızdırır. `apps/web/app/dev/render/page.tsx`'in başına `if (process.env.NODE_ENV === 'production') notFound();` eklendi (`next/navigation`'dan import). `next build` sırasında `NODE_ENV=production` sabit olduğundan bu route artık build zamanında statik bir 404 olarak üretiliyor (`.next/server/app/dev/render.meta` → `"status": 404`) — Task 13'teki `/builder` durumunun aksine burada build-zamanı statik üretim SORUN DEĞİL, çünkü `NODE_ENV` build makinesiyle üretim sunucusu arasında farklılaşmaz (export gate bayrağı gibi ortamdan ortama değişen bir değer değil).
+2. **İki önizleme iframe'ine de `sandbox=""`.** `srcDoc` ile kullanıcı/fixture kaynaklı HTML render eden iframe'ler script çalıştırma, form gönderme, top-level navigasyon gibi yetenekleri olmadan izole edilmeli. `sandbox=""` (boş değer) tüm sandbox izinlerini kapatır — imza önizlemesi salt görsel olduğundan işlevsellik kaybı yok.
 
 ---
 
@@ -2167,6 +2206,8 @@ git add apps/web/app/builder/steps apps/web/app/builder/fields.tsx
 git commit -m "feat(web): add builder info, social and style steps"
 ```
 
+**Kapsam eklemesi (final review dalgası, 2026-07-24):** `contrastWarnings` o zamana kadar yalnızca `StyleStep` render testleri üzerinden dolaylı kapsanıyordu; doğrudan bir birim test dosyası yoktu. Yeni `apps/web/test/contrast-warnings.test.ts` eklendi — `@mailmyra/renderer`'dan `contrastRatio`'yu kullanarak (sabit/"sihirli" beklenen oran sayıları yerine) test girdilerini gerçek matematikle doğruluyor: koyu metin (`#1a1a1a`) yalnızca koyu zeminde uyarır; açık gri (`#cccccc`) yalnızca beyaz zeminde uyarır; aynı orta-gri renk (`#767676`) metin (4.5) ve muted (3) eşiklerine göre FARKLI sonuç verir (iki eşiğin bağımsız uygulandığını kanıtlar). Yan bulgu: bu iki sabit zemin (`#ffffff` / `#1a1a1a`) ve 4.5 eşiği için, HİÇBİR renk `textColor` kontrolünü iki zeminde birden geçemiyor (matematiksel olarak — beyazın parlaklığı ~1.0, `#1a1a1a`'nınki ~0.014, aradaki mesafe 4.5 eşiğinin ikisini birden karşılamasına izin vermiyor); bu ürün/UX açısından ayrı bir konu olarak not edildi, kapsam dışı bırakıldı.
+
 ---
 
 ### Task 12: VisualsStep (yükleme akışı)
@@ -2385,6 +2426,7 @@ export function Preview({ html }: { html: string }) {
       </div>
       <iframe
         title="signature-preview"
+        sandbox=""
         srcDoc={wrapPreviewDoc(html, dark ? '#1a1a1a' : '#ffffff')}
         style={{
           width: '100%',
@@ -2399,6 +2441,8 @@ export function Preview({ html }: { html: string }) {
 }
 ```
 
+**Kod incelemesi sonrası düzeltme (final review dalgası, 2026-07-24):** `sandbox=""` eklendi — `srcDoc` ile kullanıcı/taslak kaynaklı HTML render eden bu iframe script/form/navigasyon yeteneklerinden izole edilmeli (önizleme salt görsel, işlevsellik kaybı yok).
+
 - [ ] **Step 3: BuilderClient** — `apps/web/app/builder/BuilderClient.tsx`:
 
 ```tsx
@@ -2406,7 +2450,7 @@ export function Preview({ html }: { html: string }) {
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { renderSignature } from '@mailmyra/renderer';
-import { builderReducer, createEmptyData } from './reducer';
+import { builderReducer, createEmptyData, mergeWithEmpty } from './reducer';
 import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
 import { InfoStep } from './steps/InfoStep';
 import { VisualsStep } from './steps/VisualsStep';
@@ -2433,10 +2477,12 @@ export function BuilderClient({ gated }: { gated: boolean }) {
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Açılışta taslağı yükle (30 gün TTL draft.ts içinde).
+  // Açılışta taslağı yükle (30 gün TTL draft.ts içinde). `mergeWithEmpty`
+  // eksik/bozuk bir alt-alanı `createEmptyData()` varsayılanlarıyla tamamlar
+  // (kod incelemesi sonrası düzeltme — bkz. Task 9 notu, crash seam).
   useEffect(() => {
     const draft = loadDraft(window.localStorage, Date.now());
-    if (draft) dispatch({ type: 'load', value: draft });
+    if (draft) dispatch({ type: 'load', value: mergeWithEmpty(draft) });
     loadedRef.current = true;
   }, []);
 
@@ -2541,11 +2587,14 @@ import { isExportGated } from '../../lib/export-gate';
 import { BuilderClient } from './BuilderClient';
 
 export const metadata = { title: 'İmza Oluşturucu — Mailmyra' };
+export const dynamic = 'force-dynamic';
 
 export default function BuilderPage() {
   return <BuilderClient gated={isExportGated()} />;
 }
 ```
+
+**Kod incelemesi sonrası düzeltme (final review dalgası, 2026-07-24):** `export const dynamic = 'force-dynamic'` eklendi. Bu sayfa server component olduğundan ve içinde yan etki yaratan bir çağrı yokken, `next build` onu statik olarak öndeğerlendirip `isExportGated()`'i BUILD makinesinin `EXPORT_REQUIRES_AUTH` değeriyle bir kez çözüp sonucu HTML'e gömebilirdi — üretim sunucusundaki gerçek env değeri hiç okunmazdı (build ile deploy farklı ortam değişkenleriyle çalışıyorsa export kapısı yanlış tarafta donardı). `force-dynamic` bunu HER İSTEKTE yeniden değerlendirmeye zorluyor. Doğrulama: `corepack pnpm --filter web build` çıktısında route artık `ƒ (Dynamic)` işaretli (önceden `○ (Static)`).
 
 - [ ] **Step 5: Build + test** — Run: `corepack pnpm --filter web build` → başarılı. Run: `corepack pnpm -r test` → tümü PASS.
 
@@ -2598,3 +2647,14 @@ git commit -m "docs: record week 2 checkpoint verification"
 - `cleanup-orphans --dry-run` örnek klasörde doğru listeliyor
 
 **Kapsam hatırlatması:** Yeni şablon YOK (Outlook Classic beklemede), auth YOK (`/login` placeholder), DB YOK.
+
+---
+
+## Final Review Fix Wave (2026-07-24)
+
+Hafta 2 kontrol noktasından sonra yapılan bir code-review dalgasında bulunan 7 madde, yukarıdaki Task 4/5/6/9/10/11/13 bloklarına geriye dönük "Kod incelemesi sonrası düzeltme(ler)" notları olarak işlendi (bkz. ilgili Task'lar). Gerçek değişiklikler İKİ commit'te toplandı — task bazlı notlardaki bireysel `git commit` önerileri anlatım kolaylığı için bırakıldı, gerçek geçmiş bu ikisidir:
+
+1. **`fix(web): harden upload route, draft merge, runtime gate, prod-safe harness`** — Task 4 notu (`dirSizeBytes` per-entry izolasyon, `.env.example` yol düzeltmesi), Task 6 notu (content-length ön-kontrolü, XFF son-girdi sertleştirmesi, `envInt` fail-safe), Task 9 notu (`mergeWithEmpty` draft çökme dikişi), Task 10 notu (`/dev/render` prod gate, iki iframe'e `sandbox=""`), Task 11 notu (`contrast-warnings.test.ts`), Task 13'teki `Preview.tsx` sandbox + `BuilderClient.tsx` `mergeWithEmpty` kablolaması + `page.tsx` `dynamic = 'force-dynamic'`.
+2. **`feat(web)!: 16-hex content hashes with collision detection`** — Task 5 notu bullet 5 (hash 8→16 hex), Task 4'e ek: `FsStorageAdapter.save()` artık EEXIST'te içerik karşılaştırması yapıp FARKLI içerikte reddediyor (bkz. `apps/web/lib/storage.ts`, `apps/web/test/storage.test.ts` — `'never overwrites an existing file (immutability)'` testi artık reddi doğruluyor), `apps/web/lib/image-pipeline.ts` hash slice'ı, ilgili test regex'leri, `CLAUDE.md` "Görsel Boyut Politikası" örneği, `docs/superpowers/specs/2026-07-24-week-2-builder-design.md` hash notu. `!` işareti: `storage.test.ts`'teki `'never overwrites...'` davranışı SEMANTİK olarak değişti (önceden sessiz-koru, şimdi ret) — bu Task 4/6'daki `save()` çağıranları etkilemez (hepsi zaten hash'lenmiş benzersiz dosya adı üretiyor) ama doğrudan `FsStorageAdapter` kullanan gelecekteki kod bu farkı bilmeli.
+
+Doğrulama: `corepack pnpm -r test` (147/147 yeşil) · `corepack pnpm -r typecheck` (0 hata) · `corepack pnpm --filter web build` (başarılı, `/builder` artık `ƒ Dynamic`, `/dev/render` build-zamanı statik 404). Tam rapor: `.superpowers/sdd/final-fix-report.md` (gitignore'da, yerel).
