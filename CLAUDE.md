@@ -26,7 +26,6 @@ Koltuk (kullanıcı) başına ücretlendirme.
 
 | Plan | Kim | Fiyat |
 |---|---|---|
-| Free | SEO yemi | $0 — 1 kullanıcı, 1 imza, Mailmyra rozeti |
 | Pro | Freelancer | $5/ay sabit — tek kişi, sınırsız imza |
 | Team | KOBİ | $1/koltuk/ay, **minimum 5 koltuk** |
 | Business | Kurumsal | 10–49: $0.83 · 50–199: $0.75 · 200+: görüşmeli |
@@ -34,6 +33,11 @@ Koltuk (kullanıcı) başına ücretlendirme.
 
 **İlk 10 müşteri manuel faturalanacak.** Otomatik abonelik sistemi YAZILMAYACAK.
 Ödeme altyapısı (Vakıfbank sanal POS + PayTR) hazır ama entegrasyon ertelendi.
+
+**Ücretsiz plan YOK** (karar: 2026-07-24, Hüseyin). Builder ve canlı önizleme
+herkese açık; **export (kopyala + .htm indir) giriş ve ödeme gerektirir**.
+Uygulamada `EXPORT_REQUIRES_AUTH=true|false` bayrağıyla ayarlanır — iş modeli
+kararı koda gömülmez.
 
 ### Stack
 - **TypeScript** her yerde
