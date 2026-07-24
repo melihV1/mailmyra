@@ -94,23 +94,27 @@ export function InfoStep({
             <input
               style={{ ...inputStyle, flex: 1 }}
               placeholder="Etiket"
+              aria-label={`Özel alan ${i + 1} etiketi`}
               value={f.label}
               onChange={(e) => setCustomField(i, { label: e.target.value })}
             />
             <input
               style={{ ...inputStyle, flex: 1 }}
               placeholder="Değer"
+              aria-label={`Özel alan ${i + 1} değeri`}
               value={f.value}
               onChange={(e) => setCustomField(i, { value: e.target.value })}
             />
             <input
               style={{ ...inputStyle, flex: 1 }}
               placeholder="URL (opsiyonel)"
+              aria-label={`Özel alan ${i + 1} bağlantısı`}
               value={f.url ?? ''}
               onChange={(e) => setCustomField(i, { url: e.target.value || undefined })}
             />
             <button
               type="button"
+              aria-label={`Özel alan ${i + 1} sil`}
               onClick={() =>
                 dispatch({
                   type: 'patchExtras',

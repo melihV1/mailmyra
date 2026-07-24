@@ -41,6 +41,8 @@ export function TextField({
         style={inputStyle}
         value={value}
         placeholder={placeholder}
+        required={required}
+        aria-required={required || undefined}
         onChange={(e) => onChange(e.target.value)}
       />
     </label>

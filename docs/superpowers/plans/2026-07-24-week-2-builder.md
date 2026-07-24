@@ -1726,6 +1726,8 @@ export function TextField({
         style={inputStyle}
         value={value}
         placeholder={placeholder}
+        required={required}
+        aria-required={required || undefined}
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
@@ -1841,23 +1843,27 @@ export function InfoStep({
             <input
               style={{ ...inputStyle, flex: 1 }}
               placeholder="Etiket"
+              aria-label={`Özel alan ${i + 1} etiketi`}
               value={f.label}
               onChange={(e) => setCustomField(i, { label: e.target.value })}
             />
             <input
               style={{ ...inputStyle, flex: 1 }}
               placeholder="Değer"
+              aria-label={`Özel alan ${i + 1} değeri`}
               value={f.value}
               onChange={(e) => setCustomField(i, { value: e.target.value })}
             />
             <input
               style={{ ...inputStyle, flex: 1 }}
               placeholder="URL (opsiyonel)"
+              aria-label={`Özel alan ${i + 1} bağlantısı`}
               value={f.url ?? ''}
               onChange={(e) => setCustomField(i, { url: e.target.value || undefined })}
             />
             <button
               type="button"
+              aria-label={`Özel alan ${i + 1} sil`}
               onClick={() =>
                 dispatch({
                   type: 'patchExtras',
@@ -1945,6 +1951,7 @@ export function SocialStep({
         <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
           <select
             style={{ ...inputStyle, width: 140 }}
+            aria-label={`Sosyal platform ${i + 1}`}
             value={s.platform}
             onChange={(e) =>
               update(social.map((x, j) => (j === i ? { ...x, platform: e.target.value as typeof s.platform } : x)))
@@ -1959,12 +1966,13 @@ export function SocialStep({
           <input
             style={{ ...inputStyle, flex: 1 }}
             placeholder="https://..."
+            aria-label={`Sosyal bağlantı ${i + 1} adresi`}
             value={s.url}
             onChange={(e) => update(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
           />
           <button type="button" onClick={() => move(i, -1)} aria-label="Yukarı">↑</button>
           <button type="button" onClick={() => move(i, 1)} aria-label="Aşağı">↓</button>
-          <button type="button" onClick={() => update(social.filter((_, j) => j !== i))}>
+          <button type="button" aria-label={`Sosyal bağlantı ${i + 1} sil`} onClick={() => update(social.filter((_, j) => j !== i))}>
             Sil
           </button>
         </div>
