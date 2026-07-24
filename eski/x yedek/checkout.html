@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yearly Checkout - Mailmyra</title>
+    <meta name="description" content="Activate a yearly Mailmyra plan to unlock signature export and dashboard management." />
+    <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body class="home-page checkout-page">
+    <svg class="icon-sprite" aria-hidden="true">
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></symbol>
+      <symbol id="icon-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18" /></symbol>
+      <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></symbol>
+    </svg>
+
+    <div class="home-shell">
+      <header class="topbar home-topbar">
+        <a class="brand" href="index.html" aria-label="Mailmyra home"><img src="assets/img/logo.svg" alt="Mailmyra" /></a>
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="products.html">Products</a>
+          <a class="nav-link" href="pricing.html">Pricing</a>
+          <a class="nav-link" href="blog.html">Blog</a>
+          <a class="nav-link" href="faqs.html">FAQs</a>
+        </nav>
+        <nav class="topbar-actions" aria-label="Account">
+          <a href="login.html" class="login-button">Log in</a>
+        </nav>
+      </header>
+
+      <main class="checkout-main">
+        <section class="home-container checkout-grid" aria-labelledby="checkoutTitle">
+          <div class="checkout-summary">
+            <span class="home-kicker">Yearly billing</span>
+            <h1 id="checkoutTitle">Activate Mailmyra before exporting signature code.</h1>
+            <p>Exporting HTML and managing saved email identities is connected to an active yearly plan in this frontend demo.</p>
+            <div class="checkout-plan-card">
+              <span>Selected plan</span>
+              <h2 data-selected-plan>Professional</h2>
+              <div class="checkout-price"><strong data-selected-price>$84</strong><em data-selected-interval>/year</em></div>
+              <ul>
+                <li><svg class="icon"><use href="#icon-check"></use></svg><span data-selected-seats>1 seat</span></li>
+                <li><svg class="icon"><use href="#icon-check"></use></svg><span data-selected-limit>25 signatures</span></li>
+                <li><svg class="icon"><use href="#icon-check"></use></svg>Signature export and dashboard list</li>
+              </ul>
+            </div>
+          </div>
+
+          <form class="checkout-form" data-checkout-form>
+            <span class="auth-card-kicker">Payment details</span>
+            <h2>Yearly plan checkout</h2>
+            <div class="form-grid two">
+              <label class="field light-field">
+                <span>Billing email</span>
+                <input name="billingEmail" type="email" autocomplete="email" />
+              </label>
+              <label class="field light-field">
+                <span>Company</span>
+                <input name="company" type="text" value="Mailmyra" autocomplete="organization" />
+              </label>
+              <label class="field light-field full">
+                <span>Cardholder name</span>
+                <input name="cardholder" type="text" value="Huseyin Celiktas" autocomplete="cc-name" />
+              </label>
+              <label class="field light-field full">
+                <span>Card number</span>
+                <input name="cardNumber" type="text" value="4242 4242 4242 4242" inputmode="numeric" autocomplete="cc-number" />
+              </label>
+              <label class="field light-field">
+                <span>Expiry</span>
+                <input name="expiry" type="text" value="07 / 28" autocomplete="cc-exp" />
+              </label>
+              <label class="field light-field">
+                <span>CVC</span>
+                <input name="cvc" type="text" value="123" inputmode="numeric" autocomplete="cc-csc" />
+              </label>
+            </div>
+            <button class="home-primary sand" type="submit">Activate yearly plan</button>
+            <p class="checkout-note">Demo payment only. No real transaction is sent.</p>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/home.js"></script>
+  </body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Mailmyra</title>
+    <meta name="description" content="Manage Mailmyra yearly plan, saved signatures and email identity records." />
+    <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <link rel="stylesheet" href="assets/css/mailmyra-v2.css" />
+  </head>
+  <body class="home-page dashboard-page">
+    <svg class="icon-sprite" aria-hidden="true">
+      <symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+      <symbol id="icon-pen" viewBox="0 0 24 24"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></symbol>
+      <symbol id="icon-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></symbol>
+      <symbol id="icon-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18" /></symbol>
+    </svg>
+
+    <div class="home-shell" data-dashboard>
+      <header class="topbar home-topbar">
+        <a class="brand" href="index.html" aria-label="Mailmyra home"><img src="assets/img/logo.svg" alt="Mailmyra" /></a>
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="products.html">Products</a>
+          <a class="nav-link" href="pricing.html">Pricing</a>
+          <a class="nav-link" href="blog.html">Blog</a>
+          <a class="nav-link" href="faqs.html">FAQs</a>
+        </nav>
+        <nav class="topbar-actions" aria-label="Account">
+          <button class="login-button dashboard-logout" type="button" data-logout>Log out</button>
+        </nav>
+      </header>
+
+      <main class="dashboard-main">
+        <section class="home-container dashboard-hero" aria-labelledby="dashboardTitle">
+          <div>
+            <span class="home-kicker">Mailmyra Dashboard</span>
+            <h1 id="dashboardTitle">Welcome back, <span data-dashboard-name>Mailmyra user</span>.</h1>
+            <p>Manage yearly plan access, saved email signatures and every email identity prepared for export.</p>
+          </div>
+          <div class="dashboard-account-card">
+            <span data-dashboard-status>Payment required</span>
+            <strong data-dashboard-plan>No active plan</strong>
+            <p data-dashboard-email>hello@mailmyra.com</p>
+          </div>
+        </section>
+
+        <section class="home-container dashboard-grid" aria-label="Dashboard overview">
+          <article class="dashboard-stat">
+            <span>Plan</span>
+            <strong data-dashboard-plan>No active plan</strong>
+            <p>Billing is yearly by default.</p>
+          </article>
+          <article class="dashboard-stat">
+            <span>Renewal</span>
+            <strong data-dashboard-renewal>Activate yearly billing</strong>
+            <p>Plan access controls export.</p>
+          </article>
+          <article class="dashboard-stat">
+            <span>Email identities</span>
+            <strong data-signature-count>0</strong>
+            <p>Saved signatures in your list.</p>
+          </article>
+        </section>
+
+        <section class="home-container dashboard-workspace" aria-labelledby="workspaceTitle">
+          <div class="dashboard-toolbar">
+            <div>
+              <span class="home-kicker">Signature list</span>
+              <h2 id="workspaceTitle">Created email signatures</h2>
+            </div>
+            <div class="dashboard-actions">
+              <a class="home-secondary" href="checkout.html?plan=professional&redirect=dashboard.html">Manage yearly plan</a>
+              <a class="home-primary sand" href="products.html">Create new signature</a>
+            </div>
+          </div>
+          <div class="signature-list-head" aria-hidden="true">
+            <span>Signature</span>
+            <span>Email address</span>
+            <span>Status</span>
+          </div>
+          <div class="signature-list" data-signature-list></div>
+        </section>
+
+        <section class="home-container dashboard-planning" aria-labelledby="planningTitle">
+          <div class="section-heading split-heading">
+            <div>
+              <span class="home-kicker">Dashboard planning</span>
+              <h2 id="planningTitle">The structure is ready for a real backend.</h2>
+            </div>
+            <p>Frontend demo state is stored locally today. The same pages can later connect to authentication, checkout, subscription and saved-signature APIs.</p>
+          </div>
+          <div class="dashboard-roadmap">
+            <article><strong>01</strong><span>Login controls export permissions.</span></article>
+            <article><strong>02</strong><span>Yearly payment activates dashboard access.</span></article>
+            <article><strong>03</strong><span>Exported signatures become managed email records.</span></article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/home.js"></script>
+  </body>
+</html>

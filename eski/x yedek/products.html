@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mailmyra Email Signature Generator</title>
+    <link rel="icon" href="assets/img/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
+    <svg class="icon-sprite" aria-hidden="true">
+      <symbol id="icon-details" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="4" />
+        <path d="M8 8h8M8 12h8M8 16h5" />
+      </symbol>
+      <symbol id="icon-images" viewBox="0 0 24 24">
+        <rect x="4" y="5" width="16" height="14" rx="4" />
+        <circle cx="9" cy="10" r="1.7" />
+        <path d="m7 16 3.2-3.2a1.2 1.2 0 0 1 1.7 0l1.2 1.2 1.9-1.9a1.2 1.2 0 0 1 1.7 0L20 15.4" />
+      </symbol>
+      <symbol id="icon-templates" viewBox="0 0 24 24">
+        <rect x="4" y="4" width="16" height="16" rx="4" />
+        <path d="M8 8h8M8 12h3M13 12h3M8 16h8" />
+      </symbol>
+      <symbol id="icon-styles" viewBox="0 0 24 24">
+        <path d="M5 19h14" />
+        <path d="M7 15.5 15.7 6.8a2.2 2.2 0 0 1 3.1 3.1L10 18.6 6 19.5z" />
+        <path d="M14.8 7.7 17.9 10.8" />
+      </symbol>
+      <symbol id="icon-globe" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9S14.5 18.4 12 21M12 3c-2.5 2.6-3.8 5.6-3.8 9s1.3 6.4 3.8 9" />
+      </symbol>
+      <symbol id="icon-chevron" viewBox="0 0 24 24">
+        <path d="m6 9 6 6 6-6" />
+      </symbol>
+      <symbol id="icon-check" viewBox="0 0 24 24">
+        <path d="m5 12 4 4L19 6" />
+      </symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24">
+        <path d="M20 12a8 8 0 0 1-13.5 5.8M4 12A8 8 0 0 1 17.5 6.2" />
+        <path d="M7 18H3v-4M17 6h4v4" />
+      </symbol>
+      <symbol id="icon-copy" viewBox="0 0 24 24">
+        <rect x="9" y="9" width="11" height="11" rx="2" />
+        <rect x="4" y="4" width="11" height="11" rx="2" />
+      </symbol>
+      <symbol id="icon-phone" viewBox="0 0 24 24">
+        <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.8L7.8 9.7a16 16 0 0 0 6.5 6.5l1.2-1.2a2 2 0 0 1 1.8-.5l3 .5a2 2 0 0 1 1.7 1.9z" />
+      </symbol>
+      <symbol id="icon-mail" viewBox="0 0 24 24">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m4 7 8 6 8-6" />
+      </symbol>
+      <symbol id="icon-link" viewBox="0 0 24 24">
+        <path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1" />
+        <path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1" />
+      </symbol>
+      <symbol id="icon-map" viewBox="0 0 24 24">
+        <path d="M12 22s7-5.2 7-12a7 7 0 0 0-14 0c0 6.8 7 12 7 12z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </symbol>
+      <symbol id="icon-briefcase" viewBox="0 0 24 24">
+        <rect x="3" y="7" width="18" height="13" rx="2" />
+        <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 12h18" />
+      </symbol>
+      <symbol id="icon-pen" viewBox="0 0 24 24">
+        <path d="M12 20h9" />
+        <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" />
+      </symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </symbol>
+      <symbol id="icon-social" viewBox="0 0 24 24">
+        <circle cx="7" cy="12" r="3" />
+        <circle cx="17" cy="6" r="3" />
+        <circle cx="17" cy="18" r="3" />
+        <path d="m9.7 10.7 4.6-3.4M9.7 13.3l4.6 3.4" />
+      </symbol>
+    </svg>
+
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Mailmyra home">
+          <img src="assets/img/logo.svg" alt="Mailmyra" />
+        </a>
+
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <div class="nav-item has-mega">
+            <a class="nav-link" href="products.html" aria-haspopup="true" aria-expanded="false">Products</a>
+            <div class="mega-menu product-menu" role="menu">
+              <a class="mega-feature" href="products.html" role="menuitem">
+                <span class="mega-label">Mailmyra Suite</span>
+                <strong>Build consistent signatures across every inbox.</strong>
+                <p>Design, brand, preview and deploy polished email identities from one elegant workspace.</p>
+              </a>
+              <div class="mega-grid">
+                <a class="mega-card" href="products.html" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-pen"></use></svg></span>
+                  <span><strong>Signature Generator</strong><small>Create professional email signatures.</small></span>
+                </a>
+                <a class="mega-card" href="products.html" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-images"></use></svg></span>
+                  <span><strong>Brand Assets</strong><small>Keep logos, images and banners ready.</small></span>
+                </a>
+                <a class="mega-card" href="products.html" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-templates"></use></svg></span>
+                  <span><strong>Template Library</strong><small>Launch clean team-wide layouts.</small></span>
+                </a>
+                <a class="mega-card" href="products.html" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-link"></use></svg></span>
+                  <span><strong>Campaign CTAs</strong><small>Add branded links and callouts.</small></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-item has-mega compact-mega">
+            <a class="nav-link" href="pricing.html" aria-haspopup="true" aria-expanded="false">Pricing</a>
+            <div class="mega-menu" role="menu">
+              <div class="mega-grid compact">
+                <a class="mega-card" href="pricing.html#plans" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-user"></use></svg></span>
+                  <span><strong>Starter</strong><small>For solo professionals.</small></span>
+                </a>
+                <a class="mega-card" href="pricing.html#plans" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-briefcase"></use></svg></span>
+                  <span><strong>Business</strong><small>For growing teams.</small></span>
+                </a>
+                <a class="mega-card" href="pricing.html#plans" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-social"></use></svg></span>
+                  <span><strong>Agency</strong><small>For multi-brand work.</small></span>
+                </a>
+                <a class="mega-card" href="pricing.html#compare" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-check"></use></svg></span>
+                  <span><strong>Compare Plans</strong><small>Find the right package.</small></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="nav-item has-mega compact-mega">
+            <a class="nav-link" href="blog.html" aria-haspopup="true" aria-expanded="false">Blog</a>
+            <div class="mega-menu" role="menu">
+              <div class="mega-grid compact">
+                <a class="mega-card" href="blog.html#email-identity" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-mail"></use></svg></span>
+                  <span><strong>Email Identity</strong><small>Signature strategy and examples.</small></span>
+                </a>
+                <a class="mega-card" href="blog.html#templates" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-styles"></use></svg></span>
+                  <span><strong>Design Notes</strong><small>Modern branding ideas.</small></span>
+                </a>
+                <a class="mega-card" href="blog.html#deliverability" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-globe"></use></svg></span>
+                  <span><strong>Deliverability</strong><small>Practical inbox guidance.</small></span>
+                </a>
+                <a class="mega-card" href="blog.html#resources" role="menuitem">
+                  <span class="mega-icon"><svg class="icon"><use href="#icon-templates"></use></svg></span>
+                  <span><strong>Resources</strong><small>Guides, templates and updates.</small></span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <a href="faqs.html" class="nav-link">FAQs</a>
+        </nav>
+
+        <nav class="topbar-actions" aria-label="Account and language">
+          <a href="login.html" class="login-button">Log in</a>
+          <div class="language-menu">
+            <button class="language-button" type="button" aria-label="Select language" aria-haspopup="true" aria-expanded="false">
+              <svg class="icon"><use href="#icon-globe"></use></svg>
+              <span>English</span>
+              <svg class="icon tiny"><use href="#icon-chevron"></use></svg>
+            </button>
+            <div class="language-dropdown" role="menu" aria-label="Languages">
+              <button class="language-option" type="button" role="menuitem">Portuguese</button>
+              <button class="language-option" type="button" role="menuitem">Español</button>
+              <button class="language-option" type="button" role="menuitem">Deutsch</button>
+              <button class="language-option" type="button" role="menuitem">Français</button>
+              <button class="language-option" type="button" role="menuitem">Italiano</button>
+              <button class="language-option" type="button" role="menuitem">Polski</button>
+              <button class="language-option" type="button" role="menuitem">Suomi</button>
+              <button class="language-option" type="button" role="menuitem">Dutch</button>
+              <button class="language-option" type="button" role="menuitem">Türkçe</button>
+              <button class="language-option" type="button" role="menuitem">عربي</button>
+              <button class="language-option" type="button" role="menuitem">日本語</button>
+              <button class="language-option" type="button" role="menuitem">Română</button>
+              <button class="language-option" type="button" role="menuitem">한국어</button>
+              <button class="language-option" type="button" role="menuitem">Čeština</button>
+              <button class="language-option" type="button" role="menuitem">Magyar</button>
+              <button class="language-option" type="button" role="menuitem">Melayu</button>
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      <main class="builder-layout">
+        <section class="control-shell" aria-label="Signature controls">
+          <aside class="step-rail" aria-label="Generator steps">
+            <button class="step-tab is-active" type="button" data-step-target="0">
+              <svg class="icon"><use href="#icon-details"></use></svg>
+              <span>Details</span>
+            </button>
+            <button class="step-tab" type="button" data-step-target="1">
+              <svg class="icon"><use href="#icon-images"></use></svg>
+              <span>Images</span>
+            </button>
+            <button class="step-tab" type="button" data-step-target="2">
+              <svg class="icon"><use href="#icon-templates"></use></svg>
+              <span>Templates</span>
+            </button>
+            <button class="step-tab" type="button" data-step-target="3">
+              <svg class="icon"><use href="#icon-styles"></use></svg>
+              <span>Styles</span>
+            </button>
+          </aside>
+
+          <div class="panel-wrap">
+            <form class="generator-panel" id="signatureForm">
+              <section class="step-panel is-active" data-step="0" aria-labelledby="detailsTitle">
+                <p class="step-kicker">Step 1: Details</p>
+                <div class="panel-heading">
+                  <h1 id="detailsTitle">Enter Your Signature Details</h1>
+                  <p>* Indicates a required field</p>
+                </div>
+
+                <div class="form-grid two">
+                  <label class="field">
+                    <span>First Name*</span>
+                    <input data-field="firstName" type="text" value="Hüseyin" autocomplete="given-name" />
+                  </label>
+                  <label class="field">
+                    <span>Last Name*</span>
+                    <input data-field="lastName" type="text" value="Çeliktaş" autocomplete="family-name" />
+                  </label>
+                  <label class="field">
+                    <span>Job Title</span>
+                    <input data-field="jobTitle" type="text" value="Founder & Creative Director" />
+                  </label>
+                  <label class="field">
+                    <span>Department</span>
+                    <input data-field="department" type="text" value="Creative Studio" />
+                  </label>
+                  <label class="field full">
+                    <span>Company Name</span>
+                    <input data-field="company" type="text" value="Mailmyra" autocomplete="organization" />
+                  </label>
+                  <label class="field">
+                    <span>Office Phone Number</span>
+                    <input data-field="officePhone" type="tel" value="+90 332 000 00 00" />
+                  </label>
+                  <label class="field">
+                    <span>Mobile Phone Number</span>
+                    <input data-field="mobilePhone" type="tel" value="+90 532 000 00 00" />
+                  </label>
+                  <label class="field">
+                    <span>Website URL</span>
+                    <input data-field="website" type="text" value="www.mailmyra.com" autocomplete="url" />
+                  </label>
+                  <label class="field">
+                    <span>Email Address</span>
+                    <input data-field="email" type="email" value="hello@mailmyra.com" autocomplete="email" />
+                  </label>
+                  <label class="field full">
+                    <span>Address</span>
+                    <textarea data-field="address" rows="4">Konya, Türkiye</textarea>
+                  </label>
+                </div>
+
+                <div class="section-title">
+                  <h2>Enter Your Social Links</h2>
+                </div>
+                <div class="form-grid two">
+                  <label class="field">
+                    <span>LinkedIn</span>
+                    <input data-field="linkedin" type="url" placeholder="https://www.linkedin.com" />
+                  </label>
+                  <label class="field">
+                    <span>Facebook</span>
+                    <input data-field="facebook" type="url" placeholder="https://www.facebook.com" />
+                  </label>
+                  <label class="field">
+                    <span>X / Twitter</span>
+                    <input data-field="twitter" type="url" placeholder="https://www.x.com" />
+                  </label>
+                  <label class="field">
+                    <span>Instagram</span>
+                    <input data-field="instagram" type="url" placeholder="https://www.instagram.com" />
+                  </label>
+                  <label class="field full">
+                    <span>WhatsApp</span>
+                    <input data-field="whatsapp" type="url" placeholder="https://wa.me" />
+                  </label>
+                </div>
+
+                <div class="section-title compact">
+                  <h2>Custom Field</h2>
+                </div>
+                <div class="custom-fields" id="customFields"></div>
+                <button class="link-button" type="button" id="addCustomField">
+                  <svg class="icon"><use href="#icon-plus"></use></svg>
+                  <span>Add a field</span>
+                </button>
+
+                <div class="section-title">
+                  <h2>Email Signature Footer</h2>
+                </div>
+                <div class="form-grid">
+                  <label class="field full">
+                    <span>Legal Content</span>
+                    <textarea data-field="legal" rows="5" placeholder="Legal Content"></textarea>
+                  </label>
+                  <label class="toggle-row">
+                    <span>Created with Mailmyra</span>
+                    <input data-field="createdWith" type="checkbox" checked />
+                    <span class="toggle-ui" aria-hidden="true"></span>
+                  </label>
+                </div>
+              </section>
+
+              <section class="step-panel" data-step="1" aria-labelledby="imagesTitle">
+                <p class="step-kicker">Step 2: Images</p>
+                <div class="panel-heading">
+                  <h1 id="imagesTitle">Signature Image</h1>
+                  <p>Add your profile photo, company logo or signature image to enhance your email signature.</p>
+                </div>
+
+                <div class="image-note">
+                  <svg class="icon"><use href="#icon-images"></use></svg>
+                  <p>Hosted image links work best for email clients.</p>
+                </div>
+
+                <div class="form-grid">
+                  <label class="field with-help">
+                    <span>Profile Picture URL</span>
+                    <input data-field="profileImage" type="url" placeholder="https://example.com/images/profile.jpg" />
+                    <em>?</em>
+                  </label>
+                  <label class="field with-help">
+                    <span>Company Logo URL</span>
+                    <input data-field="companyLogo" type="url" value="assets/img/logo.svg" />
+                    <em>?</em>
+                  </label>
+                </div>
+
+                <div class="section-title">
+                  <h2>Handwritten Signature</h2>
+                </div>
+                <p class="panel-copy">Use your signature image from your own hosted website or generate a new one.</p>
+                <div class="form-grid">
+                  <label class="field with-help">
+                    <span>Handwritten Signature URL</span>
+                    <input data-field="handSignature" type="url" placeholder="https://example.com/images/signature.png" />
+                    <em>?</em>
+                  </label>
+                </div>
+                <button class="link-button" type="button">
+                  <svg class="icon"><use href="#icon-pen"></use></svg>
+                  <span>Create new handwritten signature</span>
+                </button>
+              </section>
+
+              <section class="step-panel" data-step="2" aria-labelledby="templatesTitle">
+                <p class="step-kicker">Step 3: Templates</p>
+                <div class="panel-heading">
+                  <h1 id="templatesTitle">Select Your Template</h1>
+                </div>
+
+                <div class="template-grid" id="templateGrid" role="radiogroup" aria-label="Signature templates">
+                  <button class="template-card is-selected" type="button" data-template="1" role="radio" aria-checked="true">
+                    <span>Template 1</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-1">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="2" role="radio" aria-checked="false">
+                    <span>Template 2</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-2">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="3" role="radio" aria-checked="false">
+                    <span>Template 3</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-3">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="4" role="radio" aria-checked="false">
+                    <span>Template 4</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-4">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="5" role="radio" aria-checked="false">
+                    <span>Template 5</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-5">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="6" role="radio" aria-checked="false">
+                    <span>Template 6</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-6">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="7" role="radio" aria-checked="false">
+                    <span>Template 7</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-7">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="8" role="radio" aria-checked="false">
+                    <span>Template 8</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-8">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="9" role="radio" aria-checked="false">
+                    <span>Template 9</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-9">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="10" role="radio" aria-checked="false">
+                    <span>Template 10</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-10">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="11" role="radio" aria-checked="false">
+                    <span>Template 11</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-11">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                  <button class="template-card" type="button" data-template="12" role="radio" aria-checked="false">
+                    <span>Template 12</span>
+                    <i class="template-check"><svg class="icon"><use href="#icon-check"></use></svg></i>
+                    <b class="wireframe wire-12">
+                      <i></i><i></i><i></i><i></i><i></i><i></i>
+                    </b>
+                  </button>
+                </div>
+              </section>
+
+              <section class="step-panel" data-step="3" aria-labelledby="stylesTitle">
+                <p class="step-kicker">Step 4: Styles</p>
+                <div class="panel-heading inline-help">
+                  <h1 id="stylesTitle">Style Your Signature</h1>
+                  <button class="help-dot" type="button" aria-label="Style help">?</button>
+                </div>
+
+                <div class="color-stack">
+                  <label class="color-field">
+                    <span>Select Theme Color</span>
+                    <span class="hex-control">
+                      <b>#</b>
+                      <input data-style-color="theme" type="text" value="719AD1" maxlength="6" />
+                      <svg class="icon"><use href="#icon-check"></use></svg>
+                    </span>
+                    <input data-style-picker="theme" type="color" value="#719AD1" aria-label="Theme color picker" />
+                  </label>
+                  <label class="color-field">
+                    <span>Select Text Color</span>
+                    <span class="hex-control">
+                      <b>#</b>
+                      <input data-style-color="text" type="text" value="111827" maxlength="6" />
+                      <svg class="icon"><use href="#icon-check"></use></svg>
+                    </span>
+                    <input data-style-picker="text" type="color" value="#111827" aria-label="Text color picker" />
+                  </label>
+                  <label class="color-field">
+                    <span>Select Link Color</span>
+                    <span class="hex-control">
+                      <b>#</b>
+                      <input data-style-color="link" type="text" value="DCA16F" maxlength="6" />
+                      <svg class="icon"><use href="#icon-check"></use></svg>
+                    </span>
+                    <input data-style-picker="link" type="color" value="#DCA16F" aria-label="Link color picker" />
+                  </label>
+                </div>
+
+                <div class="section-title">
+                  <h2>Customize Font</h2>
+                </div>
+                <div class="form-grid">
+                  <label class="field select-field">
+                    <span>Font Family</span>
+                    <select data-field="fontFamily">
+                      <option>Arial</option>
+                      <option>Helvetica</option>
+                      <option>Georgia</option>
+                      <option>Times New Roman</option>
+                      <option selected>Inter</option>
+                      <option>Poppins</option>
+                    </select>
+                  </label>
+                  <label class="range-field">
+                    <span>Font Size</span>
+                    <input data-field="fontSize" type="range" min="0" max="2" step="1" value="1" />
+                    <b id="fontSizeLabel">Medium</b>
+                  </label>
+                </div>
+
+                <div class="section-title">
+                  <h2>Add Call to Action</h2>
+                </div>
+                <div class="form-grid">
+                  <label class="field select-field">
+                    <span>Custom CTA Type</span>
+                    <select data-field="ctaType">
+                      <option value="">Select a button type</option>
+                      <option value="meeting">Book a meeting</option>
+                      <option value="portfolio">View portfolio</option>
+                      <option value="download">Download profile</option>
+                      <option value="custom">Custom button</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>CTA Text</span>
+                    <input data-field="ctaText" type="text" placeholder="Book a discovery call" />
+                  </label>
+                  <label class="field">
+                    <span>CTA URL</span>
+                    <input data-field="ctaUrl" type="url" placeholder="https://mailmyra.com" />
+                  </label>
+                </div>
+              </section>
+            </form>
+
+            <div class="step-actions">
+              <button class="ghost-nav" id="prevStep" type="button">Previous</button>
+              <button class="ghost-nav" id="nextStep" type="button">Next</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="preview-stage" aria-label="Email signature preview">
+          <div class="preview-inner">
+            <div class="mail-window">
+              <div class="window-bar">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <div class="mail-meta">
+                <p><strong>To:</strong> <span class="recipient-chip">Your Recipient</span></p>
+                <p><strong>Subject:</strong> Check out my new Email Signature</p>
+              </div>
+              <div class="body-lines" aria-hidden="true">
+                <span></span>
+                <span></span>
+              </div>
+
+              <article class="signature template-1 size-medium" id="signaturePreview">
+                <div class="signature-intro">
+                  <h2 id="previewName">Hüseyin Çeliktaş</h2>
+                  <p id="previewTitle">Founder & Creative Director</p>
+                  <p id="previewCompanyLine">Creative Studio / Mailmyra</p>
+                </div>
+
+                <div class="signature-rule"></div>
+
+                <div class="signature-main">
+                  <div class="portrait-wrap">
+                    <img id="previewProfileImage" src="" alt="" />
+                    <div class="portrait-placeholder">
+                      <svg class="icon"><use href="#icon-user"></use></svg>
+                    </div>
+                  </div>
+
+                  <div class="signature-content">
+                    <ul class="contact-list">
+                      <li id="phoneRow">
+                        <svg class="icon"><use href="#icon-phone"></use></svg>
+                        <span id="previewPhone">+90 332 000 00 00 | +90 532 000 00 00</span>
+                      </li>
+                      <li id="emailRow">
+                        <svg class="icon"><use href="#icon-mail"></use></svg>
+                        <a id="previewEmail" href="mailto:hello@mailmyra.com">hello@mailmyra.com</a>
+                      </li>
+                      <li id="websiteRow">
+                        <svg class="icon"><use href="#icon-link"></use></svg>
+                        <a id="previewWebsite" href="https://www.mailmyra.com">www.mailmyra.com</a>
+                      </li>
+                      <li id="addressRow">
+                        <svg class="icon"><use href="#icon-map"></use></svg>
+                        <span id="previewAddress">Konya, Türkiye</span>
+                      </li>
+                    </ul>
+                    <ul class="custom-preview" id="customPreview"></ul>
+                    <div class="social-row" id="socialRow"></div>
+                  </div>
+                </div>
+
+                <div class="signature-rule lower"></div>
+
+                <div class="brand-row">
+                  <div class="company-logo-wrap">
+                    <img id="previewCompanyLogo" src="assets/img/logo.svg" alt="Company logo" />
+                    <div class="logo-placeholder">
+                      <svg class="icon"><use href="#icon-images"></use></svg>
+                    </div>
+                  </div>
+                  <img class="hand-signature" id="previewHandSignature" src="" alt="" />
+                </div>
+
+                <a class="cta-button" id="previewCta" href="#" target="_blank" rel="noreferrer"></a>
+                <p class="legal-copy" id="previewLegal"></p>
+                <a class="created-with" id="createdWithMailmyra" href="#">Created with Mailmyra</a>
+              </article>
+            </div>
+
+            <div class="preview-actions">
+              <p class="export-gate-note">Export requires login and an active yearly plan.</p>
+              <button class="clear-button" id="clearFields" type="button">
+                <svg class="icon"><use href="#icon-refresh"></use></svg>
+                <span>Clear all input fields</span>
+              </button>
+              <button class="primary-button" id="createSignature" type="button">
+                <svg class="icon"><use href="#icon-copy"></use></svg>
+                <span>Create signature</span>
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite">Signature HTML copied to clipboard.</div>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
