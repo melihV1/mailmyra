@@ -38,7 +38,7 @@ export function mergeWithEmpty(partial: Partial<SignatureData>): SignatureData {
     identity: { ...empty.identity, ...partial.identity },
     contact: { ...empty.contact, ...partial.contact },
     visuals: { ...empty.visuals, ...partial.visuals },
-    social: partial.social ?? empty.social,
+    social: Array.isArray(partial.social) ? partial.social : empty.social,
     extras: { ...empty.extras, ...partial.extras },
     layout: { ...empty.layout, ...partial.layout },
   };

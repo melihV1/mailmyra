@@ -67,4 +67,8 @@ describe('mergeWithEmpty', () => {
     const d = mergeWithEmpty({ social: [{ platform: 'linkedin', url: 'https://linkedin.com/in/x' }] });
     expect(d.social).toHaveLength(1);
   });
+  it('guards social against garbage input and defaults to empty array', () => {
+    const d = mergeWithEmpty({ social: 'garbage' } as unknown as Partial<SignatureData>);
+    expect(d.social).toEqual([]);
+  });
 });

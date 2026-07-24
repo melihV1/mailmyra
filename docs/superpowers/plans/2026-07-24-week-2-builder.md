@@ -627,7 +627,7 @@ describe('processImage — doğrulama', () => {
 describe('processImage — işleme', () => {
   it('converts SVG to PNG output', async () => {
     const res = await processImage(svgImage, 'logo');
-    expect(res.filename).toMatch(/^[0-9a-f]{8}\.png$/);
+    expect(res.filename).toMatch(/^[0-9a-f]{16}\.png$/);
     const meta = await sharp(res.buffer).metadata();
     expect(meta.format).toBe('png');
   });
@@ -821,7 +821,7 @@ export async function processImage(
   // ve route handler'ın PipelineError-olmayan yolundan (500) geçmelidir.
   const { buffer, ext, warning } = await compressToBudget(resized.clone(), hasAlpha, target.budgetBytes);
   const meta = await sharp(buffer).metadata();
-  const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 8);
+  const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 16);
   return {
     buffer,
     filename: `${hash}.${ext}`,
@@ -913,7 +913,7 @@ describe('POST /api/upload', () => {
     const res = await POST(await makeRequest(await pngBlob(), 'avatar'));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.url).toMatch(/^http:\/\/cdn\.test\/[0-9a-f]{8}\.(png|jpg)$/);
+    expect(body.url).toMatch(/^http:\/\/cdn\.test\/[0-9a-f]{16}\.(png|jpg)$/);
     expect(body.width).toBeGreaterThan(0);
   });
   it('rejects a missing file with 400', async () => {
