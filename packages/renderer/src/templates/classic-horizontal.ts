@@ -1,0 +1,280 @@
+import type { SignatureData } from '../types';
+import { table, row, cell } from '../utils/table';
+import { styleToString } from '../utils/inline-style';
+import { htmlEscape, sanitizeUrl } from '../utils/escape';
+import { normalizeHex, readableTextOn } from '../utils/color';
+
+type Size = SignatureData['layout']['size'];
+
+interface SizeScale {
+  name: number;
+  title: number;
+  body: number;
+  small: number;
+  avatar: number;
+  gap: number;
+}
+
+const SIZES: Record<Size, SizeScale> = {
+  small: { name: 15, title: 12, body: 12, small: 11, avatar: 64, gap: 12 },
+  medium: { name: 18, title: 13, body: 13, small: 11, avatar: 90, gap: 16 },
+  large: { name: 22, title: 15, body: 14, small: 12, avatar: 110, gap: 20 },
+};
+
+const PLATFORM_LABELS: Record<
+  SignatureData['social'][number]['platform'],
+  string
+> = {
+  linkedin: 'LinkedIn',
+  x: 'X',
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  youtube: 'YouTube',
+  github: 'GitHub',
+  behance: 'Behance',
+  dribbble: 'Dribbble',
+};
+
+function ensureHttp(url: string): string {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+export function classicHorizontal(data: SignatureData): string {
+  const s = SIZES[data.layout.size] ?? SIZES.medium;
+  const font = data.visuals.fontFamily;
+  const text = normalizeHex(data.visuals.textColor);
+  const muted = normalizeHex(data.visuals.mutedColor);
+  const brand = normalizeHex(data.visuals.brandColor);
+
+  const linkStyle = styleToString({
+    'font-family': font,
+    'font-size': `${s.body}px`,
+    color: brand,
+    'text-decoration': 'none',
+  });
+  const bodyStyle = styleToString({
+    'font-family': font,
+    'font-size': `${s.body}px`,
+    color: text,
+    'line-height': '1.4',
+  });
+
+  const lines: string[] = [];
+
+  // Ad
+  lines.push(
+    row(
+      cell(
+        `<span style="${styleToString({
+          'font-family': font,
+          'font-size': `${s.name}px`,
+          'font-weight': 'bold',
+          color: text,
+          'line-height': '1.2',
+        })}">${htmlEscape(data.identity.fullName)}</span>`,
+        { style: { 'padding-bottom': '2px' } },
+      ),
+    ),
+  );
+
+  // Ünvan + departman
+  const titleParts = [data.identity.jobTitle, data.identity.department].filter(
+    (v): v is string => Boolean(v),
+  );
+  if (titleParts.length) {
+    lines.push(
+      row(
+        cell(
+          `<span style="${styleToString({
+            'font-family': font,
+            'font-size': `${s.title}px`,
+            color: muted,
+          })}">${titleParts.map((v) => htmlEscape(v)).join(' · ')}</span>`,
+          { style: { 'padding-bottom': '2px' } },
+        ),
+      ),
+    );
+  }
+
+  // Şirket
+  if (data.identity.company) {
+    lines.push(
+      row(
+        cell(
+          `<span style="${styleToString({
+            'font-family': font,
+            'font-size': `${s.title}px`,
+            'font-weight': 'bold',
+            color: text,
+          })}">${htmlEscape(data.identity.company)}</span>`,
+          { style: { 'padding-bottom': `${Math.round(s.gap / 2)}px` } },
+        ),
+      ),
+    );
+  }
+
+  // Ayraç (1px arka plan çizgisi — div yok)
+  if (data.layout.showDividers) {
+    const line = table(
+      row(
+        cell('&nbsp;', {
+          style: {
+            height: '1px',
+            'line-height': '1px',
+            'font-size': '1px',
+            'background-color': muted,
+          },
+        }),
+      ),
+      { width: '100%' },
+    );
+    lines.push(
+      row(
+        cell(line, {
+          style: {
+            'padding-top': '2px',
+            'padding-bottom': `${Math.round(s.gap / 2)}px`,
+          },
+        }),
+      ),
+    );
+  }
+
+  // İletişim satırları
+  const contact = data.contact;
+  const pushLine = (inner: string) =>
+    lines.push(row(cell(inner, { style: { 'padding-bottom': '2px' } })));
+
+  if (contact.phone) {
+    const tel = sanitizeUrl(`tel:${contact.phone.replace(/[^\d+]/g, '')}`);
+    pushLine(`<a href="${tel}" style="${bodyStyle}">${htmlEscape(contact.phone)}</a>`);
+  }
+  if (contact.mobile) {
+    const tel = sanitizeUrl(`tel:${contact.mobile.replace(/[^\d+]/g, '')}`);
+    pushLine(`<a href="${tel}" style="${bodyStyle}">${htmlEscape(contact.mobile)}</a>`);
+  }
+  if (contact.email) {
+    const mail = sanitizeUrl(`mailto:${contact.email}`);
+    pushLine(`<a href="${mail}" style="${linkStyle}">${htmlEscape(contact.email)}</a>`);
+  }
+  if (contact.website) {
+    const href = sanitizeUrl(ensureHttp(contact.website));
+    const label = contact.website.replace(/^https?:\/\//i, '');
+    pushLine(`<a href="${href}" style="${linkStyle}">${htmlEscape(label)}</a>`);
+  }
+  if (contact.address) {
+    pushLine(
+      `<span style="${bodyStyle}">${htmlEscape(contact.address).replace(/\n/g, '<br>')}</span>`,
+    );
+  }
+
+  // Özel alanlar
+  for (const field of data.extras?.customFields ?? []) {
+    const value = field.url
+      ? `<a href="${sanitizeUrl(ensureHttp(field.url))}" style="${linkStyle}">${htmlEscape(field.value)}</a>`
+      : `<span style="${bodyStyle}">${htmlEscape(field.value)}</span>`;
+    pushLine(
+      `<span style="${styleToString({
+        'font-family': font,
+        'font-size': `${s.body}px`,
+        color: muted,
+      })}">${htmlEscape(field.label)}: </span>${value}`,
+    );
+  }
+
+  // Sosyal (metin-link — ikonlar Hafta 2'de CDN ile)
+  if (data.social.length) {
+    const sep = `<span style="color:${muted}">&nbsp;·&nbsp;</span>`;
+    const socialHtml = data.social
+      .map(
+        (soc) =>
+          `<a href="${sanitizeUrl(soc.url)}" style="${linkStyle}">${PLATFORM_LABELS[soc.platform]}</a>`,
+      )
+      .join(sep);
+    lines.push(
+      row(
+        cell(socialHtml, {
+          style: {
+            'padding-top': `${Math.round(s.gap / 2)}px`,
+            'padding-bottom': '2px',
+          },
+        }),
+      ),
+    );
+  }
+
+  // CTA butonu (bulletproof)
+  if (data.extras?.ctaLabel && data.extras?.ctaUrl) {
+    const ctaText = readableTextOn(brand);
+    const btn = table(
+      row(
+        cell(
+          `<a href="${sanitizeUrl(ensureHttp(data.extras.ctaUrl))}" style="${styleToString({
+            'font-family': font,
+            'font-size': `${s.body}px`,
+            'font-weight': 'bold',
+            color: ctaText,
+            'text-decoration': 'none',
+            display: 'inline-block',
+          })}">${htmlEscape(data.extras.ctaLabel)}</a>`,
+          {
+            align: 'center',
+            style: {
+              'background-color': brand,
+              'border-radius': '4px',
+              padding: '8px 16px',
+            },
+          },
+        ),
+      ),
+      { align: 'left' },
+    );
+    lines.push(
+      row(cell(btn, { style: { 'padding-top': `${Math.round(s.gap / 2)}px` } })),
+    );
+  }
+
+  // Yasal metin
+  if (data.extras?.disclaimer) {
+    lines.push(
+      row(
+        cell(
+          `<span style="${styleToString({
+            'font-family': font,
+            'font-size': `${s.small}px`,
+            color: muted,
+            'line-height': '1.3',
+          })}">${htmlEscape(data.extras.disclaimer).replace(/\n/g, '<br>')}</span>`,
+          { style: { 'padding-top': `${Math.round(s.gap / 2)}px` } },
+        ),
+      ),
+    );
+  }
+
+  const rightInner = table(lines.join(''), { width: '100%' });
+
+  // Sol görsel sütunu (önce avatar, yoksa logo)
+  const imageUrl = data.visuals.avatarUrl ?? data.visuals.logoUrl;
+  const leftCell = imageUrl
+    ? cell(
+        `<img src="${sanitizeUrl(imageUrl)}" width="${s.avatar}" height="${s.avatar}" alt="${htmlEscape(
+          data.identity.fullName,
+        )}" border="0" style="${styleToString({
+          display: 'block',
+          border: '0',
+          'border-radius': '4px',
+          width: `${s.avatar}px`,
+          height: `${s.avatar}px`,
+        })}" />`,
+        {
+          valign: 'top',
+          width: s.avatar,
+          style: { 'padding-right': `${s.gap}px` },
+        },
+      )
+    : '';
+
+  const rightCell = cell(rightInner, { valign: 'top' });
+
+  return table(row(leftCell + rightCell), { style: { 'max-width': '600px' } });
+}
