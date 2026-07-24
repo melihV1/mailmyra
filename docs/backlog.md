@@ -19,6 +19,33 @@ Kapsam disiplini: buraya yazılan hiçbir madde, sırası gelmeden yapılmaz.
 
 ---
 
+## Telefon Testi Bulguları — 2026-07-24 (Hüseyin, yüzeysel tur)
+
+Üçü de kod hatası DEĞİL — Hafta 1 şablon kapsamı ile Hafta 2 builder'ının
+açtığı alanlar arasındaki dikiş. Kanıt: şablon kaynağı tarandı.
+
+1. **El imzası hiç render edilmiyor.** `handSignatureUrl` şablonların
+   hiçbirinde geçmiyor — Hafta 1 spec'inin yerleşim listesinde el imzası
+   satırı yoktu. Builder alanı açınca boşluk görünür oldu.
+   _Tasarım kararı gerekiyor: imza görseli nereye? (öneri: ad bloğunun
+   üstüne, ~40px yükseklik)_
+2. **Logo, avatar varken görünmüyor.** `classic-horizontal.ts:258` —
+   `avatarUrl ?? logoUrl`: tek görsel yuvası, avatar öncelikli (Hafta 1
+   spec kararı). İkisi birden yüklenince logo hiç çıkmıyor.
+   _Tasarım kararı: logo ikinci bir yere mi (şirket adı yanı / alt satır),
+   yoksa tek-yuva davranışı builder'da açıkça mı belirtilsin?_
+3. **Sosyal ikonlar yerine metin-link.** Kayıtlı Hafta 2 kararı ("bu hafta
+   metin-link devam") — ikon PNG seti CDN'e yüklenince `iconStyle` ile
+   birlikte gelecek. Beklenti yönetimi: builder'ın Sosyal adımına küçük bir
+   not eklenebilir.
+
+**Kısıt:** 1 ve 2'nin çözümü classic-horizontal'ı DEĞİŞTİRMEK demek — bu,
+5-istemci doğrulamasını kısmen eskitir. Outlook Classic RDP testi zaten
+Hafta 3 öncesi yapılacak; şablon değişikliklerini o testten ÖNCE toplayıp
+tek turda doğrulamak en ucuzu.
+
+---
+
 ## Test Kayıtları
 
 ### Tur 1 — 2026-07-24 (classic-horizontal, Hafta 1 çıktıları)
