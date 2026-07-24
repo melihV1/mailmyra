@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "cleanup": "tsx scripts/cleanup-orphans.ts"
   },
   "dependencies": {
     "@mailmyra/renderer": "workspace:*",
@@ -20,6 +21,7 @@
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vitest": "^3.0.0"
   }
