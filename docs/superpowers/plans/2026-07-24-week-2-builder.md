@@ -562,7 +562,42 @@ async function webpImage(): Promise<Buffer> {
 const svgImage = Buffer.from(
   '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><circle cx="200" cy="200" r="150" fill="#719ad1"/></svg>',
 );
+// Meşru büyük SVG logo: declared 1400x1400. Sabit density:300 ile rasterize
+// edilirse efektif limit ~980px'e düşer ve limitInputPixels'e takılır — bu
+// YANLIŞTIR, çünkü 1400x1400 makul bir logo boyutudur ve kabul edilmelidir.
+const largeSvgImage = Buffer.from(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1400"><circle cx="700" cy="700" r="600" fill="#719ad1"/></svg>',
+);
 const gifImage = Buffer.concat([Buffer.from('GIF89a'), Buffer.alloc(20)]);
+// Geçerli PNG magic byte'ları + bozuk gövde: format sniff'i geçer, sharp decode'da patlar.
+const corruptPng = Buffer.concat([
+  Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+  Buffer.from('bu gecerli bir PNG govdesi degil, tamamen bozuk veri'),
+]);
+
+// Deterministik seeded PRNG (mulberry32) — Math.random KULLANILMAZ.
+function mulberry32(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s |= 0;
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// 360x360 RGBA gürültü PNG'si: sıkıştırma bütçeye sığmaz → warning yolu tetiklenir.
+async function noisePng(size = 360): Promise<Buffer> {
+  const channels = 4;
+  const rand = mulberry32(1337);
+  const raw = Buffer.alloc(size * size * channels);
+  for (let i = 0; i < raw.length; i++) raw[i] = Math.floor(rand() * 256);
+  raw[3] = 128; // en az bir yarı-saydam alfa piksel garantisi
+  return sharp(raw, { raw: { width: size, height: size, channels } })
+    .png({ compressionLevel: 9, palette: true })
+    .toBuffer();
+}
 
 describe('processImage — doğrulama', () => {
   it('rejects oversized input with 413', async () => {
@@ -577,6 +612,9 @@ describe('processImage — doğrulama', () => {
   });
   it('rejects unknown bytes with 400', async () => {
     await expect(processImage(Buffer.from('not an image'), 'logo')).rejects.toMatchObject({ status: 400 });
+  });
+  it('rejects corrupt input (valid PNG magic bytes, garbage body) with 400', async () => {
+    await expect(processImage(corruptPng, 'logo')).rejects.toMatchObject({ status: 400 });
   });
 });
 
@@ -618,10 +656,27 @@ describe('processImage — işleme', () => {
     );
     await expect(processImage(huge, 'logo')).rejects.toMatchObject({ status: 400 });
   });
+  it('accepts a legitimate large declared-size SVG (1400x1400) and resizes to target', async () => {
+    const res = await processImage(largeSvgImage, 'logo');
+    expect(Math.max(res.width, res.height)).toBe(360);
+  });
+  it('handSignature targets 300px', async () => {
+    const res = await processImage(await opaqueJpeg(900, 400), 'handSignature');
+    expect(Math.max(res.width, res.height)).toBe(300);
+  });
+});
+
+describe('processImage — bütçe aşımı (warning)', () => {
+  it('accepts an over-budget noisy PNG with a warning instead of rejecting', async () => {
+    const res = await processImage(await noisePng(360), 'logo');
+    expect(res.filename).toMatch(/\.png$/);
+    expect(res.warning).toBeDefined();
+    expect(res.buffer.length).toBeGreaterThan(60_000);
+  });
 });
 ```
 
-- [ ] **Step 3: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test image-pipeline` → FAIL (modül yok).
+- [ ] **Step 3: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test image-pipeline` → FAIL (eski `density: 300`-her-girdiye implementasyonuna karşı: "accepts a legitimate large declared-size SVG (1400x1400)..." testi kırmızı — librsvg rasterize'ı declared_px × density/72 yaptığından 1400 × 300/72 ≈ 5833px, `limitInputPixels` (4096×4096) sınırını aşıyor ve `PipelineError(400)` fırlatıyor. Diğer 14 test (corrupt-input, handSignature, over-budget warning dahil) bu implementasyona karşı da zaten yeşildi — SVG density hatası yalnızca büyük declared boyutlu SVG'leri etkiliyor).
 
 - [ ] **Step 4: Implementasyon** — `apps/web/lib/image-pipeline.ts`:
 
@@ -645,8 +700,9 @@ export class PipelineError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    options?: ErrorOptions,
   ) {
-    super(message);
+    super(message, options);
   }
 }
 
@@ -710,9 +766,31 @@ export async function processImage(
   }
 
   const target = KIND_TARGETS[kind];
+
+  // GİRDİ BÖLGESİ: decode/probe adımları. Beklenen hatalar (limitInputPixels,
+  // bozuk dosya) burada yakalanıp 400'e eşlenir — cause korunarak.
+  let resized: sharp.Sharp;
+  let hasAlpha: boolean;
   try {
-    const base = sharp(input, { limitInputPixels: MAX_PIXELS, density: 300 });
-    const resized = base.resize({
+    let base: sharp.Sharp;
+    if (format === 'svg') {
+      // SVG için density'yi declared boyuta göre hesapla: librsvg rasterize'ı
+      // declared_px × density/72 yapar. density:300 sabit kullanılırsa büyük
+      // (ama makul) declared boyutlu SVG'ler limitInputPixels'e takılır.
+      // Önce varsayılan density (72) ile sadece declared boyutu prob'la —
+      // gerçekten saçma declared boyut burada zaten fırlatır (bomba koruması).
+      const probeMeta = await sharp(input, { limitInputPixels: MAX_PIXELS }).metadata();
+      const longEdge = Math.max(probeMeta.width ?? 1, probeMeta.height ?? 1);
+      // Declared boyut hedeften büyük/eşitse varsayılan density yeter (aşağıda
+      // zaten küçültülecek). Küçükse rasterize'ı hedef long edge'e getirecek
+      // density hesapla — küçük declared SVG'ler için vektör kalitesini korur.
+      const density = longEdge >= target.px ? 72 : (72 * target.px) / longEdge;
+      base = sharp(input, { limitInputPixels: MAX_PIXELS, density });
+    } else {
+      // Raster girdilerde density parametresi anlamsız/zararlı — hiç geçilmez.
+      base = sharp(input, { limitInputPixels: MAX_PIXELS });
+    }
+    resized = base.resize({
       width: target.px,
       height: target.px,
       fit: 'inside',
@@ -720,33 +798,41 @@ export async function processImage(
     });
     const probe = await resized.clone().png().toBuffer({ resolveWithObject: true });
     const stats = await sharp(probe.data).stats();
-    const hasAlpha = !stats.isOpaque;
-    const { buffer, ext, warning } = await compressToBudget(resized.clone(), hasAlpha, target.budgetBytes);
-    const meta = await sharp(buffer).metadata();
-    const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 8);
-    return {
-      buffer,
-      filename: `${hash}.${ext}`,
-      width: meta.width ?? 0,
-      height: meta.height ?? 0,
-      warning,
-    };
+    hasAlpha = !stats.isOpaque;
   } catch (e) {
     if (e instanceof PipelineError) throw e;
-    // sharp limitInputPixels ve bozuk girdi hataları buraya düşer.
-    throw new PipelineError(400, 'Görsel işlenemedi: boyutlar çok büyük veya dosya bozuk.');
+    throw new PipelineError(400, 'Görsel işlenemedi: boyutlar çok büyük veya dosya bozuk.', { cause: e });
   }
+
+  // İŞLEME BÖLGESİ: burada yakalama YOK. Beklenmeyen bir hata gerçek bir bug'dır
+  // ve route handler'ın PipelineError-olmayan yolundan (500) geçmelidir.
+  const { buffer, ext, warning } = await compressToBudget(resized.clone(), hasAlpha, target.budgetBytes);
+  const meta = await sharp(buffer).metadata();
+  const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 8);
+  return {
+    buffer,
+    filename: `${hash}.${ext}`,
+    width: meta.width ?? 0,
+    height: meta.height ?? 0,
+    warning,
+  };
 }
 ```
 
-- [ ] **Step 5: Yeşili doğrula** — Run: `corepack pnpm --filter web test image-pipeline` → tümü PASS. (JPEG üretimi ladder'da ilk denemede bütçeye sığar — düz renkli test görselleri küçüktür; `warning` yolu bütçe testinde dolaylı doğrulanır: sığmayan durumda alan dolu döner. Testte üretilen görseller sığdığı için `warning` undefined olur; bu beklenen davranıştır.)
+- [ ] **Step 5: Yeşili doğrula** — Run: `corepack pnpm --filter web test image-pipeline` → tümü PASS (15/15). Not: `compressToBudget`'ın `warning` dönüşü artık gerçek bir test tarafından da tetikleniyor (seeded-PRNG gürültü PNG'si, düz renkli fixture'ların aksine sıkıştırılamıyor) — önceki "testte üretilen görseller sığdığı için warning undefined olur" notu artık geçerli değil.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add apps/web/package.json apps/web/lib/image-pipeline.ts apps/web/test/image-pipeline.test.ts pnpm-lock.yaml
-git commit -m "feat(web): add sharp image pipeline with policy enforcement"
+git add apps/web/lib/image-pipeline.ts apps/web/test/image-pipeline.test.ts
+git commit -m "fix(web): svg-aware density, error zones and budget-warning coverage in pipeline"
 ```
+
+**Kod incelemesi sonrası düzeltmeler (bu Task 5 bloğu geriye dönük güncellendi):**
+1. **SVG density.** `density: 300` artık TÜM girdilere değil, yalnızca SVG'ye ve declared boyuta göre hesaplanarak uygulanıyor — librsvg `declared_px × density/72` rasterize ettiğinden sabit `density:300`, ~980px üstü declared boyutlu (ama tamamen makul, örn. 1400×1400) SVG logoları `limitInputPixels`'e takılıp yanlışlıkla reddediyordu. Raster (PNG/JPEG) girdilerde `density` artık hiç geçilmiyor.
+2. **Hata bölgeleri.** Tek try/catch, GİRDİ (decode/probe) ve İŞLEME (compress/hash) olarak ikiye ayrıldı. Yalnızca girdi bölgesindeki hatalar `PipelineError(400, …, { cause: e })`'e eşleniyor; işleme bölgesindeki beklenmeyen hatalar artık yakalanmıyor ve route handler'ın genel (500) yoluna düşüyor.
+3. **Bütçe-aşımı `warning` kapsamı.** Deterministik (seeded PRNG, `Math.random` yok) 360×360 gürültü PNG testi eklendi — `warning` alanının gerçekten dolduğunu ve reddetmediğini commit edilmiş bir testle kanıtlıyor.
+4. **Ek testler (minor bulgular):** `handSignature` (300px) ve bozuk-gövdeli-ama-geçerli-magic-byte'lı PNG (400 red) testleri eklendi.
 
 ---
 

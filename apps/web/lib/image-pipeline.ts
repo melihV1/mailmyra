@@ -17,8 +17,9 @@ export class PipelineError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    options?: ErrorOptions,
   ) {
-    super(message);
+    super(message, options);
   }
 }
 
@@ -82,9 +83,31 @@ export async function processImage(
   }
 
   const target = KIND_TARGETS[kind];
+
+  // GİRDİ BÖLGESİ: decode/probe adımları. Beklenen hatalar (limitInputPixels,
+  // bozuk dosya) burada yakalanıp 400'e eşlenir — cause korunarak.
+  let resized: sharp.Sharp;
+  let hasAlpha: boolean;
   try {
-    const base = sharp(input, { limitInputPixels: MAX_PIXELS, density: 300 });
-    const resized = base.resize({
+    let base: sharp.Sharp;
+    if (format === 'svg') {
+      // SVG için density'yi declared boyuta göre hesapla: librsvg rasterize'ı
+      // declared_px × density/72 yapar. density:300 sabit kullanılırsa büyük
+      // (ama makul) declared boyutlu SVG'ler limitInputPixels'e takılır.
+      // Önce varsayılan density (72) ile sadece declared boyutu prob'la —
+      // gerçekten saçma declared boyut burada zaten fırlatır (bomba koruması).
+      const probeMeta = await sharp(input, { limitInputPixels: MAX_PIXELS }).metadata();
+      const longEdge = Math.max(probeMeta.width ?? 1, probeMeta.height ?? 1);
+      // Declared boyut hedeften büyük/eşitse varsayılan density yeter (aşağıda
+      // zaten küçültülecek). Küçükse rasterize'ı hedef long edge'e getirecek
+      // density hesapla — küçük declared SVG'ler için vektör kalitesini korur.
+      const density = longEdge >= target.px ? 72 : (72 * target.px) / longEdge;
+      base = sharp(input, { limitInputPixels: MAX_PIXELS, density });
+    } else {
+      // Raster girdilerde density parametresi anlamsız/zararlı — hiç geçilmez.
+      base = sharp(input, { limitInputPixels: MAX_PIXELS });
+    }
+    resized = base.resize({
       width: target.px,
       height: target.px,
       fit: 'inside',
@@ -92,20 +115,22 @@ export async function processImage(
     });
     const probe = await resized.clone().png().toBuffer({ resolveWithObject: true });
     const stats = await sharp(probe.data).stats();
-    const hasAlpha = !stats.isOpaque;
-    const { buffer, ext, warning } = await compressToBudget(resized.clone(), hasAlpha, target.budgetBytes);
-    const meta = await sharp(buffer).metadata();
-    const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 8);
-    return {
-      buffer,
-      filename: `${hash}.${ext}`,
-      width: meta.width ?? 0,
-      height: meta.height ?? 0,
-      warning,
-    };
+    hasAlpha = !stats.isOpaque;
   } catch (e) {
     if (e instanceof PipelineError) throw e;
-    // sharp limitInputPixels ve bozuk girdi hataları buraya düşer.
-    throw new PipelineError(400, 'Görsel işlenemedi: boyutlar çok büyük veya dosya bozuk.');
+    throw new PipelineError(400, 'Görsel işlenemedi: boyutlar çok büyük veya dosya bozuk.', { cause: e });
   }
+
+  // İŞLEME BÖLGESİ: burada yakalama YOK. Beklenmeyen bir hata gerçek bir bug'dır
+  // ve route handler'ın PipelineError-olmayan yolundan (500) geçmelidir.
+  const { buffer, ext, warning } = await compressToBudget(resized.clone(), hasAlpha, target.budgetBytes);
+  const meta = await sharp(buffer).metadata();
+  const hash = createHash('sha256').update(buffer).digest('hex').slice(0, 8);
+  return {
+    buffer,
+    filename: `${hash}.${ext}`,
+    width: meta.width ?? 0,
+    height: meta.height ?? 0,
+    warning,
+  };
 }
