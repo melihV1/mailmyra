@@ -70,7 +70,16 @@ Asla `mailmyra.com/uploads/...`, asla sunucu IP'si, asla üçüncü parti sağla
 
 **Sebep:** Üretilen imzalar insanların e-posta istemcilerinde **yıllarca** yaşar. Sunucu veya sağlayıcı değişirse sahadaki bütün logolar kırılır ve geri dönüşü yoktur. Kendi domainimiz arkada istediğimizi değiştirmemizi sağlar.
 
-Ek önlem: CDN domaininin önüne Cloudflare (ücretsiz plan) konulacak.
+Cloudflare **kullanılmayacak** — CDN domaini doğrudan kendi sunucumuzdan servis edilir (karar: 2026-07-24, Hüseyin).
+
+### Görsel Boyut Politikası
+
+- Yükleme limiti: **5MB** · kabul: **PNG/JPG/SVG** · ret: WebP/GIF
+- **SVG → PNG dönüşümü zorunlu** (çıktıda asla SVG olmaz)
+- Çıktı 2x boyutlar: logo **360px/<60KB** · avatar **180px/<40KB** · el imzası **300px/<50KB**
+- Uzun kenar max **600px**
+- Şeffaflık varsa **PNG**, yoksa **JPG**
+- Dosya adları **benzersiz ve değişmez** (ör. `a3f9c2e1.png`) — bir kez üretilen URL asla değişmez
 
 ---
 
