@@ -22,14 +22,20 @@ export async function cleanupOrphans(
   }
   for (const name of entries) {
     const p = join(dir, name);
-    const s = await stat(p);
-    if (!s.isFile()) continue;
-    if (opts.now - s.mtimeMs > ttlDays * DAY_MS) {
-      candidates.push(name);
-      if (!opts.dryRun) {
-        await unlink(p);
-        deleted.push(name);
+    try {
+      const s = await stat(p);
+      if (!s.isFile()) continue;
+      if (opts.now - s.mtimeMs > ttlDays * DAY_MS) {
+        candidates.push(name);
+        if (!opts.dryRun) {
+          await unlink(p);
+          deleted.push(name);
+        }
       }
+    } catch {
+      // Vanished file, broken symlink, permission error, etc. — skip this
+      // entry and keep processing the rest of the directory.
+      continue;
     }
   }
   return { candidates, deleted };

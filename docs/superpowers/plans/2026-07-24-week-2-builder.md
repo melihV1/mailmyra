@@ -1024,12 +1024,13 @@ Not: `beforeEach` her testten sonra `CDN_WRITE_PATH` yeniden ayarladığı için
 - Create: `apps/web/scripts/cleanup-orphans.ts`
 - Modify: `apps/web/package.json` — scripts'e `"cleanup": "tsx scripts/cleanup-orphans.ts"`, devDependencies'e `"tsx": "^4.19.2"`
 - Test: `apps/web/test/cleanup.test.ts`
+- Test: `apps/web/test/cleanup-cli.test.ts`
 
 **Interfaces:**
 - Consumes: yok (saf fs).
 - Produces: `cleanupOrphans(dir: string, ttlDays: number, opts: { dryRun: boolean; now: number }): Promise<{ candidates: string[]; deleted: string[] }>` — `dryRun` true ise `deleted` boş kalır.
 
-- [ ] **Step 1: Başarısız test** — `apps/web/test/cleanup.test.ts`:
+- [x] **Step 1: Başarısız test** — `apps/web/test/cleanup.test.ts`:
 
 ```ts
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -1076,9 +1077,9 @@ describe('cleanupOrphans', () => {
 });
 ```
 
-- [ ] **Step 2: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test cleanup` → FAIL.
+- [x] **Step 2: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test cleanup` → FAIL.
 
-- [ ] **Step 3: Implementasyon** — `apps/web/lib/cleanup.ts`:
+- [x] **Step 3: Implementasyon** — `apps/web/lib/cleanup.ts`:
 
 ```ts
 import { readdir, stat, unlink } from 'node:fs/promises';
@@ -1105,14 +1106,20 @@ export async function cleanupOrphans(
   }
   for (const name of entries) {
     const p = join(dir, name);
-    const s = await stat(p);
-    if (!s.isFile()) continue;
-    if (opts.now - s.mtimeMs > ttlDays * DAY_MS) {
-      candidates.push(name);
-      if (!opts.dryRun) {
-        await unlink(p);
-        deleted.push(name);
+    try {
+      const s = await stat(p);
+      if (!s.isFile()) continue;
+      if (opts.now - s.mtimeMs > ttlDays * DAY_MS) {
+        candidates.push(name);
+        if (!opts.dryRun) {
+          await unlink(p);
+          deleted.push(name);
+        }
       }
+    } catch {
+      // Vanished file, broken symlink, permission error, etc. — skip this
+      // entry and keep processing the rest of the directory.
+      continue;
     }
   }
   return { candidates, deleted };
@@ -1124,33 +1131,78 @@ export async function cleanupOrphans(
 ```ts
 import { cleanupOrphans } from '../lib/cleanup';
 
-const dir = process.env.CDN_WRITE_PATH;
-if (!dir) {
-  console.error('CDN_WRITE_PATH tanımlı değil.');
-  process.exit(1);
-}
-const ttlDays = Number(process.env.ORPHAN_TTL_DAYS ?? 7);
-const dryRun = process.argv.includes('--dry-run');
+async function main(): Promise<void> {
+  const dir = process.env.CDN_WRITE_PATH;
+  if (!dir) {
+    console.error('CDN_WRITE_PATH tanımlı değil.');
+    process.exit(1);
+  }
+  const ttlDays = Number(process.env.ORPHAN_TTL_DAYS ?? 7);
+  const dryRun = process.argv.includes('--dry-run');
 
-const res = await cleanupOrphans(dir, ttlDays, { dryRun, now: Date.now() });
-if (dryRun) {
-  console.log(`[dry-run] ${res.candidates.length} dosya silinecekti:`);
-  for (const f of res.candidates) console.log('  -', f);
-} else {
-  console.log(`${res.deleted.length} dosya silindi:`);
-  for (const f of res.deleted) console.log('  -', f);
+  const res = await cleanupOrphans(dir, ttlDays, { dryRun, now: Date.now() });
+  if (dryRun) {
+    console.log(`[dry-run] ${res.candidates.length} dosya silinecekti:`);
+    for (const f of res.candidates) console.log('  -', f);
+  } else {
+    console.log(`${res.deleted.length} dosya silindi:`);
+    for (const f of res.deleted) console.log('  -', f);
+  }
 }
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
 ```
 
-- [ ] **Step 4: package.json güncelle + kur** — scripts: `"cleanup": "tsx scripts/cleanup-orphans.ts"`, devDeps: `"tsx": "^4.19.2"`. Run: `corepack pnpm install`
+**Not (code review düzeltmesi, 2026-07-24):** İlk sürümde script gövdesi top-level `await` kullanıyordu.
+`apps/web/package.json` içinde `"type": "module"` YOK (bilerek — `next.config.js` `module.exports` kullanıyor,
+eklenirse Next config kırılır). Bu yüzden tsx/esbuild CJS çıktısı üretiyor ve top-level await'i reddediyor:
+`Top-level await is currently not supported with the cjs output format`. Script CLI olarak baştan beri
+çalıştırılamaz durumdaydı. Düzeltme: gövde `async function main()` içine alındı, `main().catch(...)` ile
+sonlandırıldı — `"type": "module"` eklenmedi.
 
-- [ ] **Step 5: Yeşil + commit**
+Ayrıca `cleanupOrphans` döngüsündeki `stat`/`unlink` çağrıları try/catch olmadan duruyordu: kaybolmuş bir
+dosya, kırık symlink veya izin hatası tüm çalışmayı reddediyordu. Her girdi artık kendi try/catch'i içinde —
+hata alan girdi hem `candidates` hem `deleted` dışında bırakılıp döngü devam ediyor; dönüş şekli
+(`{ candidates, deleted }`) değişmedi.
 
-Run: `corepack pnpm --filter web test cleanup` → PASS.
+- [x] **Step 4: package.json güncelle + kur** — scripts: `"cleanup": "tsx scripts/cleanup-orphans.ts"`, devDeps: `"tsx": "^4.19.2"`. Run: `corepack pnpm install`
+
+- [x] **Step 5: Ek kapsam — kırmızı/yeşil (code review sonrası)**
+
+`apps/web/test/cleanup.test.ts`'e eklenen testler (RED → GREEN):
+- eksik dizin → `{ candidates: [], deleted: [] }`, throw yok — **zaten yeşildi** (mevcut `readdir` try/catch'i yeterliydi)
+- dizin içindeki bir alt-dizin atlanır (silinmez, listelenmez, throw yok) — **zaten yeşildi** (`s.isFile()` kontrolü yeterliydi)
+- TTL sınırı: tam `ttlDays * DAY` yaşındaki dosya korunur (strict `>`) — **zaten yeşildi**; ama Date round-trip
+  saniyenin altı hassasiyet kaybına yol açabildiğinden test, `now` değerini dosyanın gerçek `mtimeMs`'inden
+  türetecek şekilde yazıldı (`now = stat(file).mtimeMs + ttlDays*DAY`), kırılgan saat karşılaştırmasından kaçınıldı
+- per-entry izolasyon: eski bir dosya + `symlinkSync('/nonexistent-target-xyz', ...)` ile sarkan bir symlink
+  aynı dizinde — **RED** oldu (`ENOENT: no such file or directory, stat ...`), try/catch eklenince **GREEN**
+
+Yeni dosya `apps/web/test/cleanup-cli.test.ts` — gerçek CLI'yi `node_modules/.bin/tsx` ile `execFile` üzerinden
+spawn eder (cwd `apps/web`, 20s timeout):
+- `CDN_WRITE_PATH` yokken → exit code 1, stdout/stderr `CDN_WRITE_PATH` içerir — orijinal (top-level await'li)
+  script ile **RED** doğrulandı (`git stash` ile geçici geri alınıp çalıştırıldı, aynı esbuild hatası tekrarlandı),
+  düzeltilmiş script ile **GREEN**
+- `CDN_WRITE_PATH` bir temp dizine set edilip içine eski bir dosya konunca, `--dry-run` → exit 0, çıktı dosyayı
+  listeler, dosya diskte kalır — **GREEN**
+
+- [x] **Step 6: Yeşil + commit**
+
+Run: `corepack pnpm --filter web test` → 48/48 PASS (7 dosya). `corepack pnpm --filter web typecheck` → 0 hata.
+
+Manuel CLI çalıştırma (gerçek script, gerçek dizin):
+```bash
+mkdir -p /tmp/mailmyra-cli-check
+CDN_WRITE_PATH=/tmp/mailmyra-cli-check corepack pnpm --filter web cleanup -- --dry-run
+```
+→ exit 0.
 
 ```bash
-git add apps/web/lib/cleanup.ts apps/web/scripts/cleanup-orphans.ts apps/web/test/cleanup.test.ts apps/web/package.json pnpm-lock.yaml
-git commit -m "feat(web): add manual orphan cleanup script with dry-run"
+git add apps/web/lib/cleanup.ts apps/web/scripts/cleanup-orphans.ts apps/web/test/cleanup.test.ts apps/web/test/cleanup-cli.test.ts
+git commit -m "fix(web): runnable cleanup CLI, per-entry error isolation, coverage"
 ```
 
 ---
