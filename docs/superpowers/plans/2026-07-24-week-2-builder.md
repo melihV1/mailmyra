@@ -626,26 +626,29 @@ git commit -m "feat(web): add sharp image pipeline with policy enforcement"
 
 **Interfaces:**
 - Consumes: `processImage`, `PipelineError` (Task 5); `getStorageAdapter`, `dirSizeBytes` (Task 4); `createRateLimiter` (Task 3).
-- Produces: `POST(req: Request): Promise<Response>` — 200: `{ url, width, height, bytes, warning? }`; hatalar: 400/413/429/507 `{ error }`. Test edilebilirlik için `__resetRateLimiterForTests()` export edilir.
+- Produces: `POST(req: Request): Promise<Response>` — 200: `{ url, width, height, bytes, warning? }`; hatalar: 400/413/429/507 `{ error }`. Üretim dosyasında test-only export YOKTUR; testler `vi.resetModules()` + dinamik import ile modül-seviyesi limiter'ı sıfırlar.
 
 - [ ] **Step 1: Başarısız test** — `apps/web/test/upload-route.test.ts`:
 
 ```ts
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { POST, __resetRateLimiterForTests } from '../app/api/upload/route';
 
+type PostFn = (req: Request) => Promise<Response>;
+let POST: PostFn;
 let dir: string;
-beforeEach(() => {
+beforeEach(async () => {
   dir = mkdtempSync(join(tmpdir(), 'mailmyra-upload-'));
   process.env.CDN_WRITE_PATH = dir;
   process.env.CDN_PUBLIC_URL = 'http://cdn.test';
   process.env.UPLOAD_RATE_LIMIT_PER_HOUR = '5';
   process.env.CDN_DISK_QUOTA_MB = '5120';
-  __resetRateLimiterForTests();
+  // Modül-seviyesi limiter'ı sıfırla: test-only export yerine modülü yeniden yükle.
+  vi.resetModules();
+  ({ POST } = await import('../app/api/upload/route'));
 });
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });
@@ -713,18 +716,10 @@ import { getStorageAdapter, dirSizeBytes } from '../../../lib/storage';
 
 const KINDS: UploadKind[] = ['logo', 'avatar', 'handSignature'];
 
-function buildLimiter() {
-  return createRateLimiter({
-    limit: Number(process.env.UPLOAD_RATE_LIMIT_PER_HOUR ?? 20),
-    windowMs: 60 * 60 * 1000,
-  });
-}
-let limiter = buildLimiter();
-
-/** Testler pencere durumunu sıfırlayabilsin diye. */
-export function __resetRateLimiterForTests(): void {
-  limiter = buildLimiter();
-}
+const limiter = createRateLimiter({
+  limit: Number(process.env.UPLOAD_RATE_LIMIT_PER_HOUR ?? 20),
+  windowMs: 60 * 60 * 1000,
+});
 
 function jsonError(status: number, error: string): Response {
   return Response.json({ error }, { status });
