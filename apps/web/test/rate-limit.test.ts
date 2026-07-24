@@ -21,4 +21,24 @@ describe('createRateLimiter', () => {
     expect(rl.check('a', 0)).toBe(true);
     expect(rl.check('b', 0)).toBe(true);
   });
+  it('rejects even the first request when limit is 0', () => {
+    const rl = createRateLimiter({ limit: 0, windowMs: 1000 });
+    expect(rl.check('a', 0)).toBe(false);
+    expect(rl.check('a', 1)).toBe(false);
+    expect(rl.check('a', 2000)).toBe(false);
+  });
+  it('sweeps expired entries once the map exceeds maxKeys, bounding memory', () => {
+    const rl = createRateLimiter({ limit: 1, windowMs: 1000, maxKeys: 2 });
+    expect(rl.check('a', 0)).toBe(true);
+    expect(rl.check('b', 0)).toBe(true);
+    expect(rl.size()).toBe(2);
+    // Both 'a' and 'b' windows expire by t=1000. A 3rd key pushes size past
+    // maxKeys, which should trigger a sweep of expired entries.
+    expect(rl.check('c', 1000)).toBe(true);
+    // 'a' and 'b' were expired at the time of the sweep and should have been
+    // evicted, leaving only 'c'.
+    expect(rl.size()).toBe(1);
+    // Evicted keys behave as fresh: allowed again despite limit: 1.
+    expect(rl.check('a', 1000)).toBe(true);
+  });
 });

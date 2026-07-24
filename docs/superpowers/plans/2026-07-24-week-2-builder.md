@@ -163,7 +163,7 @@ git commit -m "feat(web): add vitest and export gate flag"
 - Test: `apps/web/test/rate-limit.test.ts`
 
 **Interfaces:**
-- Produces: `createRateLimiter(opts: { limit: number; windowMs: number }): { check(key: string, now: number): boolean }` — `true` = izinli. Bellek içi sabit pencere.
+- Produces: `createRateLimiter(opts: { limit: number; windowMs: number; maxKeys?: number }): { check(key: string, now: number): boolean; size(): number }` — `true` = izinli. Bellek içi sabit pencere. `maxKeys` (varsayılan `10_000`) map büyüklüğünü sınırlar; aşıldığında süresi dolmuş pencereler `now`'a göre süpürülür. `size()` map'teki anahtar sayısını döner (test/gözlemlenebilirlik için). `limit <= 0` ise `check` her zaman `false` döner.
 
 - [ ] **Step 1: Başarısız test** — `apps/web/test/rate-limit.test.ts`:
 
@@ -191,32 +191,78 @@ describe('createRateLimiter', () => {
     expect(rl.check('a', 0)).toBe(true);
     expect(rl.check('b', 0)).toBe(true);
   });
+  it('rejects even the first request when limit is 0', () => {
+    const rl = createRateLimiter({ limit: 0, windowMs: 1000 });
+    expect(rl.check('a', 0)).toBe(false);
+    expect(rl.check('a', 1)).toBe(false);
+    expect(rl.check('a', 2000)).toBe(false);
+  });
+  it('sweeps expired entries once the map exceeds maxKeys, bounding memory', () => {
+    const rl = createRateLimiter({ limit: 1, windowMs: 1000, maxKeys: 2 });
+    expect(rl.check('a', 0)).toBe(true);
+    expect(rl.check('b', 0)).toBe(true);
+    expect(rl.size()).toBe(2);
+    // Both 'a' and 'b' windows expire by t=1000. A 3rd key pushes size past
+    // maxKeys, which should trigger a sweep of expired entries.
+    expect(rl.check('c', 1000)).toBe(true);
+    // 'a' and 'b' were expired at the time of the sweep and should have been
+    // evicted, leaving only 'c'.
+    expect(rl.size()).toBe(1);
+    // Evicted keys behave as fresh: allowed again despite limit: 1.
+    expect(rl.check('a', 1000)).toBe(true);
+  });
 });
 ```
 
-- [ ] **Step 2: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test rate-limit` → FAIL.
+- [ ] **Step 2: Kırmızıyı doğrula** — Run: `corepack pnpm --filter web test rate-limit` → FAIL (2 yeni test kırmızı: `limit: 0` ilk isteği yanlışlıkla kabul ediyor; `rl.size` fonksiyonu yok).
 
 - [ ] **Step 3: Implementasyon** — `apps/web/lib/rate-limit.ts`:
 
 ```ts
-interface Window {
+interface RateWindow {
   start: number;
   count: number;
 }
 
+const DEFAULT_MAX_KEYS = 10_000;
+
 /** Bellek içi sabit pencere. Tek Node süreci varsayımı (spec'e kayıtlı). */
-export function createRateLimiter(opts: { limit: number; windowMs: number }) {
-  const windows = new Map<string, Window>();
+export function createRateLimiter(opts: { limit: number; windowMs: number; maxKeys?: number }) {
+  const maxKeys = opts.maxKeys ?? DEFAULT_MAX_KEYS;
+  const windows = new Map<string, RateWindow>();
+
+  function sweepExpired(now: number): void {
+    for (const [key, w] of windows) {
+      if (now - w.start >= opts.windowMs) {
+        windows.delete(key);
+      }
+    }
+  }
+
   return {
     check(key: string, now: number): boolean {
+      if (opts.limit <= 0) return false;
+
       const w = windows.get(key);
+      let allowed: boolean;
       if (!w || now - w.start >= opts.windowMs) {
         windows.set(key, { start: now, count: 1 });
-        return true;
+        allowed = true;
+      } else if (w.count >= opts.limit) {
+        allowed = false;
+      } else {
+        w.count += 1;
+        allowed = true;
       }
-      if (w.count >= opts.limit) return false;
-      w.count += 1;
-      return true;
+
+      if (windows.size > maxKeys) {
+        sweepExpired(now);
+      }
+
+      return allowed;
+    },
+    size(): number {
+      return windows.size;
     },
   };
 }
@@ -224,11 +270,11 @@ export function createRateLimiter(opts: { limit: number; windowMs: number }) {
 
 - [ ] **Step 4: Yeşil + commit**
 
-Run: `corepack pnpm --filter web test rate-limit` → PASS.
+Run: `corepack pnpm --filter web test rate-limit` → PASS (5/5).
 
 ```bash
 git add apps/web/lib/rate-limit.ts apps/web/test/rate-limit.test.ts
-git commit -m "feat(web): add in-memory fixed-window rate limiter"
+git commit -m "fix(web): bound rate limiter memory and honor zero limit"
 ```
 
 ---
