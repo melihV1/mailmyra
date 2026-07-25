@@ -12,7 +12,11 @@ function wrapDoc(fragment: string): string {
 }
 
 for (const fx of fixtures) {
-  const html = renderSignature(fx.data, 'classic-horizontal');
+  // .htm çıktıları GERÇEK CDN ikon URL'leriyle üretilir (spec §4) — test
+  // öncesi ikonların cdn.mailmyra.com'a yüklenmesi deploy adımıdır (aşağıda).
+  const html = renderSignature(fx.data, 'classic-horizontal', {
+    iconBaseUrl: 'https://cdn.mailmyra.com',
+  });
   const file = resolve(outDir, `classic-horizontal--${fx.id}.htm`);
   writeFileSync(file, wrapDoc(html), 'utf8');
   console.log('wrote', file);

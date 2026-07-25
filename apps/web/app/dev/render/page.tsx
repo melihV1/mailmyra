@@ -9,6 +9,9 @@ export default function DevRenderPage() {
   // ExportButtons davranışını sızdırır.
   if (process.env.NODE_ENV === 'production') notFound();
 
+  // Dev'de yerel cdn-dev/icons kullanılır (spec §4). Prod'da sayfa zaten 404.
+  const iconBaseUrl = process.env.CDN_PUBLIC_URL;
+
   return (
     <main
       style={{
@@ -24,7 +27,11 @@ export default function DevRenderPage() {
         istemcide test et.
       </p>
       {fixtures.map((fx) => {
-        const html = renderSignature(fx.data, 'classic-horizontal');
+        const html = renderSignature(
+          fx.data,
+          'classic-horizontal',
+          iconBaseUrl ? { iconBaseUrl } : undefined,
+        );
         return (
           <section
             key={fx.id}

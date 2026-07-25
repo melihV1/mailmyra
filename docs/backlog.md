@@ -19,6 +19,29 @@ Kapsam disiplini: buraya yazılan hiçbir madde, sırası gelmeden yapılmaz.
 
 ---
 
+## Hafta 2 Polish Notları — 2026-07-25
+
+- **classic-horizontal'a ÖZGÜ yerleşim kararları** (gelecek şablonlar kendi
+  yerleşimini seçer, bunlar sözleşme değildir): logo sol sütunda avatarın
+  altında (8px boşluk, genişlik=kolon genişliği, height attribute YOK);
+  el imzası en alt satırda disclaimer'ın sağında (150px görünüm / 300px 2x).
+- [ ] **Logo width-only ölçekleme riski:** logo `<img>` height taşımıyor
+  (SignatureData görsel oranı saklamıyor). Outlook genelde doğru ölçekler;
+  6-istemci testinde ÖZELLİKLE kontrol edilecek. Sorun çıkarsa Hafta 4'te
+  `visuals`'a boyut alanı (tip değişikliği + draft migrasyonu).
+- [ ] **Deploy adımı — ikonlar gerçek CDN'e:** 6-istemci testinden ÖNCE
+  `CDN_WRITE_PATH=<prod-cdn-yolu> corepack pnpm --filter web icons`
+  prod'da koşulmalı; mono-719ad1 seti de ilk builder kullanımında oluşur
+  (test .htm'leri için elle: `POST /api/icons/mono {"color":"#719ad1"}`).
+- **simple-icons `^13.0.0`'a sabit:** v14.0.0 linkedin ikonunu kaldırdı
+  (marka talebi). Upgrade öncesi 8 platformun varlığı doğrulanmalı; linkedin
+  için kalıcı çözüm gerekirse glif path'i repoya vendor'lanır.
+- [ ] **Hafta 4'e:** builder'da `filled`/`outline` seçiliyken statik ikonlar
+  henüz deploy edilmemişse önizlemede kırık görsel görünür — dev kurulumunda
+  script koşuldu; prod deploy checklist'ine eklendi (yukarıdaki madde).
+
+---
+
 ## Telefon Testi Bulguları — 2026-07-24 (Hüseyin, yüzeysel tur)
 
 Üçü de kod hatası DEĞİL — Hafta 1 şablon kapsamı ile Hafta 2 builder'ının
