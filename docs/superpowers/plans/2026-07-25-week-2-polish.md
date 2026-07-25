@@ -175,8 +175,8 @@ describe('contrastWarnings — uyarması gerekenler', () => {
       'İkincil metin rengi saf siyaha çok yakın; koyu modda sorun çıkarabilir.',
     ]);
   });
-  it('applies the looser muted threshold: #999999 passes as muted (≥3) but a lighter #cccccc fails', () => {
-    expect(contrastWarnings(visuals({ mutedColor: '#999999' }))).toEqual([]);
+  it('applies the looser muted threshold: #888888 passes as muted (≈3.5 ≥ 3) but a lighter #cccccc fails', () => {
+    expect(contrastWarnings(visuals({ mutedColor: '#888888' }))).toEqual([]);
     expect(contrastWarnings(visuals({ mutedColor: '#cccccc' }))).toEqual([
       'İkincil metin rengi beyaz zeminde zor okunur.',
     ]);
