@@ -2,6 +2,7 @@ import { createRateLimiter } from '../../../lib/rate-limit';
 import { processImage, PipelineError, type UploadKind } from '../../../lib/image-pipeline';
 import { getStorageAdapter, dirSizeBytes } from '../../../lib/storage';
 import { envInt } from '../../../lib/env';
+import { clientIp } from '../../../lib/client-ip';
 
 const KINDS: UploadKind[] = ['logo', 'avatar', 'handSignature'];
 
@@ -19,19 +20,6 @@ const limiter = createRateLimiter({
 
 function jsonError(status: number, error: string): Response {
   return Response.json({ error }, { status });
-}
-
-/**
- * `X-Forwarded-For` zincirinde SOL taraf istemcinin kendisidir ve serbestçe
- * sahtelenebilir (spoofable) — arkadaki proxy zincirine ekleme yapan (append
- * eden) bir kurulumda güvenilecek tek girdi SAĞ uçtaki (en son eklenen)
- * girdidir. Boş/whitespace-only değer veya header'ın kendisi yoksa 'local'.
- */
-function clientIp(req: Request): string {
-  const xff = req.headers.get('x-forwarded-for');
-  if (!xff) return 'local';
-  const last = xff.split(',').pop()?.trim();
-  return last ? last : 'local';
 }
 
 export async function POST(req: Request): Promise<Response> {
