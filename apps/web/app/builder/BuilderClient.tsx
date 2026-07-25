@@ -66,45 +66,52 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
   );
 
   // Mono ikon hazırlığı (spec §3d): mono + sosyal varken brandColor/iconStyle
-  // değişimlerinde 500ms debounce ile /api/icons/mono çağrılır. Dönene kadar
-  // export kilitli — kopyalanan HTML'de asla henüz-yazılmamış ikon URL'i olamaz.
+  // değişimlerinde 500ms debounce ile /api/icons/mono çağrılır.
+  // EXPORT KİLİDİ SENKRON TÜRETİLİR: `readyColor` yalnız sunucunun "yazıldı"
+  // dediği rengi tutar ve kilit `readyColor !== brandColor` karşılaştırmasıyla
+  // AYNI render içinde hesaplanır — effect'in bir sonraki kareyi beklemesi
+  // butonları tek bir commit için bile açık bırakamaz. (Pazarlıksız kural:
+  // kopyalanan HTML'de asla henüz-yazılmamış ikon URL'i olamaz.)
   const monoNeeded = Boolean(iconBaseUrl) && needsMonoIcons(data);
-  const [iconState, setIconState] = useState<'ready' | 'pending' | 'error'>('ready');
+  const [readyColor, setReadyColor] = useState<string | null>(null);
+  const [monoFailed, setMonoFailed] = useState(false);
   const [monoDegraded, setMonoDegraded] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
   const monoSeq = useRef(0);
 
   useEffect(() => {
     if (!monoNeeded) {
-      setIconState('ready');
+      monoSeq.current += 1; // uçuştaki cevap dönerse yok sayılsın
+      setMonoFailed(false);
       setMonoDegraded(false);
       return;
     }
+    const color = data.visuals.brandColor;
     const seq = ++monoSeq.current;
-    setIconState('pending');
+    setMonoFailed(false);
     const t = setTimeout(async () => {
       try {
         const res = await fetch('/api/icons/mono', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ color: data.visuals.brandColor }),
+          body: JSON.stringify({ color }),
         });
         const body = (await res.json()) as { ready?: boolean; degraded?: boolean };
         if (seq !== monoSeq.current) return; // eski cevap — daha yenisi yolda
         if (res.ok && body.ready) {
-          setIconState('ready');
+          setReadyColor(color);
           setMonoDegraded(Boolean(body.degraded));
         } else {
-          setIconState('error');
+          setMonoFailed(true);
         }
       } catch {
-        if (seq === monoSeq.current) setIconState('error');
+        if (seq === monoSeq.current) setMonoFailed(true);
       }
     }, 500);
     return () => clearTimeout(t);
   }, [monoNeeded, data.visuals.brandColor, retryTick]);
 
-  const exportDisabled = monoNeeded && iconState !== 'ready';
+  const exportDisabled = monoNeeded && readyColor !== data.visuals.brandColor;
 
   function resetAll() {
     if (!window.confirm('Taslak silinecek ve form sıfırlanacak. Emin misin?')) return;
@@ -158,13 +165,13 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
         disabled={exportDisabled}
         disabledNote={
           exportDisabled
-            ? iconState === 'error'
+            ? monoFailed
               ? 'İkonlar üretilemedi — tekrar deneyin'
               : 'İkonlar hazırlanıyor…'
             : undefined
         }
       />
-      {monoNeeded && iconState === 'error' && (
+      {monoNeeded && monoFailed && (
         <button type="button" onClick={() => setRetryTick((n) => n + 1)}>
           Yeniden dene
         </button>
