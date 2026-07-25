@@ -17,7 +17,16 @@ describe('classicHorizontal', () => {
   it('omits the image column when no avatar or logo is set', () => {
     const noImg = {
       ...full,
-      visuals: { ...full.visuals, avatarUrl: undefined, logoUrl: undefined },
+      visuals: {
+        ...full.visuals,
+        avatarUrl: undefined,
+        logoUrl: undefined,
+        // handSignatureUrl belirtilmez — bu görsel image COLUMN'un değil,
+        // alt disclaimer satırının parçası (bkz. "renders the hand signature
+        // row even without a disclaimer" testi). Kolon testini o özellikten
+        // izole etmek için burada da kapatılır.
+        handSignatureUrl: undefined,
+      },
     };
     expect(classicHorizontal(noImg)).not.toContain('<img');
   });
@@ -61,5 +70,60 @@ describe('classicHorizontal', () => {
     });
     expect(small).toContain('font-size:15px');
     expect(large).toContain('font-size:22px');
+  });
+  it('renders avatar and logo together as two stacked images in the left column', () => {
+    const both = {
+      ...full,
+      visuals: {
+        ...full.visuals,
+        avatarUrl: 'https://cdn.test/avatar.png',
+        logoUrl: 'https://cdn.test/logo.png',
+      },
+    };
+    const html = classicHorizontal(both);
+    expect(html).toContain('src="https://cdn.test/avatar.png"');
+    expect(html).toContain('src="https://cdn.test/logo.png"');
+    // Logo avatardan SONRA gelir (altında)
+    expect(html.indexOf('logo.png')).toBeGreaterThan(html.indexOf('avatar.png'));
+    // Logo img'i height attribute TAŞIMAZ (oran bilinmiyor — spec kararı)
+    const logoImg = html.match(/<img[^>]*logo\.png[^>]*>/i)![0];
+    expect(logoImg).toMatch(/\swidth=/i);
+    expect(logoImg).not.toMatch(/\sheight=/i);
+  });
+  it('renders logo alone when there is no avatar (no ?? fallback anymore)', () => {
+    const logoOnly = {
+      ...full,
+      visuals: { ...full.visuals, avatarUrl: undefined, logoUrl: 'https://cdn.test/logo.png' },
+    };
+    const html = classicHorizontal(logoOnly);
+    expect(html).toContain('src="https://cdn.test/logo.png"');
+  });
+  it('renders the hand signature next to the disclaimer in the bottom row', () => {
+    const withSig = {
+      ...full,
+      visuals: { ...full.visuals, handSignatureUrl: 'https://cdn.test/sig.png' },
+    };
+    const html = classicHorizontal(withSig);
+    const sigImg = html.match(/<img[^>]*sig\.png[^>]*>/i)![0];
+    expect(sigImg).toContain('width="150"');
+    // Disclaimer da aynı çıktıda var (full fixture disclaimer içerir)
+    expect(html).toContain('Bu e-posta ve ekleri gizlidir');
+  });
+  it('renders the hand signature row even without a disclaimer', () => {
+    const noDisc = {
+      ...full,
+      visuals: { ...full.visuals, handSignatureUrl: 'https://cdn.test/sig.png' },
+      extras: { ...full.extras, disclaimer: undefined },
+    };
+    expect(classicHorizontal(noDisc)).toContain('sig.png');
+  });
+  it('keeps the plain disclaimer behavior when there is no hand signature', () => {
+    const noSig = {
+      ...full,
+      visuals: { ...full.visuals, handSignatureUrl: undefined },
+    };
+    const html = classicHorizontal(noSig);
+    expect(html).toContain('Bu e-posta ve ekleri gizlidir');
+    expect(html).not.toContain('sig.png');
   });
 });

@@ -236,44 +236,96 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
     );
   }
 
-  // Yasal metin
-  if (data.extras?.disclaimer) {
+  // Alt satır: disclaimer (sol) + el imzası (sağ) — spec §2.
+  // El imzası varken 2 hücreli nested table kullanılır (colspan'a bulaşmadan);
+  // sağ kolon 150px sabittir, imza hücreyi doldurur → sağa hizalı görünür.
+  const disclaimerSpan = data.extras?.disclaimer
+    ? `<span style="${styleToString({
+        'font-family': font,
+        'font-size': `${s.small}px`,
+        color: muted,
+        'line-height': '1.3',
+      })}">${htmlEscape(data.extras.disclaimer).replace(/\n/g, '<br>')}</span>`
+    : '';
+  const handSigImg = data.visuals.handSignatureUrl
+    ? `<img src="${sanitizeUrl(data.visuals.handSignatureUrl)}" width="150" alt="${htmlEscape(
+        data.identity.fullName,
+      )}" border="0" style="${styleToString({
+        display: 'block',
+        border: '0',
+        width: '150px',
+      })}" />`
+    : '';
+  if (handSigImg) {
+    const bottom = table(
+      row(
+        cell(disclaimerSpan || '&nbsp;', { valign: 'top' }) +
+          cell(handSigImg, {
+            valign: 'bottom',
+            width: 150,
+            style: { 'padding-left': '12px' },
+          }),
+      ),
+      { width: '100%' },
+    );
+    lines.push(
+      row(cell(bottom, { style: { 'padding-top': `${Math.round(s.gap / 2)}px` } })),
+    );
+  } else if (disclaimerSpan) {
     lines.push(
       row(
-        cell(
-          `<span style="${styleToString({
-            'font-family': font,
-            'font-size': `${s.small}px`,
-            color: muted,
-            'line-height': '1.3',
-          })}">${htmlEscape(data.extras.disclaimer).replace(/\n/g, '<br>')}</span>`,
-          { style: { 'padding-top': `${Math.round(s.gap / 2)}px` } },
-        ),
+        cell(disclaimerSpan, { style: { 'padding-top': `${Math.round(s.gap / 2)}px` } }),
       ),
     );
   }
 
   const rightInner = table(lines.join(''), { width: '100%' });
 
-  // Sol görsel sütunu (önce avatar, yoksa logo)
-  const imageUrl = data.visuals.avatarUrl ?? data.visuals.logoUrl;
-  const leftCell = imageUrl
-    ? cell(
-        `<img src="${sanitizeUrl(imageUrl)}" width="${s.avatar}" height="${s.avatar}" alt="${htmlEscape(
-          data.identity.fullName,
-        )}" border="0" style="${styleToString({
-          display: 'block',
-          border: '0',
-          'border-radius': '4px',
-          width: `${s.avatar}px`,
-          height: `${s.avatar}px`,
-        })}" />`,
-        {
-          valign: 'top',
-          width: s.avatar,
-          style: { 'padding-right': `${s.gap}px` },
-        },
-      )
+  // Sol görsel sütunu: avatar üstte, logo altta — İKİ BAĞIMSIZ SLOT
+  // (eski `avatarUrl ?? logoUrl` tek-yuva davranışı kaldırıldı, spec §2).
+  // Logo genişliği = kolon genişliği (s.avatar); height BİLEREK verilmez —
+  // SignatureData görsel oranı saklamıyor. Outlook width-only ölçeklemeyi
+  // genelde doğru yapar; 6-istemci testinde özellikle kontrol edilecek.
+  const visualRows: string[] = [];
+  if (data.visuals.avatarUrl) {
+    visualRows.push(
+      row(
+        cell(
+          `<img src="${sanitizeUrl(data.visuals.avatarUrl)}" width="${s.avatar}" height="${s.avatar}" alt="${htmlEscape(
+            data.identity.fullName,
+          )}" border="0" style="${styleToString({
+            display: 'block',
+            border: '0',
+            'border-radius': '4px',
+            width: `${s.avatar}px`,
+            height: `${s.avatar}px`,
+          })}" />`,
+        ),
+      ),
+    );
+  }
+  if (data.visuals.logoUrl) {
+    visualRows.push(
+      row(
+        cell(
+          `<img src="${sanitizeUrl(data.visuals.logoUrl)}" width="${s.avatar}" alt="${htmlEscape(
+            data.identity.company ?? 'Logo',
+          )}" border="0" style="${styleToString({
+            display: 'block',
+            border: '0',
+            width: `${s.avatar}px`,
+          })}" />`,
+          { style: data.visuals.avatarUrl ? { 'padding-top': '8px' } : undefined },
+        ),
+      ),
+    );
+  }
+  const leftCell = visualRows.length
+    ? cell(table(visualRows.join('')), {
+        valign: 'top',
+        width: s.avatar,
+        style: { 'padding-right': `${s.gap}px` },
+      })
     : '';
 
   const rightCell = cell(rightInner, { valign: 'top' });
