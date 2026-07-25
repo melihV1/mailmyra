@@ -86,6 +86,12 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
       setMonoDegraded(false);
       return;
     }
+    if (data.visuals.brandColor === readyColor) {
+      // Zaten onaylanmış renge dönüş — sunucu yalnız dedup yapar, gereksiz
+      // POST atma; olası eski bir hata durumunu da temizle.
+      setMonoFailed(false);
+      return;
+    }
     const color = data.visuals.brandColor;
     const seq = ++monoSeq.current;
     setMonoFailed(false);
@@ -109,7 +115,7 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
       }
     }, 500);
     return () => clearTimeout(t);
-  }, [monoNeeded, data.visuals.brandColor, retryTick]);
+  }, [monoNeeded, data.visuals.brandColor, retryTick, readyColor]);
 
   const exportDisabled = monoNeeded && readyColor !== data.visuals.brandColor;
 
@@ -171,7 +177,7 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
             : undefined
         }
       />
-      {monoNeeded && monoFailed && (
+      {monoNeeded && monoFailed && exportDisabled && (
         <button type="button" onClick={() => setRetryTick((n) => n + 1)}>
           Yeniden dene
         </button>

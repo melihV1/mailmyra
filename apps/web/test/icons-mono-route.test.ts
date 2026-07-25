@@ -70,4 +70,35 @@ describe('POST /api/icons/mono', () => {
     expect((await POST(makeRequest({ color: '#719ad1' }, '5.5.5.5'))).status).toBe(200);
     expect((await POST(makeRequest({ color: '#719ad1' }, '5.5.5.5'))).status).toBe(429);
   });
+
+  describe('mono directory cap (ICON_MONO_DIR_CAP)', () => {
+    it('rejects a novel color with 507 once the cap is reached, but still dedups an existing dir', async () => {
+      process.env.ICON_MONO_DIR_CAP = '1';
+      vi.resetModules();
+      ({ POST } = await import('../app/api/icons/mono/route'));
+
+      const first = await POST(makeRequest({ color: '#3366aa' }, '1.1.1.1'));
+      expect(first.status).toBe(200);
+
+      const second = await POST(makeRequest({ color: '#aa6633' }, '1.1.1.2'));
+      expect(second.status).toBe(507);
+      const secondBody = await second.json();
+      expect(secondBody.error).toBe('İkon depolama tavanına ulaşıldı. Yönetici ile iletişime geçin.');
+
+      const repeat = await POST(makeRequest({ color: '#3366aa' }, '1.1.1.3'));
+      expect(repeat.status).toBe(200);
+    });
+
+    it('falls back to 256 when ICON_MONO_DIR_CAP is garbage', async () => {
+      process.env.ICON_MONO_DIR_CAP = 'not-a-number';
+      vi.resetModules();
+      ({ POST } = await import('../app/api/icons/mono/route'));
+
+      const first = await POST(makeRequest({ color: '#111111' }, '2.2.2.1'));
+      expect(first.status).toBe(200);
+
+      const second = await POST(makeRequest({ color: '#222222' }, '2.2.2.2'));
+      expect(second.status).toBe(200);
+    });
+  });
 });
