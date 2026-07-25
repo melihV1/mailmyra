@@ -40,7 +40,6 @@ function ensureHttp(url: string): string {
 }
 
 export function classicHorizontal(data: SignatureData, opts?: RenderOptions): string {
-  void opts;
   const s = SIZES[data.layout.size] ?? SIZES.medium;
   const font = data.visuals.fontFamily;
   const text = normalizeHex(data.visuals.textColor);
@@ -184,25 +183,46 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
     );
   }
 
-  // Sosyal (metin-link — ikonlar Hafta 2'de CDN ile)
+  // Sosyal: iconBaseUrl verilirse CDN PNG ikonları, verilmezse metin-link
+  // (geriye uyumlu — eski çağrılar ve testler aynen çalışır).
   if (data.social.length) {
-    const sep = `<span style="color:${muted}">&nbsp;·&nbsp;</span>`;
-    const socialHtml = data.social
-      .map(
-        (soc) =>
-          `<a href="${sanitizeUrl(soc.url)}" style="${linkStyle}">${PLATFORM_LABELS[soc.platform]}</a>`,
-      )
-      .join(sep);
-    lines.push(
-      row(
-        cell(socialHtml, {
-          style: {
-            'padding-top': `${Math.round(s.gap / 2)}px`,
-            'padding-bottom': '2px',
-          },
-        }),
-      ),
-    );
+    const socialCellStyle = {
+      'padding-top': `${Math.round(s.gap / 2)}px`,
+      'padding-bottom': '2px',
+    };
+    if (opts?.iconBaseUrl) {
+      const base = opts.iconBaseUrl.replace(/\/$/, '');
+      const variantPath =
+        data.layout.iconStyle === 'mono'
+          ? `mono-${brand.slice(1)}`
+          : data.layout.iconStyle;
+      const iconCells = data.social
+        .map((soc, i) =>
+          cell(
+            `<a href="${sanitizeUrl(soc.url)}" style="text-decoration:none"><img src="${base}/icons/${variantPath}/${soc.platform}.png" width="24" height="24" alt="${PLATFORM_LABELS[soc.platform]}" border="0" style="${styleToString(
+              {
+                border: 'none',
+                display: 'inline-block',
+              },
+            )}" /></a>`,
+            {
+              style:
+                i < data.social.length - 1 ? { 'padding-right': '8px' } : undefined,
+            },
+          ),
+        )
+        .join('');
+      lines.push(row(cell(table(row(iconCells)), { style: socialCellStyle })));
+    } else {
+      const sep = `<span style="color:${muted}">&nbsp;·&nbsp;</span>`;
+      const socialHtml = data.social
+        .map(
+          (soc) =>
+            `<a href="${sanitizeUrl(soc.url)}" style="${linkStyle}">${PLATFORM_LABELS[soc.platform]}</a>`,
+        )
+        .join(sep);
+      lines.push(row(cell(socialHtml, { style: socialCellStyle })));
+    }
   }
 
   // CTA butonu (bulletproof)

@@ -126,4 +126,42 @@ describe('classicHorizontal', () => {
     expect(html).toContain('Bu e-posta ve ekleri gizlidir');
     expect(html).not.toContain('sig.png');
   });
+  it('renders text links (no /icons/ img) when iconBaseUrl is absent', () => {
+    const html = classicHorizontal(full);
+    expect(html).toContain('>LinkedIn</a>');
+    expect(html).not.toContain('/icons/');
+  });
+  it('renders one 24x24 icon img per social entry when iconBaseUrl is given', () => {
+    const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com' });
+    // full fixture: linkedin + instagram + behance, iconStyle 'mono', brand #719ad1
+    expect(html).toContain('src="https://cdn.example.com/icons/mono-719ad1/linkedin.png"');
+    expect(html).toContain('src="https://cdn.example.com/icons/mono-719ad1/instagram.png"');
+    expect(html).toContain('src="https://cdn.example.com/icons/mono-719ad1/behance.png"');
+    const iconImgs = html.match(/<img[^>]*\/icons\/[^>]*>/gi) ?? [];
+    expect(iconImgs).toHaveLength(3);
+    for (const img of iconImgs) {
+      expect(img).toContain('width="24"');
+      expect(img).toContain('height="24"');
+      expect(img).toContain('border="0"');
+    }
+    // Metin-link etiketleri artık yok
+    expect(html).not.toContain('>LinkedIn</a>');
+  });
+  it('maps filled/outline icon styles to their static variant paths', () => {
+    const filled = classicHorizontal(
+      { ...full, layout: { ...full.layout, iconStyle: 'filled' } },
+      { iconBaseUrl: 'https://cdn.example.com' },
+    );
+    expect(filled).toContain('/icons/filled/linkedin.png');
+    const outline = classicHorizontal(
+      { ...full, layout: { ...full.layout, iconStyle: 'outline' } },
+      { iconBaseUrl: 'https://cdn.example.com' },
+    );
+    expect(outline).toContain('/icons/outline/linkedin.png');
+  });
+  it('strips a trailing slash from iconBaseUrl', () => {
+    const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com/' });
+    expect(html).toContain('src="https://cdn.example.com/icons/');
+    expect(html).not.toContain('.com//icons/');
+  });
 });
