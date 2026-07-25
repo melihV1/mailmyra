@@ -8,7 +8,7 @@ export interface Fixture {
 
 const baseVisuals = {
   brandColor: '#719ad1',
-  textColor: '#1a1a1a',
+  textColor: '#333333',
   mutedColor: '#6d6e71',
   fontFamily: 'Arial, Helvetica, sans-serif',
 } satisfies Pick<

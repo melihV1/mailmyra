@@ -6,8 +6,8 @@ export function createEmptyData(): SignatureData {
     contact: {},
     visuals: {
       brandColor: '#719ad1',
-      textColor: '#1a1a1a',
-      mutedColor: '#6d6e71',
+      textColor: '#333333',
+      mutedColor: '#666666',
       fontFamily: 'Arial, Helvetica, sans-serif',
     },
     social: [],

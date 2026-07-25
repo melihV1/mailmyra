@@ -6,6 +6,8 @@ describe('createEmptyData', () => {
   it('starts with brand defaults and classic-horizontal', () => {
     const d = createEmptyData();
     expect(d.visuals.brandColor).toBe('#719ad1');
+    expect(d.visuals.textColor).toBe('#333333');
+    expect(d.visuals.mutedColor).toBe('#666666');
     expect(d.layout.templateId).toBe('classic-horizontal');
     expect(d.identity.fullName).toBe('');
   });
@@ -41,8 +43,8 @@ describe('mergeWithEmpty', () => {
     expect(d.identity.fullName).toBe('x');
     expect(d.layout.templateId).toBe('classic-horizontal');
     expect(d.visuals.brandColor).toBe('#719ad1');
-    expect(d.visuals.textColor).toBe('#1a1a1a');
-    expect(d.visuals.mutedColor).toBe('#6d6e71');
+    expect(d.visuals.textColor).toBe('#333333');
+    expect(d.visuals.mutedColor).toBe('#666666');
     expect(d.social).toEqual([]);
     expect(d.contact).toEqual({});
   });
@@ -60,7 +62,7 @@ describe('mergeWithEmpty', () => {
     expect(d.visuals.brandColor).toBe('#000000');
     // Diğer visuals alanları boş veriden gelmeye devam etmeli (kısmi obje
     // bütün bölümün yerini almamalı).
-    expect(d.visuals.textColor).toBe('#1a1a1a');
+    expect(d.visuals.textColor).toBe('#333333');
     expect(d.visuals.fontFamily).toBe('Arial, Helvetica, sans-serif');
   });
   it('preserves a provided social list instead of defaulting to empty', () => {
