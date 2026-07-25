@@ -71,6 +71,27 @@ tek turda doğrulamak en ucuzu.
 
 ## Test Kayıtları
 
+### Tur 2 — 2026-07-25 (Hafta 2 polish: logo + el imzası + mono ikonlar, gerçek CDN)
+
+Görseller `cdn.mailmyra.com`'dan (ikonlar `icons/mono-719ad1/` + builder
+yüklemeleri kökten). Test yolu: builder'dan üretilen imza + fixture .htm'ler,
+taze gönderilmiş maillerle.
+
+| İstemci | Sonuç | Not |
+|---|---|---|
+| Gmail web | ✅ temiz | |
+| Gmail mobil | ✅ temiz | |
+| Apple Mail (Mac) | ✅ temiz* | *Hüseyin'in kendi Mac'inde kırık dönemden kalan görsel önbelleği kırık gösterdi (ürün dışı, yerel arıza); başka alıcının makinesinde ve iOS'ta temiz |
+| iOS Mail | ✅ temiz | |
+| Yeni Outlook (Mac) | ✅ temiz | |
+| Eski Outlook (Mac) | ✅ temiz | Matris maddesi DEĞİL — Mac Outlook WebKit render eder; kayıt bilgi amaçlı |
+| **Outlook Classic (Windows)** | ⏳ ERTELENDİ | **Kural değişikliği (Hüseyin, 2026-07-25): merge bu teste KİLİTLİ DEĞİL artık; test en son (deploy sonrası, Hafta 3 öncesi) yapılacak.** Açık risk: Word motoru — özellikle logo width-only ölçekleme + tablo kenarlık bug'ı orada doğrulanmadı |
+
+Teşhis notu: Apple Mail (Mac) arızası sırasında sunucu curl/Safari/iOS'tan
+doğrulandı (TLS zinciri tam, TLS 1.2+1.3, tüm URL'ler 200); "Mail
+etkinliğini koru" kapalıydı → yerel önbellek. Ders: her istemciye TAZE
+gönderilmiş mail ile bak, açık kalmış eski kopyaya güvenme.
+
 ### Tur 1 — 2026-07-24 (classic-horizontal, Hafta 1 çıktıları)
 
 | İstemci | Sonuç | Not |
