@@ -15,9 +15,16 @@ const FONTS: WebSafeFont[] = [
 ];
 
 const LIGHT_BG = '#ffffff';
-const DARK_BG = '#1a1a1a';
+const PURE_BLACK = '#000000';
+/** Saf-siyah bandı (≈ #000–#111): bu orandan düşükse koyu modda risklidir. */
+const NEAR_BLACK_MAX_RATIO = 1.2;
 
-/** Spec eşikleri: textColor < 4.5, mutedColor < 3 — iki zeminde de. */
+/**
+ * Spec (§1): iki BAĞIMSIZ kontrol.
+ * 1) Çok açık: beyaz zeminde okunurluk — textColor < 4.5, mutedColor < 3.
+ * 2) Saf siyaha yakın: contrastRatio(renk, #000000) < 1.2 — koyu mod riski.
+ * (#1a1a1a siyaha karşı ≈1.206 → bilerek bandın hemen DIŞINDA kalır.)
+ */
 export function contrastWarnings(visuals: SignatureData['visuals']): string[] {
   const warnings: string[] = [];
   const checks: Array<{ color: string; min: number; name: string }> = [
@@ -28,8 +35,8 @@ export function contrastWarnings(visuals: SignatureData['visuals']): string[] {
     try {
       if (contrastRatio(c.color, LIGHT_BG) < c.min)
         warnings.push(`${c.name} beyaz zeminde zor okunur.`);
-      if (contrastRatio(c.color, DARK_BG) < c.min)
-        warnings.push(`${c.name} koyu zeminde (dark mode) zor okunur.`);
+      if (contrastRatio(c.color, PURE_BLACK) < NEAR_BLACK_MAX_RATIO)
+        warnings.push(`${c.name} saf siyaha çok yakın; koyu modda sorun çıkarabilir.`);
     } catch {
       // geçersiz hex — renk seçici geçerli hex üretir, elle bozuk girişte sessiz kal
     }
