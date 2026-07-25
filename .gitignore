@@ -10,3 +10,4 @@ packages/renderer/out/
 .superpowers/
 .env*.local
 apps/web/public/cdn-dev/
+apps/web/public/cdn-prod/
