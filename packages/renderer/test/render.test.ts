@@ -14,4 +14,14 @@ describe('renderSignature', () => {
   it('throws on an unknown template id', () => {
     expect(() => renderSignature(full, 'nope')).toThrow(/Unknown templateId/);
   });
+  it('accepts an optional RenderOptions argument without changing output when absent', () => {
+    const plain = renderSignature(full, 'classic-horizontal');
+    const withUndefined = renderSignature(full, 'classic-horizontal', undefined);
+    expect(withUndefined).toBe(plain);
+  });
+  it('threads opts through to the template (smoke: no throw with iconBaseUrl)', () => {
+    expect(() =>
+      renderSignature(full, 'classic-horizontal', { iconBaseUrl: 'https://cdn.example.com' }),
+    ).not.toThrow();
+  });
 });

@@ -59,3 +59,12 @@ export type WebSafeFont =
   | 'Verdana, Geneva, sans-serif'
   | 'Tahoma, Geneva, sans-serif'
   | 'Trebuchet MS, sans-serif';
+
+/** renderSignature için isteğe bağlı render ayarları. */
+export interface RenderOptions {
+  /**
+   * Sosyal ikon PNG'lerinin kök URL'i (ör. https://cdn.mailmyra.com).
+   * Verilmezse sosyal satır metin-link olarak basılır (geriye uyumlu).
+   */
+  iconBaseUrl?: string;
+}

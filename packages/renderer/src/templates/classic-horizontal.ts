@@ -1,4 +1,4 @@
-import type { SignatureData } from '../types';
+import type { SignatureData, RenderOptions } from '../types';
 import { table, row, cell } from '../utils/table';
 import { styleToString } from '../utils/inline-style';
 import { htmlEscape, sanitizeUrl } from '../utils/escape';
@@ -39,7 +39,8 @@ function ensureHttp(url: string): string {
   return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
-export function classicHorizontal(data: SignatureData): string {
+export function classicHorizontal(data: SignatureData, opts?: RenderOptions): string {
+  void opts;
   const s = SIZES[data.layout.size] ?? SIZES.medium;
   const font = data.visuals.fontFamily;
   const text = normalizeHex(data.visuals.textColor);
