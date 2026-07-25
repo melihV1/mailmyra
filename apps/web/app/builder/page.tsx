@@ -9,5 +9,7 @@ export const metadata = { title: 'İmza Oluşturucu — Mailmyra' };
 export const dynamic = 'force-dynamic';
 
 export default function BuilderPage() {
-  return <BuilderClient gated={isExportGated()} />;
+  // iconBaseUrl export-gate ile aynı desen: her istekte sunucudan okunur
+  // (dosyadaki mevcut force-dynamic yorumu ve export'u aynen kalır).
+  return <BuilderClient gated={isExportGated()} iconBaseUrl={process.env.CDN_PUBLIC_URL ?? ''} />;
 }

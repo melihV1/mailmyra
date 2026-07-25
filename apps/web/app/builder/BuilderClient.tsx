@@ -4,6 +4,7 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { renderSignature } from '@mailmyra/renderer';
 import { builderReducer, createEmptyData, mergeWithEmpty } from './reducer';
 import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
+import { needsMonoIcons } from '../../lib/icon-readiness';
 import { InfoStep } from './steps/InfoStep';
 import { VisualsStep } from './steps/VisualsStep';
 import { SocialStep } from './steps/SocialStep';
@@ -21,7 +22,7 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]['id'];
 
-export function BuilderClient({ gated }: { gated: boolean }) {
+export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBaseUrl: string }) {
   const [data, dispatch] = useReducer(builderReducer, undefined, createEmptyData);
   const [step, setStep] = useState<StepId>('info');
   const [mobilePane, setMobilePane] = useState<'edit' | 'preview'>('edit');
@@ -54,7 +55,56 @@ export function BuilderClient({ gated }: { gated: boolean }) {
     };
   }, [data]);
 
-  const html = useMemo(() => renderSignature(data, data.layout.templateId), [data]);
+  const html = useMemo(
+    () =>
+      renderSignature(
+        data,
+        data.layout.templateId,
+        iconBaseUrl ? { iconBaseUrl } : undefined,
+      ),
+    [data, iconBaseUrl],
+  );
+
+  // Mono ikon hazırlığı (spec §3d): mono + sosyal varken brandColor/iconStyle
+  // değişimlerinde 500ms debounce ile /api/icons/mono çağrılır. Dönene kadar
+  // export kilitli — kopyalanan HTML'de asla henüz-yazılmamış ikon URL'i olamaz.
+  const monoNeeded = Boolean(iconBaseUrl) && needsMonoIcons(data);
+  const [iconState, setIconState] = useState<'ready' | 'pending' | 'error'>('ready');
+  const [monoDegraded, setMonoDegraded] = useState(false);
+  const [retryTick, setRetryTick] = useState(0);
+  const monoSeq = useRef(0);
+
+  useEffect(() => {
+    if (!monoNeeded) {
+      setIconState('ready');
+      setMonoDegraded(false);
+      return;
+    }
+    const seq = ++monoSeq.current;
+    setIconState('pending');
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/icons/mono', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ color: data.visuals.brandColor }),
+        });
+        const body = (await res.json()) as { ready?: boolean; degraded?: boolean };
+        if (seq !== monoSeq.current) return; // eski cevap — daha yenisi yolda
+        if (res.ok && body.ready) {
+          setIconState('ready');
+          setMonoDegraded(Boolean(body.degraded));
+        } else {
+          setIconState('error');
+        }
+      } catch {
+        if (seq === monoSeq.current) setIconState('error');
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [monoNeeded, data.visuals.brandColor, retryTick]);
+
+  const exportDisabled = monoNeeded && iconState !== 'ready';
 
   function resetAll() {
     if (!window.confirm('Taslak silinecek ve form sıfırlanacak. Emin misin?')) return;
@@ -79,7 +129,7 @@ export function BuilderClient({ gated }: { gated: boolean }) {
       {step === 'info' && <InfoStep data={data} dispatch={dispatch} />}
       {step === 'visuals' && <VisualsStep data={data} dispatch={dispatch} />}
       {step === 'social' && <SocialStep data={data} dispatch={dispatch} />}
-      {step === 'style' && <StyleStep data={data} dispatch={dispatch} />}
+      {step === 'style' && <StyleStep data={data} dispatch={dispatch} monoDegraded={monoDegraded} />}
       <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
         <button type="button" onClick={resetAll}>
           Temizle / sıfırdan başla
@@ -101,7 +151,24 @@ export function BuilderClient({ gated }: { gated: boolean }) {
   const previewPane = (
     <div className={styles.previewPane}>
       <Preview html={html} />
-      <ExportButtons html={html} filename="mailmyra-imza" gated={gated} />
+      <ExportButtons
+        html={html}
+        filename="mailmyra-imza"
+        gated={gated}
+        disabled={exportDisabled}
+        disabledNote={
+          exportDisabled
+            ? iconState === 'error'
+              ? 'İkonlar üretilemedi — tekrar deneyin'
+              : 'İkonlar hazırlanıyor…'
+            : undefined
+        }
+      />
+      {monoNeeded && iconState === 'error' && (
+        <button type="button" onClick={() => setRetryTick((n) => n + 1)}>
+          Yeniden dene
+        </button>
+      )}
     </div>
   );
 

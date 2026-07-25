@@ -6,10 +6,14 @@ export function ExportButtons({
   html,
   filename,
   gated,
+  disabled = false,
+  disabledNote,
 }: {
   html: string;
   filename: string;
   gated: boolean;
+  disabled?: boolean;
+  disabledNote?: string;
 }) {
   const router = useRouter();
 
@@ -48,13 +52,16 @@ export function ExportButtons({
   }
 
   return (
-    <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-      <button type="button" onClick={copyHtml}>
+    <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <button type="button" onClick={copyHtml} disabled={disabled}>
         HTML olarak kopyala
       </button>
-      <button type="button" onClick={downloadHtm}>
+      <button type="button" onClick={downloadHtm} disabled={disabled}>
         .htm indir
       </button>
+      {disabled && disabledNote ? (
+        <span style={{ fontSize: 13, color: '#a05a2c' }}>{disabledNote}</span>
+      ) : null}
     </div>
   );
 }

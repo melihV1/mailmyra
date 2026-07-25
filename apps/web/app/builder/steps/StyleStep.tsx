@@ -65,9 +65,11 @@ function ColorField({
 export function StyleStep({
   data,
   dispatch,
+  monoDegraded = false,
 }: {
   data: SignatureData;
   dispatch: (a: BuilderAction) => void;
+  monoDegraded?: boolean;
 }) {
   const warnings = contrastWarnings(data.visuals);
 
@@ -152,7 +154,7 @@ export function StyleStep({
         </label>
 
         <label style={{ display: 'block' }}>
-          <span style={labelStyle}>İkon stili (sosyal ikonlar CDN ikonlarıyla gelecek)</span>
+          <span style={labelStyle}>İkon stili</span>
           <select
             style={inputStyle}
             value={data.layout.iconStyle}
@@ -168,6 +170,11 @@ export function StyleStep({
             <option value="mono">Tek renk</option>
           </select>
         </label>
+        {data.layout.iconStyle === 'mono' && monoDegraded && (
+          <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
+            ℹ️ Marka rengin açık olduğu için mono ikonlar koyu gri basıldı.
+          </p>
+        )}
       </FieldGroup>
     </div>
   );
