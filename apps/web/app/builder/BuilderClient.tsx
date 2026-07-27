@@ -65,10 +65,10 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
     [data, iconBaseUrl],
   );
 
-  // İkon hazırlığı (spec §3d): outline/mono + sosyal varken brandColor/iconStyle
+  // İkon hazırlığı (spec §3d): outline/mono + sosyal varken iconColor/iconStyle
   // değişimlerinde 500ms debounce ile /api/icons çağrılır.
   // EXPORT KİLİDİ SENKRON TÜRETİLİR: `readyColor` yalnız sunucunun "yazıldı"
-  // dediği rengi tutar ve kilit `readyColor !== brandColor` karşılaştırmasıyla
+  // dediği rengi tutar ve kilit `readyColor !== iconColor` karşılaştırmasıyla
   // AYNI render içinde hesaplanır — effect'in bir sonraki kareyi beklemesi
   // butonları tek bir commit için bile açık bırakamaz. (Pazarlıksız kural:
   // kopyalanan HTML'de asla henüz-yazılmamış ikon URL'i olamaz.)
@@ -84,13 +84,13 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
       setIconsFailed(false);
       return;
     }
-    if (data.visuals.brandColor === readyColor) {
+    if (data.visuals.iconColor === readyColor) {
       // Zaten onaylanmış renge dönüş — sunucu yalnız dedup yapar, gereksiz
       // POST atma; olası eski bir hata durumunu da temizle.
       setIconsFailed(false);
       return;
     }
-    const color = data.visuals.brandColor;
+    const color = data.visuals.iconColor;
     const seq = ++iconsSeq.current;
     setIconsFailed(false);
     const t = setTimeout(async () => {
@@ -112,9 +112,9 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
       }
     }, 500);
     return () => clearTimeout(t);
-  }, [iconsNeeded, data.visuals.brandColor, retryTick, readyColor]);
+  }, [iconsNeeded, data.visuals.iconColor, retryTick, readyColor]);
 
-  const exportDisabled = iconsNeeded && readyColor !== data.visuals.brandColor;
+  const exportDisabled = iconsNeeded && readyColor !== data.visuals.iconColor;
 
   // Eşik burada yerelde tanımlıdır çünkü bu bir 'use client' bileşenidir;
   // gerçek kaynak `apps/web/lib/icons.ts` içindeki LOW_CONTRAST_ON_WHITE'dır
@@ -122,13 +122,13 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
   // katılamaz). İkisi manuel senkron tutulmalı.
   const ICON_LOW_CONTRAST_ON_WHITE = 3;
 
-  // Düşük kontrast BİLGİ notu: brandColor'ın saf bir fonksiyonu, bu yüzden
+  // Düşük kontrast BİLGİ notu: iconColor'ın saf bir fonksiyonu, bu yüzden
   // render'da türetilir. Effect state'i olarak tutulursa stil değişimlerinde
   // bayatlıyordu: mono -> filled -> mono turunda not kalıcı olarak kayboluyor,
   // kullanıcı hiçbir uyarı görmeden soluk ikonlarla devam ediyordu. Uyarı,
   // degrade'i kaldırmanın TEK telafi mekanizması olduğu için bu kabul edilemez.
   const iconLowContrast =
-    iconsNeeded && contrastRatio(data.visuals.brandColor, '#ffffff') < ICON_LOW_CONTRAST_ON_WHITE;
+    iconsNeeded && contrastRatio(data.visuals.iconColor, '#ffffff') < ICON_LOW_CONTRAST_ON_WHITE;
 
   function resetAll() {
     if (!window.confirm('Taslak silinecek ve form sıfırlanacak. Emin misin?')) return;
