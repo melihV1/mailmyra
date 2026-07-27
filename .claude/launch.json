@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "corepack",
-      "runtimeArgs": ["pnpm", "--filter", "web", "dev"],
-      "port": 3000,
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "-w", "apps/web"],
+      "port": 60778,
       "autoPort": true
     }
   ]

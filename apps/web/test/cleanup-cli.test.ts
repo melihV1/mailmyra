@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { createRequire } from 'node:module';
 import { mkdtempSync, rmSync, writeFileSync, utimesSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -11,8 +12,19 @@ const CLI_TIMEOUT = 20_000;
 const DAY = 24 * 60 * 60 * 1000;
 
 const webRoot = process.cwd();
-const tsxBin = join(webRoot, 'node_modules', '.bin', 'tsx');
+// tsx'in CLI girişi Node'un modül çözümlemesiyle bulunur, sabit bir
+// `node_modules/.bin` YOLU VARSAYILMAZ: npm workspaces bin'leri KÖK
+// node_modules'e hoist eder, pnpm ise her workspace'e kendi .bin'ini verirdi.
+// Yola bağlanmak, paket yöneticisi değişince testi ENOENT ile kırar (2026-07-25
+// npm göçünde bu gerçekten oldu). `tsx/cli` her iki yerleşimde de çözümlenir.
+const require = createRequire(import.meta.url);
+const tsxCli = require.resolve('tsx/cli');
 const scriptPath = join(webRoot, 'scripts', 'cleanup-orphans.ts');
+
+/** CLI'yı çalışan Node ile başlat (tsx CLI'sı argüman olarak geçilir). */
+function runCli(args: string[], env: NodeJS.ProcessEnv) {
+  return execFileAsync(process.execPath, [tsxCli, ...args], { env });
+}
 
 // Base env with CDN_WRITE_PATH stripped, so the CLI's "missing env" branch is
 // exercised regardless of what the host shell happens to export.
@@ -32,7 +44,7 @@ describe('cleanup-orphans CLI', () => {
     async () => {
       expect.assertions(2);
       try {
-        await execFileAsync(tsxBin, [scriptPath, '--dry-run'], { env: envWithoutCdnPath });
+        await runCli([scriptPath, '--dry-run'], envWithoutCdnPath);
       } catch (err) {
         const e = err as { code?: number; stdout?: string; stderr?: string };
         expect(e.code).toBe(1);
@@ -50,8 +62,9 @@ describe('cleanup-orphans CLI', () => {
       const oldMtime = new Date(Date.now() - 10 * DAY);
       utimesSync(oldFile, oldMtime, oldMtime);
 
-      const { stdout } = await execFileAsync(tsxBin, [scriptPath, '--dry-run'], {
-        env: { ...envWithoutCdnPath, CDN_WRITE_PATH: dir },
+      const { stdout } = await runCli([scriptPath, '--dry-run'], {
+        ...envWithoutCdnPath,
+        CDN_WRITE_PATH: dir,
       });
 
       expect(stdout).toContain('old.png');

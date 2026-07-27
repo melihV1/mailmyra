@@ -1,10 +1,14 @@
 {
   "name": "mailmyra",
   "private": true,
-  "packageManager": "pnpm@9.15.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck",
-    "dev:web": "pnpm --filter web dev"
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "dev:web": "npm run dev -w apps/web"
   }
 }

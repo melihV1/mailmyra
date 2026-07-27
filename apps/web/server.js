@@ -1,7 +1,7 @@
 // iisnode giriş noktası (Windows/IIS deploy). `next start` yerine bu dosya
 // çalışır: iisnode PORT'a bir named pipe (string) verir, Next'in kendi CLI'ı
 // bunu kabul etmediği için http sunucusunu kendimiz kurarız.
-// Yerel geliştirmede KULLANILMAZ (dev akışı: corepack pnpm --filter web dev).
+// Yerel geliştirmede KULLANILMAZ (dev akışı: npm run dev -w apps/web).
 const http = require('http');
 const next = require('next');
 

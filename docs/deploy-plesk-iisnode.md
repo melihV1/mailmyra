@@ -13,8 +13,8 @@ alternatifine geç (karar: 2026-07-25).
 1. **Node 24** kurulu mu: `node -v` → v24.x. Yolu not al (varsayılan:
    `C:\Program Files\nodejs\node.exe` — `web.config`'teki
    `nodeProcessCommandLine` ile AYNI olmalı, değilse web.config'i güncelle).
-2. **corepack**: yönetici PowerShell'de `corepack enable`. Doğrula:
-   `corepack pnpm -v`.
+2. **npm** Node ile birlikte gelir: `npm -v` → 10+ yeterli. (Proje npm
+   workspaces kullanır; pnpm/corepack GEREKMEZ.)
 3. **iisnode** kurulu mu: `C:\Program Files\iisnode\` var mı? Yoksa
    iisnode x64 MSI kur (github.com/Azure/iisnode releases).
 4. **IIS URL Rewrite** modülü kurulu mu? (Plesk'te genelde var; yoksa
@@ -33,8 +33,8 @@ alternatifine geç (karar: 2026-07-25).
 6. Bağımlılık + build:
    ```
    cd C:\apps\mailmyra
-   corepack pnpm install
-   corepack pnpm --filter web build
+   npm install
+   npm run build -w apps/web
    ```
 7. **Env dosyası** `C:\apps\mailmyra\apps\web\.env.local`:
    ```
@@ -63,7 +63,7 @@ alternatifine geç (karar: 2026-07-25).
     ```
     cd C:\apps\mailmyra\apps\web
     set CDN_WRITE_PATH=C:\Inetpub\vhosts\mailmyra.com\cdn.mailmyra.com
-    corepack pnpm icons
+    npm run icons
     ```
     Beklenen: `icons: 16 yazıldı, 0 atlandı (mevcut).` (daha önce elle
     yüklediğin filled/outline varsa "atlandı" sayısı artar — normal,
@@ -75,8 +75,8 @@ alternatifine geç (karar: 2026-07-25).
     - Görseller adımından bir avatar yükle → dönen URL
       `https://cdn.mailmyra.com/<16hex>.jpg|png` anında açılmalı.
 12. `/dev/render` prod'da bilerek 404'tür (NODE_ENV=production) — test
-    .htm dosyaları yerelde üretilir (`corepack pnpm --filter
-    @mailmyra/renderer emit`), artık URL'ler sunucuda gerçek olduğu için
+    .htm dosyaları yerelde üretilir (`npm run emit -w packages/renderer`),
+    artık URL'ler sunucuda gerçek olduğu için
     doğrudan Gmail/Outlook'a gider.
 
 ## Sorun giderme
@@ -84,7 +84,7 @@ alternatifine geç (karar: 2026-07-25).
 - **500.19** → URL Rewrite modülü eksik (adım 4).
 - **iisnode 500 / boş sayfa** → `apps\web\iisnode\*.log` dosyalarına bak
   (stdout/stderr orada). En sık: yanlış `nodeProcessCommandLine` yolu.
-- **`next` bulunamadı** → `corepack pnpm install` apps\web altında
+- **`next` bulunamadı** → `npm install` apps\web altında
   node_modules junction'ı oluşturmamış; kökten tekrar çalıştır.
 - **Upload 500 + "Sunucu yapılandırması eksik"** → .env.local okunmuyor
   (dosya adı/konumu) veya CDN_WRITE_PATH yolu yanlış.
@@ -99,8 +99,8 @@ alternatifine geç (karar: 2026-07-25).
 ```
 cd C:\apps\mailmyra
 git pull
-corepack pnpm install
-corepack pnpm --filter web build
+npm install
+npm run build -w apps/web
 ```
 Sonra IIS'te app pool'u Recycle et (Plesk > Hosting Settings yeterli;
 iisnode `watchedFiles` server.js/web.config değişince kendisi de yeniler).
@@ -110,7 +110,7 @@ iisnode `watchedFiles` server.js/web.config değişince kendisi de yeniler).
 ## 2 saatte oturmazsa: Linux VM alternatifi
 
 iisnode + Next App Router kombinasyonu en riskli parça (streaming
-tamponlama, pnpm junction'ları, native modül izinleri). Takılırsan:
+tamponlama, workspace symlink'leri, native modül izinleri). Takılırsan:
 
 - Küçük bir Ubuntu VM (aynı veri merkezinden alınabilir): Node 24 +
   `next start` + nginx reverse proxy + pm2/systemd. Bilinen, sıkıcı,

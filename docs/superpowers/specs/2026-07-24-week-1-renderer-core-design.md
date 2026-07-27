@@ -1,5 +1,16 @@
 # Hafta 1 — Renderer Çekirdeği + classic-horizontal + Test Harness
 
+> **NOT (2026-07-25 göçü):** Bu belge yazıldığında proje **pnpm workspaces**
+> kullanıyordu; aşağıdaki `pnpm` / `corepack pnpm` komutları o günkü
+> çalıştırmaların TARİHSEL kaydıdır ve bilerek olduğu gibi bırakılmıştır.
+> Proje o tarihte **npm workspaces**'e geçti (Plesk deploy gereği).
+> Güncel karşılıklar: `pnpm install` → `npm install` · `pnpm -r <script>` →
+> `npm run <script> --workspaces --if-present` · `pnpm --filter web <script>`
+> → `npm run <script> -w apps/web` · `pnpm --filter @mailmyra/renderer
+> <script>` → `npm run <script> -w packages/renderer`. Güncel komutlar için
+> CLAUDE.md'ye bak.
+
+
 **Tarih:** 2026-07-24
 **Durum:** Onaylandı (Hüseyin)
 **Kapsam:** Mailmyra 4 haftalık planın 1. haftası

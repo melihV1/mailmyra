@@ -1,5 +1,16 @@
 # Hafta 2 — Builder + Görsel Boru Hattı Implementasyon Planı
 
+> **NOT (2026-07-25 göçü):** Bu belge yazıldığında proje **pnpm workspaces**
+> kullanıyordu; aşağıdaki `pnpm` / `corepack pnpm` komutları o günkü
+> çalıştırmaların TARİHSEL kaydıdır ve bilerek olduğu gibi bırakılmıştır.
+> Proje o tarihte **npm workspaces**'e geçti (Plesk deploy gereği).
+> Güncel karşılıklar: `pnpm install` → `npm install` · `pnpm -r <script>` →
+> `npm run <script> --workspaces --if-present` · `pnpm --filter web <script>`
+> → `npm run <script> -w apps/web` · `pnpm --filter @mailmyra/renderer
+> <script>` → `npm run <script> -w packages/renderer`. Güncel komutlar için
+> CLAUDE.md'ye bak.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Step-tab builder, canlı önizleme, görsel yükleme + CDN boru hattı ve bayraklı export kapısını TDD ile kurmak.

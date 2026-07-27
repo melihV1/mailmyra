@@ -30,7 +30,7 @@ Kapsam disiplini: buraya yazılan hiçbir madde, sırası gelmeden yapılmaz.
   6-istemci testinde ÖZELLİKLE kontrol edilecek. Sorun çıkarsa Hafta 4'te
   `visuals`'a boyut alanı (tip değişikliği + draft migrasyonu).
 - [ ] **Deploy adımı — ikonlar gerçek CDN'e:** 6-istemci testinden ÖNCE
-  `CDN_WRITE_PATH=<prod-cdn-yolu> corepack pnpm --filter web icons`
+  `CDN_WRITE_PATH=<prod-cdn-yolu> npm run icons -w apps/web`
   prod'da koşulmalı; mono-719ad1 seti de ilk builder kullanımında oluşur
   (test .htm'leri için elle: `POST /api/icons/mono {"color":"#719ad1"}`).
 - **simple-icons `^13.0.0`'a sabit:** v14.0.0 linkedin ikonunu kaldırdı

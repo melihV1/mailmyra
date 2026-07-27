@@ -41,6 +41,11 @@ kararı koda gömülmez.
 
 ### Stack
 - **TypeScript** her yerde
+- **npm workspaces** — paket yöneticisi **npm** (karar: 2026-07-25, Hüseyin).
+  pnpm'den göç edildi çünkü Plesk deploy paneli npm bekliyor. Komutlar:
+  kökten `npm install`, `npm test`, `npm run typecheck`, `npm run build`;
+  tek workspace için `npm run <script> -w apps/web`. **pnpm/corepack
+  kullanma**, `pnpm-lock.yaml` veya `pnpm-workspace.yaml` geri ekleme.
 - **Next.js (App Router)** — şablon galerisi SEO'su + uygulama tek repoda
 - **Tailwind** + kendi tasarım tokenları
 - **PostgreSQL** (kendi sunucularında, ek maliyet yok)

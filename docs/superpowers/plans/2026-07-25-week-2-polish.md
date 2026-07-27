@@ -1,5 +1,16 @@
 # Week 2 Polish Implementation Plan — Renkler, Yerleşim, Sosyal İkonlar
 
+> **NOT (2026-07-25 göçü):** Bu belge yazıldığında proje **pnpm workspaces**
+> kullanıyordu; aşağıdaki `pnpm` / `corepack pnpm` komutları o günkü
+> çalıştırmaların TARİHSEL kaydıdır ve bilerek olduğu gibi bırakılmıştır.
+> Proje o tarihte **npm workspaces**'e geçti (Plesk deploy gereği).
+> Güncel karşılıklar: `pnpm install` → `npm install` · `pnpm -r <script>` →
+> `npm run <script> --workspaces --if-present` · `pnpm --filter web <script>`
+> → `npm run <script> -w apps/web` · `pnpm --filter @mailmyra/renderer
+> <script>` → `npm run <script> -w packages/renderer`. Güncel komutlar için
+> CLAUDE.md'ye bak.
+
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Telefon-testi bulgularını ve renk kararlarını uygulamak: yeni renk varsayılanları + kontrast mantığı, classic-horizontal'a logo/el-imzası yerleşimi, Simple Icons tabanlı PNG sosyal ikon boru hattı (statik filled/outline + on-demand mono) ve mono-hazır-olana-kadar export kilidi. Sonuç: 4 fixture × classic-horizontal .htm çıktısı, 6-istemci testine hazır.
