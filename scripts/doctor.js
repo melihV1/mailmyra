@@ -100,6 +100,54 @@ for (const c of all) console.log(`  ${c.pkg.padEnd(10)} v${c.v.padEnd(10)} ${c.d
 
 const reactDirs = new Set(all.filter((c) => c.pkg === 'react').map((c) => c.dir));
 console.log(
-  `\nSONUÇ: ${reactDirs.size} farklı react kopyası bulundu. ` +
+  `\nkopya sayısı: ${reactDirs.size} farklı react. ` +
     (reactDirs.size <= 1 ? 'Sağlıklı ✓' : 'BİRDEN FAZLA — build patlar ✗'),
 );
+
+// ── React SSR izolasyon testi ────────────────────────────────────────────
+// Next'i DEVRE DIŞI bırakıp React'in kendisini sınar: createContext +
+// useContext ile bir bileşeni sunucuda render eder. `next build` tam olarak
+// burada ("Cannot read properties of null (reading 'useContext')") ölüyor.
+//
+//   Bu test PATLARSA  -> sorun React/react-dom kurulumunda (Next masum).
+//                        En olası sebep: eksik/bozuk kurulum (Windows'ta uzun
+//                        yol sınırı, antivirüs karantinası, yarım npm ci).
+//   Bu test GEÇERSE   -> React sağlam, sorun Next'in prerender katmanında.
+console.log('\n=== React SSR izolasyon testi (Next olmadan) ===');
+(async () => {
+  try {
+    const req = createRequire(path.join(webRoot, 'package.json'));
+    const React = req('react');
+    const { renderToStaticMarkup } = req('react-dom/server');
+
+    line('react sürümü', React.version ?? '?');
+    line('react-dom/server', 'yüklendi ✓');
+
+    const Ctx = React.createContext('varsayılan');
+    function Child() {
+      const v = React.useContext(Ctx);
+      return React.createElement('span', null, v);
+    }
+    const html = renderToStaticMarkup(
+      React.createElement(Ctx.Provider, { value: 'merhaba' }, React.createElement(Child)),
+    );
+
+    const ok = html === '<span>merhaba</span>';
+    line('useContext SSR', ok ? `GEÇTİ ✓  (${html})` : `BEKLENMEYEN ÇIKTI: ${html}`);
+    console.log(
+      ok
+        ? '\nSONUÇ: React sağlam. Build hâlâ patlıyorsa sorun Next prerender katmanında.'
+        : '\nSONUÇ: React beklenmedik çıktı üretti — kurulum şüpheli.',
+    );
+  } catch (err) {
+    line('useContext SSR', 'PATLADI ✗');
+    console.error(`\n  ${err && err.stack ? err.stack : err}`);
+    console.log(
+      '\nSONUÇ: React/react-dom kurulumu BOZUK — Next ile ilgisi yok.\n' +
+        'Yapılacak: npm run clean:all && npm ci  (kökte).\n' +
+        'Windows ise ayrıca kontrol et: uzun yol sınırı (MAX_PATH 260) ve\n' +
+        'antivirüsün node_modules altındaki dosyaları karantinaya alması.',
+    );
+    process.exitCode = 1;
+  }
+})();
