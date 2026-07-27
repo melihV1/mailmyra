@@ -92,6 +92,28 @@ alternatifine geç (karar: 2026-07-25).
     artık URL'ler sunucuda gerçek olduğu için
     doğrudan Gmail/Outlook'a gider.
 
+## Panel-only ortam (SSH yok) — komut kartı
+
+Plesk panelinden yalnızca `npm run <script>` çalıştırılabiliyorsa, shell
+gerektirmeyen karşılıklar:
+
+| Amaç | Komut (repo KÖKÜNDE) |
+|---|---|
+| Ortam teşhisi (önce bunu çalıştır) | `npm run doctor` |
+| Yalnız build çıktısını sil (`.next`) | `npm run clean` |
+| `.next` + tüm `node_modules` sil | `npm run clean:all` |
+| Kurulum (lock'a birebir) | `npm ci` |
+| Build | `npm run build -w apps/web` |
+
+`npm run doctor` node sürümünü, hangi dosyaların var/yok olduğunu, React'in
+nereden çözüldüğünü ve ağaçtaki TÜM react kopyalarını listeler. Bir sorunda
+önce bunun çıktısını al — build'i patlatmadan durumu gösterir.
+
+> **Not — `--ignore-scripts`:** paneller npm'i çoğu kez bu bayrakla çalıştırır
+> ve o modda `pre`/`post` lifecycle script'leri SESSİZCE atlanır. Bu yüzden
+> React kontrolü `prebuild` değil, doğrudan `build` script'inin içindedir —
+> atlanamaz.
+
 ## Sorun giderme
 
 - **500.19** → URL Rewrite modülü eksik (adım 4).
@@ -99,12 +121,15 @@ alternatifine geç (karar: 2026-07-25).
   (stdout/stderr orada). En sık: yanlış `nodeProcessCommandLine` yolu.
 - **`next` bulunamadı** → kurulum kökten yapılmamış; kökten `npm ci`.
 - **`Cannot read properties of null (reading 'useContext')` + `/404`
-  prerender hatası** → iki React kopyası. `prebuild` kontrolü bunu
-  yakalayıp yolları yazar. Düzeltme (kökte):
+  prerender hatası** → iki React kopyası. Build'in ilk adımı bunu yakalar
+  ve TÜM kopyaların yolunu yazar. Kurtarma (kökte, sırayla):
   ```
-  Remove-Item -Recurse -Force node_modules, apps\web\node_modules, packages\renderer\node_modules
+  npm run clean:all
   npm ci
+  npm run build -w apps/web
   ```
+  Kopya `node_modules\react-dom\node_modules\react` gibi İÇ İÇE de olabilir —
+  dosya yöneticisinde üst düzeye bakmak yetmez, `npm run doctor` kullan.
 - **Upload 500 + "Sunucu yapılandırması eksik"** → .env.local okunmuyor
   (dosya adı/konumu) veya CDN_WRITE_PATH yolu yanlış.
 - **Upload 500 EPERM/EACCES** → adım 9'daki yazma izni.

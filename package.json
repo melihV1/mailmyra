@@ -9,7 +9,10 @@
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "dev:web": "npm run dev -w apps/web"
+    "dev:web": "npm run dev -w apps/web",
+    "clean": "node scripts/clean.js",
+    "clean:all": "node scripts/clean.js --all",
+    "doctor": "node scripts/doctor.js"
   },
   "overrides": {
     "react": "19.2.8",
