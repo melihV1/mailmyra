@@ -7,7 +7,7 @@ type PostFn = (req: Request) => Promise<Response>;
 let POST: PostFn;
 let dir: string;
 beforeEach(async () => {
-  dir = mkdtempSync(join(tmpdir(), 'mailmyra-mono-'));
+  dir = mkdtempSync(join(tmpdir(), 'mailmyra-icons-'));
   process.env.CDN_WRITE_PATH = dir;
   process.env.CDN_PUBLIC_URL = 'http://cdn.test';
   process.env.ICON_RATE_LIMIT_PER_HOUR = '30';
@@ -26,7 +26,7 @@ function makeRequest(body: unknown, ip = '9.9.9.9'): Request {
   });
 }
 
-describe('POST /api/icons/mono', () => {
+describe('POST /api/icons', () => {
   it('generates outline and mono sets for a valid dark colour and returns ready', async () => {
     const res = await POST(makeRequest({ color: '#3366aa' }));
     expect(res.status).toBe(200);

@@ -7,7 +7,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
   const res = await generateStaticIcons(dir);
-  console.log(`icons: ${res.written} yazıldı, ${res.skipped} atlandı (mevcut).`);
+  console.log(`icons: ${res.written} yazıldı, ${res.skipped} atlandı (filled seti, 8 dosya).`);
 }
 
 main().catch((e) => {

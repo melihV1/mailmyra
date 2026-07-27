@@ -78,11 +78,17 @@ alternatifine geç (karar: 2026-07-25).
     set CDN_WRITE_PATH=C:\Inetpub\vhosts\mailmyra.com\cdn.mailmyra.com
     npm run icons
     ```
-    Beklenen: `icons: 16 yazıldı, 0 atlandı (mevcut).` (daha önce elle
-    yüklediğin filled/outline varsa "atlandı" sayısı artar — normal,
+    Beklenen: `icons: 8 yazıldı, 0 atlandı (filled seti, 8 dosya).` (daha önce
+    elle yüklediğin filled dosyaları varsa "atlandı" sayısı artar — normal,
     değişmezlik koruması).
+
+    > **2026-07-27 sonrası:** `npm run icons` artık YALNIZ `filled` setini
+    > üretir (8 dosya). Kontur ve tek-renk ikonları `POST /api/icons` ile
+    > kullanıcının marka rengine göre çalışma anında üretilir.
+    > Eski `icons/outline/` klasörü artık kullanılmıyor — CDN docroot'undan
+    > silinebilir (zararsız, yalnız yer kaplar).
 11. Tarayıcıda `https://app.mailmyra.com/builder` aç:
-    - Sosyal ekle + "Tek renk" → `https://cdn.mailmyra.com/icons/mono-719ad1/...`
+    - Sosyal ekle + "Tek renk" → `https://cdn.mailmyra.com/icons/mono-7b9fd3/...`
       ikonları önizlemede GÖRÜNMELİ (endpoint dosyayı cdn docroot'una yazar,
       IIS anında servis eder).
     - Görseller adımından bir avatar yükle → dönen URL

@@ -42,6 +42,25 @@ Kapsam disiplini: buraya yazılan hiçbir madde, sırası gelmeden yapılmaz.
 
 ---
 
+## Marka Kimliği — 2026-07-27
+
+Spec: `docs/superpowers/specs/2026-07-27-brand-identity-design.md`
+
+- Marka renkleri kilitli: `#7b9fd3` (mavi) · `#e0a66c` (turuncu). Tek kaynak
+  `packages/renderer/src/brand.ts`; site UI `apps/web/app/tokens.css`.
+- İkon renk modeli: `filled` sabit (platform renkleri) · `outline` çerçeveli
+  ve brandColor'a bağlı · `mono` çerçevesiz ve brandColor'a bağlı.
+- **Degrade kaldırıldı.** Renk asla değiştirilmez; düşük kontrastta yalnız
+  bilgi notu çıkar. Bu, açık bekleyen "#719ad1 degrade kararı" maddesini
+  KAPATIR — o madde artık geçersizdir.
+- [ ] Üç ikon stili de 6 istemcide doğrulanacak (Outlook Classic dahil):
+  kontur çerçevesinin köşe yuvarlaklığı ve şeffaf PNG'nin koyu modda hali.
+- [ ] Prod CDN'de eski `icons/outline/` klasörü silinebilir.
+- [ ] Prod CDN'de eski `icons/mono-719ad1/` seti (eski varsayılan marka
+  rengi) artık YETİM — `icons/outline/` ile birlikte docroot'tan silinebilir.
+
+---
+
 ## npm Göçü Notları — 2026-07-25
 
 - [ ] **`npm audit`: 3 high severity açık.** Göçle GELMEDİ (mevcut
