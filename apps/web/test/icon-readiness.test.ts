@@ -1,18 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import { createEmptyData } from '../app/builder/reducer';
-import { needsMonoIcons } from '../lib/icon-readiness';
+import { needsGeneratedIcons } from '../lib/icon-readiness';
 
 const social = [{ platform: 'linkedin', url: 'https://linkedin.com/in/x' }] as const;
 
-describe('needsMonoIcons', () => {
-  it('requires mono icon style AND at least one social entry', () => {
+describe('needsGeneratedIcons', () => {
+  it('requires a colour-keyed style AND at least one social entry', () => {
     const base = createEmptyData(); // iconStyle: 'mono', social: []
-    expect(needsMonoIcons(base)).toBe(false);
-    expect(needsMonoIcons({ ...base, social: [...social] })).toBe(true);
+    expect(needsGeneratedIcons(base)).toBe(false);
+    expect(needsGeneratedIcons({ ...base, social: [...social] })).toBe(true);
   });
-  it('is false for filled/outline regardless of social entries (static, deploy-time)', () => {
+  it('is true for outline as well as mono — both are generated per colour', () => {
     const base = { ...createEmptyData(), social: [...social] };
-    expect(needsMonoIcons({ ...base, layout: { ...base.layout, iconStyle: 'filled' } })).toBe(false);
-    expect(needsMonoIcons({ ...base, layout: { ...base.layout, iconStyle: 'outline' } })).toBe(false);
+    expect(needsGeneratedIcons({ ...base, layout: { ...base.layout, iconStyle: 'outline' } })).toBe(true);
+    expect(needsGeneratedIcons({ ...base, layout: { ...base.layout, iconStyle: 'mono' } })).toBe(true);
+  });
+  it('is false for filled — platform colours are static, nothing to generate', () => {
+    const base = { ...createEmptyData(), social: [...social] };
+    expect(needsGeneratedIcons({ ...base, layout: { ...base.layout, iconStyle: 'filled' } })).toBe(false);
   });
 });
