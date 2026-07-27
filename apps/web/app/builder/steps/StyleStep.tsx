@@ -170,6 +170,38 @@ export function StyleStep({
             <option value="mono">Tek renk</option>
           </select>
         </label>
+        {/* Kontur ve Tek renk, ikonları `visuals.brandColor` ile basar — ayrı bir
+            ikon rengi alanı YOKTUR (spec 2026-07-27: stil başına tek renk, kaynak
+            marka rengi). Bu bağ ekranda görünmediği için kullanıcı ikon rengi
+            seçicisini arıyordu; aşağıdaki satır bağı kurar ve o anki rengi
+            gösterir. Dolu stilinde çıkmaz: o platform renkleriyle sabittir. */}
+        {(data.layout.iconStyle === 'outline' || data.layout.iconStyle === 'mono') && (
+          <p
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 13,
+              color: '#666666',
+              marginTop: 8,
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 3,
+                backgroundColor: data.visuals.brandColor,
+                border: '1px solid rgba(0,0,0,0.2)',
+                flex: '0 0 auto',
+              }}
+            />
+            İkon rengi yukarıdaki <strong>Marka rengi</strong>&apos;nden gelir (
+            {data.visuals.brandColor}).
+          </p>
+        )}
+
         {(data.layout.iconStyle === 'outline' || data.layout.iconStyle === 'mono') &&
           iconLowContrast && (
             <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
