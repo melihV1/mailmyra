@@ -1,15 +1,17 @@
 import { readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { isValidHex, normalizeHex } from '@mailmyra/renderer';
-import { createRateLimiter } from '../../../../lib/rate-limit';
-import { clientIp } from '../../../../lib/client-ip';
-import { envInt } from '../../../../lib/env';
-import { generateMonoIcons } from '../../../../lib/icons';
+import { createRateLimiter } from '../../../lib/rate-limit';
+import { clientIp } from '../../../lib/client-ip';
+import { envInt } from '../../../lib/env';
+import { generateColoredIcons } from '../../../lib/icons';
 
-const MONO_DIR_RE = /^mono-[0-9a-f]{6}$/;
+// Bir renk İKİ dizin üretir (outline-<hex6> + mono-<hex6>); tavan RENK
+// sayısına uygulanır, dizin sayısına değil — bu yüzden hex'ler tekilleştirilir.
+const COLOR_DIR_RE = /^(?:outline|mono)-([0-9a-f]{6})$/;
 
-// Upload limiter'ından AYRI ve daha cömert (spec §3b): renk denemeleri
-// normal kullanımdır; her brandColor değişikliği (debounce sonrası) bir POST.
+// Upload limiter'ından AYRI ve daha cömert: renk denemeleri normal
+// kullanımdır; her brandColor değişikliği (debounce sonrası) bir POST.
 const limiter = createRateLimiter({
   limit: envInt(process.env.ICON_RATE_LIMIT_PER_HOUR, 60),
   windowMs: 60 * 60 * 1000,
@@ -40,26 +42,30 @@ export async function POST(req: Request): Promise<Response> {
     return jsonError(400, 'Geçersiz renk. #rgb veya #rrggbb formatında hex bekleniyor.');
   }
 
-  // Kota tavanı: spoofable IP × 16.7M olası renk kombinasyonu mono-<hex6>
-  // dizinlerini sınırsız çoğaltabilir. cleanup-orphans icons/ altını hiç
-  // taramaz ve dirSizeBytes yalnızca üst düzey dosyalara bakar — bu yüzden
-  // disk büyümesi hiçbir mevcut mekanizma tarafından yakalanmaz.
-  const cap = envInt(process.env.ICON_MONO_DIR_CAP, 256);
-  const requestedDir = `mono-${normalizeHex(color).slice(1)}`;
+  // Kota tavanı: spoofable IP × 16.7M olası renk, ikon dizinlerini sınırsız
+  // çoğaltabilir. cleanup-orphans icons/ altını taramaz ve dirSizeBytes
+  // yalnızca üst düzey dosyalara bakar — disk büyümesini başka hiçbir
+  // mekanizma yakalamaz.
+  const cap = envInt(process.env.ICON_COLOR_CAP, 256);
+  const requestedHex = normalizeHex(color).slice(1);
   let existingDirs: string[];
   try {
     existingDirs = await readdir(join(writePath, 'icons'));
   } catch {
     existingDirs = [];
   }
-  const monoDirs = existingDirs.filter((name) => MONO_DIR_RE.test(name));
-  if (monoDirs.length >= cap && !monoDirs.includes(requestedDir)) {
+  const colors = new Set<string>();
+  for (const name of existingDirs) {
+    const m = COLOR_DIR_RE.exec(name);
+    if (m?.[1]) colors.add(m[1]);
+  }
+  if (colors.size >= cap && !colors.has(requestedHex)) {
     return jsonError(507, 'İkon depolama tavanına ulaşıldı. Yönetici ile iletişime geçin.');
   }
 
   try {
-    const { degraded } = await generateMonoIcons(writePath, color);
-    return Response.json(degraded ? { ready: true, degraded: true } : { ready: true });
+    const { lowContrast } = await generateColoredIcons(writePath, color);
+    return Response.json(lowContrast ? { ready: true, lowContrast: true } : { ready: true });
   } catch {
     return jsonError(500, 'İkon üretimi başarısız oldu. Tekrar deneyin.');
   }
