@@ -69,10 +69,34 @@ async function main() {
     const remoteNext = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/.next`;
     console.log(`\n3/3  .next -> ${remoteNext}`);
     // Eski çıktıyı temizle: bayat chunk'lar "module not found" üretir.
+    //
+    // Hata YUTULMAZ. Uzak dizin yoksa (ilk deploy) sorun değil — FTP bunu
+    // 550 ile bildirir. Başka bir hata ise neredeyse her zaman TEK bir şey
+    // demektir: uygulama durdurulmadı ve Windows dosyaları kilitli. O durumda
+    // devam etmek `.next`'i yarı silinmiş bırakır; sunucu eski ve yeni
+    // chunk'ları karıştırıp "module not found" fırtınası verir ve sebep
+    // görünmez olur (bu proje o hatayla saatler kaybetti). Yarım iş bırakmak
+    // yerine hiç dokunmadan duruyoruz.
     try {
       await client.removeDir(remoteNext);
-    } catch {
-      // yoksa sorun değil
+    } catch (err) {
+      const code = err && err.code;
+      const notFound = code === 550 || /no such file|not found|cannot find/i.test(String(err && err.message));
+      if (!notFound) {
+        console.error(`\nUzaktaki .next silinemedi (FTP ${code ?? '?'}): ${err && err.message}`);
+        console.error(
+          [
+            '',
+            'EN OLASI SEBEP: uygulama hâlâ ÇALIŞIYOR ve Windows dosyaları kilitli.',
+            'Plesk > Node.js > uygulamayı DURDUR, sonra bu komutu tekrar çalıştır.',
+            '',
+            'Hiçbir dosya yüklenmedi — sunucudaki mevcut sürüm bozulmadan duruyor.',
+            '',
+          ].join('\n'),
+        );
+        process.exitCode = 1;
+        return;
+      }
     }
     await client.ensureDir(remoteNext);
     await client.clearWorkingDir();
