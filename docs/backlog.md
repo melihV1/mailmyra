@@ -86,6 +86,34 @@ tek turda doğrulamak en ucuzu.
 
 ---
 
+## Deploy Kayıtları
+
+### Prod yayına alındı — 2026-07-27
+
+`https://mailmyra.com/builder` canlı. Plesk Windows + IIS + iisnode,
+Node 24.14.1, npm workspaces. Belge kökü `/httpdocs/apps/web`, uygulama kökü
+`/httpdocs` (workspace hoisting için ŞART), başlatma dosyası
+`apps/web/server.js`.
+
+**Kesin kural — `web.config` MİNİMAL kalacak.** Plesk paylaşımlı hostingde
+`<security><requestFiltering>` ve `<httpErrors>` KİLİTLİ; bunlara dokunan bir
+web.config IIS'in yapılandırmayı hiç yüklememesine ve sitenin tamamının 0
+baytlık 500 dönmesine yol açar (olmayan yollar dahil). iisnode log klasörü de
+oluşmaz, bu yüzden "node başlamıyor" gibi görünür — saatlerce yanlış yerde
+arattı. `nodeProcessCommandLine` de yazılmaz; Node yolunu/sürümünü Plesk verir.
+
+Build sunucuda ALINMIYOR: Windows'ta `/404` prerender'ı `useContext` null ile
+patlıyor (React tek kopyayken bile, Next-siz SSR testi geçerken). Akış:
+Mac'te `npm run package` → `deploy-next.zip` → `apps/web` içine açılır →
+sunucuda yalnızca `npm ci`. Ayrıntı: `docs/deploy-plesk-iisnode.md`.
+
+- [ ] Sunucuda artık temizliği: `apps/web/deploy-next.zip` ve
+  `apps/web/web.config.bak` silinebilir.
+- [ ] `devErrorsEnabled` artık web.config'de yok; ileride teşhis için
+  eklenirse iş bitince KALDIRILMALI.
+
+---
+
 ## Test Kayıtları
 
 ### Tur 2 — 2026-07-25 (Hafta 2 polish: logo + el imzası + mono ikonlar, gerçek CDN)
@@ -102,7 +130,7 @@ taze gönderilmiş maillerle.
 | iOS Mail | ✅ temiz | |
 | Yeni Outlook (Mac) | ✅ temiz | |
 | Eski Outlook (Mac) | ✅ temiz | Matris maddesi DEĞİL — Mac Outlook WebKit render eder; kayıt bilgi amaçlı |
-| **Outlook Classic (Windows)** | ⏳ ERTELENDİ | **Kural değişikliği (Hüseyin, 2026-07-25): merge bu teste KİLİTLİ DEĞİL artık; test en son (deploy sonrası, Hafta 3 öncesi) yapılacak.** Açık risk: Word motoru — özellikle logo width-only ölçekleme + tablo kenarlık bug'ı orada doğrulanmadı |
+| **Outlook** | ✅ temiz | 2026-07-27, Hüseyin: prod sunucudan üretilen imza mail ile gönderildi, Outlook'ta ve diğer istemcilerde sorunsuz geldi. (Kayda geçerken not: hangi Outlook sürümü olduğu ayrıca teyit edilmedi — Word motorlu **Outlook Classic (Windows)** ayrıca doğrulanacaksa backlog'da açık kalır) |
 
 Teşhis notu: Apple Mail (Mac) arızası sırasında sunucu curl/Safari/iOS'tan
 doğrulandı (TLS zinciri tam, TLS 1.2+1.3, tüm URL'ler 200); "Mail
