@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, rmSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { mkdtempSync, rmSync, readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
-import { ICON_PLATFORMS, generateStaticIcons, generateMonoIcons } from '../lib/icons';
+import { ICON_PLATFORMS, generateStaticIcons, generateColoredIcons } from '../lib/icons';
 
 let dir: string;
 beforeEach(() => {
@@ -23,14 +23,13 @@ describe('ICON_PLATFORMS', () => {
 });
 
 describe('generateStaticIcons', () => {
-  it('writes 48x48 PNGs for filled and outline variants of all platforms', async () => {
+  it('writes 48x48 PNGs for the filled variant only (outline is now color-keyed)', async () => {
     const res = await generateStaticIcons(dir);
-    expect(res.written).toBe(16);
+    expect(res.written).toBe(8);
     expect(res.skipped).toBe(0);
-    for (const variant of ['filled', 'outline'] as const) {
-      const files = readdirSync(join(dir, 'icons', variant)).sort();
-      expect(files).toEqual([...ICON_PLATFORMS].sort().map((p) => `${p}.png`));
-    }
+    const files = readdirSync(join(dir, 'icons', 'filled')).sort();
+    expect(files).toEqual([...ICON_PLATFORMS].sort().map((p) => `${p}.png`));
+    expect(existsSync(join(dir, 'icons', 'outline'))).toBe(false);
     const meta = await sharp(join(dir, 'icons', 'filled', 'github.png')).metadata();
     expect(meta.format).toBe('png');
     expect(meta.width).toBe(48);
@@ -43,48 +42,50 @@ describe('generateStaticIcons', () => {
     const mtimeBefore = statSync(target).mtimeMs;
     const res = await generateStaticIcons(dir);
     expect(res.written).toBe(0);
-    expect(res.skipped).toBe(16);
+    expect(res.skipped).toBe(8);
     expect(readFileSync(target).equals(before)).toBe(true);
     expect(statSync(target).mtimeMs).toBe(mtimeBefore);
   });
 });
 
-describe('generateMonoIcons', () => {
-  it('writes 8 PNGs under icons/mono-<hex6> (lowercase, no #) and reports degraded=false for a dark color', async () => {
-    const res = await generateMonoIcons(dir, '#3366AA');
-    expect(res.degraded).toBe(false);
-    const files = readdirSync(join(dir, 'icons', 'mono-3366aa')).sort();
-    expect(files).toEqual([...ICON_PLATFORMS].sort().map((p) => `${p}.png`));
+describe('generateColoredIcons', () => {
+  it('writes both outline-<hex6> and mono-<hex6> sets, lowercase and without #', async () => {
+    const res = await generateColoredIcons(dir, '#3366AA');
+    expect(res.lowContrast).toBe(false);
+    for (const variant of ['outline-3366aa', 'mono-3366aa']) {
+      const files = readdirSync(join(dir, 'icons', variant)).sort();
+      expect(files).toEqual([...ICON_PLATFORMS].sort().map((p) => `${p}.png`));
+    }
     const meta = await sharp(join(dir, 'icons', 'mono-3366aa', 'github.png')).metadata();
     expect(meta.width).toBe(48);
     expect(meta.hasAlpha).toBe(true);
   });
-  it('degrades the DEFAULT brand color #719ad1 (contrast vs white ≈2.90 < 3) — documents product-visible behavior', async () => {
-    // Bilinçli belgeleme: varsayılan marka rengiyle mono ikonlar #666666
-    // glifle basılır ve builder Stil adımında bilgi notu görünür. Ürün
-    // kararı değişirse (eşik veya varsayılan renk) bu test onu yakalar.
-    const res = await generateMonoIcons(dir, '#719ad1');
-    expect(res.degraded).toBe(true);
+  it('renders outline and mono DIFFERENTLY for the same colour (frame vs bare glyph)', async () => {
+    await generateColoredIcons(dir, '#3366aa');
+    const outline = readFileSync(join(dir, 'icons', 'outline-3366aa', 'github.png'));
+    const mono = readFileSync(join(dir, 'icons', 'mono-3366aa', 'github.png'));
+    expect(outline.equals(mono)).toBe(false);
   });
-  it('degrades a near-white color to the #666666 glyph but keeps the ORIGINAL hex in the path', async () => {
-    const res = await generateMonoIcons(dir, '#ffffff');
-    expect(res.degraded).toBe(true);
-    // Yol orijinal hex ile — URL deterministik kalır (spec §3b)
-    const degradedFile = join(dir, 'icons', 'mono-ffffff', 'github.png');
-    // Glif gerçekten #666666 ile basılmış olmalı: doğrudan #666666 üretimiyle bayt-eş
-    await generateMonoIcons(dir, '#666666');
-    const reference = join(dir, 'icons', 'mono-666666', 'github.png');
-    expect(readFileSync(degradedFile).equals(readFileSync(reference))).toBe(true);
+  it('NEVER substitutes the colour: the brand default renders in its own colour', async () => {
+    // Spec kararı: degrade YOK. #7b9fd3 beyaza karşı 2.71 (<3) olduğu için
+    // lowContrast bayrağı kalkar ama glif YİNE #7b9fd3 basılır. Eskiden
+    // #666666'ya düşerdi — bu test o davranışın geri gelmesini engeller.
+    const res = await generateColoredIcons(dir, '#7b9fd3');
+    expect(res.lowContrast).toBe(true);
+    const brandFile = readFileSync(join(dir, 'icons', 'mono-7b9fd3', 'github.png'));
+    await generateColoredIcons(dir, '#666666');
+    const greyFile = readFileSync(join(dir, 'icons', 'mono-666666', 'github.png'));
+    expect(brandFile.equals(greyFile)).toBe(false);
   });
-  it('dedups: when all files exist the second call still succeeds and reports the same degraded flag', async () => {
-    const first = await generateMonoIcons(dir, '#3366aa');
+  it('dedups: a second call rewrites nothing and reports the same flag', async () => {
+    const first = await generateColoredIcons(dir, '#3366aa');
     const target = join(dir, 'icons', 'mono-3366aa', 'x.png');
     const mtimeBefore = statSync(target).mtimeMs;
-    const second = await generateMonoIcons(dir, '#3366aa');
+    const second = await generateColoredIcons(dir, '#3366aa');
     expect(second).toEqual(first);
     expect(statSync(target).mtimeMs).toBe(mtimeBefore);
   });
   it('rejects an invalid hex', async () => {
-    await expect(generateMonoIcons(dir, 'kırmızı')).rejects.toThrow();
+    await expect(generateColoredIcons(dir, 'kırmızı')).rejects.toThrow();
   });
 });

@@ -30,9 +30,11 @@ const ICONS: Record<SocialPlatform, { hex: string; path: string }> = {
 
 export const ICON_PLATFORMS = Object.keys(ICONS) as SocialPlatform[];
 
-/** Açık marka renginde mono glifin düşürüldüğü koyu gri (spec §3b). */
-export const DEGRADED_GLYPH_HEX = '666666';
-const DEGRADE_MIN_CONTRAST_ON_WHITE = 3;
+/**
+ * Beyaz zeminde "açık ton" uyarı eşiği. UYARI amaçlıdır — renk ASLA
+ * değiştirilmez (spec 2026-07-27: marka rengi korunur, yalnız uyarılır).
+ */
+export const LOW_CONTRAST_ON_WHITE = 3;
 
 const CANVAS = 48; // 2x retina; HTML'de 24x24 kullanılır
 const FILLED_GLYPH = 30; // yuvarlatılmış kare içinde glif boyutu
@@ -55,6 +57,27 @@ function svgGlyph(glyphPath: string, colorHex: string): string {
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS}" height="${CANVAS}" viewBox="0 0 ${CANVAS} ${CANVAS}">` +
     `<g transform="scale(${CANVAS / 24})"><path d="${glyphPath}" fill="#${colorHex}"/></g>` +
+    `</svg>`
+  );
+}
+
+const OUTLINE_STROKE = 3;
+
+/**
+ * Kontur: seçilen renkte yuvarlatılmış kare ÇERÇEVE + şeffaf iç + aynı
+ * renkte glif. Çerçeve PNG'ye rasterize edilir (CSS değil), bu yüzden
+ * Outlook'ta `border-radius` desteği gerekmez — düz bir görsel olarak gelir.
+ */
+function svgOutline(glyphPath: string, colorHex: string): string {
+  const scale = FILLED_GLYPH / 24;
+  const offset = (CANVAS - FILLED_GLYPH) / 2;
+  const inset = OUTLINE_STROKE / 2; // stroke kırpılmasın diye içe kaydır
+  const side = CANVAS - OUTLINE_STROKE;
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS}" height="${CANVAS}" viewBox="0 0 ${CANVAS} ${CANVAS}">` +
+    `<rect x="${inset}" y="${inset}" width="${side}" height="${side}" rx="${FILLED_RADIUS}" ` +
+    `fill="none" stroke="#${colorHex}" stroke-width="${OUTLINE_STROKE}"/>` +
+    `<g transform="translate(${offset} ${offset}) scale(${scale})"><path d="${glyphPath}" fill="#${colorHex}"/></g>` +
     `</svg>`
   );
 }
@@ -89,60 +112,60 @@ async function fileExists(path: string): Promise<boolean> {
   }
 }
 
-/** filled + outline statik setleri. Deploy prosedürünün parçası (elle koşulur). */
+/** filled statik seti (platform resmi renkleri). Deploy adımı, elle koşulur. */
 export async function generateStaticIcons(
   cdnWritePath: string,
 ): Promise<{ written: number; skipped: number }> {
   let written = 0;
   let skipped = 0;
+  const dir = join(cdnWritePath, 'icons', 'filled');
   for (const platform of ICON_PLATFORMS) {
     const icon = ICONS[platform];
-    const brandHex = icon.hex.toLowerCase();
-    const jobs: Array<{ dir: string; svg: string }> = [
-      { dir: join(cdnWritePath, 'icons', 'filled'), svg: svgFilled(icon.path, brandHex) },
-      { dir: join(cdnWritePath, 'icons', 'outline'), svg: svgGlyph(icon.path, brandHex) },
-    ];
-    for (const job of jobs) {
-      const target = join(job.dir, `${platform}.png`);
-      if (await fileExists(target)) {
-        skipped += 1;
-        continue;
-      }
-      const wrote = await writeIconFile(job.dir, `${platform}.png`, await renderIconPng(job.svg));
-      if (wrote) written += 1;
-      else skipped += 1;
+    if (await fileExists(join(dir, `${platform}.png`))) {
+      skipped += 1;
+      continue;
     }
+    const wrote = await writeIconFile(
+      dir,
+      `${platform}.png`,
+      await renderIconPng(svgFilled(icon.path, icon.hex.toLowerCase())),
+    );
+    if (wrote) written += 1;
+    else skipped += 1;
   }
   return { written, skipped };
 }
 
 /**
- * Kullanıcı brandColor'ı ile 8 mono ikon. Beyaza karşı kontrast < 3 ise glif
- * #666666'ya düşürülür ama YOL orijinal hex'te kalır (URL deterministik).
- * Tüm dosyalar zaten varsa üretim atlanır (dedup) — degraded bayrağı renkten
- * deterministik hesaplandığı için dedup yolunda da doğru döner.
+ * Kullanıcının brandColor'ı için outline + mono setleri (16 dosya).
+ *
+ * İkisi BİRLİKTE üretilir: kullanıcı stiller arasında gezinirken yeni istek
+ * atılmasın, builder'da tek "hazır mı" durumu olsun.
+ *
+ * Renk ASLA değiştirilmez (spec 2026-07-27). `lowContrast` yalnız bilgi
+ * amaçlıdır; renkten deterministik hesaplandığı için dedup yolunda da doğrudur.
  */
-export async function generateMonoIcons(
+export async function generateColoredIcons(
   cdnWritePath: string,
   color: string,
-): Promise<{ degraded: boolean }> {
+): Promise<{ lowContrast: boolean }> {
   const hex6 = normalizeHex(color).slice(1);
-  const degraded = contrastRatio(`#${hex6}`, '#ffffff') < DEGRADE_MIN_CONTRAST_ON_WHITE;
-  const glyphHex = degraded ? DEGRADED_GLYPH_HEX : hex6;
-  const dir = join(cdnWritePath, 'icons', `mono-${hex6}`);
+  const lowContrast = contrastRatio(`#${hex6}`, '#ffffff') < LOW_CONTRAST_ON_WHITE;
 
-  const allExist = (
-    await Promise.all(ICON_PLATFORMS.map((p) => fileExists(join(dir, `${p}.png`))))
-  ).every(Boolean);
-  if (allExist) return { degraded };
+  const variants: Array<{ dir: string; svg: (p: string) => string }> = [
+    { dir: join(cdnWritePath, 'icons', `outline-${hex6}`), svg: (p) => svgOutline(p, hex6) },
+    { dir: join(cdnWritePath, 'icons', `mono-${hex6}`), svg: (p) => svgGlyph(p, hex6) },
+  ];
 
-  for (const platform of ICON_PLATFORMS) {
-    if (await fileExists(join(dir, `${platform}.png`))) continue;
-    await writeIconFile(
-      dir,
-      `${platform}.png`,
-      await renderIconPng(svgGlyph(ICONS[platform].path, glyphHex)),
-    );
+  for (const variant of variants) {
+    for (const platform of ICON_PLATFORMS) {
+      if (await fileExists(join(variant.dir, `${platform}.png`))) continue;
+      await writeIconFile(
+        variant.dir,
+        `${platform}.png`,
+        await renderIconPng(variant.svg(ICONS[platform].path)),
+      );
+    }
   }
-  return { degraded };
+  return { lowContrast };
 }
