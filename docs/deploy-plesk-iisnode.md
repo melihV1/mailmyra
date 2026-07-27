@@ -30,12 +30,25 @@ alternatifine geç (karar: 2026-07-25).
    (`node_modules`, `.next`, `public/cdn-*` TAŞINMAZ — sunucuda üretilir.
    Mac'in node_modules'ü Windows'ta ÇALIŞMAZ: sharp native binary'si
    platforma özgü.)
-6. Bağımlılık + build:
+6. Bağımlılık + build. **Komutlar HER ZAMAN repo KÖKÜNDE çalışır —
+   `apps\web` içinde ASLA `npm install` çalıştırma** (sebep aşağıda):
    ```
    cd C:\apps\mailmyra
-   npm install
+   npm ci
    npm run build -w apps/web
    ```
+   `npm ci` (install değil): `package-lock.json`'ı birebir uygular ve
+   `node_modules`'ü sıfırdan kurar — bozuk şekilli bir ağacı miras almaz.
+
+   > **Neden bu kadar önemli:** npm workspaces `react`/`react-dom`'u KÖK
+   > `node_modules`'e hoist eder. `apps\web` içinde `npm install`
+   > çalıştırılırsa oraya İKİNCİ bir React kopyası iner; o zaman uygulama
+   > bir React örneğini, `react-dom` başka birini görür, dispatcher null
+   > kalır ve build şununla patlar:
+   > `TypeError: Cannot read properties of null (reading 'useContext')` +
+   > `Error occurred prerendering page "/404"`. Kopyalar AYNI sürüm olsa
+   > bile olur. `apps/web` build'i artık `prebuild` adımında bunu kontrol
+   > eder ve sebebi açıkça yazarak durur (2026-07-25'te bu sunucuda yaşandı).
 7. **Env dosyası** `C:\apps\mailmyra\apps\web\.env.local`:
    ```
    CDN_WRITE_PATH=C:\Inetpub\vhosts\mailmyra.com\cdn.mailmyra.com
@@ -84,8 +97,14 @@ alternatifine geç (karar: 2026-07-25).
 - **500.19** → URL Rewrite modülü eksik (adım 4).
 - **iisnode 500 / boş sayfa** → `apps\web\iisnode\*.log` dosyalarına bak
   (stdout/stderr orada). En sık: yanlış `nodeProcessCommandLine` yolu.
-- **`next` bulunamadı** → `npm install` apps\web altında
-  node_modules junction'ı oluşturmamış; kökten tekrar çalıştır.
+- **`next` bulunamadı** → kurulum kökten yapılmamış; kökten `npm ci`.
+- **`Cannot read properties of null (reading 'useContext')` + `/404`
+  prerender hatası** → iki React kopyası. `prebuild` kontrolü bunu
+  yakalayıp yolları yazar. Düzeltme (kökte):
+  ```
+  Remove-Item -Recurse -Force node_modules, apps\web\node_modules, packages\renderer\node_modules
+  npm ci
+  ```
 - **Upload 500 + "Sunucu yapılandırması eksik"** → .env.local okunmuyor
   (dosya adı/konumu) veya CDN_WRITE_PATH yolu yanlış.
 - **Upload 500 EPERM/EACCES** → adım 9'daki yazma izni.
@@ -99,7 +118,7 @@ alternatifine geç (karar: 2026-07-25).
 ```
 cd C:\apps\mailmyra
 git pull
-npm install
+npm ci
 npm run build -w apps/web
 ```
 Sonra IIS'te app pool'u Recycle et (Plesk > Hosting Settings yeterli;
