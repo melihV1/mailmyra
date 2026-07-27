@@ -185,7 +185,7 @@ export function StyleStep({
         {(data.layout.iconStyle === 'outline' || data.layout.iconStyle === 'mono') &&
           iconLowContrast && (
             <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
-              ℹ️ Marka rengin açık tonda — beyaz zeminde ikonlar soluk görünebilir.
+              ℹ️ İkon rengin açık tonda — beyaz zeminde ikonlar soluk görünebilir.
             </p>
           )}
       </FieldGroup>
