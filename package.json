@@ -11,6 +11,7 @@
     "build": "npm run build --workspaces --if-present",
     "build:log": "node scripts/build-log.js",
     "package": "node scripts/package-build.js",
+    "deploy": "node scripts/deploy.js",
     "dev:web": "npm run dev -w apps/web",
     "clean": "node scripts/clean.js",
     "clean:all": "node scripts/clean.js --all",
@@ -19,5 +20,8 @@
   "overrides": {
     "react": "19.2.8",
     "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "basic-ftp": "^6.0.2"
   }
 }

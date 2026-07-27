@@ -102,6 +102,12 @@ alternatifine geç (karar: 2026-07-25).
 
 ## B Planı — build'i Mac'te al, sunucuya hazır çıktı gönder
 
+**Otomatik yol (önerilen):** Mac'te `npm run deploy` — temiz build alır ve
+`.next` ağacını FTPS ile sunucuya yükler; zip açma adımı YOKTUR. Öncesinde
+Plesk'te uygulamayı DURDUR, sonrasında BAŞLAT (Windows çalışırken dosyaları
+kilitler; bu iki adım Plesk Node.js eklentisi REST API'de açık olmadığı için
+otomatikleştirilemedi). Sırlar `.env.deploy`'dan okunur — repoya girmez.
+
 Sunucuda `next build` patlıyorsa (2026-07-25: Windows'ta `/404` prerender'ında
 `useContext` null — React tek kopya olmasına ve SSR izolasyon testinin
 geçmesine rağmen) derlemeyi sunucuda yapmaktan VAZGEÇ. Çıktı taşınabilir.
