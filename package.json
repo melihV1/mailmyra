@@ -9,6 +9,8 @@
     "test": "npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
+    "build:log": "node scripts/build-log.js",
+    "package": "node scripts/package-build.js",
     "dev:web": "npm run dev -w apps/web",
     "clean": "node scripts/clean.js",
     "clean:all": "node scripts/clean.js --all",

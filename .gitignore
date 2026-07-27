@@ -11,3 +11,5 @@ packages/renderer/out/
 .env*.local
 apps/web/public/cdn-dev/
 apps/web/public/cdn-prod/
+build.log
+deploy-next.zip

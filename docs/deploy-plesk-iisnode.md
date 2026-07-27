@@ -92,6 +92,34 @@ alternatifine geç (karar: 2026-07-25).
     artık URL'ler sunucuda gerçek olduğu için
     doğrudan Gmail/Outlook'a gider.
 
+## B Planı — build'i Mac'te al, sunucuya hazır çıktı gönder
+
+Sunucuda `next build` patlıyorsa (2026-07-25: Windows'ta `/404` prerender'ında
+`useContext` null — React tek kopya olmasına ve SSR izolasyon testinin
+geçmesine rağmen) derlemeyi sunucuda yapmaktan VAZGEÇ. Çıktı taşınabilir.
+
+Mac'te:
+```
+npm run package
+```
+`deploy-next.zip` üretir (yalnız `apps/web/.next`, cache ayıklanmış).
+
+Sunucuda sırayla:
+1. Plesk > Node.js > uygulamayı **DURDUR**
+2. `npm run clean` (eski `.next` silinir)
+3. `deploy-next.zip`'i `apps/web` içine yükle ve **aç** (`.next` oluşmalı)
+4. `npm ci` — node_modules Windows'a ait olmalı (`sharp` native binary)
+5. Uygulamayı **BAŞLAT**
+
+**`node_modules` ASLA taşınmaz**, yalnızca `.next`. Sunucuda `npm run build`
+çalıştırma — çıktı zaten hazır.
+
+Bilinen sınır: Next çıktısının platformlar arası taşınabilirliği resmî olarak
+garanti edilmez. Saf JS kısmı taşınır (arşiv açılıp `next start` ile
+doğrulandı); native bağımlılık yalnızca `sharp` ve o sunucuda kuruluyor.
+Her deploy'da bu döngü tekrarlanır — kalıcı çözüm için sunucuda kabuk
+erişimi (RDP) veya Linux VM'e geçiş önerilir (en altta).
+
 ## Panel-only ortam (SSH yok) — komut kartı
 
 Plesk panelinden yalnızca `npm run <script>` çalıştırılabiliyorsa, shell
@@ -104,6 +132,11 @@ gerektirmeyen karşılıklar:
 | `.next` + tüm `node_modules` sil | `npm run clean:all` |
 | Kurulum (lock'a birebir) | `npm ci` |
 | Build | `npm run build -w apps/web` |
+| **Build + TAM log dosyaya** (panel çıktıyı kırpıyorsa) | `npm run build:log` |
+
+`npm run build:log` tüm çıktıyı repo kökündeki **`build.log`** dosyasına yazar
+(yığın izi 100 kareye çıkarılır, source-map açılır) — panel konsolu kırpsa da
+dosyayı dosya yöneticisinden açıp tamamını okuyabilirsin.
 
 `npm run doctor` node sürümünü, hangi dosyaların var/yok olduğunu, React'in
 nereden çözüldüğünü ve ağaçtaki TÜM react kopyalarını listeler. Bir sorunda
