@@ -19,6 +19,12 @@ export interface SignatureData {
     logoUrl?: string;
     handSignatureUrl?: string;
     brandColor: string;
+    /**
+     * Sosyal ikonların rengi (outline + mono). brandColor'dan AYRIDIR:
+     * kullanıcı ikon rengini bağımsız seçer (karar: 2026-07-27, Hüseyin).
+     * `filled` stili bu alanı kullanmaz — o platform renklerinde sabittir.
+     */
+    iconColor: string;
     textColor: string;
     mutedColor: string;
     fontFamily: WebSafeFont;

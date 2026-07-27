@@ -9,12 +9,13 @@ export interface Fixture {
 
 const baseVisuals = {
   brandColor: BRAND.primary,
+  iconColor: BRAND.primary,
   textColor: '#333333',
   mutedColor: '#6d6e71',
   fontFamily: 'Arial, Helvetica, sans-serif',
 } satisfies Pick<
   SignatureData['visuals'],
-  'brandColor' | 'textColor' | 'mutedColor' | 'fontFamily'
+  'brandColor' | 'iconColor' | 'textColor' | 'mutedColor' | 'fontFamily'
 >;
 
 const full: SignatureData = {

@@ -8,6 +8,7 @@ describe('createEmptyData', () => {
     expect(d.visuals.brandColor).toBe('#7b9fd3');
     expect(d.visuals.textColor).toBe('#333333');
     expect(d.visuals.mutedColor).toBe('#666666');
+    expect(d.visuals.iconColor).toBe('#7b9fd3');
     expect(d.layout.templateId).toBe('classic-horizontal');
     expect(d.identity.fullName).toBe('');
   });
@@ -45,6 +46,7 @@ describe('mergeWithEmpty', () => {
     expect(d.visuals.brandColor).toBe('#7b9fd3');
     expect(d.visuals.textColor).toBe('#333333');
     expect(d.visuals.mutedColor).toBe('#666666');
+    expect(d.visuals.iconColor).toBe('#7b9fd3');
     expect(d.social).toEqual([]);
     expect(d.contact).toEqual({});
   });

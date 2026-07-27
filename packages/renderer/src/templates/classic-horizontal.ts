@@ -45,6 +45,7 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
   const text = normalizeHex(data.visuals.textColor);
   const muted = normalizeHex(data.visuals.mutedColor);
   const brand = normalizeHex(data.visuals.brandColor);
+  const iconHex = normalizeHex(data.visuals.iconColor);
 
   const linkStyle = styleToString({
     'font-family': font,
@@ -193,11 +194,12 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
     if (opts?.iconBaseUrl) {
       const base = opts.iconBaseUrl.replace(/\/$/, '');
       // filled statiktir (platform renkleri); outline ve mono kullanıcının
-      // brandColor'ına göre üretilir, bu yüzden yol renge anahtarlanır.
+      // iconColor'ına göre üretilir (brandColor'dan bağımsız — karar:
+      // 2026-07-27), bu yüzden yol renge anahtarlanır.
       const variantPath =
         data.layout.iconStyle === 'filled'
           ? 'filled'
-          : `${data.layout.iconStyle}-${brand.slice(1)}`;
+          : `${data.layout.iconStyle}-${iconHex.slice(1)}`;
       const iconCells = data.social
         .map((soc, i) =>
           cell(

@@ -166,14 +166,15 @@ describe('classicHorizontal', () => {
     );
     expect(mono).toContain('/icons/mono-7b9fd3/linkedin.png');
   });
-  it('keys outline and mono paths off brandColor, not a fixed brand value', () => {
+  it('keys outline and mono paths off iconColor, independently of brandColor', () => {
     const custom = {
       ...full,
-      visuals: { ...full.visuals, brandColor: '#123456' },
+      visuals: { ...full.visuals, brandColor: '#ff0000', iconColor: '#123456' },
       layout: { ...full.layout, iconStyle: 'outline' as const },
     };
     const html = classicHorizontal(custom, { iconBaseUrl: 'https://cdn.example.com' });
     expect(html).toContain('/icons/outline-123456/linkedin.png');
+    expect(html).not.toContain('/icons/outline-ff0000/');
   });
   it('strips a trailing slash from iconBaseUrl', () => {
     const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com/' });

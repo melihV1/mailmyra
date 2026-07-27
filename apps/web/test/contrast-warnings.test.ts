@@ -5,6 +5,7 @@ import { contrastWarnings } from '../app/builder/steps/StyleStep';
 function visuals(overrides: Partial<SignatureData['visuals']>): SignatureData['visuals'] {
   return {
     brandColor: '#719ad1',
+    iconColor: '#7b9fd3',
     textColor: '#333333',
     mutedColor: '#666666',
     fontFamily: 'Arial, Helvetica, sans-serif',
