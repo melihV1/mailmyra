@@ -56,4 +56,9 @@
   --radius-lg: 16px;
 
   --maxw: 1120px;
+
+  /* ── Gölge (landing) ────────────────────────────────────────────── */
+  /* --dark-bg'nin (#0d1b2e) kendisinden türetilmiş — yeni bir renk
+     icat etmek yerine koyu zeminin tonunu gölgeye taşır. */
+  --shadow-card: 0 24px 60px -12px rgba(13, 27, 46, 0.55);
 }
