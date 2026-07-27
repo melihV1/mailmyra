@@ -147,17 +147,33 @@ describe('classicHorizontal', () => {
     // Metin-link etiketleri artık yok
     expect(html).not.toContain('>LinkedIn</a>');
   });
-  it('maps filled/outline icon styles to their static variant paths', () => {
+  it('maps icon styles to their variant paths (filled static, outline/mono color-keyed)', () => {
     const filled = classicHorizontal(
       { ...full, layout: { ...full.layout, iconStyle: 'filled' } },
       { iconBaseUrl: 'https://cdn.example.com' },
     );
     expect(filled).toContain('/icons/filled/linkedin.png');
+
     const outline = classicHorizontal(
       { ...full, layout: { ...full.layout, iconStyle: 'outline' } },
       { iconBaseUrl: 'https://cdn.example.com' },
     );
-    expect(outline).toContain('/icons/outline/linkedin.png');
+    expect(outline).toContain('/icons/outline-7b9fd3/linkedin.png');
+
+    const mono = classicHorizontal(
+      { ...full, layout: { ...full.layout, iconStyle: 'mono' } },
+      { iconBaseUrl: 'https://cdn.example.com' },
+    );
+    expect(mono).toContain('/icons/mono-7b9fd3/linkedin.png');
+  });
+  it('keys outline and mono paths off brandColor, not a fixed brand value', () => {
+    const custom = {
+      ...full,
+      visuals: { ...full.visuals, brandColor: '#123456' },
+      layout: { ...full.layout, iconStyle: 'outline' as const },
+    };
+    const html = classicHorizontal(custom, { iconBaseUrl: 'https://cdn.example.com' });
+    expect(html).toContain('/icons/outline-123456/linkedin.png');
   });
   it('strips a trailing slash from iconBaseUrl', () => {
     const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com/' });

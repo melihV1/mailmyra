@@ -192,10 +192,12 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
     };
     if (opts?.iconBaseUrl) {
       const base = opts.iconBaseUrl.replace(/\/$/, '');
+      // filled statiktir (platform renkleri); outline ve mono kullanıcının
+      // brandColor'ına göre üretilir, bu yüzden yol renge anahtarlanır.
       const variantPath =
-        data.layout.iconStyle === 'mono'
-          ? `mono-${brand.slice(1)}`
-          : data.layout.iconStyle;
+        data.layout.iconStyle === 'filled'
+          ? 'filled'
+          : `${data.layout.iconStyle}-${brand.slice(1)}`;
       const iconCells = data.social
         .map((soc, i) =>
           cell(
