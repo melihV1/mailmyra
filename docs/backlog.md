@@ -42,6 +42,23 @@ Kapsam disiplini: buraya yazılan hiçbir madde, sırası gelmeden yapılmaz.
 
 ---
 
+## npm Göçü Notları — 2026-07-25
+
+- [ ] **`npm audit`: 3 high severity açık.** Göçle GELMEDİ (mevcut
+  bağımlılıklardan; pnpm'de de vardı, sadece raporlanmıyordu). **Karar
+  (Hüseyin): şimdi kurcalanmayacak — önce deploy.** Sonra ayrı bir
+  güvenlik taraması işi olarak ele alınacak: `npm audit` çıktısı okunur,
+  `--force` KULLANILMADAN (breaking change riski) tek tek değerlendirilir.
+- **Paket yöneticisi npm'e sabit** (CLAUDE.md Stack bölümünde kilitli):
+  pnpm/corepack kullanılmayacak, `pnpm-lock.yaml`/`pnpm-workspace.yaml`
+  geri eklenmeyecek.
+- Göç sırasında yakalanan gerçek hata: `cleanup-cli.test.ts` workspace-yerel
+  `node_modules/.bin/tsx` yolunu varsayıyordu (npm bin'leri köke hoist eder)
+  — test artık `require.resolve('tsx/cli')` kullanıyor, paket
+  yöneticisinden bağımsız.
+
+---
+
 ## Telefon Testi Bulguları — 2026-07-24 (Hüseyin, yüzeysel tur)
 
 Üçü de kod hatası DEĞİL — Hafta 1 şablon kapsamı ile Hafta 2 builder'ının
