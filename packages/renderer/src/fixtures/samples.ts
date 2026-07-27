@@ -1,4 +1,5 @@
 import type { SignatureData } from '../types';
+import { BRAND } from '../brand';
 
 export interface Fixture {
   id: string;
@@ -7,7 +8,7 @@ export interface Fixture {
 }
 
 const baseVisuals = {
-  brandColor: '#719ad1',
+  brandColor: BRAND.primary,
   textColor: '#333333',
   mutedColor: '#6d6e71',
   fontFamily: 'Arial, Helvetica, sans-serif',

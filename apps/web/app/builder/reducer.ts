@@ -1,11 +1,11 @@
-import type { SignatureData } from '@mailmyra/renderer';
+import { BRAND, type SignatureData } from '@mailmyra/renderer';
 
 export function createEmptyData(): SignatureData {
   return {
     identity: { fullName: '' },
     contact: {},
     visuals: {
-      brandColor: '#719ad1',
+      brandColor: BRAND.primary,
       textColor: '#333333',
       mutedColor: '#666666',
       fontFamily: 'Arial, Helvetica, sans-serif',

@@ -1,0 +1,10 @@
+/* Site arayüzü tasarım tokenları. YALNIZ web UI içindir —
+   e-posta HTML'i CSS değişkeni kullanamaz, orada literal hex gider.
+   Kaynak değerler: packages/renderer/src/brand.ts */
+:root {
+  --brand-primary: #7b9fd3;
+  --brand-secondary: #e0a66c;
+
+  --text: #333333;
+  --text-muted: #666666;
+}

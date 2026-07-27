@@ -5,7 +5,7 @@ import { builderReducer, createEmptyData, mergeWithEmpty } from '../app/builder/
 describe('createEmptyData', () => {
   it('starts with brand defaults and classic-horizontal', () => {
     const d = createEmptyData();
-    expect(d.visuals.brandColor).toBe('#719ad1');
+    expect(d.visuals.brandColor).toBe('#7b9fd3');
     expect(d.visuals.textColor).toBe('#333333');
     expect(d.visuals.mutedColor).toBe('#666666');
     expect(d.layout.templateId).toBe('classic-horizontal');
@@ -42,7 +42,7 @@ describe('mergeWithEmpty', () => {
     const d = mergeWithEmpty({ identity: { fullName: 'x' } });
     expect(d.identity.fullName).toBe('x');
     expect(d.layout.templateId).toBe('classic-horizontal');
-    expect(d.visuals.brandColor).toBe('#719ad1');
+    expect(d.visuals.brandColor).toBe('#7b9fd3');
     expect(d.visuals.textColor).toBe('#333333');
     expect(d.visuals.mutedColor).toBe('#666666');
     expect(d.social).toEqual([]);

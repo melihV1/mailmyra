@@ -133,10 +133,10 @@ describe('classicHorizontal', () => {
   });
   it('renders one 24x24 icon img per social entry when iconBaseUrl is given', () => {
     const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com' });
-    // full fixture: linkedin + instagram + behance, iconStyle 'mono', brand #719ad1
-    expect(html).toContain('src="https://cdn.example.com/icons/mono-719ad1/linkedin.png"');
-    expect(html).toContain('src="https://cdn.example.com/icons/mono-719ad1/instagram.png"');
-    expect(html).toContain('src="https://cdn.example.com/icons/mono-719ad1/behance.png"');
+    // full fixture: linkedin + instagram + behance, iconStyle 'mono', brand #7b9fd3
+    expect(html).toContain('src="https://cdn.example.com/icons/mono-7b9fd3/linkedin.png"');
+    expect(html).toContain('src="https://cdn.example.com/icons/mono-7b9fd3/instagram.png"');
+    expect(html).toContain('src="https://cdn.example.com/icons/mono-7b9fd3/behance.png"');
     const iconImgs = html.match(/<img[^>]*\/icons\/[^>]*>/gi) ?? [];
     expect(iconImgs).toHaveLength(3);
     for (const img of iconImgs) {
