@@ -33,7 +33,7 @@ const full: SignatureData = {
   },
   visuals: {
     ...baseVisuals,
-    avatarUrl: 'https://placehold.co/240x240/719ad1/ffffff/png',
+    avatarUrl: 'https://placehold.co/240x240/7b9fd3/ffffff/png',
     logoUrl: 'https://placehold.co/360x120/1a1a1a/ffffff/png',
     handSignatureUrl: 'https://placehold.co/300x100/333333/ffffff/png',
   },

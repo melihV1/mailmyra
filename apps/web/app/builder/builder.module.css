@@ -33,9 +33,9 @@
 }
 
 .stepTabActive {
-  background: #719ad1;
+  background: var(--brand-primary);
   color: #fff;
-  border-color: #719ad1;
+  border-color: var(--brand-primary);
 }
 
 .previewPane {

@@ -33,8 +33,10 @@ export const ICON_PLATFORMS = Object.keys(ICONS) as SocialPlatform[];
 /**
  * Beyaz zeminde "açık ton" uyarı eşiği. UYARI amaçlıdır — renk ASLA
  * değiştirilmez (spec 2026-07-27: marka rengi korunur, yalnız uyarılır).
+ * Not: istemci tarafı bu değeri `BuilderClient.tsx` içinde kendi kopyası
+ * olarak tutar (`ICON_LOW_CONTRAST_ON_WHITE`) — ikisi elle senkron kalmalı.
  */
-export const LOW_CONTRAST_ON_WHITE = 3;
+const LOW_CONTRAST_ON_WHITE = 3;
 
 const CANVAS = 48; // 2x retina; HTML'de 24x24 kullanılır
 const FILLED_GLYPH = 30; // yuvarlatılmış kare içinde glif boyutu

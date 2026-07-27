@@ -18,7 +18,7 @@ export default function LoginPage() {
         serbestçe kullanabilirsin.
       </p>
       <p>
-        <a href="/builder" style={{ color: '#719ad1' }}>
+        <a href="/builder" style={{ color: 'var(--brand-primary)' }}>
           ← Builder'a dön
         </a>
       </p>

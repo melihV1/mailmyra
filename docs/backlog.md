@@ -31,12 +31,12 @@ Kapsam disiplini: buraya yazılan hiçbir madde, sırası gelmeden yapılmaz.
   `visuals`'a boyut alanı (tip değişikliği + draft migrasyonu).
 - [ ] **Deploy adımı — ikonlar gerçek CDN'e:** 6-istemci testinden ÖNCE
   `CDN_WRITE_PATH=<prod-cdn-yolu> npm run icons -w apps/web`
-  prod'da koşulmalı; mono-719ad1 seti de ilk builder kullanımında oluşur
-  (test .htm'leri için elle: `POST /api/icons/mono {"color":"#719ad1"}`).
+  prod'da koşulmalı; mono-7b9fd3 seti de ilk builder kullanımında oluşur
+  (test .htm'leri için elle: `POST /api/icons {"color":"#7b9fd3"}`).
 - **simple-icons `^13.0.0`'a sabit:** v14.0.0 linkedin ikonunu kaldırdı
   (marka talebi). Upgrade öncesi 8 platformun varlığı doğrulanmalı; linkedin
   için kalıcı çözüm gerekirse glif path'i repoya vendor'lanır.
-- [ ] **Hafta 4'e:** builder'da `filled`/`outline` seçiliyken statik ikonlar
+- [ ] **Hafta 4'e:** builder'da `filled` seçiliyken statik ikonlar
   henüz deploy edilmemişse önizlemede kırık görsel görünür — dev kurulumunda
   script koşuldu; prod deploy checklist'ine eklendi (yukarıdaki madde).
 
@@ -55,9 +55,15 @@ Spec: `docs/superpowers/specs/2026-07-27-brand-identity-design.md`
   KAPATIR — o madde artık geçersizdir.
 - [ ] Üç ikon stili de 6 istemcide doğrulanacak (Outlook Classic dahil):
   kontur çerçevesinin köşe yuvarlaklığı ve şeffaf PNG'nin koyu modda hali.
-- [ ] Prod CDN'de eski `icons/outline/` klasörü silinebilir.
+- [ ] Prod CDN'de eski `icons/outline/` klasörü silinebilir çünkü bu yollarla
+  MÜŞTERİ imzası hiç dışa aktarılmadı (yalnız dahili test mailleri) —
+  CLAUDE.md'nin "üretilen görsel URL'leri asla kırılmaz" kuralı bu yüzden
+  ihlal edilmiyor.
 - [ ] Prod CDN'de eski `icons/mono-719ad1/` seti (eski varsayılan marka
-  rengi) artık YETİM — `icons/outline/` ile birlikte docroot'tan silinebilir.
+  rengi) artık YETİM — `icons/outline/` ile birlikte docroot'tan silinebilir
+  çünkü bu yollarla MÜŞTERİ imzası hiç dışa aktarılmadı (yalnız dahili test
+  mailleri) — CLAUDE.md'nin "üretilen görsel URL'leri asla kırılmaz" kuralı
+  bu yüzden ihlal edilmiyor.
 
 ---
 

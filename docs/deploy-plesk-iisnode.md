@@ -86,7 +86,9 @@ alternatifine geç (karar: 2026-07-25).
     > üretir (8 dosya). Kontur ve tek-renk ikonları `POST /api/icons` ile
     > kullanıcının marka rengine göre çalışma anında üretilir.
     > Eski `icons/outline/` klasörü artık kullanılmıyor — CDN docroot'undan
-    > silinebilir (zararsız, yalnız yer kaplar).
+    > silinebilir çünkü bu yollarla MÜŞTERİ imzası hiç dışa aktarılmadı
+    > (yalnız dahili test mailleri) — CLAUDE.md'nin "üretilen görsel
+    > URL'leri asla kırılmaz" kuralı bu yüzden ihlal edilmiyor.
 11. Tarayıcıda `https://app.mailmyra.com/builder` aç:
     - Sosyal ekle + "Tek renk" → `https://cdn.mailmyra.com/icons/mono-7b9fd3/...`
       ikonları önizlemede GÖRÜNMELİ (endpoint dosyayı cdn docroot'una yazar,
