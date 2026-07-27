@@ -1,10 +1,59 @@
 /* Site arayüzü tasarım tokenları. YALNIZ web UI içindir —
    e-posta HTML'i CSS değişkeni kullanamaz, orada literal hex gider.
-   Kaynak değerler: packages/renderer/src/brand.ts */
-:root {
-  --brand-primary: #7b9fd3;
-  --brand-secondary: #e0a66c;
+   Marka renklerinin kaynağı: packages/renderer/src/brand.ts
 
+   TEMA KARARI (2026-07-27): pazarlama sayfaları KOYU, uygulama (builder)
+   AÇIK kalır — imza önizlemesi beyaz zemin gerektirir. */
+:root {
+  /* ── Marka ──────────────────────────────────────────────────────── */
+  /* Beyaz metin taşıyan yüzeyler (buton, link). Beyazla kontrast 5.45. */
+  --brand-strong: #2f66c8;
+  /* Koyu zeminde vurgu + sosyal ikon varsayılanı. Beyaz metin TAŞIMAZ
+     (2.71) — buton zemini olarak kullanma. */
+  --brand-light: #7b9fd3;
+  --brand-accent: #e0a66c;
+
+  /* Geriye uyum: mevcut builder CSS'i bunu kullanıyor. Yeni kodda
+     --brand-strong veya --brand-light tercih et. */
+  --brand-primary: #7b9fd3;
+
+  /* ── Koyu yüzeyler (landing) ────────────────────────────────────── */
+  --dark-bg: #0d1b2e;
+  --dark-surface: #142438;
+  --dark-border: #1f3350;
+  --dark-text: #eef3fa;
+  --dark-text-muted: #9db0c9;
+
+  /* ── Açık yüzeyler (builder) ────────────────────────────────────── */
+  --bg: #ffffff;
+  --surface: #f6f8fb;
+  --border: #dfe5ee;
   --text: #333333;
   --text-muted: #666666;
+
+  /* ── Tipografi ölçeği ───────────────────────────────────────────── */
+  /* Yalnız site arayüzü. E-posta imzası web-safe fontlarla sınırlıdır ve
+     bu ölçeği KULLANMAZ — orası renderer'ın kendi boyut skalasıdır. */
+  --step-hero: clamp(2.5rem, 5vw, 4rem);
+  --step-h1: clamp(2rem, 3.5vw, 3rem);
+  --step-h2: clamp(1.5rem, 2.5vw, 2rem);
+  --step-body: 1rem;
+  --step-small: 0.875rem;
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.55;
+
+  /* ── Aralık, yuvarlaklık, ölçü ──────────────────────────────────── */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+  --space-6: 6rem;
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+
+  --maxw: 1120px;
 }
