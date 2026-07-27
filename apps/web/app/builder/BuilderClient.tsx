@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { renderSignature } from '@mailmyra/renderer';
+import { renderSignature, contrastRatio } from '@mailmyra/renderer';
 import { builderReducer, createEmptyData, mergeWithEmpty } from './reducer';
 import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
 import { needsGeneratedIcons } from '../../lib/icon-readiness';
@@ -75,7 +75,6 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
   const iconsNeeded = Boolean(iconBaseUrl) && needsGeneratedIcons(data);
   const [readyColor, setReadyColor] = useState<string | null>(null);
   const [iconsFailed, setIconsFailed] = useState(false);
-  const [iconLowContrast, setIconLowContrast] = useState(false);
   const [retryTick, setRetryTick] = useState(0);
   const iconsSeq = useRef(0);
 
@@ -83,7 +82,6 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
     if (!iconsNeeded) {
       iconsSeq.current += 1; // uçuştaki cevap dönerse yok sayılsın
       setIconsFailed(false);
-      setIconLowContrast(false);
       return;
     }
     if (data.visuals.brandColor === readyColor) {
@@ -106,7 +104,6 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
         if (seq !== iconsSeq.current) return; // eski cevap — daha yenisi yolda
         if (res.ok && body.ready) {
           setReadyColor(color);
-          setIconLowContrast(Boolean(body.lowContrast));
         } else {
           setIconsFailed(true);
         }
@@ -118,6 +115,20 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBase
   }, [iconsNeeded, data.visuals.brandColor, retryTick, readyColor]);
 
   const exportDisabled = iconsNeeded && readyColor !== data.visuals.brandColor;
+
+  // Eşik burada yerelde tanımlıdır çünkü bu bir 'use client' bileşenidir;
+  // gerçek kaynak `apps/web/lib/icons.ts` içindeki LOW_CONTRAST_ON_WHITE'dır
+  // (o dosya `sharp`/`node:fs` içe aktardığı için tarayıcı paketine
+  // katılamaz). İkisi manuel senkron tutulmalı.
+  const ICON_LOW_CONTRAST_ON_WHITE = 3;
+
+  // Düşük kontrast BİLGİ notu: brandColor'ın saf bir fonksiyonu, bu yüzden
+  // render'da türetilir. Effect state'i olarak tutulursa stil değişimlerinde
+  // bayatlıyordu: mono -> filled -> mono turunda not kalıcı olarak kayboluyor,
+  // kullanıcı hiçbir uyarı görmeden soluk ikonlarla devam ediyordu. Uyarı,
+  // degrade'i kaldırmanın TEK telafi mekanizması olduğu için bu kabul edilemez.
+  const iconLowContrast =
+    iconsNeeded && contrastRatio(data.visuals.brandColor, '#ffffff') < ICON_LOW_CONTRAST_ON_WHITE;
 
   function resetAll() {
     if (!window.confirm('Taslak silinecek ve form sıfırlanacak. Emin misin?')) return;
