@@ -1,7 +1,7 @@
 import type { SignatureData } from '@mailmyra/renderer';
 
 /**
- * Export kilidi, ikonların brandColor'a göre ÜRETİLMESİ gereken stillerde
+ * Export kilidi, ikonların iconColor'a göre ÜRETİLMESİ gereken stillerde
  * devreye girer. `filled` platform renkleriyle deploy-time statiktir;
  * sosyal listesi boşken hiç ikon basılmaz.
  */
