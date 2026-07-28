@@ -2,15 +2,14 @@
 <svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 822.03 161.76">
   <!-- Generator: Adobe Illustrator 30.6.0, SVG Export Plug-In . SVG Version: 2.1.4 Build 109)  -->
   <!--
-  Recolored from eski/assets/img/logo.svg for the current brand palette
-  (CLAUDE.md: logo/colors are locked, but the source file still shipped the
-  OLD tone). Mapping (old -> new token, both current locked palette):
-    .st2  #719ad1 -> #7b9fd3  (--brand-light: dark-surface accent default)
-    .st1  #dca16f -> #e0a66c  (--brand-accent)
-    .st0  #6d6e71 -> #9db0c9  (--dark-text-muted: this mark is only used on
-                                the dark hero/nav, so the grey wordmark tail
-                                becomes a light muted tone instead of sitting
-                                muddy-grey on navy)
+  Recolored from eski/assets/img/logo.svg for the current locked palette.
+  NOTE: XML comments cannot contain a double hyphen, so token names are
+  written without their leading dashes here.
+    .st2  #719ad1 becomes #7b9fd3  (token: brand-light, dark surface accent)
+    .st1  #dca16f becomes #e0a66c  (token: brand-accent)
+    .st0  #6d6e71 becomes #9db0c9  (token: dark-text-muted; the mark is only
+          used on the dark nav/hero, so the grey wordmark tail becomes a light
+          muted tone instead of sitting muddy grey on navy)
 -->
   <defs>
     <style>
