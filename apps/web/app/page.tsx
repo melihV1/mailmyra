@@ -43,6 +43,30 @@ export default function HomePage() {
 
   return (
     <main className={styles.hero}>
+      <nav className={styles.nav}>
+        <div className={styles.navInner}>
+          {/* apps/web/public/logo.svg — eski/logo.svg'den kopyalandı, üç
+              fill mevcut marka tokenlarına yeniden boyandı (bkz. dosyanın
+              içindeki köken yorumu). Bu sayfa yalnız koyu zeminde render
+              olduğu için tek bir koyu-zemin sürümü yeterli. */}
+          <img
+            src="/logo.svg"
+            alt={TR.navLogoAlt}
+            className={styles.logo}
+            width={180}
+            height={35}
+          />
+          <div className={styles.navLinks}>
+            <a href="/login" className={styles.navLink}>
+              {TR.navLogin}
+            </a>
+            <Link href="/builder" className={styles.navCta}>
+              {TR.navCta}
+            </Link>
+          </div>
+        </div>
+      </nav>
+
       <div className={styles.inner}>
         <div className={styles.copy}>
           <span className={styles.brandKicker}>{TR.brandKicker}</span>
@@ -68,9 +92,19 @@ export default function HomePage() {
             // sabit fixture verisi, sunucuda üretiliyor.
             dangerouslySetInnerHTML={{ __html: signatureHtml }}
           />
+          <div className={styles.badges}>
+            <span className={styles.badge}>{TR.badgeApproved}</span>
+            <span className={styles.badge}>{TR.badgeReal}</span>
+          </div>
           <p className={styles.demoCaption}>{TR.demoCaption}</p>
         </div>
       </div>
+
+      <ul className={styles.trustStrip}>
+        {TR.trustItems.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
     </main>
   );
 }

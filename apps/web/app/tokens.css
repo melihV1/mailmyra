@@ -61,4 +61,49 @@
   /* --dark-bg'nin (#0d1b2e) kendisinden türetilmiş — yeni bir renk
      icat etmek yerine koyu zeminin tonunu gölgeye taşır. */
   --shadow-card: 0 24px 60px -12px rgba(13, 27, 46, 0.55);
+
+  /* ── Hero v2: ışık, parıltı, doku (2026-07-28) ─────────────────────
+     Sahibinin 7 maddelik listesine karşılık gelen tokenlar. Hepsi ya
+     mevcut marka renklerinden color-mix() ile türetilmiş ya da (tek
+     istisna: --hero-bg-deep) sahibinin kendi istediği literal bir
+     değer — icat edilmiş rastgele bir renk yok. */
+
+  /* Sahibinin istediği "deep navy ~#0a0e1a" (gereksinim 1) — --dark-bg'nin
+     bir ton daha koyusu, radial gradient'in en alt/en derin katmanı. */
+  --hero-bg-deep: #0a0e1a;
+
+  /* --brand-strong'dan türetilmiş, hero'nun sol-üst köşesindeki mavi
+     parıltı (gereksinim 1). */
+  --hero-glow-blue: color-mix(in srgb, var(--brand-strong) 45%, transparent);
+
+  /* --brand-accent'tan türetilmiş, sağ-üst köşedeki turuncu parıltı —
+     "cesur turuncu vurgu"un glow uygulaması (gereksinim 2). */
+  --hero-glow-accent: color-mix(in srgb, var(--brand-accent) 35%, transparent);
+
+  /* --brand-light'tan türetilmiş, arkaplandaki noktalı ızgara — çok belli
+     belirsiz doku, tech-stage hissi (gereksinim 5). */
+  --hero-grid-dot: color-mix(in srgb, var(--brand-light) 14%, transparent);
+
+  /* İmza kartının arkasındaki renkli parıltı — --brand-light'tan türetilmiş,
+     kartı zeminden ayırıp "ışıklı" hissettirir (gereksinim 4). */
+  --shadow-card-glow: 0 0 90px -12px
+    color-mix(in srgb, var(--brand-light) 55%, transparent);
+
+  /* Kartın camsı kenar çizgisi — --brand-light'tan türetilmiş, ince bir
+     sheen/3D hissi için (gereksinim 4). */
+  --demo-card-edge: color-mix(in srgb, var(--brand-light) 25%, transparent);
+
+  /* Rozet/pill zemin + kenarlık — --brand-light'tan türetilmiş, koyu
+     zeminde cam efekti. brandKicker, mikro rozetler ve nav linkinde
+     paylaşılır. */
+  --pill-bg: color-mix(in srgb, var(--brand-light) 10%, transparent);
+  --pill-border: color-mix(in srgb, var(--brand-light) 32%, transparent);
+
+  /* ── Tipografi aileleri ─────────────────────────────────────────── */
+  /* ClashDisplay: eski/assets/fonts'tan güncel markaya taşındı, yalnız
+     başlıkta ve küçük etiketlerde kullanılan Semibold + Medium ağırlıkları
+     (gereksinim 6). Gövde metni bilerek web-safe kalıyor — bkz. @font-face
+     tanımları apps/web/app/fonts.css. */
+  --font-display: 'ClashDisplay', Arial, Helvetica, sans-serif;
+  --font-body: Arial, Helvetica, sans-serif;
 }

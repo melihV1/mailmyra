@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import './tokens.css';
+import './fonts.css';
 
 export const metadata = { title: 'Mailmyra Dev' };
 

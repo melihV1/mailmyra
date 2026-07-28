@@ -9,6 +9,9 @@
  * modülde tutulur ve oradan içe aktarılır.
  */
 export const TR = {
+  navLogoAlt: 'Mailmyra',
+  navLogin: 'Giriş yap',
+  navCta: "Builder'ı Dene",
   brandKicker: 'One brand. Every inbox.',
   eyebrow: 'Ajanslar ve kurumsal ekipler için',
   title: 'Bir imza tasarlayın, bütün ekip aynı markayla imza atsın.',
@@ -17,6 +20,19 @@ export const TR = {
   ctaPrimary: "Builder'ı Ücretsiz Dene",
   ctaSecondary: 'Örnek imzaya bak',
   demoEyebrow: 'Gerçek çıktı',
+  // Kartın altındaki mikro rozetler — gerçek, doğrulanabilir iddialar
+  // (uydurma kullanım rakamı yok): bu render, renderer paketinin kendi
+  // çıktısı ve ekran görüntüsü değil.
+  badgeApproved: 'Marka onaylı çıktı',
+  badgeReal: 'Gerçek render, ekran görüntüsü değil',
   demoCaption:
     "Builder'da düzenlenen imza, alıcının gelen kutusunda tam olarak böyle görünür — ekran görüntüsü değil, tıpkı bu HTML kopyalanıp yapıştırılır.",
+  // Güven şeridi — CLAUDE.md'de kilitli olan gerçek ürün özellikleri
+  // (test matrisi, fiyatlandırma modeli, export mekanizması).
+  trustItems: [
+    'Tablo tabanlı, Outlook uyumlu düzen',
+    '6 e-posta istemcisinde test edilir',
+    'Koltuk başına fiyatlandırma',
+    'Kopyala-yapıştır veya .htm indir',
+  ],
 } as const;

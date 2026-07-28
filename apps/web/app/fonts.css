@@ -1,0 +1,24 @@
+/* ClashDisplay — copied from eski/assets/fonts into apps/web/public/fonts.
+   Only the 2 weights actually used ship here (Semibold for the hero
+   headline, Medium for small uppercase labels/badges) — every unused
+   woff2 would be dead payload, same spirit as CLAUDE.md's image-size
+   policy applied to fonts. Regular and the Platform family were NOT
+   copied because nothing on the page uses them yet.
+
+   font-display: swap so text is never invisible while the font loads —
+   FOUT (visible fallback, then swap) beats a blank hero headline. */
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('/fonts/ClashDisplay-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('/fonts/ClashDisplay-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

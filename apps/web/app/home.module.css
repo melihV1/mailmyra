@@ -1,13 +1,134 @@
 /* Ana sayfa hero'su — koyu pazarlama zemini (tokens.css §Tema kararı).
-   Builder'ın açık arayüzüne dokunmaz; bu dosya yalnız / rotasına bağlıdır. */
+   Builder'ın açık arayüzüne dokunmaz; bu dosya yalnız / rotasına bağlıdır.
+
+   Hero v2 (2026-07-28): "basic and generic" reddinden sonra ışık/parıltı/
+   doku katmanları eklendi. Her yeni renk/gölge değeri tokens.css'te
+   tanımlı — burada literal hex veya rgba() icat edilmiyor (--shadow-card
+   içindeki tarihi rgba() istisnası hariç, o zaten var olan bir token). */
 
 .hero {
-  background: var(--dark-bg);
-  color: var(--dark-text);
+  position: relative;
+  isolation: isolate; /* .hero::after'ın z-index:-1'i burada, öngörülebilir şekilde tutulur */
+  overflow: hidden; /* glow blob'ları hiçbir zaman yatay taşma yaratmaz (375px kontrolü) */
   min-height: 100vh;
-  padding: var(--space-6) var(--space-2) var(--space-5);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--dark-text);
+  font-family: var(--font-body);
+  padding: var(--space-4) var(--space-2) var(--space-5);
+
+  /* Katmanlı radyal parıltılar + noktalı ızgara doku, en derin lacivertten
+     --dark-bg'ye geçiş (gereksinim 1 + 5). Tek bir background-image
+     listesi: ekstra DOM düğümü yok, tek paint katmanı. */
+  background-color: var(--hero-bg-deep);
+  background-image: radial-gradient(
+      620px 420px at 10% -10%,
+      var(--hero-glow-blue),
+      transparent 65%
+    ),
+    radial-gradient(520px 380px at 104% 6%, var(--hero-glow-accent), transparent 60%),
+    radial-gradient(var(--hero-grid-dot) 1px, transparent 1px),
+    linear-gradient(180deg, var(--hero-bg-deep) 0%, var(--dark-bg) 45%, var(--hero-bg-deep) 100%);
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+  background-size: auto, auto, 26px 26px, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 0;
 }
+
+/* Tek animasyonlu katman: yavaş "nefes alan" mavi parıltı (gereksinim 7).
+   transform + opacity dışında hiçbir şey animasyona girmiyor — GPU'da
+   compositor katmanı, layout/paint tetiklemez. */
+.hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -15%;
+  left: 6%;
+  width: min(60vw, 640px);
+  height: min(60vw, 640px);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--hero-glow-blue), transparent 70%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero::after {
+    animation: heroGlowBreathe 11s ease-in-out infinite;
+  }
+}
+
+@keyframes heroGlowBreathe {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.65;
+    transform: scale(1.08);
+  }
+}
+
+/* ── Nav ────────────────────────────────────────────────────────────── */
+
+.nav {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding-bottom: var(--space-4);
+}
+
+.navInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: block;
+  height: 28px;
+  width: auto;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.navLink {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-small);
+  color: var(--dark-text-muted);
+  text-decoration: none;
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--dark-text);
+}
+
+.navCta {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-small);
+  color: var(--brand-light);
+  text-decoration: none;
+  border: 1px solid var(--pill-border);
+  background: var(--pill-bg);
+  border-radius: 999px;
+  padding: 8px 18px;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.navCta:hover,
+.navCta:focus-visible {
+  border-color: var(--brand-light);
+  color: var(--dark-text);
+}
+
+/* ── Ana grid ───────────────────────────────────────────────────────── */
 
 .inner {
   max-width: var(--maxw);
@@ -30,17 +151,35 @@
 }
 
 .brandKicker {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: var(--step-small);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--brand-light);
-  border: 1px solid var(--dark-border);
+  border: 1px solid var(--pill-border);
+  background: var(--pill-bg);
   border-radius: 999px;
-  padding: 4px 14px;
+  padding: 6px 16px 6px 12px;
   margin-bottom: var(--space-3);
 }
 
+/* Turuncu vurgu noktası — koyu zeminde cesur bir "badge detayı"
+   (gereksinim 2: mavi baskın, turuncu çarpıcı vurgu). */
+.brandKicker::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  flex: 0 0 auto;
+}
+
 .eyebrow {
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: var(--step-small);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -49,8 +188,11 @@
 }
 
 .title {
+  font-family: var(--font-display);
+  font-weight: 600;
   font-size: var(--step-hero);
   line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
   color: var(--dark-text);
   margin: 0 0 var(--space-2);
 }
@@ -79,12 +221,21 @@
   text-decoration: none;
   padding: 14px 28px;
   border-radius: var(--radius);
-  transition: opacity 0.15s ease;
+  box-shadow: 0 0 0 0 transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 }
 
 .ctaPrimary:hover,
 .ctaPrimary:focus-visible {
-  opacity: 0.88;
+  opacity: 0.92;
+  box-shadow: 0 12px 30px -10px var(--hero-glow-accent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ctaPrimary:hover,
+  .ctaPrimary:focus-visible {
+    transform: translateY(-2px);
+  }
 }
 
 .ctaSecondary {
@@ -92,6 +243,7 @@
   font-size: var(--step-body);
   text-decoration: underline;
   text-underline-offset: 3px;
+  transition: opacity 0.15s ease;
 }
 
 .ctaSecondary:hover,
@@ -99,12 +251,16 @@
   opacity: 0.85;
 }
 
+/* ── Vitrindeki imza kartı ──────────────────────────────────────────── */
+
 .demo {
   min-width: 0;
   scroll-margin-top: var(--space-4);
 }
 
 .demoEyebrow {
+  font-family: var(--font-display);
+  font-weight: 500;
   font-size: var(--step-small);
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -113,12 +269,47 @@
 }
 
 .demoCard {
-  background: var(--bg);
+  position: relative;
+  background: linear-gradient(180deg, var(--bg) 0%, var(--surface) 100%);
+  border: 1px solid var(--demo-card-edge);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+  /* İki katman: mevcut koyu döküm gölgesi + brand-light'tan türetilmiş
+     renkli parıltı — kartı zeminden kaldırıp "ışıklı" hissettirir
+     (gereksinim 4). */
+  box-shadow: var(--shadow-card), var(--shadow-card-glow);
   padding: var(--space-3);
   max-width: 100%;
   overflow-x: auto;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-small);
+  color: var(--brand-light);
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  flex: 0 0 auto;
 }
 
 .demoCaption {
@@ -127,4 +318,34 @@
   color: var(--dark-text-muted);
   margin: var(--space-2) 0 0;
   max-width: 40em;
+}
+
+/* ── Güven şeridi ───────────────────────────────────────────────────── */
+
+.trustStrip {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-4);
+  max-width: var(--maxw);
+  margin: var(--space-6) auto 0;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--dark-border);
+}
+
+.trustStrip li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--step-small);
+  color: var(--dark-text-muted);
+}
+
+.trustStrip li::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand-light);
+  flex: 0 0 auto;
 }
