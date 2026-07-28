@@ -1,0 +1,12 @@
+/* Pazarlama route grubu kabuğu — Karar C1 (step1-manifesto.md): koyu tema
+   + Header burada, builder/login bu dosyaya hiç dokunmaz. `page.tsx`
+   kendi `.hero` zemini üstünde tam viewport'u kaplıyor (bu adımda
+   değişmiyor); bu kabuk yalnız Header'ın altındaki her gelecek sayfa için
+   varsayılan koyu zemin/metin rengini garanti eder (savunma katmanı —
+   .hero'suz bir sayfa eklendiğinde beyaz-üstü-beyaz gibi bir kaza olmaz). */
+.shell {
+  min-height: 100vh;
+  background: var(--dark-bg);
+  color: var(--dark-text);
+  font-family: var(--font-body);
+}

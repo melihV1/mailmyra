@@ -102,8 +102,97 @@
   /* ── Tipografi aileleri ─────────────────────────────────────────── */
   /* ClashDisplay: eski/assets/fonts'tan güncel markaya taşındı, yalnız
      başlıkta ve küçük etiketlerde kullanılan Semibold + Medium ağırlıkları
-     (gereksinim 6). Gövde metni bilerek web-safe kalıyor — bkz. @font-face
-     tanımları apps/web/app/fonts.css. */
+     (gereksinim 6). Gövde fontu 2026-07-28'de General Sans'a geçti (Karar
+     B, step1-manifesto.md) — self-hosted, Türkçe glyph kapsamı (ı İ ş Ş ğ
+     Ğ ç Ç ö Ö ü Ü) tek dosyada TAM (bkz. apps/web/app/dev/fonts
+     karşılaştırma sayfası). Inter aynı listede ikinci sırada — General
+     Sans reddedilirse düşülecek fallback aile, @font-face tanımları
+     apps/web/app/fonts.css'te ikisi de mevcut. */
   --font-display: 'ClashDisplay', Arial, Helvetica, sans-serif;
-  --font-body: Arial, Helvetica, sans-serif;
+  --font-body: 'General Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    system-ui, sans-serif;
+
+  /* ── Tipografi ölçeği — ek adımlar (2026-07-28, step1-manifesto §2) ── */
+  --step-h3: 1.25rem;
+  --step-caption: 0.75rem;
+
+  /* ── Konteyner — ek genişlik (2026-07-28, design-system.md §4) ─────
+     Hero gibi tam genişlik arka planlı bölümlerde dış konteyner; içerik
+     yine --maxw (1120px) ile ortalanır. */
+  --maxw-wide: 1320px;
+
+  /* ── Mavi skala (2026-07-28, design-system.md §1.2) ────────────────
+     --blue-500 = --brand-light, --blue-600 = --brand-strong — CTA mavisi
+     kimlik mavisinin skaladaki bir sonraki koyu adımı, rastgele bir renk
+     değil. Her adım color-mix() ile --brand-light'tan türetilir, hiçbir
+     yeni ana renk icat edilmez. Kontrast oranları (beyaza karşı / koyuya
+     karşı #0a0e1a) design-system.md §1.2 tablosuyla birebir eşleşir. */
+  --blue-100: color-mix(in srgb, var(--brand-light) 15%, white 85%); /* #ebf1f8 · beyaza 1.14 · koyuya 16.94 */
+  --blue-200: color-mix(in srgb, var(--brand-light) 30%, white 70%); /* #d7e2f2 · beyaza 1.31 · koyuya 14.72 */
+  --blue-300: color-mix(in srgb, var(--brand-light) 50%, white 50%); /* #bdcfe9 · beyaza 1.58 · koyuya 12.16 */
+  --blue-400: color-mix(in srgb, var(--brand-light) 85%, white 15%); /* #8fadda · beyaza 2.29 · koyuya 8.40 */
+  --blue-500: var(--brand-light); /* #7b9fd3 · beyaza 2.71 ❌ · koyuya 7.10 ✅ — buton zemini OLARAK KULLANILMAZ */
+  --blue-600: var(--brand-strong); /* #2f66c8 · beyaza 5.45 ✅ — beyaz metin taşıyan HER yerde budur */
+  --blue-700: color-mix(in srgb, var(--brand-light) 70%, black 30%); /* #566f94 · beyaza 5.13 ✅ */
+  --blue-800: color-mix(in srgb, var(--brand-light) 50%, black 50%); /* #3e506a · beyaza 8.20 ✅ */
+  --blue-900: color-mix(in srgb, var(--brand-light) 30%, black 70%); /* #25303f · beyaza 13.35 ✅ */
+
+  /* ── Turuncu skala (2026-07-28, design-system.md §1.3) ─────────────
+     --accent-500 = --brand-accent. Koyu zeminde metin/ikon rengi olarak
+     güvenli; açık zeminde yalnız -700/-800 normal metin kontrastı verir,
+     bu yüzden açık temada (builder) turuncu asla düz metin rengi olarak
+     kullanılmaz. */
+  --accent-100: color-mix(in srgb, var(--brand-accent) 15%, white 85%); /* #faf2e9 */
+  --accent-200: color-mix(in srgb, var(--brand-accent) 30%, white 70%); /* #f6e4d3 */
+  --accent-300: color-mix(in srgb, var(--brand-accent) 50%, white 50%); /* #f0d2b6 */
+  --accent-400: color-mix(in srgb, var(--brand-accent) 85%, white 15%); /* #e5b382 */
+  --accent-500: var(--brand-accent); /* #e0a66c · beyaza 2.13 ❌ · koyuya 9.02 ✅ */
+  --accent-600: color-mix(in srgb, var(--brand-accent) 85%, black 15%); /* #be8d5c · yalnız dekoratif/ikon */
+  --accent-700: color-mix(in srgb, var(--brand-accent) 70%, black 30%); /* #9d744c · beyaza 4.17 (yalnız büyük metin/UI 3:1) */
+  --accent-800: color-mix(in srgb, var(--brand-accent) 50%, black 50%); /* #705336 · beyaza 7.05 ✅ */
+
+  /* ── Nötrler — koyu yüzeyler, ek adımlar (2026-07-28, design-system.md §1.4) ──
+     Kart üstü kart / dropdown zemini ve odak/devre dışı durumlar için.
+     Her biri mevcut bir dark-* tokenından color-mix() ile türetilir. */
+  --dark-surface-raised: color-mix(in srgb, var(--dark-surface) 94%, white 6%); /* #223144 — surface'ten görünür ayrışsın diye */
+  --dark-border-strong: color-mix(in srgb, var(--dark-border) 75%, var(--dark-text) 25%); /* ~#53637a — odak/aktif kenarlık, form input border */
+  --dark-text-faint: color-mix(in srgb, var(--dark-text-muted) 65%, var(--dark-bg) 35%); /* ~#6b7c93 · #0d1b2e'ye karşı 4.06 — YALNIZ dekoratif/disabled, gerçek içerik metni değil */
+
+  /* ── Nötrler — açık yüzeyler, ek adım (2026-07-28, design-system.md §1.5) ──
+     Mevcut --border (#dfe5ee) ve --text-muted (#666666) arasındaki
+     mevcut literal-gri kalıbı izler (--border/--surface de literal) —
+     form input focus öncesi kenarlık, ayrılmış tablo satırı. */
+  --border-strong: color-mix(in srgb, var(--border) 65%, var(--text-muted) 35%); /* ~#b5b9be, design-system.md hedefi #b4b8bf ile ~1 birim fark (yuvarlama) */
+
+  /* ── Durum renkleri — "iki tonlu" ilkesi (2026-07-28, design-system.md §1.6) ──
+     brand.ts'teki açık-zeminde-koyu-ton / koyu-zeminde-açık-ton çözümü her
+     duruma genelleştirilir. NOT: success/warning/danger yeşil-kırmızı-amber
+     tonları mavi/turuncu marka ikilisinden color-mix() ile türetilemez (bu
+     hue'lar markada yok) — bu yüzden bu ikisi (info hariç) design-system.md
+     §1.6'da owner-onaylı, kontrastı ölçülmüş LITERAL hex değerleridir;
+     info zaten mevcut marka tokenlarının kendisi. Bir bileşen asla
+     -onlight ile -ondark'ı aynı yüzeyde karıştırmaz. */
+  --success-onlight: #1c7a53; /* beyaza 5.31 ✅ */
+  --success-ondark: #3fbd85; /* koyuya 8.10 / dark-surface'e 7.28 ✅ */
+  --warning-onlight: #a8660f; /* beyaza 4.59 ✅ */
+  --warning-ondark: var(--brand-accent); /* koyuya 9.02 / dark-surface'e 8.11 ✅ */
+  --danger-onlight: #b3352a; /* beyaza 6.07 ✅ */
+  --danger-ondark: #e8685c; /* koyuya 6.02 / dark-surface'e 5.41 ✅ */
+  --info-onlight: var(--brand-strong); /* beyaza 5.45 ✅ */
+  --info-ondark: var(--brand-light); /* koyuya 7.10 / dark-surface'e 6.38 ✅ */
+
+  /* ── Gölge — ek seviye (2026-07-28, design-system.md §5.1) ─────────
+     Küçük kaldırma (dropdown, tooltip) — --shadow-card'ın tarihi rgba()
+     istisnasıyla aynı ailede, --dark-bg'nin (#0a0e1a'ya yakın) tonundan. */
+  --shadow-sm: 0 2px 8px -2px rgba(10, 14, 26, 0.35);
+
+  /* ── Hareket — geçiş süreleri (2026-07-28, design-system.md §5.4) ──
+     Yalnız transform/opacity animasyona girer; her transition/animation
+     tanımı @media (prefers-reduced-motion: no-preference) içine alınır
+     (bkz. components/nav, components/ui modülleri) — reduced-motion'da
+     hareket kaybolur, görsel sonuç (renk, konum, açıklık durumu) korunur. */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 400ms;
 }

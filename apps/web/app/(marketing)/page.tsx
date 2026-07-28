@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { fixtures, renderSignature, BRAND } from '@mailmyra/renderer';
 import type { SignatureData } from '@mailmyra/renderer';
 import styles from './home.module.css';
-import { TR } from './home.content';
+import { TR } from '../home.content';
 
 export const metadata = { title: 'Mailmyra — Kurumsal e-posta imzası yönetimi' };
 

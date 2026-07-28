@@ -1,0 +1,26 @@
+/* Paylaşılan "cam yüzey" reçetesi (design-system.md §3.3 zemin tarifi):
+   --hero-bg-deep'ten color-mix() ile hafif şeffaf + backdrop-filter blur —
+   mevcut --pill-bg/--pill-border dilinin devamı. `composes: glass from
+   './glass.module.css';` ile Header, MegaMenuPanel ve MobileNav arasında
+   paylaşılır — koyu zeminli her cam yüzey aynı tarifi kopyalamak yerine
+   buradan türetir. */
+.glass {
+  background: color-mix(in srgb, var(--hero-bg-deep) 82%, transparent);
+  border: 1px solid var(--pill-border);
+}
+
+/* backdrop-filter desteklenmeyen tarayıcılarda zemin daha az şeffaf kalır
+   (art arkası okunur olsun) — @supports olmadan blur'suz %82 şeffaflık
+   metni zorlaştırabilir, bu yüzden fallback biraz daha opak. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: color-mix(in srgb, var(--hero-bg-deep) 96%, transparent);
+  }
+}
+
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  .glass {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}

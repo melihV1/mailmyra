@@ -1,0 +1,35 @@
+/* Yeniden kullanılabilir efekt reçeteleri — koyu zemin glow (design-system.md
+   §5.2) ve arka plan atmosferi (§6). apps/web/app/home.module.css'teki
+   `.hero` kuralının zaten uyguladığı desenin adlandırılmış, paylaşılan hali.
+
+   Bu adımda (step1-manifesto.md) hiçbir sayfa/bölüm bileşeni yazılmıyor, bu
+   yüzden bu sınıfları HENÜZ hiçbir yer tüketmiyor — yalnız Hafta 3'te yeni
+   sayfalar/bölümler bunu kopyalayıp glow konumunu/opacity'sini `style` ile
+   değiştirerek türetsin diye altyapı olarak tanımlanıyor. `.hero` kendi
+   lokal kopyasını kullanmaya devam ediyor (page.tsx bu adımda değişmiyor).
+
+   Yalnız (marketing) route grubunda import edilir — builder/login açık
+   temada kalır, bu dosyaya hiç ihtiyaç duymaz. */
+
+.glow-atmosphere {
+  background-color: var(--hero-bg-deep);
+  background-image: radial-gradient(
+      620px 420px at 10% -10%,
+      var(--hero-glow-blue),
+      transparent 65%
+    ),
+    radial-gradient(520px 380px at 104% 6%, var(--hero-glow-accent), transparent 60%),
+    radial-gradient(var(--hero-grid-dot) 1px, transparent 1px),
+    linear-gradient(180deg, var(--hero-bg-deep) 0%, var(--dark-bg) 45%, var(--hero-bg-deep) 100%);
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat;
+  background-size: auto, auto, 26px 26px, 100% 100%;
+  background-position: 0 0, 0 0, 0 0, 0 0;
+}
+
+/* Bölüm sarmalayıcı — glow blob'larının taşmasını keser (375px'te yatay
+   taşma yok kuralı), z-index istifini öngörülebilir tutar. */
+.glow-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}

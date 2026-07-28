@@ -1,0 +1,101 @@
+/* Buton — design-system.md §3.1. Yalnız koyu zeminde tüketiliyor (bu
+   adımda tek tüketicisi components/nav/Header.tsx); açık tema (builder)
+   varyantı ayrı bir iş, burada tanımlanmıyor. */
+
+.base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-body);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  /* padding 14px 28px => raporda ölçülen gerçek kutu yüksekliği ≥44px
+     (§3.1 "Hit target" kuralı: 44×44px min dokunma alanı). */
+  padding: 14px 28px;
+}
+
+.base:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Tüm varyantlarda gerçek outline — yalnız box-shadow'a güvenilmez,
+   klavye kullanıcıları için şart (§3.1). Koyu zeminde --blue-500. */
+.base:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .base {
+    transition: opacity var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard), transform var(--duration-base) var(--ease-standard),
+      border-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+  }
+}
+
+/* ── Primary — brand-strong zemin, beyaz metin (5.45 ✅) ────────────── */
+
+.primary {
+  background: var(--blue-600);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.primary:hover:not(:disabled),
+.primary:focus-visible:not(:disabled) {
+  opacity: 0.92;
+  box-shadow: 0 12px 30px -10px var(--hero-glow-accent);
+}
+
+.primary:active:not(:disabled) {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .primary:hover:not(:disabled),
+  .primary:focus-visible:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .primary:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+/* ── Secondary — şeffaf zemin, pill kenarlık (mevcut .navCta deseni) ── */
+
+.secondary {
+  background: var(--pill-bg);
+  border-color: var(--pill-border);
+  color: var(--blue-500);
+}
+
+.secondary:hover:not(:disabled),
+.secondary:focus-visible:not(:disabled) {
+  border-color: var(--blue-500);
+  color: var(--dark-text);
+}
+
+/* ── Ghost — metin içi eylem, yalnız alt çizgi ──────────────────────── */
+
+.ghost {
+  background: transparent;
+  padding: 4px 2px;
+  color: var(--dark-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ghost:hover:not(:disabled),
+.ghost:focus-visible:not(:disabled) {
+  opacity: 0.85;
+}

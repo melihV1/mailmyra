@@ -327,43 +327,49 @@ bir erişilebilir isim taşır; içindeki buton ayrıca odaklanabilir olmamalı
 (iç içe interaktif eleman çakışması — kart linkse içindeki "İncele" görsel
 buton, gerçek `<a>` değil `<span>` olur).
 
-### 3.3 Header — basit nav, mega-menü DEĞİL
+### 3.3 Header — mega menü
 
-**Karar: basit, tek satırlı nav bar. Gerekçe:**
+**OVERRIDE (2026-07-28, owner kararı, `docs/step1-manifesto.md`):** Bu
+bölüm aşağıda önce "basit nav" öneriyordu; owner bunu değiştirdi — Header
+**mega menü**. Aşağıdaki gerekçe (§0 rakip araştırması, kapsam şişmesi
+ilkesi) hâlâ geçerli bir *öneri* olarak kayıtta kalıyor ama bağlayıcı karar
+değil; uygulanan yapı budur. Rengin, tokenın, erişilebilirliğin, motion'ın
+ve glow'un tüm diğer kuralları aynen geçerli.
 
-1. Site haritası (`CLAUDE.md §Site Yapısı`) toplam ~10 halka açık sayfa —
-   mega-menü genelde 4+ kategori × çok sayıda alt link gerektirir (Optim AI
-   referansında 15+ link, 4 kategori). Bizde bu yoğunluk yok; boş/ince
-   kategori sütunlarıyla bir mega-menü kurmak vitrin doldurmak için içerik
-   uydurmak anlamına gelir.
-2. Rakip araştırması (§0) doğrudan bunu doğruluyor: Exclaimer'ın en zayıf
-   noktası "8+ CTA + 5 sekmeli persona bölümü" — karar felci. WiseStamp'ın
-   6 sekmeli rol bölümü de aynı nedenle zayıf işaretlendi. Az sayfalı bir
-   üründe zengin gezinme kurmak fayda değil kafa karışıklığı üretiyor.
-3. `CLAUDE.md`'nin "kapsam şişmesi 1 numaralı ölüm sebebi" ilkesiyle
-   tutarlı — header karmaşıklığı da bir tür kapsam şişmesidir.
-
-**Yapı:**
+**Yapı (uygulanan):**
 
 ```
-[Logo]   Ürün   Şablonlar   Çözümler ▾   Fiyatlandırma   Kurulum Rehberleri   SSS        [Giriş yap]  [Builder'ı Dene →]
-                              └─ Ajanslar için
-                              └─ Kurumsal için
+[Logo]   Ürün ▾   Çözümler ▾   Fiyatlandırma   Kurulum Rehberleri   SSS        [Giriş yap]  [Builder'ı Dene]
+          │         │
+          │         ├─ Ajanslar için
+          │         └─ Kurumsal için
+          ├─ Nasıl çalışır
+          ├─ Özellikler
+          └─ Şablon galerisi
 ```
 
-- Tek seviyeli dropdown yalnız "Çözümler" altında (2 öğe) — ajans/kurumsal
-  ayrımını WiseStamp'ın audience-segmentasyon içgüdüsünden alıyoruz ama
-  sekme değil, sayfa ve dropdown olarak; kalıcı ekran alanı kaplamıyor.
-- Mobilde: hamburger → tam ekran overlay, aynı liste dikey, `Çözümler`
-  akordeon olarak açılır (ayrı bileşen kurmaya gerek yok, §3.9'daki
-  akordeon deseni yeniden kullanılır).
-- Zemin: `--hero-bg-deep`'ten `color-mix` ile hafif şeffaf + `backdrop-
-  filter: blur(12px)` (scroll'da), mevcut `.pill-bg`/`.pill-border` dili
-  ile tutarlı cam hissi.
-- **Erişilebilirlik:** dropdown tetikleyicisi gerçek `<button
-  aria-expanded aria-controls>`; `Escape` kapatır, `Tab` dropdown içinden
-  doğal sırayla geçer, dışarı tıklama kapatır. Mobil overlay açıkken body
-  scroll kilitlenir ve odak overlay içine hapsedilir (focus trap).
+- İki mega-panel tetikleyicisi ("Ürün", "Çözümler") — her biri sol link
+  sütunu (başlık + kısa açıklama) + sağ tek bir "featured" kart. Kalan
+  öğeler (Fiyatlandırma, Kurulum Rehberleri, SSS) düz link, panel açmıyor
+  — §0'daki "gereksiz yoğunluk" dersi burada da geçerli: yalnız gerçekten
+  gruplanabilir 2 kategori mega-panel, geri kalanı tek satırda kalıyor.
+- Mobilde: hamburger → tam ekran overlay, aynı liste dikey, `Ürün`/
+  `Çözümler` akordeon olarak açılır (aynı `menu-data.ts` kaynağından
+  beslenir, ayrı bir içerik kopyası yok).
+- Zemin: `--hero-bg-deep`'ten `color-mix()` ile hafif şeffaf +
+  `backdrop-filter: blur(12px)` (scroll'da), `--pill-bg`/`--pill-border`
+  diliyle tutarlı cam hissi (bkz. `components/ui/glass.module.css`).
+- **Erişilebilirlik:** panel tetikleyicisi gerçek `<button aria-expanded
+  aria-controls>`; panel `role="menu"` DEĞİL — `<nav>` + odaklanabilir
+  `<a>` listesi. Hover VE klavye/focus ile açılır (hover-intent gecikmesi:
+  ~120ms aç / ~200ms kapa). `Escape` kapatır + odağı tetikleyiciye
+  döndürür; dışarı tıklama kapatır; aynı anda tek panel açık; `Tab` panelin
+  son öğesinden sonra doğal olarak kapanıp sıradaki üst-bar öğesine geçer.
+  Mobil overlay açıkken body scroll kilitlenir ve odak overlay içine
+  hapsedilir (focus trap). `prefers-reduced-motion`: tüm geçişler anlık,
+  panel yine açılır/kapanır — yalnız hareket kaybolur. Uygulama:
+  `apps/web/components/nav/Header.tsx`, `MegaMenuPanel.tsx`,
+  `MobileNav.tsx`, `menu-data.ts` (tek içerik kaynağı).
 
 ### 3.4 Footer
 

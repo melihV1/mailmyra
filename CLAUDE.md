@@ -47,7 +47,12 @@ kararı koda gömülmez.
   tek workspace için `npm run <script> -w apps/web`. **pnpm/corepack
   kullanma**, `pnpm-lock.yaml` veya `pnpm-workspace.yaml` geri ekleme.
 - **Next.js (App Router)** — şablon galerisi SEO'su + uygulama tek repoda
-- **Tailwind** + kendi tasarım tokenları
+- **CSS Modules** + kendi tasarım tokenları (karar: 2026-07-28, Hüseyin —
+  Tailwind DEĞİL). Proje zaten baştan beri CSS Modules ile yazılıyordu
+  (builder, hero, hepsi) ve tokenlar zaten CSS custom property olarak
+  `apps/web/app/tokens.css`'te yaşıyor; Tailwind kurmak token disiplinini
+  zayıflatıp iki paralel sistem yaratacaktı. Bkz. `docs/step1-manifesto.md`
+  Karar A1.
 - **PostgreSQL** (kendi sunucularında, ek maliyet yok)
 - **Prisma** ORM
 - Auth: basit oturum (email + şifre). Clerk/Auth0 kullanma.
@@ -154,7 +159,7 @@ Eski dosyalar `_eski/` klasöründe.
 - **`_eski/app.js` export mantığı.** `signature.outerHTML` + `clipboard.writeText()` — mimari olarak yanlış. İmza `<div>`/`<article>` ile kurulmuş, stiller harici CSS'te (8.694 satır `style.css`), kopyalanınca biçimsiz metin çıkıyor
 - **Şablon sistemi.** Şablonlar CSS sınıfı (`template-1`, `template-2`) olarak yapılmış — export'ta hiç var olmuyorlar
 - **`_eski/auth.js`.** localStorage demo'su, gerçek auth ile değiştirilecek
-- **`style.css` ve `mailmyra-v2.css`** — Tailwind + yeni tasarım dili gelecek
+- **`style.css` ve `mailmyra-v2.css`** — CSS Modules + yeni tasarım dili gelecek (2026-07-28: Tailwind değil, bkz. §Stack)
 
 ---
 

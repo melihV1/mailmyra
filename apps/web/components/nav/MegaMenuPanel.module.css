@@ -1,0 +1,131 @@
+/* Genel mega menü paneli — sol link sütunları + sağ featured kart
+   (step1-manifesto.md §1 dosya listesi). Header.module.css'teki
+   .trigger'ın hemen altında, aynı DOM konumunda (tetikleyiciden sonra)
+   render edilir ki Tab doğal sırayla paneli gezip bir sonraki üst-bar
+   öğesine geçsin (§4 erişilebilirlik sözleşmesi). */
+
+.panel {
+  composes: glass from '../ui/glass.module.css';
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  min-width: 480px;
+  max-width: calc(100vw - var(--space-2) * 2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: var(--space-3);
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--space-3);
+  z-index: 40;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--dark-text-faint);
+  margin: 0 0 var(--space-1);
+}
+
+.linkList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.link {
+  display: block;
+  padding: 8px 10px;
+  margin: 0 -10px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--dark-text);
+}
+
+.link:hover,
+.link:focus-visible {
+  background: var(--dark-surface-raised);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: -2px;
+}
+
+.linkTitle {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-body);
+}
+
+.linkDescription {
+  display: block;
+  font-size: var(--step-caption);
+  color: var(--dark-text-muted);
+  margin-top: 2px;
+}
+
+.featured {
+  background: var(--dark-surface-raised);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.featuredTitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-h3);
+  color: var(--dark-text);
+  margin: 0 0 8px;
+}
+
+.featuredDescription {
+  font-size: var(--step-small);
+  line-height: var(--leading-normal);
+  color: var(--dark-text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.featuredCta {
+  margin-top: auto;
+  align-self: flex-start;
+  color: var(--blue-500);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-small);
+  text-decoration: none;
+}
+
+.featuredCta:hover,
+.featuredCta:focus-visible {
+  color: var(--dark-text);
+}
+
+.featuredCta:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Not: alt bir breakpoint burada bilerek YOK — .panel yalnız Header'ın
+   masaüstü <nav>'ı içinde yaşar ve o, 900px altında zaten display:none
+   (bkz. Header.module.css). 640px gibi daha dar bir kural burada hiçbir
+   zaman görünür etki yapmaz (ölü kural olurdu); mobilde aynı içerik
+   MobileNav.tsx'in akordeonundan gelir. */

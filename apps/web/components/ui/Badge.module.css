@@ -1,0 +1,51 @@
+/* Rozet / Pill — design-system.md §3.5. Mevcut .badge/.brandKicker/.navCta
+   deseninin resmileştirilmiş hali. Yalnız koyu zeminde kullanılır (§1.6:
+   "-ondark renkleriyle, yalnız koyu zeminde"). */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-small);
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dot-color, var(--brand-accent));
+  flex: 0 0 auto;
+}
+
+.neutral {
+  --dot-color: var(--brand-accent);
+  color: var(--brand-light);
+}
+
+.success {
+  --dot-color: var(--success-ondark);
+  color: var(--success-ondark);
+}
+
+.warning {
+  --dot-color: var(--warning-ondark);
+  color: var(--warning-ondark);
+}
+
+.danger {
+  --dot-color: var(--danger-ondark);
+  color: var(--danger-ondark);
+}
+
+.info {
+  --dot-color: var(--info-ondark);
+  color: var(--info-ondark);
+}

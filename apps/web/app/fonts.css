@@ -22,3 +22,72 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* General Sans (Fontshare, free license — self-hosting for Web permitted,
+   see FFL.txt fetched with the family) — 2026-07-28 body font candidate,
+   Karar B in step1-manifesto.md. Only Regular (400) + Medium (500) ship,
+   same "only the weights actually used" policy as ClashDisplay above.
+   Each file is a SINGLE unhinted subset that already covers every Turkish
+   glyph (ı İ ş Ş ğ Ğ ç Ç ö Ö ü Ü verified with fontTools before copying —
+   no separate latin-ext file needed, unlike Inter below). */
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'General Sans';
+  src: url('/fonts/GeneralSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Inter (Google Fonts) — 2026-07-28 fallback candidate for --font-body,
+   Karar B. Unlike General Sans, Inter's Turkish coverage is split across
+   two Google-served subsets: "latin" has ı ç Ç ö Ö ü Ü, "latin-ext" has
+   İ ş Ş ğ Ğ — both are shipped so the /dev/fonts comparison page can show
+   every hard Turkish glyph. Only fetched, never used as --font-body unless
+   the owner rejects General Sans after seeing the comparison. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular-latin.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Regular-latinext.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Medium-latin.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F,
+    U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Medium-latinext.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
