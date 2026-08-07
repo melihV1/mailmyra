@@ -1,0 +1,923 @@
+
+
+/* ==========================================================================
+   Benim Css — FAQ SAYFASI (.mm-qa)                              2026-08-07
+   ==========================================================================
+   Kagit zeminde iki sutun: solda kategori rayi (arama + 6 baslik), sagda
+   6 bolum halinde <details> listesi.
+
+   UC KARAR, sebepleriyle:
+   1. Akordeon Bootstrap collapse DEGIL, native <details>. Bootstrap mobilde
+      iki rAF sonra async yukleniyor; o araliktaki dokunuslar oluyordu.
+      <details> JS'siz aninda calisir, klavye/ekran okuyucu native.
+   2. Ray `position: sticky` ILE SABITLENMEZ — bu temada calismiyor.
+      ScrollSmoother #smooth-content'i transform ediyor, sticky icerikle
+      birlikte kayiyor (olculdu: 100px'te durmasi gereken sonda 2587px'e
+      gitti). Sabitleme ScrollTrigger pin ile, sayfa sonundaki surucude.
+   3. Donen conic kenar YALNIZ acik olan soruda ve hover'da. 29 kartin
+      hepsinde surekli dondurmek hem gurultulu hem pahali; kapali kartlari
+      kagittan ayiran sey SABIT lacivert hairline (kilitli kart dili).
+   ========================================================================== */
+
+.mm-qa {
+    padding: 132px 0 140px;
+    background: var(--lz-paper, #f4efe8);
+    overflow: clip;
+}
+
+/* Kagit recetesi — .mm-lz-paper ile birebir (iki seftali hale + cizgi agi) */
+.mm-qa__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(760px 520px at -8% 22%, rgba(242, 165, 115, .42), transparent 68%),
+        radial-gradient(720px 500px at 108% 78%, rgba(242, 165, 115, .36), transparent 70%),
+        repeating-linear-gradient(0deg, rgba(0, 16, 43, .055) 0 1px, transparent 1px 44px),
+        repeating-linear-gradient(90deg, rgba(0, 16, 43, .04) 0 1px, transparent 1px 132px);
+}
+
+.mm-qa > .container {
+    position: relative;
+    z-index: 1;
+}
+
+/* --- baslik satiri ------------------------------------------------------- */
+/* Tema .agntix-dark oldugu icin bu bolumdeki her metni ayrica lacivere
+   cevirmek zorundayiz (main.css ~25405, ~50380). */
+.agntix-dark .mm-qa .mm-section-kicker {
+    color: rgba(0, 16, 43, .62);
+}
+
+.agntix-dark .mm-qa .mm-section-kicker::before {
+    background: #c96a2e;
+    box-shadow: 0 0 14px rgba(201, 106, 46, .5);
+}
+
+.agntix-dark .mm-qa__heading {
+    margin: 0;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: clamp(42px, 4.4vw, 64px);
+    line-height: .96;
+    letter-spacing: -1.8px;
+    color: #00102b;
+}
+
+.mm-qa__heading em {
+    font-style: normal;
+    color: #c96a2e;
+}
+
+.agntix-dark .mm-qa__lead {
+    margin: 0 0 6px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(0, 16, 43, .68);
+}
+
+/* --- SOL: kategori rayi -------------------------------------------------- */
+.mm-qa__rail {
+    position: relative;
+    padding: 22px 22px 14px;
+    border-radius: 22px;
+    background: linear-gradient(180deg, #fffefb 0%, #fbf6ef 100%);
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 16, 43, .11),
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        0 3px 6px -3px rgba(0, 16, 43, .2),
+        0 30px 56px -32px rgba(0, 16, 43, .5);
+}
+
+/* arama kutusu — ikon inline SVG, cunku Font Awesome ALTKUMEsinde
+   fa-magnifying-glass YOK (bos kare cikardi). */
+.mm-qa__search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 46px;
+    padding: 0 12px;
+    border-radius: 13px;
+    background: rgba(0, 16, 43, .04);
+    box-shadow: inset 0 0 0 1px rgba(0, 16, 43, .1);
+    transition: box-shadow .3s ease, background .3s ease;
+}
+
+.mm-qa__search:focus-within {
+    background: #fff;
+    box-shadow:
+        inset 0 0 0 1px rgba(90, 140, 226, .55),
+        0 0 0 3px rgba(90, 140, 226, .14);
+}
+
+.mm-qa__search-icon {
+    display: inline-flex;
+    flex: none;
+    margin-right: 9px;
+    color: rgba(0, 16, 43, .42);
+}
+
+.agntix-dark .mm-qa__input {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 14.5px;
+    color: #00102b;
+}
+
+.mm-qa__input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.mm-qa__input::-moz-placeholder {
+    color: rgba(0, 16, 43, .4);
+}
+
+.mm-qa__input::placeholder {
+    color: rgba(0, 16, 43, .4);
+}
+
+.mm-qa__clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 24px;
+    height: 24px;
+    margin-left: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 12px;
+    color: rgba(0, 16, 43, .55);
+    background: rgba(0, 16, 43, .07);
+    transition: background .25s ease, color .25s ease;
+}
+
+.mm-qa__clear:hover {
+    color: #00102b;
+    background: rgba(0, 16, 43, .14);
+}
+
+.mm-qa__hits {
+    margin: 10px 2px 0;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: #c96a2e;
+}
+
+.mm-qa__nav {
+    margin-top: 18px;
+}
+
+.mm-qa__nav ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mm-qa__navitem {
+    display: block;
+}
+
+.mm-qa__navitem > a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    transition: background .3s ease, transform .3s ease;
+}
+
+/* sol kenardaki isaret cubugu — aktifte uzuyor */
+.mm-qa__navitem > a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 2px;
+    height: 0;
+    border-radius: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(180deg, #5a8ce2, #c96a2e);
+    transition: height .35s cubic-bezier(.22, .61, .36, 1);
+}
+
+.mm-qa__navitem > a:hover {
+    background: rgba(0, 16, 43, .045);
+}
+
+/* AKTIF kategori: dolu seftali kapsul + beyaz yazi.
+   Once yalnizca gri bir zemin + ince cubuktu; Huseyin "daha belli olsun"
+   dedi — aktif olan artik sayfadaki en kuvvetli renk lekesi. */
+.mm-qa__navitem.is-active > a {
+    background: linear-gradient(100deg, #c96a2e 0%, #d9813f 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .28),
+        0 8px 20px -10px rgba(201, 106, 46, .8);
+}
+
+/* dolu kapsulun uzerinde sol cubuk gereksiz */
+.mm-qa__navitem.is-active > a::before {
+    height: 0;
+}
+
+.mm-qa__navitem > a:hover::before {
+    height: 22px;
+}
+
+.agntix-dark .mm-qa__navitem b {
+    flex: none;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: rgba(0, 16, 43, .32);
+    transition: color .3s ease;
+}
+
+.agntix-dark .mm-qa__navitem.is-active b {
+    color: rgba(255, 255, 255, .72);
+}
+
+.agntix-dark .mm-qa__navitem span {
+    flex: 1 1 auto;
+    font-size: 15px;
+    line-height: 1.3;
+    color: rgba(0, 16, 43, .72);
+    transition: color .3s ease;
+}
+
+.agntix-dark .mm-qa__navitem.is-active span {
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    color: #fff;
+}
+
+.agntix-dark .mm-qa__count {
+    flex: none;
+    min-width: 22px;
+    padding: 2px 6px;
+    border-radius: 20px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 10.5px;
+    font-style: normal;
+    text-align: center;
+    color: rgba(0, 16, 43, .5);
+    background: rgba(0, 16, 43, .06);
+    transition: color .3s ease, background .3s ease, opacity .3s ease;
+}
+
+.agntix-dark .mm-qa__navitem.is-active .mm-qa__count {
+    color: #fff;
+    background: rgba(255, 255, 255, .24);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2);
+}
+
+.mm-qa__navitem.is-muted {
+    opacity: .38;
+}
+
+/* --- SAG: soru listesi --------------------------------------------------- */
+.mm-qa__group {
+    margin-bottom: 54px;
+}
+
+.mm-qa__group:last-child {
+    margin-bottom: 0;
+}
+
+.mm-qa__grouphead {
+    position: relative;
+    margin-bottom: 22px;
+    padding-left: 46px;
+}
+
+.agntix-dark .mm-qa__groupnum {
+    position: absolute;
+    left: 0;
+    top: 1px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 12px;
+    letter-spacing: .08em;
+    color: #c96a2e;
+}
+
+/* numaranin altindaki kisa dikey cizgi — bolumleri birbirine bagliyor */
+.mm-qa__groupnum::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 22px;
+    width: 1px;
+    height: 26px;
+    background: linear-gradient(180deg, rgba(201, 106, 46, .5), transparent);
+}
+
+.agntix-dark .mm-qa__grouptitle {
+    margin: 0 0 6px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: clamp(24px, 2.2vw, 30px);
+    line-height: 1.15;
+    letter-spacing: -.6px;
+    color: #00102b;
+}
+
+.agntix-dark .mm-qa__groupblurb {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(0, 16, 43, .58);
+}
+
+/* --- tek soru: kilitli kart dili ---------------------------------------- */
+.mm-qa__item {
+    position: relative;
+    margin-bottom: 12px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fffefb 0%, #fbf6ef 100%);
+    /* SABIT lacivert hairline — kagit uzerinde kart kaybolmasin diye sart */
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 16, 43, .11),
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        0 2px 4px -2px rgba(0, 16, 43, .14);
+    transition: box-shadow .45s cubic-bezier(.22, .61, .36, 1), transform .35s ease;
+}
+
+.mm-qa__item:last-child {
+    margin-bottom: 0;
+}
+
+.mm-qa__item:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 16, 43, .16),
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        0 3px 6px -3px rgba(0, 16, 43, .2),
+        0 26px 48px -34px rgba(0, 16, 43, .55);
+}
+
+/* Donen conic kenar — index hero'nun .mmE-pill--hot recetesi.
+   YALNIZ acik soruda ve hover'da; kapali 29 kartta surekli dondurmek
+   gurultulu ve pahali olurdu. */
+.mm-qa__item::after {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    padding: 1.5px;
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: conic-gradient(from var(--la, 0deg),
+        rgba(137, 180, 239, .25) 0deg,
+        #89b4ef 80deg,
+        rgba(240, 184, 147, .9) 140deg,
+        rgba(137, 180, 239, .25) 210deg,
+        rgba(137, 180, 239, .25) 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    transition: opacity .45s ease;
+}
+
+.mm-qa__item[open]::after,
+.mm-qa__item:hover::after {
+    opacity: .9;
+    animation: edring 9s linear infinite;
+}
+
+.mm-qa__item[open] {
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 16, 43, .11),
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        0 3px 6px -3px rgba(0, 16, 43, .2),
+        0 30px 56px -32px rgba(0, 16, 43, .5);
+}
+
+.mm-qa__summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 21px 24px;
+    cursor: pointer;
+    list-style: none;
+}
+
+/* varsayilan ucgen isareti — iki tarayici ailesinde de kapat */
+.mm-qa__summary::-webkit-details-marker {
+    display: none;
+}
+
+.mm-qa__summary::marker {
+    content: '';
+}
+
+.mm-qa__summary:focus-visible {
+    outline: 2px solid #5a8ce2;
+    outline-offset: 3px;
+    border-radius: 18px;
+}
+
+.agntix-dark .mm-qa__q {
+    flex: 1 1 auto;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 17.5px;
+    line-height: 1.42;
+    letter-spacing: -.2px;
+    color: #00102b;
+}
+
+.mm-qa__q code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: .88em;
+    color: #c96a2e;
+    background: rgba(201, 106, 46, .09);
+}
+
+/* arti → eksi isareti, saf CSS */
+.mm-qa__mark {
+    position: relative;
+    flex: none;
+    width: 26px;
+    height: 26px;
+    margin-top: 1px;
+    border-radius: 50%;
+    background: rgba(0, 16, 43, .05);
+    box-shadow: inset 0 0 0 1px rgba(0, 16, 43, .1);
+    transition: background .3s ease, box-shadow .3s ease, transform .4s ease;
+}
+
+.mm-qa__mark::before,
+.mm-qa__mark::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 10px;
+    height: 1.6px;
+    border-radius: 2px;
+    background: #00102b;
+    transform: translate(-50%, -50%);
+    transition: transform .4s cubic-bezier(.22, .61, .36, 1), opacity .3s ease;
+}
+
+.mm-qa__mark::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.mm-qa__item[open] .mm-qa__mark {
+    background: rgba(201, 106, 46, .12);
+    box-shadow: inset 0 0 0 1px rgba(201, 106, 46, .3);
+    transform: rotate(180deg);
+}
+
+.mm-qa__item[open] .mm-qa__mark::after {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.mm-qa__item[open] .mm-qa__mark::before {
+    background: #c96a2e;
+}
+
+/* cevap — yukseklik animasyonu SARMALAYICIDA kosar, dolgu ictedir.
+   Dolguyu da animasyona sokunca kapanista 22px'lik kalinti goruluyordu. */
+.mm-qa__wrap {
+    overflow: hidden;
+}
+
+.mm-qa__a {
+    padding: 0 24px 22px 68px;
+}
+
+.agntix-dark .mm-qa__a p {
+    margin: 0 0 12px;
+    font-size: 15.5px;
+    line-height: 1.72;
+    color: rgba(0, 16, 43, .7);
+}
+
+.agntix-dark .mm-qa__a p:last-child {
+    margin-bottom: 0;
+}
+
+.agntix-dark .mm-qa__a a {
+    color: #c96a2e;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    -webkit-text-decoration-color: rgba(201, 106, 46, .4);
+            text-decoration-color: rgba(201, 106, 46, .4);
+    transition: -webkit-text-decoration-color .25s ease;
+    transition: text-decoration-color .25s ease;
+    transition: text-decoration-color .25s ease, -webkit-text-decoration-color .25s ease;
+}
+
+.agntix-dark .mm-qa__a a:hover {
+    -webkit-text-decoration-color: #c96a2e;
+            text-decoration-color: #c96a2e;
+}
+
+.mm-qa__a code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: .88em;
+    color: #00102b;
+    background: rgba(0, 16, 43, .06);
+}
+
+/* --- 0 sonuc ------------------------------------------------------------- */
+.mm-qa__empty {
+    padding: 40px 34px;
+    border-radius: 20px;
+    text-align: center;
+    background: rgba(0, 16, 43, .035);
+    box-shadow: inset 0 0 0 1px rgba(0, 16, 43, .09);
+}
+
+.agntix-dark .mm-qa__empty h4 {
+    margin: 0 0 8px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 22px;
+    color: #00102b;
+}
+
+.agntix-dark .mm-qa__empty p {
+    max-width: 420px;
+    margin: 0 auto 20px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: rgba(0, 16, 43, .6);
+}
+
+.mm-qa__emptylinks {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.agntix-dark .mm-qa__chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 16px;
+    border-radius: 30px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 12px;
+    letter-spacing: .02em;
+    text-decoration: none;
+    color: #fff;
+    background: #00102b;
+    transition: background .3s ease, transform .3s ease;
+}
+
+.agntix-dark .mm-qa__chip:hover {
+    transform: translateY(-2px);
+    background: #c96a2e;
+}
+
+/* --- kapanis: "hala takildiysan" ----------------------------------------
+   Ilk hali kagit uzerinde beyaz bir kutuydu; sayfa sonuna kadar duz
+   kaliyordu ("cok basic"). Simdi KOYU slab — index'in .mm-proof recetesi
+   (72px izgara + 135deg #050914→#071120→#100a1d + mavi hale). Uzun bir acik
+   sayfanin sonunda register degistiriyor ve CTA'yi one cikariyor. */
+.mm-qa__still {
+    position: relative;
+    isolation: isolate;
+    margin-top: 110px;
+    padding: 66px 62px;
+    border-radius: 30px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #050914 0%, #071120 46%, #100a1d 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .07),
+        0 40px 80px -44px rgba(0, 16, 43, .75);
+}
+
+/* 72px izgara */
+.mm-qa__still-grid {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: .5;
+    background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, .045) 0 1px, transparent 1px 72px),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 72px);
+    -webkit-mask-image: radial-gradient(120% 100% at 20% 0%, #000 20%, transparent 78%);
+            mask-image: radial-gradient(120% 100% at 20% 0%, #000 20%, transparent 78%);
+}
+
+/* 460px mavi hale + karsi kosede seftali */
+.mm-qa__still-glow {
+    position: absolute;
+    inset: -20% -10%;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(460px 320px at 14% 6%, rgba(90, 140, 226, .42), transparent 68%),
+        radial-gradient(420px 300px at 92% 94%, rgba(242, 165, 115, .22), transparent 70%);
+    filter: blur(18px);
+}
+
+/* kicker bu blokta KOYU zeminde — bolumun acik-zemin ezmesini geri al */
+.agntix-dark .mm-qa .mm-qa__still .mm-section-kicker {
+    color: rgba(255, 255, 255, .82);
+}
+
+.agntix-dark .mm-qa .mm-qa__still .mm-section-kicker::before {
+    background: #f2a573;
+    box-shadow: 0 0 16px rgba(242, 165, 115, .78);
+}
+
+.agntix-dark .mm-qa__still-title {
+    margin: 0 0 16px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: clamp(32px, 3.2vw, 46px);
+    line-height: 1.02;
+    letter-spacing: -1.4px;
+    color: #fff;
+}
+
+/* koyu zeminde seftali #f2a573 (acik zemindeki #c96a2e degil) */
+.mm-qa__still-title em {
+    font-style: normal;
+    color: #f2a573;
+}
+
+.agntix-dark .mm-qa__still p {
+    max-width: 400px;
+    margin: 0 0 30px;
+    font-size: 15.5px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, .62);
+}
+
+/* --- sag: rehber paneli --- */
+.mm-qa__guidebox {
+    padding: 26px 26px 12px;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, .035);
+    box-shadow:
+        inset 0 0 0 1px rgba(137, 180, 239, .16),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.agntix-dark .mm-qa__still-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin: 0 0 18px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, .52);
+}
+
+.mm-qa__still-lead > span {
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 11px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #89b4ef;
+}
+
+.mm-qa__guides {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mm-qa__guides li {
+    display: block;
+}
+
+.agntix-dark .mm-qa__guides a {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 13px 14px;
+    margin-bottom: 6px;
+    border-radius: 14px;
+    overflow: hidden;
+    font-size: 16px;
+    text-decoration: none;
+    color: rgba(255, 255, 255, .8);
+    transition: background .35s ease, transform .35s cubic-bezier(.22, .61, .36, 1), color .3s ease;
+}
+
+/* satir boyunca bir kez gecen isik */
+.mm-qa__guides a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: linear-gradient(100deg, transparent 20%, rgba(137, 180, 239, .18) 50%, transparent 80%);
+    transform: translateX(-60%);
+    transition: opacity .3s ease;
+}
+
+.agntix-dark .mm-qa__guides a:hover {
+    transform: translateX(6px);
+    color: #fff;
+    background: rgba(137, 180, 239, .1);
+}
+
+.mm-qa__guides a:hover::after {
+    opacity: 1;
+    animation: mm-qa-sweep .9s ease forwards;
+}
+
+@keyframes mm-qa-sweep {
+    to {
+        transform: translateX(60%);
+    }
+}
+
+.agntix-dark .mm-qa__guidenum {
+    flex: none;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: rgba(255, 255, 255, .3);
+    transition: color .3s ease;
+}
+
+.agntix-dark .mm-qa__guides a:hover .mm-qa__guidenum {
+    color: #f2a573;
+}
+
+/* ikon kapsulu — tema <i>leri satir ici, inline-flex sart (tuzak 6) */
+.mm-qa__guideicon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, .86);
+    background: rgba(255, 255, 255, .06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1);
+    transition: background .35s ease, color .35s ease, box-shadow .35s ease;
+}
+
+.mm-qa__guides a:hover .mm-qa__guideicon {
+    color: #fff;
+    background: #c96a2e;
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .6), 0 8px 18px -10px rgba(242, 165, 115, .9);
+}
+
+.mm-qa__guidelabel {
+    flex: 1 1 auto;
+}
+
+.mm-qa__guidearrow {
+    flex: none;
+    font-size: 12px;
+    opacity: .28;
+    transition: opacity .3s ease, transform .35s ease;
+}
+
+.mm-qa__guides a:hover .mm-qa__guidearrow {
+    opacity: 1;
+    transform: translate(2px, -2px);
+}
+
+/* --- duraklatma tercihi -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+
+    .mm-qa__item[open]::after,
+    .mm-qa__item:hover::after {
+        animation: none;
+    }
+
+    .mm-qa__item,
+    .mm-qa__navitem > a,
+    .mm-qa__guides a {
+        transition: none;
+    }
+
+    .mm-qa__guides a:hover::after {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* --- <992px: ray yatay seride doner, pin kurulmaz ----------------------- */
+@media only screen and (max-width: 991px) {
+    .mm-qa {
+        padding: 96px 0 104px;
+    }
+
+    .mm-qa__railwrap {
+        margin-bottom: 40px;
+    }
+
+    .mm-qa__rail {
+        padding: 18px 18px 12px;
+    }
+
+    .mm-qa__nav {
+        margin-top: 14px;
+    }
+
+    .mm-qa__nav ol {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+    }
+
+    .mm-qa__nav ol::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mm-qa__navitem {
+        flex: none;
+    }
+
+    .mm-qa__navitem > a {
+        gap: 8px;
+        padding: 9px 14px;
+        border-radius: 30px;
+        white-space: nowrap;
+        background: rgba(0, 16, 43, .045);
+    }
+
+    .mm-qa__navitem > a::before {
+        display: none;
+    }
+
+    .mm-qa__navitem.is-active > a {
+        background: rgba(0, 16, 43, .1);
+    }
+
+    .agntix-dark .mm-qa__navitem span {
+        font-size: 14px;
+    }
+
+    .mm-qa__still {
+        margin-top: 70px;
+        padding: 44px 32px;
+        border-radius: 24px;
+    }
+
+    .mm-qa__guidebox {
+        margin-top: 36px;
+        padding: 22px 18px 10px;
+    }
+
+    .agntix-dark .mm-qa__still p {
+        max-width: none;
+    }
+}
+
+@media only screen and (max-width: 575px) {
+    .mm-qa {
+        padding: 76px 0 84px;
+    }
+
+    .mm-qa__grouphead {
+        padding-left: 34px;
+    }
+
+    .mm-qa__summary {
+        gap: 12px;
+        padding: 18px 18px;
+    }
+
+    .agntix-dark .mm-qa__q {
+        font-size: 16px;
+    }
+
+    .mm-qa__a {
+        padding: 0 18px 18px 18px;
+    }
+
+    .mm-qa__still {
+        padding: 34px 20px;
+    }
+
+    .agntix-dark .mm-qa__guides a {
+        gap: 11px;
+        padding: 12px 10px;
+        font-size: 15px;
+    }
+}
