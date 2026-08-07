@@ -69,12 +69,9 @@
     color: #c96a2e;
 }
 
-.agntix-dark .mm-qa__lead {
-    margin: 0 0 6px;
-    font-size: 17px;
-    line-height: 1.65;
-    color: rgba(0, 16, 43, .68);
-}
+/* .mm-qa__lead'e BILEREK renk/tipografi yazilmiyor (Huseyin) — temanin
+   default paragrafi kullaniliyor (18px, rgb(46,45,45); kagit uzerinde
+   okunuyor, beyaza kacmiyor). */
 
 /* --- SOL: kategori rayi -------------------------------------------------- */
 .mm-qa__rail {

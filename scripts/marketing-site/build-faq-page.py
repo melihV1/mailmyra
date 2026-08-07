@@ -19,7 +19,7 @@ HAM = os.path.expanduser("~/Desktop/mailmyra ham")
 SRC = os.path.join(HAM, "works-with.html")
 OUT = os.path.join(HAM, "faq.html")
 
-CSS_VER = "mailmyra-0807-3"
+CSS_VER = "mailmyra-0807-4"
 
 # --------------------------------------------------------------------------
 # Icerik
@@ -217,12 +217,16 @@ def build_content():
 
     # intro
     a('                                <div class="row align-items-end mm-qa__intro mb-70">')
+    # DIKKAT: kicker ve lead'de `tp_fade_anim` YOK. Tema GSAP'in "from"
+    # halini inline yaziyor (opacity:0 + translateY(40px)) ama tetikleyici
+    # burada ATESLEMIYOR → iki oge de gorunmez kaliyordu (olculdu 2026-08-07).
+    # Bu sinifi bu bolumde kullanma.
     a('                                    <div class="col-xl-7 col-lg-7">')
-    a('                                        <span class="mm-section-kicker tp_fade_anim" data-delay=".1" data-fade-from="bottom">Frequently asked</span>')
+    a('                                        <span class="mm-section-kicker">Frequently asked</span>')
     a('                                        <h2 class="mm-qa__heading tp-split-text tp-split-right">Everything worth<br><em>asking first.</em></h2>')
     a('                                    </div>')
     a('                                    <div class="col-xl-5 col-lg-5">')
-    a('                                        <p class="mm-qa__lead tp_fade_anim" data-delay=".25">')
+    a('                                        <p class="mm-qa__lead">')
     a('                                            %d answers, grouped the way people actually ask them &mdash;' % total)
     a('                                            starting with what Mailmyra does and ending with what happens')
     a('                                            to your data. Search, or take the rail.')
