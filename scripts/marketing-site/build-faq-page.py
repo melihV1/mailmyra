@@ -19,7 +19,7 @@ HAM = os.path.expanduser("~/Desktop/mailmyra ham")
 SRC = os.path.join(HAM, "works-with.html")
 OUT = os.path.join(HAM, "faq.html")
 
-CSS_VER = "mailmyra-0807-2"
+CSS_VER = "mailmyra-0807-3"
 
 # --------------------------------------------------------------------------
 # Icerik
@@ -307,8 +307,8 @@ def build_content():
     # (72px izgara + 135deg #050914→#071120→#100a1d + mavi hale). Kagit karta
     # devam etmek sayfayi sonuna kadar duz birakiyordu.
     a('                                <div class="mm-qa__still">')
-    a('                                    <span class="mm-qa__still-grid" aria-hidden="true"></span>')
-    a('                                    <span class="mm-qa__still-glow" aria-hidden="true"></span>')
+    a('                                    <span class="mm-qa__still-halo" aria-hidden="true"></span>')
+    a('                                    <span class="mm-qa__still-peach" aria-hidden="true"></span>')
     a('                                    <div class="row align-items-center">')
     a('                                        <div class="col-lg-5">')
     a('                                            <div class="mm-qa__still-copy">')
@@ -401,6 +401,50 @@ def build_driver():
         var groups = Array.prototype.slice.call(list.querySelectorAll('[data-mm-qa-group]'));
         var navItems = Array.prototype.slice.call(document.querySelectorAll('[data-mm-qa-nav]'));
 
+        /* --- YUMUSAK REFRESH -----------------------------------------------
+           Liste yuksekligi degisince (arama filtresi, acilan soru) pin'in
+           bitisi yeniden olculmeli. Ama duz `ScrollTrigger.refresh()` iki
+           yan etki uretiyordu:
+             (a) pinlenen ray DOM'da yer degistirdigi icin SAYFA ZIPLIYOR,
+             (b) rayin ICINDEKI arama kutusunun ODAGI KACIYOR — kullanici
+                 bir harf yazip her seferinde tekrar tiklamak zorunda kaliyordu.
+           Cozum: geciktir (ard arda olaylar tek refresh'te birlesir), kaydirma
+           konumunu ve odagi/imleci refresh'ten SONRA geri koy. Yukseklik
+           gercekten degismediyse hic refresh etme. */
+        var refreshTimer = null;
+        var lastListHeight = -1;
+
+        function softRefresh() {
+            if (!window.ScrollTrigger) return;
+            clearTimeout(refreshTimer);
+            refreshTimer = setTimeout(function () {
+                refreshTimer = null;
+
+                var h = list.offsetHeight;
+                if (Math.abs(h - lastListHeight) < 2) return;   /* degismemis */
+                lastListHeight = h;
+
+                var sm = (window.ScrollSmoother && ScrollSmoother.get) ? ScrollSmoother.get() : null;
+                var y = sm ? sm.scrollTop() : (window.pageYOffset || 0);
+
+                var focused = document.activeElement;
+                var caret = (focused && typeof focused.selectionStart === 'number')
+                    ? focused.selectionStart : null;
+
+                ScrollTrigger.refresh();
+
+                if (sm) sm.scrollTop(y);
+                else window.scrollTo(0, y);
+
+                if (focused && document.contains(focused) && document.activeElement !== focused) {
+                    focused.focus({ preventScroll: true });
+                    if (caret !== null) {
+                        try { focused.setSelectionRange(caret, caret); } catch (e) {}
+                    }
+                }
+            }, 280);
+        }
+
         /* --- arama dizini: her soru icin duz metin --- */
         var index = groups.map(function (group) {
             var items = Array.prototype.slice.call(group.querySelectorAll('.mm-qa__item'));
@@ -447,7 +491,7 @@ def build_driver():
                     ? (total === 0 ? 'No match' : total + (total === 1 ? ' answer' : ' answers'))
                     : '';
             }
-            if (window.ScrollTrigger) ScrollTrigger.refresh();
+            softRefresh();
         }
 
         if (input) {
@@ -501,7 +545,7 @@ def build_driver():
                     if (!opening) item.open = false;
                     wrap.style.height = '';
                     running = null;
-                    if (window.ScrollTrigger) ScrollTrigger.refresh();
+                    softRefresh();
                 };
                 running.oncancel = function () { wrap.style.height = ''; };
             });
@@ -519,10 +563,11 @@ def build_driver():
         openFromHash();
         window.addEventListener('hashchange', openFromHash);
 
-        /* --- acilan/kapanan soru sayfa yuksekligini degistiriyor --- */
-        list.addEventListener('toggle', function () {
-            if (window.ScrollTrigger) ScrollTrigger.refresh();
-        }, true);
+        /* --- acilan/kapanan soru sayfa yuksekligini degistiriyor.
+               Animasyonlu yolda onfinish zaten softRefresh cagiriyor; bu
+               dinleyici hash ile acilan ve reduced-motion (native) yolu
+               yakaliyor. softRefresh geciktirdigi icin cift cagri birlesiyor. */
+        list.addEventListener('toggle', softRefresh, true);
 
         /* --- kaydirirken aktif kategori --- */
         if ('IntersectionObserver' in window) {
