@@ -22,17 +22,34 @@ Fabrika, KOBİ ve freelancer da müşteridir ama ön kapı ajans/kurumsaldır.
 Sebep: tek satışta 200 koltuk alınır, freelancer'da 1.
 
 ### Fiyatlandırma
-Koltuk (kullanıcı) başına ücretlendirme.
 
-| Plan | Kim | Fiyat |
-|---|---|---|
-| Pro | Freelancer | $5/ay sabit — tek kişi, sınırsız imza |
-| Team | KOBİ | $1/koltuk/ay, **minimum 5 koltuk** |
-| Business | Kurumsal | 10–49: $0.83 · 50–199: $0.75 · 200+: görüşmeli |
-| Agency | Ajans | Havuzlanmış koltuk + white-label |
+**Tek ürün, tek fiyat: `$1 / aktif gönderici / yıl`** (karar: 2026-08-07, Hüseyin).
+Yalnız yıllık faturalama · minimum 1 aktif gönderici · 7 gün tam deneme, kart
+istenmez · kademe, hacim tablosu ve özellik kilidi YOK.
+
+> **Bu karar önceki modeli iptal etti.** Eskisi: Pro $5/ay · Team $1/koltuk/**ay**
+> min 5 · Business $0.83/$0.75 · Agency havuz. Yeni model bilinçli bir pazar
+> edinme kararı: kısa vadeli abonelik kârından önce aktif koltuk ve pazar payı.
+
+**Koltuk = aktif gönderici kimliği.** Giriş hesabı değil, kayıtlı imza değil.
+Taslak koltuk tüketmez; sayım **ilk publish/deploy**'da başlar. Kendine imza
+atanmayan admin 0 koltuk.
+
+**Pro / Team / Agency ayrı plan DEĞİL, çalışma alanı modudur.** Üçü de aynı
+sayımı ve aynı `$1` liste fiyatını kullanır: Pro tek kişi · Team tek marka
+altında çok gönderici · Agency ana hesap altında izole müşteri organizasyonları
+(+ white-label).
 
 **İlk 10 müşteri manuel faturalanacak.** Otomatik abonelik sistemi YAZILMAYACAK.
 Ödeme altyapısı (Vakıfbank sanal POS + PayTR) hazır ama entegrasyon ertelendi.
+⚠️ Bu iki karar gerilimde: $1'lık siparişi elle faturalamak faturanın
+maliyetinden ucuz değil. Hacim gelince yeniden bakılacak.
+
+**Fiyat sayfada elle gömülmez.** Tek kaynak
+`scripts/marketing-site/build-pricing-page.py` içindeki sabitler; script
+rakamları hem HTML'e (JS kapalıyken de görünsün) hem `MM_PRICING` JS objesine
+yazar. Kampanya kutusu `LAUNCH_OFFER["active"]` ile tek satırda açılıp kapanır
+(lansmanda **kapalı**).
 
 **Ücretsiz plan YOK** (karar: 2026-07-24, Hüseyin). Builder ve canlı önizleme
 herkese açık; **export (kopyala + .htm indir) giriş ve ödeme gerektirir**.

@@ -22,13 +22,46 @@ script tarafından yazılır. **Sorunun metnini `faq.html` içinde elle düzenle
 `works-with.html` değişirse assert'ler patlar (satır sayısı ve iki sınır satırı
 kontrol ediliyor). Patladığında sınırları yeniden bul, sabitleri güncelle.
 
-## `faq.css`
+## `build-pricing-page.py` — `/pricing` sayfası
+
+```bash
+python3 scripts/marketing-site/build-pricing-page.py
+```
+
+Aynı kabuk dilimleme yöntemi. **Fiyatla ilgili her sayı bu dosyanın başındaki
+sabitlerden gelir** — `pricing.html`'e elle rakam yazma:
+
+```python
+PRICE_PER_SEAT_YEAR_CENTS = 100   # $1
+MIN_SEATS = 1 ; MAX_SEATS_UI = 1000 ; CONTACT_ABOVE = 500 ; TRIAL_DAYS = 7
+LAUNCH_OFFER = {"active": False, "seats": 10, ...}
+```
+
+Script bu sabitleri **iki yere birden** yazar: HTML'e (JS kapalıyken de fiyat
+görünsün — SEO ve erişilebilirlik için şart) ve sayfa sonundaki `MM_PRICING`
+objesine (hesaplayıcı oradan okur). `LAUNCH_OFFER["active"] = True` yapınca
+kampanya kutusu HTML'e eklenir; `False` iken hiç yazılmaz.
+
+## `patch-mega-menu.py` — 13 sayfadaki menü metni
+
+```bash
+python3 scripts/marketing-site/patch-mega-menu.py          # kuru koşu
+python3 scripts/marketing-site/patch-mega-menu.py --apply  # yaz
+```
+
+Mega-menü fiyat satırlarını değiştirir. Her kalıp her dosyada **tam 2 kez**
+(masaüstü + mobil) geçmeli; sapma varsa o dosyaya dokunmadan durur — yarım
+yama bırakmaz. Kaynakta `&mdash;` değil **gerçek em-dash** (U+2014) var.
+
+## `faq.css` · `pricing.css`
 
 `assets/css/main.css` **sonuna eklenen** blok (proje kuralı: yeni CSS dosyası
 yok, inline `<style>` yok). Yeniden uygularken:
 
 ```bash
-cat main.css.faq-oncesi-yedek scripts/marketing-site/faq.css > assets/css/main.css
+cat main.css.faq-oncesi-yedek \
+    scripts/marketing-site/faq.css \
+    scripts/marketing-site/pricing.css > assets/css/main.css
 ```
 
 Her değişiklikten sonra HTML'deki `main.css?v=mailmyra-…` damgasını bump et

@@ -19,7 +19,7 @@ HAM = os.path.expanduser("~/Desktop/mailmyra ham")
 SRC = os.path.join(HAM, "works-with.html")
 OUT = os.path.join(HAM, "faq.html")
 
-CSS_VER = "mailmyra-0807-6"
+CSS_VER = "mailmyra-0807-8"
 
 # --------------------------------------------------------------------------
 # Icerik
@@ -139,19 +139,38 @@ CATEGORIES = [
         "label": "Plans",
         "title": "Teams, plans &amp; billing",
         "blurb": "How seats work and what you are paying for.",
+        # 2026-08-07: bu kategori ESKI fiyat modeline gore yazilmisti (aylik,
+        # min 5 koltuk, kademeli fiyat, ayri ajans plani). Model
+        # `$1 / aktif gonderici / yil`a gecince hepsi yanlis oldu; yeniden
+        # yazildi. Rakamlar /pricing ile ayni kalmali.
         "items": [
             ("what-is-a-seat", "What is a seat?", [
-                "One seat is one person with their own signature. Pricing is per seat, so a fifteen-person company pays for fifteen seats no matter how many signature variants each of them keeps.",
+                "A seat is not a login and it is not a saved signature. It is an active sender "
+                "identity you manage &mdash; and it only starts counting the first time that "
+                "sender is published.",
+                "One person with five drafts and one email identity is one seat. Ten employees "
+                "whose signatures you manage are ten seats. An admin who manages but has no "
+                "signature of their own is zero.",
             ]),
-            ("smallest-team", "What is the smallest team you support?", [
-                "A single person is fine &mdash; that is what the Pro plan is for. The team plan starts at five seats, and the per-seat price drops as the team grows.",
+            ("what-does-it-cost", "What does it cost?", [
+                "One dollar per active sender, per year. Billed annually, minimum one sender, "
+                "and every feature is included &mdash; there are no tiers to climb and no "
+                "platform fee on top.",
+                "The full breakdown, with a seat calculator, is on the "
+                "<a href=\"pricing.html\">pricing page</a>.",
             ]),
             ("is-there-a-free-plan", "Is there a free plan?", [
-                "No. The builder and the live preview are free to use for as long as you like &mdash; you can design a complete signature and see exactly what you would get.",
-                "Exporting it is the part that needs an account and a plan.",
+                "No. The builder and the live preview are free to use for as long as you like "
+                "&mdash; you can design a complete signature and see exactly what you would get.",
+                "Exporting it is the part that needs an account. There is also a seven-day "
+                "trial of the full product that does not ask for a card.",
             ]),
             ("agency-plan", "Do you have something for agencies?", [
-                "Yes. The agency plan pools seats across the clients you manage and supports white-labelling, so you are not buying a separate subscription per client.",
+                "Yes, though it is not a separate plan. Agency is a way of arranging the "
+                "workspace: each client sits in its own isolated organisation under one parent "
+                "account, white-label ready.",
+                "The price is the same one dollar per active sender, counted across every "
+                "client you manage. See <a href=\"pricing.html#agency\">the agency workspace</a>.",
             ]),
             ("how-does-billing-work", "How does billing work right now?", [
                 "Manually, on purpose. Early customers are invoiced directly rather than through an automatic subscription system &mdash; <a href=\"contact.html\">get in touch</a> and we will sort out the details with you.",
