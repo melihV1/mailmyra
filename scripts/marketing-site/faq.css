@@ -831,6 +831,12 @@
         padding: 96px 0 104px;
     }
 
+    /* mobilde lead ile ray karti arasinda ~90px olu bosluk kaliyordu
+       (Bootstrap mb-70 + kolon payi) */
+    .mm-qa__intro {
+        margin-bottom: 30px !important;
+    }
+
     .mm-qa__railwrap {
         margin-bottom: 40px;
     }
@@ -843,6 +849,8 @@
         margin-top: 14px;
     }
 
+    /* Cip seridi yatay kayiyor ama kaydigi BELLI DEGILDI — son cip kenarda
+       kesiliyordu. Sag kenardaki solma bunu isaret ediyor. */
     .mm-qa__nav ol {
         display: flex;
         gap: 8px;
@@ -851,6 +859,8 @@
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 2px;
+        -webkit-mask-image: linear-gradient(90deg, #000 82%, rgba(0, 0, 0, .18) 100%);
+                mask-image: linear-gradient(90deg, #000 82%, rgba(0, 0, 0, .18) 100%);
     }
 
     .mm-qa__nav ol::-webkit-scrollbar {
@@ -873,8 +883,14 @@
         display: none;
     }
 
+    /* DIKKAT: aktif cip burada da SEFTALI kalmali. Bu blok dosyada sonra
+       geldigi icin duz bir gri zemin yazmak masaustundeki dolu kapsulu
+       eziyordu ve beyaz yazi gri cipte okunmuyordu. */
     .mm-qa__navitem.is-active > a {
-        background: rgba(0, 16, 43, .1);
+        background: linear-gradient(100deg, #c96a2e 0%, #d9813f 100%);
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, .28),
+            0 6px 16px -8px rgba(201, 106, 46, .8);
     }
 
     .agntix-dark .mm-qa__navitem span {

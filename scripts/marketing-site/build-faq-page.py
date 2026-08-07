@@ -19,7 +19,7 @@ HAM = os.path.expanduser("~/Desktop/mailmyra ham")
 SRC = os.path.join(HAM, "works-with.html")
 OUT = os.path.join(HAM, "faq.html")
 
-CSS_VER = "mailmyra-0807-4"
+CSS_VER = "mailmyra-0807-6"
 
 # --------------------------------------------------------------------------
 # Icerik
@@ -250,8 +250,12 @@ def build_content():
     a('                                                <nav class="mm-qa__nav" aria-label="Question categories">')
     a('                                                    <ol>')
     for c in CATEGORIES:
-        a('                                                        <li class="mm-qa__navitem" data-mm-qa-nav="%s">' % c["id"])
-        a('                                                            <a href="#faq-%s" data-mm-scrollto>' % c["id"])
+        # DIKKAT: `data-mm-scrollto` YOK. Kabuktaki ortak surucu 92px pay
+        # birakiyor, o da baslgi header kapsulune SIFIR bosluklu yapistiriyor
+        # (olculdu). Ray baglantilarini FAQ surucusu daha genis payla suruyor.
+        a('                                                        <li class="mm-qa__navitem%s" data-mm-qa-nav="%s">'
+          % (' is-active' if c is CATEGORIES[0] else '', c["id"]))
+        a('                                                            <a href="#faq-%s" data-mm-qa-jump>' % c["id"])
         a('                                                                <b>%s</b>' % c["num"])
         a('                                                                <span>%s</span>' % c["label"])
         a('                                                                <em class="mm-qa__count">%d</em>' % len(c["items"]))
@@ -572,6 +576,32 @@ def build_driver():
                dinleyici hash ile acilan ve reduced-motion (native) yolu
                yakaliyor. softRefresh geciktirdigi icin cift cagri birlesiyor. */
         list.addEventListener('toggle', softRefresh, true);
+
+        /* --- ray baglantilari: kategoriye atla ----------------------------
+           Kabuktaki ortak `data-mm-scrollto` surucusu 92px pay birakiyor;
+           o pay tam header kapsulunun boyu, yani baslik kapsulun altina
+           SIFIR bosluklu yapisiyor (olculdu: bosluk 0px). Burada daha genis
+           pay veriliyor. Mobilde smoother olmadigi icin native smooth. */
+        var JUMP_GAP = 132;
+
+        Array.prototype.forEach.call(document.querySelectorAll('[data-mm-qa-jump]'), function (link) {
+            link.addEventListener('click', function (event) {
+                var hash = link.getAttribute('href') || '';
+                if (hash.charAt(0) !== '#') return;
+                var target = document.querySelector(hash);
+                if (!target) return;
+                event.preventDefault();
+                var sm = (window.ScrollSmoother && ScrollSmoother.get) ? ScrollSmoother.get() : null;
+                if (sm) {
+                    sm.scrollTo(target, true, 'top ' + JUMP_GAP + 'px');
+                } else {
+                    window.scrollTo({
+                        top: target.getBoundingClientRect().top + window.pageYOffset - JUMP_GAP,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
 
         /* --- kaydirirken aktif kategori --- */
         if ('IntersectionObserver' in window) {
