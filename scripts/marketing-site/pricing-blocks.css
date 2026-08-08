@@ -1,0 +1,1379 @@
+/* Pricing sayfasinin EL YAZISI CSS'i — main.css'in sonundaki blok.
+   main.css tema dosyasi oldugu icin tamami commit'lenmiyor; degerli
+   olan bu kuyruk. Yeniden uygularken main.css'in SONUNA ekle,
+   dosyayi bastan uretme (Huseyin ayni dosyaya paralel yaziyor). */
+
+/* ==========================================================================
+   Benim Css — PRICING PLAN KARTLARI (.mm-plan)                   2026-08-07
+   ==========================================================================
+   Huseyin sayfayi kendi kurdu; burasi onun koydugu tema bileseninin
+   (crp-price-item / app-price-box) BIZE CEVRILMESI.
+
+   Tema kart zemini `#1a1b1e` — notr komur grisi. Bizim koyumuz LACIVERT
+   (#050914 → #071120 → #100a1d). Fark kucuk gorunuyor ama sayfanin geri
+   kalaniyla yan yana durunca kartlar "baska bir siteden" gibi duruyordu.
+
+   Kagit bolumun icinde KOYU bir ada: bu ritim FAQ ve why-slab ile ayni,
+   bilerek korundu.
+
+   Donen conic kenar (edring) YALNIZ vurgulu kartta — ucunde birden
+   dondurmek onu siradanlastirir.
+   ========================================================================== */
+
+/* --- kartlarin uzerinde durdugu koyu slab ------------------------------- */
+.mm-tariff .app-price-box {
+    position: relative;
+    isolation: isolate;
+    padding: 40px 38px;
+    border-radius: 30px;
+    overflow: hidden;
+    background:
+        linear-gradient(rgba(79, 116, 174, .05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 116, 174, .05) 1px, transparent 1px),
+        linear-gradient(135deg, #050914, #071120 54%, #100a1d);
+    background-size: 72px 72px, 72px 72px, auto;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .07),
+        0 40px 80px -44px rgba(0, 16, 43, .75);
+}
+
+/* index'in .mm-proof::before'u — 460px mavi hale */
+.mm-tariff .app-price-box::before {
+    content: '';
+    position: absolute;
+    top: -190px;
+    right: 6%;
+    width: 460px;
+    height: 460px;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(114, 169, 255, .3), transparent 68%);
+    filter: blur(18px);
+}
+
+/* --- kart --------------------------------------------------------------- */
+.mm-tariff .crp-price-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 34px 30px 30px;
+    border-radius: 22px;
+    background:
+        radial-gradient(340px 200px at 0% 0%, rgba(90, 140, 226, .16), transparent 68%),
+        radial-gradient(320px 190px at 100% 100%, rgba(137, 180, 239, .1), transparent 68%),
+        linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(255, 255, 255, .015)),
+        rgba(7, 18, 40, .55);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .08),
+        inset 0 0 0 1px rgba(137, 180, 239, .18);
+    transition: box-shadow .45s ease, transform .4s ease;
+}
+
+.mm-tariff .crp-price-item:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .1),
+        inset 0 0 0 1px rgba(137, 180, 239, .38),
+        0 24px 48px -30px rgba(0, 0, 0, .85);
+}
+
+/* VURGULU kart: yukselir + donen conic kenar */
+.mm-tariff .crp-price-item.is-hot {
+    transform: translateY(-8px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .12),
+        inset 0 0 0 1px rgba(242, 165, 115, .3),
+        0 34px 64px -32px rgba(0, 0, 0, .9);
+}
+
+.mm-tariff .crp-price-item.is-hot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    z-index: 4;
+    padding: 1.5px;
+    pointer-events: none;
+    border-radius: inherit;
+    background: conic-gradient(from var(--la, 0deg),
+        rgba(137, 180, 239, .16) 0deg,
+        rgba(137, 180, 239, .8) 78deg,
+        rgba(242, 165, 115, .55) 132deg,
+        rgba(255, 255, 255, .2) 178deg,
+        rgba(242, 165, 115, .4) 238deg,
+        rgba(137, 180, 239, .16) 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    animation: edring 9.5s linear infinite;
+}
+
+.mm-plan__flag {
+    position: absolute;
+    top: -11px;
+    left: 28px;
+    z-index: 5;
+    padding: 5px 13px;
+    border-radius: 30px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(100deg, #c96a2e, #d9813f);
+    box-shadow: 0 8px 18px -9px rgba(201, 106, 46, .9);
+}
+
+/* --- kart basligi ------------------------------------------------------- */
+.mm-tariff .crp-price-head {
+    padding-bottom: 22px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid rgba(137, 180, 239, .16);
+}
+
+/* koltuk sayisi cipi — index hero pill dili */
+.mm-tariff .crp-price-head > span {
+    display: inline-block;
+    margin-bottom: 16px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, .82);
+    background: rgba(255, 255, 255, .06);
+    box-shadow: inset 0 0 0 1px rgba(137, 180, 239, .26);
+}
+
+.mm-tariff .crp-price-item.is-hot .crp-price-head > span {
+    color: #fff;
+    background: rgba(242, 165, 115, .16);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .45);
+}
+
+.mm-tariff .crp-price-head h4 {
+    margin: 0 0 10px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 52px;
+    line-height: .9;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+/* `/ year` dev rakamin uzerine biniyordu: h4 line-height .9 + satir ici <i>.
+   inline-block + sol bosluk + kendi satir yuksekligi ayirdi. */
+.mm-tariff .crp-price-head h4 i {
+    display: inline-block;
+    margin-left: 9px;
+    font-style: normal;
+    font-family: 'General Sans', sans-serif;
+    font-size: 14.5px;
+    line-height: 1.2;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, .55);
+}
+
+.mm-tariff .crp-price-head p {
+    margin: 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, .55);
+}
+
+/* --- ozellik listesi ---------------------------------------------------- */
+.mm-tariff .crp-price-list {
+    flex: 1 1 auto;
+    margin-bottom: 26px;
+}
+
+.mm-tariff .crp-price-list ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mm-tariff .crp-price-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 7px 0;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: rgba(255, 255, 255, .78);
+}
+
+/* tema tikinin stroke'u #21212D idi (koyu zeminde gorunmuyordu);
+   markup'ta currentColor'a cevrildi, rengi buradan geliyor */
+.mm-tariff .crp-price-list li > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    border-radius: 50%;
+    color: #f2a573;
+    background: rgba(242, 165, 115, .12);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .3);
+}
+
+/* --- buton -------------------------------------------------------------- */
+/* Tema `tp-btn-gradient` (mavi->mor->turuncu) kullaniyordu; markada
+   boyle bir renk yok, markup'ta mm-btn-solid / mm-btn-outline'a cevrildi. */
+.mm-tariff .app-price-btn-box .mm-btn-solid,
+.mm-tariff .app-price-btn-box .mm-btn-outline {
+    display: block;
+    width: 100%;
+}
+
+.mm-tariff .app-price-btn-box .mm-btn__face {
+    justify-content: center;
+}
+
+/* --- sekmeler ----------------------------------------------------------- */
+.mm-tariff .tab-pane {
+    display: none;
+}
+
+.mm-tariff .tab-pane.show.active {
+    display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .mm-tariff .crp-price-item.is-hot::after {
+        animation: none;
+    }
+
+    .mm-tariff .crp-price-item {
+        transition: none;
+    }
+
+    .mm-tariff .crp-price-item:hover,
+    .mm-tariff .crp-price-item.is-hot {
+        transform: none;
+    }
+}
+
+@media only screen and (max-width: 991px) {
+    .mm-tariff .app-price-box {
+        padding: 26px 20px;
+        border-radius: 24px;
+    }
+
+    .mm-tariff .crp-price-item {
+        margin-bottom: 22px;
+    }
+
+    .mm-tariff .crp-price-item.is-hot,
+    .mm-tariff .crp-price-item:hover {
+        transform: none;
+    }
+
+    .mm-tariff .crp-price-head h4 {
+        font-size: 44px;
+    }
+}
+
+/* --- 2. TUR: kartlar zenginlestirildi ------------------------------------
+   Huseyin: "hepsi 1 dolar olacak" + "kartlarin tasarimi cok basit kalmis".
+   Fiyat ucunde de ayni oldugu icin kartlari ayiran sey GORSEL olmali:
+   her karta calisma alaninin SEMASI kondu (tek nokta / halka icinde cok
+   nokta / cati altinda ayri halkalar) ve somut bir ornek satiri eklendi. */
+
+.mm-tariff .mm-plan__top {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 20px;
+}
+
+.mm-tariff .mm-plan__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, .9);
+    background: rgba(255, 255, 255, .06);
+    box-shadow: inset 0 0 0 1px rgba(137, 180, 239, .24);
+}
+
+.mm-tariff .crp-price-item.is-hot .mm-plan__icon {
+    color: #fff;
+    background: rgba(242, 165, 115, .16);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .45);
+}
+
+.mm-tariff .mm-plan__name {
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 21px;
+    letter-spacing: -.4px;
+    color: #fff;
+}
+
+.mm-tariff .mm-plan__tag {
+    margin-left: auto;
+    font-size: 12px;
+    text-align: right;
+    color: rgba(255, 255, 255, .5);
+}
+
+/* sema sahnesi — uc karti birbirinden ayiran asil unsur */
+.mm-tariff .mm-plan__shape {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    background:
+        radial-gradient(200px 120px at 50% 50%, rgba(90, 140, 226, .14), transparent 70%),
+        rgba(255, 255, 255, .025);
+    box-shadow: inset 0 0 0 1px rgba(137, 180, 239, .14);
+}
+
+.mm-tariff .mm-plan__shape img{
+   width: 200px;
+   padding: 10px;
+}
+
+.mm-tariff .crp-price-item.is-hot .mm-plan__shape {
+    background:
+        radial-gradient(200px 120px at 50% 50%, rgba(242, 165, 115, .14), transparent 70%),
+        rgba(255, 255, 255, .03);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .2);
+}
+
+.mm-tariff .mm-plan__shape svg {
+    display: block;
+    max-width: 100%;
+}
+
+/* fiyat: ucunde de $1 oldugu icin birim yazisi tek satira alindi */
+.mm-tariff .crp-price-head h4 i {
+    display: block;
+    margin-left: 0;
+    margin-top: 8px;
+}
+
+/* o calisma alanina OZEL madde — listede isaretli dursun */
+.mm-tariff .crp-price-list li.is-special {
+    margin-top: 4px;
+    padding-top: 13px;
+    border-top: 1px dashed rgba(137, 180, 239, .22);
+    color: #fff;
+}
+
+.mm-tariff .crp-price-item.is-hot .crp-price-list li.is-special > span {
+    color: #f2a573;
+    background: rgba(242, 165, 115, .18);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .45);
+}
+
+/* somut ornek satiri: $1 soyut bir rakam, bu satir onu elle tutulur yapiyor */
+.mm-tariff .mm-plan__example {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 0 0 22px;
+    padding: 13px 16px;
+    border-radius: 13px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, .6);
+    background: rgba(255, 255, 255, .04);
+    box-shadow: inset 0 0 0 1px rgba(137, 180, 239, .16);
+}
+
+.mm-tariff .mm-plan__example b {
+    flex: none;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 16px;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+}
+
+.mm-tariff .crp-price-item.is-hot .mm-plan__example {
+    background: rgba(242, 165, 115, .08);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .26);
+}
+
+.mm-tariff .crp-price-item.is-hot .mm-plan__example b {
+    color: #f2a573;
+}
+
+/* Ozellik tiki turuncu.
+   Tema `.agntix-dark .app-price-box .crp-price-list ul li span`e (0,4,1)
+   `filter: invert(1)` veriyor; `color: #f2a573` atansa bile ekranda ters
+   cevrilip maviye donuyordu. Renk degil, FILTRE sorunuydu.
+   `.mm-tariff` ile (0,5,1) — yalniz pricing sayfasi, index etkilenmez. */
+.agntix-dark .mm-tariff .app-price-box .crp-price-list ul li span {
+    filter: none;
+    color: #f2a573;
+}
+
+/* ==========================================================================
+   Benim Css — KARSILASTIRMA TABLOSU (.mm-cmp)                    2026-08-07
+   ==========================================================================
+   Yapi mysignature.io/pricing'den: sol sutun etiket, sag sutunlar fiyat +
+   CTA tasiyor, vurgulu sutunun ustunde rozet, aralarda kategori bandi,
+   satir etiketinde aciklamayi acan chevron.
+   Bizde farkli olan: fiyat satiri uc sutunda da AYNI.
+   ========================================================================== */
+
+.mm-cmp {
+    margin-top: 110px;
+}
+
+.mm-cmp__sr {
+    position: absolute;
+    width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.mm-cmp__head {
+    max-width: 720px;
+    margin-bottom: 40px;
+}
+
+.agntix-dark .mm-cmp__title {
+    margin: 0 0 16px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: clamp(32px, 3.4vw, 48px);
+    line-height: 1.03;
+    letter-spacing: -1.5px;
+    color: #00102b;
+}
+
+.mm-cmp__title em { font-style: normal; color: #c96a2e; }
+
+.agntix-dark .mm-cmp__head p {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.68;
+    color: rgba(0, 16, 43, .64);
+}
+
+.mm-cmp__scroll {
+    overflow-x: auto;
+    border-radius: 24px;
+    background: linear-gradient(180deg, #fffefb 0%, #fbf6ef 100%);
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 16, 43, .11),
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        0 3px 6px -3px rgba(0, 16, 43, .16);
+}
+
+.mm-cmp__table {
+    width: 100%;
+    min-width: 880px;
+    border-collapse: collapse;
+}
+
+/* --- baslik satiri: fiyat + CTA sutunun icinde --- */
+.mm-cmp__table thead th {
+    vertical-align: top;
+    padding: 26px 22px 24px;
+    border-bottom: 1px solid rgba(0, 16, 43, .12);
+}
+
+.agntix-dark .mm-cmp__corner {
+    width: 38%;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 12px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    text-align: left;
+    color: rgba(0, 16, 43, .55);
+}
+
+.mm-cmp__plan {
+    position: relative;
+    text-align: center;
+}
+
+.mm-cmp__plan.is-on {
+    background: rgba(201, 106, 46, .07);
+}
+
+.agntix-dark .mm-cmp__flag {
+    display: inline-block;
+    margin-bottom: 10px;
+    padding: 1px 10px;
+    border-radius: 30px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 9.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(100deg, #c96a2e, #d9813f);
+}
+
+.agntix-dark .mm-cmp__name {
+    display: block;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 28px;
+    letter-spacing: -.4px;
+    color: #00102b;
+}
+
+.agntix-dark .mm-cmp__tag {
+    display: block;
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: rgba(0, 16, 43, .55);
+}
+
+.agntix-dark .mm-cmp__price {
+    display: block;
+    font-weight: 200;
+    margin: 12px 0 14px;
+    font-size: 13px;
+    color: rgba(0, 16, 43, .62);
+}
+
+.agntix-dark .mm-cmp__price b {
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 26px;
+    margin-right: 5px;
+    color: #00102b;
+}
+
+.mm-cmp__plan .mm-btn-solid,
+.mm-cmp__plan .mm-btn-outline {
+    display: block;
+    width: 100%;
+}
+
+.mm-cmp__plan .mm-btn__face { justify-content: center; }
+
+/* --- kategori bandi --- */
+.agntix-dark .mm-cmp__band th {
+    padding: 15px 22px;
+    border-top: 1px solid rgba(0, 16, 43, .1);
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 12px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    text-align: left;
+    color: #9e4e1f;
+    background: rgba(0, 16, 43, .04);
+}
+
+/* --- satirlar --- */
+.mm-cmp__label {
+    padding: 0 22px;
+    font-weight: 400;
+    text-align: left;
+    border-top: 1px solid rgba(0, 16, 43, .08);
+}
+
+.mm-cmp__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 14px 0;
+    border: 0;
+    cursor: pointer;
+    text-align: left;
+    background: transparent;
+}
+
+.agntix-dark .mm-cmp__toggle > span {
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: rgba(0, 16, 43, .78);
+}
+
+.mm-cmp__chev {
+    flex: none;
+    color: rgba(0, 16, 43, .4);
+    transition: transform .3s ease, color .3s ease;
+}
+
+.mm-cmp__toggle:hover .mm-cmp__chev { color: #c96a2e; }
+
+.mm-cmp__toggle[aria-expanded="true"] .mm-cmp__chev {
+    transform: rotate(180deg);
+    color: #c96a2e;
+}
+
+.mm-cmp__toggle:focus-visible {
+    outline: 2px solid #5a8ce2;
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+.agntix-dark .mm-cmp__desc {
+    display: block;
+    padding: 0 0 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: rgba(0, 16, 43, .6);
+}
+
+.mm-cmp__cell {
+    padding: 14px 22px;
+    text-align: center;
+    border-top: 1px solid rgba(0, 16, 43, .08);
+    transition: background .35s ease;
+}
+
+.mm-cmp__cell.is-on { background: rgba(201, 106, 46, .06); }
+
+.mm-cmp__yes {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    color: #fff;
+    background: #c96a2e;
+}
+
+.mm-cmp__no { color: rgba(0, 16, 43, .3); }
+
+.agntix-dark .mm-cmp__val {
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 14px;
+    color: #00102b;
+}
+
+.mm-cmp__table code {
+    padding: 1px 5px;
+    border-radius: 5px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: .88em;
+    color: #00102b;
+    background: rgba(0, 16, 43, .06);
+}
+
+.agntix-dark .mm-cmp__foot {
+    margin: 18px 0 0;
+    font-size: 13px;
+    text-align: center;
+    color: rgba(0, 16, 43, .55);
+}
+
+@media only screen and (max-width: 991px) {
+    .mm-cmp { margin-top: 70px; }
+    .mm-cmp__head { margin-bottom: 28px; }
+    /* tablo min-width tasiyor; sagdaki solma kaydirilabildigini isaret eder */
+    .mm-cmp__scroll {
+        -webkit-mask-image: linear-gradient(90deg, #000 88%, rgba(0, 0, 0, .25) 100%);
+                mask-image: linear-gradient(90deg, #000 88%, rgba(0, 0, 0, .25) 100%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mm-cmp__chev, .mm-cmp__cell { transition: none; }
+}
+
+/* --- .mm-cmp KOYU zemine cevrildi ---------------------------------------
+   Bolum kagit sanmistim; olctum, `main` zemini rgb(7,22,43) yani KOYU.
+   Tablo da Huseyin'in kartlariyla ayni cam dili olsun. */
+
+.agntix-dark .mm-cmp__title { color: #fff; }
+.mm-cmp__title em { color: #f2a573; }
+.agntix-dark .mm-cmp__head p { color: rgba(255, 255, 255, .62); }
+.agntix-dark .mm-cmp .mm-section-kicker { color: rgba(255, 255, 255, .8); }
+.agntix-dark .mm-cmp .mm-section-kicker::before {
+    background: #f2a573;
+    box-shadow: 0 0 16px rgba(242, 165, 115, .78);
+}
+
+.mm-cmp__scroll {
+    background:
+        radial-gradient(600px 300px at 0% 0%, rgba(90, 140, 226, .12), transparent 68%),
+        radial-gradient(560px 280px at 100% 100%, rgba(137, 180, 239, .08), transparent 68%),
+        linear-gradient(180deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .015)),
+        rgba(7, 18, 40, .55);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .08),
+        inset 0 0 0 1px rgba(137, 180, 239, .18),
+        0 34px 64px -36px rgba(0, 0, 0, .8);
+}
+
+.mm-cmp__table thead th { border-bottom-color: rgba(137, 180, 239, .2); }
+.agntix-dark .mm-cmp__corner { color: rgba(255, 255, 255, .5); }
+.agntix-dark .mm-cmp__name { color: #fff; }
+.agntix-dark .mm-cmp__tag { color: rgba(255, 255, 255, .5); }
+.agntix-dark .mm-cmp__price { color: rgba(255, 255, 255, .55); }
+.agntix-dark .mm-cmp__price b { color: #fff; }
+.mm-cmp__plan.is-on { background: rgba(242, 165, 115, .09); }
+
+.agntix-dark .mm-cmp__band th {
+    border-top-color: rgba(137, 180, 239, .16);
+    color: #f2a573;
+    background: rgba(255, 255, 255, .04);
+}
+
+.mm-cmp__label,
+.mm-cmp__cell { border-top-color: rgba(137, 180, 239, .12); }
+.agntix-dark .mm-cmp__toggle > span { color: rgba(255, 255, 255, .8); }
+.mm-cmp__chev { color: rgba(255, 255, 255, .42); }
+.mm-cmp__toggle:hover .mm-cmp__chev,
+.mm-cmp__toggle[aria-expanded="true"] .mm-cmp__chev { color: #f2a573; }
+.agntix-dark .mm-cmp__desc { color: rgba(255, 255, 255, .55); }
+.mm-cmp__cell.is-on { background: rgba(242, 165, 115, .07); }
+.mm-cmp__no { color: rgba(255, 255, 255, .3); }
+.agntix-dark .mm-cmp__val { color: #fff; }
+.agntix-dark .mm-cmp__foot { color: rgba(255, 255, 255, .45); }
+
+.mm-cmp__table code {
+    color: #f2a573;
+    background: rgba(242, 165, 115, .12);
+}
+
+/* --- .mm-cmp zemini: index'in "Real inbox proof" (.mm-proof) recetesi ----
+   main.css 57029'daki blok birebir: iki 1px cizgi katmani 72px adimla,
+   135deg lacivert gradyan, ve ustten tasan 460px mavi hale.
+   Tablo artik container-1430 icinde; bolum full-bleed kalir ki izgara
+   kenardan kenara gitsin. */
+.mm-cmp {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 110px 0 120px;
+    margin-top: 0;
+    border-top: 1px solid rgba(114, 169, 255, .12);
+    background:
+        linear-gradient(rgba(79, 116, 174, .04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79, 116, 174, .04) 1px, transparent 1px),
+        linear-gradient(135deg, #050914, #071120 54%, #100a1d);
+    background-size: 72px 72px, 72px 72px, auto;
+}
+
+.mm-cmp__grid { display: none; }   /* izgara zeminin kendisinde */
+
+.mm-cmp__halo {
+    position: absolute;
+    top: -180px;
+    right: 6%;
+    width: 460px;
+    height: 460px;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(114, 169, 255, .28), transparent 68%);
+    filter: blur(18px);
+}
+
+/* ikinci hale — tablonun sol altini aydinlatir, .mm-proof'ta da var */
+.mm-cmp::after {
+    content: '';
+    position: absolute;
+    left: -6%;
+    bottom: -160px;
+    width: 420px;
+    height: 420px;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(242, 165, 115, .16), transparent 70%);
+    filter: blur(20px);
+}
+
+.mm-cmp__inner { position: relative; z-index: 1; }
+
+@media only screen and (max-width: 991px) {
+    .mm-cmp { padding: 76px 0 84px; }
+}
+
+/* --- .mm-cmp baslik satiri, 2. tur ---------------------------------------
+   Iki sorun vardi:
+   (a) sol hucre baslik satirinin ~%38'iydi ve tek bir etiket disinda BOSTU;
+   (b) "Most chosen" rozeti akista oldugu icin Team sutununu asagi itiyor,
+       uc sutunun isimleri ayni hizada durmuyordu.
+   Sol hucreye bolumu ozetleyen bir cumle kondu, rozet akistan cikarildi. */
+
+.agntix-dark .mm-cmp__corner {
+    width: 34%;
+    vertical-align: middle;
+    padding: 30px 26px;
+}
+
+.agntix-dark .mm-cmp__cornerlabel {
+    display: block;
+    margin-bottom: 12px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 32px;
+    text-transform: uppercase;
+    color: white;
+}
+
+.agntix-dark .mm-cmp__cornernote {
+    display: block;
+    max-width: 360px;
+    font-family: 'General Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.62;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(255, 255, 255, .62);
+}
+
+.agntix-dark .mm-cmp__cornernote b {
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    color: #f2a573;
+}
+
+/* rozet akistan cikti: uc sutun da ayni ust dolguyu alir, isimler hizalanir */
+.mm-cmp__plan {
+    padding-top: 54px !important;
+    vertical-align: top;
+}
+
+.agntix-dark .mm-cmp__flag {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+/* buton sutunun dibine yaslansin, uc sutunda ayni satirda dursun */
+.mm-cmp__plan .mm-btn-solid,
+.mm-cmp__plan .mm-btn-outline {
+    margin-top: 4px;
+}
+
+/* ==========================================================================
+   Pricing intro: metin lacivert + cipler index hero pill'i     2026-08-07
+   ==========================================================================
+   SADECE EKLEME. Huseyin'in 60316'daki `.mm-pricing__assurances span`
+   blogu OLDUGU GIBI DURUYOR; buradakiler onun uzerine yaziyor.
+   ========================================================================== */
+
+/* `.text_lacivert` sinifi HTML'de vardi ama CSS'i hic yazilmamisti
+   (grep: 0) — metin temadan gelen rgb(168,181,201) griyle kaliyordu. */
+.agntix-dark .mm-tariff .text_lacivert,
+.agntix-dark .mm-pricing__intro .text_lacivert {
+    color: #00102b;
+}
+
+/* ==========================================================================
+   Pricing cipleri = index hero pill'i, BIREBIR                  2026-08-07
+   ==========================================================================
+   Cipler artik HTML'de `mmE-pill mmE-pill--hot` tasiyor, yani index'in
+   KENDI kurallarini (main.css 8911 / 8934 / 8940) kullaniyorlar.
+
+   Buradaki tek is: Huseyin'in `.mm-pricing__assurances span` kurali (0,1,1)
+   `.mmE-pill--hot`u (0,1,0) ezip padding/renk/kenar/font'u geri aliyordu.
+   Bu blok (0,2,0) ile index degerlerini geri koyar. Huseyin'in blogu
+   OLDUGU GIBI DURUYOR, sadece bu kapsamda geri alinir.
+
+   TEK BILINCLI SAPMA — zemin opak:
+   index pill'i `rgba(0,16,43,.58)`, yani %58 saydam. Index'te arkasinda
+   lacivert oldugu icin lacivert gorunuyor; burada arkasinda KREM kagit var
+   ve ayni saydamlikta gri-mavi lekeye donusuyor. Gorunen sonucun index'le
+   ayni olmasi icin opak lacivert.
+   ========================================================================== */
+.mm-pricing__assurances .mmE-pill--hot {
+    min-height: 0;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 0;
+    border-radius: 999px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    color: rgba(255, 255, 255, .8);
+    background: #00102b;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.mm-pricing__assurances .mmE-pill--hot i {
+    font-size: 10px;
+    color: #f2a573;
+}
+
+/* ==========================================================================
+   Seftali rozet ve tikler — 3B hacim                             2026-08-07
+   ==========================================================================
+   Duz tek renk yerine hacim: ustte isik, altta golge, disarida seftali
+   tonlu dusen golge. Uc katman:
+     inset ust  -> parlak kenar (isigin degdigi yer)
+     inset alt  -> koyu kenar (golgede kalan yer)
+     dis golge  -> nesneyi zeminden ayirir
+   Renkler kilitli seftali ailesinden: #f3a874 / #d97f3f / #b85c22.
+   ========================================================================== */
+
+/* --- "Most chosen" rozetleri (tabloda + kartta) --- */
+.agntix-dark .mm-cmp__flag,
+.agntix-dark .mm-plan__flag {
+    background: linear-gradient(180deg, #eb9a60 0%, #d97f3f 48%, #b85c22 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .5),
+        inset 0 -1px 1px rgba(0, 0, 0, .3),
+        0 6px 14px -4px rgba(201, 106, 46, .6),
+        0 2px 5px -1px rgba(0, 0, 0, .45);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, .3);
+}
+
+/* --- tablodaki tik yuvarlaklari --- */
+.mm-cmp__yes {
+    background: radial-gradient(78% 70% at 32% 24%,
+        #f6b184 0%, #e08a4a 42%, #c96a2e 72%, #a8501b 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .55),
+        inset 0 -1px 2px rgba(0, 0, 0, .32),
+        0 3px 7px -2px rgba(201, 106, 46, .65),
+        0 1px 2px rgba(0, 0, 0, .4);
+}
+
+.mm-cmp__yes svg {
+    filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .32));
+}
+
+/* --- kart ozellik listesindeki tikler (ayni nesne, ayni dil) --- */
+.agntix-dark .mm-tariff .app-price-box .crp-price-list ul li > span {
+    background: radial-gradient(78% 70% at 32% 24%,
+        rgba(246, 177, 132, .3) 0%, rgba(224, 138, 74, .22) 42%,
+        rgba(201, 106, 46, .16) 72%, rgba(168, 80, 27, .12) 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .22),
+        inset 0 -1px 2px rgba(0, 0, 0, .28),
+        inset 0 0 0 1px rgba(242, 165, 115, .38),
+        0 2px 5px -2px rgba(0, 0, 0, .5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* hacim statik, hareket yok — dokunulmasi gereken bir sey yok */
+}
+
+/* ==========================================================================
+   "Ne YAPMIYORUZ" bolumu — ACIK stil (.mm-safe)                  2026-08-07
+   ==========================================================================
+   Huseyin temanin `ais-feature-ptb` bolumunu ekledi; tema onu ACIK zemin
+   icin yazmis, sayfa koyu oldugu icin lacivert yazi lacivert uzerinde
+   kaliyordu. Bolum kagida cevrildi ve her metin ayrica ezildi
+   (`.agntix-dark` her seyi beyaza cekiyor).
+   Kart dili = kilitli acik-zemin recetesi: notr sicak yuzey + SABIT
+   lacivert hairline; ikon kapsulu rozet/tiklerle ayni 3B seftali.
+   ========================================================================== */
+
+.mm-safe {
+    position: relative;
+    isolation: isolate;
+    overflow: clip;
+    padding: 120px 0 128px;
+    background: var(--lz-paper, #f4efe8);
+}
+
+/* kagit recetesi — .mm-lz-paper ile ayni */
+.mm-safe::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(760px 520px at -8% 14%, rgba(242, 165, 115, .38), transparent 68%),
+        radial-gradient(700px 480px at 108% 86%, rgba(242, 165, 115, .3), transparent 70%),
+        repeating-linear-gradient(0deg, rgba(0, 16, 43, .055) 0 1px, transparent 1px 44px),
+        repeating-linear-gradient(90deg, rgba(0, 16, 43, .04) 0 1px, transparent 1px 132px);
+}
+
+/* --- baslik --- */
+.agntix-dark .mm-safe .ais-section-subtitle {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 7px 16px;
+    border-radius: 999px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: rgba(0, 16, 43, .66);
+    background: rgba(255, 255, 255, .62);
+    box-shadow: inset 0 0 0 1px rgba(0, 16, 43, .13);
+}
+
+.agntix-dark .mm-safe .ais-section-title {
+    margin: 0;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: clamp(34px, 3.8vw, 54px);
+    line-height: 1.02;
+    letter-spacing: -1.8px;
+    color: #00102b;
+}
+
+.mm-safe .ais-section-title em { font-style: normal; color: #c96a2e; }
+
+.agntix-dark .mm-safe .app-feature-title {
+    margin: 0 0 12px;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 22px;
+    line-height: 1.2;
+    letter-spacing: -.5px;
+    text-transform: none;
+    color: #fff;
+}
+
+.agntix-dark .mm-safe .app-feature-item-content p {
+    margin: 0 0 20px;
+    font-size: 14.5px;
+    line-height: 1.68;
+    color: rgba(255, 255, 255, .64);
+}
+
+.agntix-dark .mm-safe .ais-feature-item-btn a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 13.5px;
+    text-decoration: none;
+    color: #f2a573;
+    transition: gap .3s ease;
+}
+
+.agntix-dark .mm-safe .ais-feature-item-btn a:hover { gap: 13px; }
+
+/* --- alt satir --- */
+.agntix-dark .mm-safe .app-feature-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 38px;
+    font-size: 14.5px;
+    color: rgba(0, 16, 43, .62);
+}
+
+.agntix-dark .mm-safe__foot-tag {
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: #fff;
+    background: linear-gradient(180deg, #eb9a60 0%, #d97f3f 48%, #b85c22 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .5),
+        0 6px 14px -5px rgba(201, 106, 46, .6);
+}
+
+.agntix-dark .mm-safe .app-feature-bottom a {
+    color: #9e4e1f;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+@media only screen and (max-width: 991px) {
+    .mm-safe { padding: 80px 0 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    
+    
+}
+
+/* Kart KOYU kaldigi icin (tema #1a1b1e) metin beyaza cevrildi.
+   Ikon da temanin koyu grisiyle geliyordu, koyu kartta secilmiyordu. */
+.mm-safe .app-feature-item-icon i,
+.mm-safe .app-feature-item-icon span {
+    color: #f2a573;
+}
+
+/* ==========================================================================
+   Ozellik marquee'si (.mm-feat)                                  2026-08-07
+   ==========================================================================
+   Temanin testimonial slider'i ozellik seridine cevrildi. Avatar yerine
+   seftali ikon kapsulu, isim yerine ozellik basligi, yorum yerine tek
+   satirlik aciklama. Yildizlar ve puan blogu tamamen sokuldu.
+   ========================================================================== */
+
+.mm-feat .app-testimonial-item-icon span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    font-size: 18px;
+    color: #fff;
+    background: radial-gradient(78% 70% at 32% 24%,
+        #f6b184 0%, #e08a4a 42%, #c96a2e 72%, #a8501b 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .5),
+        inset 0 -1px 2px rgba(0, 0, 0, .28),
+        0 8px 16px -8px rgba(201, 106, 46, .7);
+}
+
+.mm-feat .app-testimonial-item-icon-box {
+    gap: 14px;
+    margin-bottom: 5px !important;
+}
+
+.agntix-dark .mm-feat .app-testimonial-item-icon-title {
+    margin: 0;
+    font-family: 'ClashDisplay-Semibold', sans-serif;
+    font-size: 17px;
+    line-height: 1.25;
+    letter-spacing: -.3px;
+}
+
+.agntix-dark .mm-feat .app-testimonial-item-content p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.62;
+    opacity: .72;
+}
+
+/* --- Ozellik kartlari: ACIK stil ------------------------------------------
+   Kartlar temanin koyu `#1a1b1e`siyle geliyordu, bolum ise kagit —
+   "cok koyu" denildi. Kilitli acik-zemin kart dili: notr sicak yuzey +
+   SABIT lacivert hairline. Metinler de laciverte cevrildi. */
+.mm-feat {
+    padding: 26px 26px 24px !important;
+    border-radius: 20px !important;
+    background: linear-gradient(180deg, #fffefb 0%, #fbf6ef 100%) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 16, 43, .11),
+        inset 0 1px 0 rgba(255, 255, 255, .95),
+        0 2px 4px -2px rgba(0, 16, 43, .14) !important;
+}
+
+.agntix-dark .mm-feat .app-testimonial-item-icon-title { color: #00102b; }
+
+.agntix-dark .mm-feat .app-testimonial-item-content p {
+    color: rgba(0, 16, 43, .66);
+    opacity: 1;
+}
+
+/* ==========================================================================
+   Ozellik seridi (.mm-feats) — zemin how-it-works `.mm-assure`den
+   ==========================================================================
+   Huseyin: "arkaplani boyle cizgili acik renk glow'lu turuncu yap,
+   how-it-works'te bu yeri bul aynisini yap". main.css 65324'teki
+   `.mm-assure` recetesi BIREBIR: kagit + 12%'de turuncu hale + 92%'de mavi
+   hale + 44/132px cizgi agi.
+   Baslik da `.mm-adv__intro` duzeni: solda kicker + iki satirlik baslik
+   (ikinci satir seftali em), sagda kisa paragraf.
+   ========================================================================== */
+
+.mm-feats {
+    background-color: #f4efe8;
+    background-image:
+        radial-gradient(700px 460px at 12% 0%, rgba(242, 165, 115, .3), transparent 66%),
+        radial-gradient(620px 420px at 92% 100%, rgba(137, 180, 239, .22), transparent 68%),
+        repeating-linear-gradient(0deg, rgba(0, 16, 43, .045) 0 1px, transparent 1px 44px),
+        repeating-linear-gradient(90deg, rgba(0, 16, 43, .035) 0 1px, transparent 1px 132px);
+}
+
+.mm-feats__intro {
+    margin-bottom: 56px;
+}
+
+/* .mm-template-showcase__title index'te KOYU zemin icin beyaz;
+   burasi kagit, laciverte cevriliyor */
+.agntix-dark .mm-feats .mm-template-showcase__title {
+    color: #00102b;
+}
+
+.mm-feats .mm-template-showcase__title em {
+    font-style: normal;
+    color: #c96a2e;
+}
+
+.agntix-dark .mm-feats .mm-section-kicker {
+    color: rgba(0, 16, 43, .62);
+}
+
+.agntix-dark .mm-feats .mm-section-kicker::before {
+    background: #c96a2e;
+    box-shadow: 0 0 14px rgba(201, 106, 46, .5);
+}
+
+.agntix-dark .mm-feats .mm-template-showcase__intro-copy p {
+    color: rgba(0, 16, 43, .66);
+}
+
+/* Baslik dar kolonda uc satira tasiyordu: `.mm-template-showcase__intro`
+   index'te container-1230'da duruyor, burada seride yer acmak icin
+   genisletildi ve puntosu bir tik kisildi. */
+.mm-feats__intro {
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.agntix-dark .mm-feats .mm-template-showcase__title {
+    font-size: clamp(34px, 3.6vw, 52px);
+    line-height: 1.02;
+}
+
+/* ==========================================================================
+   Ozellik kartlari — KOYU lacivert + izgara dokusu                2026-08-07
+   ==========================================================================
+   Huseyin: "kartlari koyu yapalim, bizim kareli cizgili lacivert, ikonlari
+   ona gore degistir, cok bos duruyor bisyeler ekle, daha yaratici".
+
+   Bosluga iki sey kondu, ikisi de bir is yapiyor:
+   1. `.mm-feat__ghost` — kartin sag altinda AYNI ikonun dev soluk kopyasi.
+      Kart yuzeyini doldururken hangi ozellik oldugunu bir kez daha soyler.
+   2. `.mm-feat__tag`  — sag ustte kategori cipi (Price / Seats / Privacy /
+      Export / Billing / Product / Setup). Serit kayarken goz neye baktigini
+      okuyabiliyor.
+   Izgara adimi 24px: kartin 72px'lik bolum izgarasinin uc kati kucugu,
+   kart olceginde ayni dokuyu veriyor.
+   ========================================================================== */
+
+.mm-feat {
+    position: relative !important;
+    overflow: hidden !important;
+    padding: 26px 26px 24px !important;
+    border-radius: 20px !important;
+    background:
+        linear-gradient(rgba(137, 180, 239, .05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(137, 180, 239, .05) 1px, transparent 1px),
+        radial-gradient(300px 180px at 0% 0%, rgba(90, 140, 226, .18), transparent 70%),
+        linear-gradient(160deg, #071120 0%, #050d1a 55%, #0b1224 100%) !important;
+    background-size: 24px 24px, 24px 24px, auto, auto !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .07),
+        inset 0 0 0 1px rgba(137, 180, 239, .2),
+        0 18px 36px -24px rgba(0, 16, 43, .8) !important;
+    transition: box-shadow .45s ease, transform .4s ease !important;
+}
+
+.mm-feat:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .1),
+        inset 0 0 0 1px rgba(242, 165, 115, .4),
+        0 26px 48px -26px rgba(0, 0, 0, .85) !important;
+}
+
+/* dev soluk filigran — kartin sag alt kosesinde, kirpilmis */
+.mm-feat__ghost {
+    position: absolute;
+    right: -14px;
+    bottom: -22px;
+    z-index: 0;
+    font-size: 104px;
+    line-height: 1;
+    pointer-events: none;
+    color: rgba(137, 180, 239, .07);
+    transition: color .5s ease, transform .5s ease;
+}
+
+.mm-feat:hover .mm-feat__ghost {
+    color: rgba(242, 165, 115, .11);
+    transform: translate(-4px, -4px) rotate(-6deg);
+}
+
+.mm-feat > *:not(.mm-feat__ghost) { position: relative; z-index: 1; }
+
+/* kategori cipi */
+.agntix-dark .mm-feat__tag {
+    margin-left: auto;
+    flex: none;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-family: 'ClashDisplay-Medium', sans-serif;
+    font-size: 9.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #89b4ef;
+    background: rgba(137, 180, 239, .1);
+    box-shadow: inset 0 0 0 1px rgba(137, 180, 239, .26);
+}
+
+.mm-feat:hover .mm-feat__tag {
+    color: #f2a573;
+    background: rgba(242, 165, 115, .12);
+    box-shadow: inset 0 0 0 1px rgba(242, 165, 115, .34);
+}
+
+/* ikonlar koyu karta gore */
+.mm-feat .app-testimonial-item-icon span {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    font-size: 17px;
+    color: #f2a573;
+    background: rgba(242, 165, 115, .12);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .14),
+        inset 0 0 0 1px rgba(242, 165, 115, .32);
+}
+
+.mm-feat:hover .app-testimonial-item-icon span {
+    color: #fff;
+    background: radial-gradient(78% 70% at 32% 24%,
+        #f6b184 0%, #e08a4a 42%, #c96a2e 72%, #a8501b 100%);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .5),
+        0 8px 16px -8px rgba(201, 106, 46, .8);
+}
+
+.agntix-dark .mm-feat .app-testimonial-item-icon-title { color: #fff; }
+
+.agntix-dark .mm-feat .app-testimonial-item-content p {
+    color: rgba(255, 255, 255, .64);
+    opacity: 1;
+}
+
+/* baslik altina ince gradyan hat */
+.mm-feat .app-testimonial-item-content::before {
+    content: '';
+    display: block;
+    width: 38px;
+    height: 2px;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #89b4ef, #f2a573);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mm-feat, .mm-feat__ghost { transition: none !important; }
+    .mm-feat:hover { transform: none; }
+    .mm-feat:hover .mm-feat__ghost { transform: none; }
+}
+
+/* Sag paragraf, basligin ALT hizasina otursun (ust degil). */
+.mm-feats__intro {
+    align-items: end;
+}
+
+.mm-feats .mm-template-showcase__intro-copy p {
+    margin-bottom: 0;
+}
+
+/* `align-items: end` kutulari hizaliyor ama basligin satir kutusundaki
+   descender payi yuzunden son satirlar 7px kayiyordu; optik hizaya cekildi. */
+.mm-feats .mm-template-showcase__intro-copy {
+    transform: translateY(7px);
+}
+
+/* Kart hover'lari ease-in-out. Kartin kendisi, filigran, cip ve ikon ayni
+   egriyi ve sureyi paylasiyor ki hover tek bir hareket gibi okunsun. */
+.mm-feat,
+.mm-feat__ghost,
+.mm-feat__tag,
+.mm-feat .app-testimonial-item-icon span {
+    transition-timing-function: ease-in-out !important;
+    transition-duration: .42s !important;
+}

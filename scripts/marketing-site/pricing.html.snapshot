@@ -1,0 +1,2453 @@
+<!doctype html>
+<html class="no-js agntix-dark" lang="zxx">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Mailmyra | Pricing</title>
+    <meta name="description" content="$1 per active sender, per year. One product, no feature gates, no platform fee &mdash; and your email never routes through Mailmyra.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;family=Phudu:wght@300..900&amp;display=swap">
+    <!-- mm: TEK STIL DOSYASI. Onceki 9 ayri dosya + bundle
+             (index-it-solution-dark[.subset].min.css) main.css'te birlestirildi;
+             artik duzenlenecek tek yer orasi. Bundle dosyalari SILINDI. -->
+    <link rel="stylesheet" href="assets/css/main.css?v=mailmyra-0807-40">
+    <!-- mm: acilis ekrani (GLOW) — lab sayfasiyla paylasildigi icin ayri durdu -->
+    <link rel="stylesheet" href="assets/css/mailmyra-preloader-glow.css?v=mailmyra-0803-1">
+    <!-- mm: sayfa ilerleme dugmesi (eski go-to-top) -->
+    <link rel="stylesheet" href="assets/css/mailmyra-scrollprogress.css?v=mailmyra-0803-1">
+    <!-- mm: buyuyen mobil navigasyon -->
+    <link rel="stylesheet" href="assets/css/mailmyra-nav.css?v=mailmyra-0803-6">
+    <!-- mm: index'in mobil content-visibility <style> blogu BILEREK alinmadi —
+             icindeki bolum yukseklikleri index'in kendi bolumlerine ait. -->
+
+</head>
+
+<body class="tp-magic-cursor">
+
+    <!-- mm: acilis ekrani (GLOW) — start ==================================
+         Markup burada DURUYOR, JS ile uretilmiyor: ilk boyamada aninda
+         gorunsun, arada beyaz flash olmasin. #smooth-wrapper'in DISINDA
+         (satir 360+) — ScrollSmoother'in transform'undan etkilenmesin.
+         Surucu: assets/js/mailmyra-preloader.js
+         ==================================================================== -->
+    <div class="mml mml--glow" id="mm-preloader">
+        <span class="mml-glow__orb mml-glow__orb--a"></span>
+        <span class="mml-glow__orb mml-glow__orb--b"></span>
+
+        <span class="mml-bar"><i></i><b></b></span>
+        <div class="mml-tag"><s></s><span>LOADING</span></div>
+
+        <div class="mml-glow">
+            <p class="mml-glow__top">EMAIL SIGNATURES</p>
+
+            <!-- mm: logo 8 dikey serit; her serit ayni SVG'nin kendi
+                     dilimini gosteriyor, sirayla asagidan suzuluyor -->
+            <h1 class="mml-glow__title" aria-label="Mailmyra">
+                <span class="mml-glow__s" style="--n:0"><u></u></span>
+                <span class="mml-glow__s" style="--n:1"><u></u></span>
+                <span class="mml-glow__s" style="--n:2"><u></u></span>
+                <span class="mml-glow__s" style="--n:3"><u></u></span>
+                <span class="mml-glow__s" style="--n:4"><u></u></span>
+                <span class="mml-glow__s" style="--n:5"><u></u></span>
+                <span class="mml-glow__s" style="--n:6"><u></u></span>
+                <span class="mml-glow__s" style="--n:7"><u></u></span>
+            </h1>
+
+            <p class="mml-glow__sub">BUILT ONCE · RENDERED EVERYWHERE</p>
+        </div>
+    </div>
+    <script src="assets/js/mailmyra-preloader.js?v=mailmyra-0803-2"></script>
+    <!-- mm: acilis ekrani (GLOW) — end -->
+
+    <!-- Begin magic cursor -->
+    <div id="magic-cursor">
+        <div id="ball"></div>
+    </div>
+    <!-- End magic cursor -->
+
+    <!-- mm: back to top → SAYFA ILERLEME dugmesi ========================
+         Halka kaydirma ilerlemesini gosterir, ortadaki yuzde %100'de
+         (ve hover'da) yukari oka doner. Temanin kabugu (id/class) KORUNDU:
+         gorunme/gizlenme ve tiklama hala main.js → back_to_top() tarafindan
+         yonetiliyor. Stil: assets/css/mailmyra-scrollprogress.css
+         Surucu:  assets/js/mailmyra-scrollprogress.js
+         ==================================================================== -->
+    <div class="back-to-top-wrapper">
+        <button id="back_to_top" type="button" class="back-to-top-btn" aria-label="Sayfa ilerlemesi — basa don">
+            <svg class="mm-sp__ring" viewBox="0 0 54 54" aria-hidden="true">
+                <!-- mm: r=24 → cevre 2πr = 150.796 (CSS'te elle yazili).
+                         Kalin stroke viewBox disina tasmasin diye r kucultuldu. -->
+                <circle class="mm-sp__track" cx="27" cy="27" r="24" />
+                <circle class="mm-sp__shadow" cx="27" cy="27" r="24" />
+                <circle class="mm-sp__bar" cx="27" cy="27" r="24" />
+            </svg>
+            <span class="mm-sp__face">
+                <span class="mm-sp__num"><b>0</b><i>%</i></span>
+                <svg class="mm-sp__arrow" width="18" height="11" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M11 6L6 1L1 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+        </button>
+    </div>
+    <!-- mm: back to top end -->
+    <script src="assets/js/mailmyra-scrollprogress.js?v=mailmyra-0803-1" defer></script>
+
+    <!-- mm: BUYUYEN MOBIL NAVIGASYON — temanin yandan kayan
+         offcanvas'inin yerine gecti (eski blok 9432 bayt).
+         Desen: growing-navigation.framer.website
+         Stil: assets/css/mailmyra-nav.css · Surucu: assets/js/mailmyra-nav.js
+         Icerik header'in mega-menusunden birebir kopyalandi. -->
+    <div class="mmnav-veil" id="navVeil"></div>
+
+    <nav class="mmnav" id="mmnav" aria-label="Mobil menu">
+        <div class="mmnav__shell">
+
+            <div class="mmnav__bar">
+                <a class="mm-header-logo" href="index.html" aria-label="Mailmyra">
+                    <img src="assets/img/logo/logo-ikonsuz.svg" alt="Mailmyra">
+                </a>
+                <!-- mm: md ve ustunde cubukta gorunen eylemler -->
+                <div class="mmnav__baractions">
+                    <a class="mm-btn-outline" href="login.html">
+                        <span class="mm-btn__face">
+                            <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
+                        </span>
+                    </a>
+                    <a class="mm-btn-solid" href="builder.html">
+                        <span class="mm-btn__face">
+                            <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+                <button class="tp-offcanvas-open-btn mmnav__toggle" id="navToggle" type="button"
+                        aria-expanded="false" aria-controls="navPanel" aria-label="Menu">
+                    <i></i><i></i><i></i>
+                </button>
+            </div>
+
+            <div class="mmnav__rule"></div>
+
+            <div class="mmnav__panel" id="navPanel">
+
+                <!-- mm: acilir menuler -->
+                <div class="mmnav__item" style="--i:0">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Product <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mm-mega--duo mmnav__mega">
+                                <span class="mm-mega__head">PRODUCT</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links">
+                                                            <a href="how-it-works.html"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
+                                                            <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
+                                                            <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
+                                                        </div>
+                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="builder.html">
+                                                            <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
+                                                            <span class="mm-mega__featnote">Build your signature live — free, no sign-up.</span>
+                                                            <span class="mm-mega__featcta">Open the builder
+                                                                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                            </span>
+                                                        </a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:1">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Works with <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mm-mega--wide mmnav__mega">
+                                <span class="mm-mega__head">EMAIL CLIENTS</span>
+                                <div class="mm-mega__body"><div class="mm-mega__grid">
+                                                            <a href="setup-outlook-classic.html"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
+                                                            <a href="setup-new-outlook.html"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
+                                                            <a href="setup-gmail.html"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
+                                                            <a href="setup-apple-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
+                                                            <a href="setup-ios-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
+                                                        </div>
+                                                        <aside class="mm-mega__feature" aria-hidden="true">
+                                                            <span class="mm-sigcard">
+                                                                <span class="mm-sigcard__row">
+                                                                    <span class="mm-sigcard__avatar">HY</span>
+                                                                    <span><strong>Hüseyin Yıldız</strong><em>Creative Director · Voldi</em></span>
+                                                                </span>
+                                                                <span class="mm-sigcard__rule"></span>
+                                                                <span class="mm-sigcard__line w1"></span>
+                                                                <span class="mm-sigcard__line w2"></span>
+                                                                <span class="mm-sigcard__links"><i></i><i></i><i></i></span>
+                                                            </span>
+                                                            <span class="mm-mega__featnote">One signature, identical in every client — real render, not a screenshot.</span>
+                                                            <span class="mm-mega__tags"><span>table-based</span><span>inline CSS</span></span>
+                                                        </aside></div>
+                                <span class="mm-mega__foot"><a href="setup.html">All setup guides
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:2">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Solutions <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mmnav__mega">
+                                <span class="mm-mega__head">WHO IT&RSQUO;S FOR</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="agencies.html"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a><a href="enterprise.html"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a><a href="small-teams.html"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:3">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Templates <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mmnav__mega">
+                                <span class="mm-mega__head">TEMPLATE GALLERY</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="templates-professionals.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a><a href="templates-teams.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a><a href="templates-agencies.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></div></div>
+                                <span class="mm-mega__foot"><a href="templates.html">Browse all templates
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:4">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Pricing <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mmnav__mega">
+                                <span class="mm-mega__head">PLANS</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="pricing.html#pro"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>Pro</strong><span>$1 per sender/year — one person, one brand.</span></span></a><a href="pricing.html#team"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>Team</strong><span>Same $1 — many senders, one brand.</span></span></a><a href="pricing.html#agency"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M2 22h20"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></i><span class="mm-mega__txt"><strong>Agency</strong><span>Same $1 — isolated client orgs, white-label.</span></span></a></div></div>
+                                <span class="mm-mega__foot"><a href="contact.html">Agency plans — pooled seats, talk to us
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- mm: tek seviyeli linkler -->
+                <div class="mmnav__item" style="--i:5">
+                    <div class="mmnav__row">
+                        <a class="mmnav__link" href="#faq">FAQ</a>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:6">
+                    <div class="mmnav__row">
+                        <a class="mmnav__link" href="#contact">Contact</a>
+                    </div>
+                </div>
+
+                <!-- mm: eylemler — index'in KENDI buton bilesenleri
+                         (.mm-btn-solid / .mm-btn-outline, mm-btn__face + label
+                         takasi). Yeniden yazilmiyor, main.css'ten geliyor. -->
+                <div class="mmnav__item mmnav__actions" style="--i:7">
+                    <a class="mm-btn-solid" href="builder.html">
+                        <span class="mm-btn__face">
+                            <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                    <a class="mm-btn-outline" href="login.html">
+                        <span class="mm-btn__face">
+                            <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- mm: alt blok — kisa cumle + ikonlu baglantilar -->
+                <div class="mmnav__item mmnav__foot" style="--i:8">
+                    <p class="mmnav__foot-note">Same email.<br><em>Stronger identity.</em></p>
+
+                    <div class="mmnav__foot-links">
+                        <a href="mailto:hello@mailmyra.com">
+                            <i class="mm-chip"><i class="fa-light fa-envelope"></i></i>
+                            <span>hello@mailmyra.com</span>
+                            <i class="fa-light fa-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://facebook.com/mailmyra" target="_blank" rel="noopener">
+                            <i class="mm-chip"><i class="fa-brands fa-facebook-f"></i></i>
+                            <span>Facebook</span>
+                            <i class="fa-light fa-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://instagram.com/mailmyra" target="_blank" rel="noopener">
+                            <i class="mm-chip"><i class="fa-brands fa-instagram"></i></i>
+                            <span>Instagram</span>
+                            <i class="fa-light fa-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+
+                    <p class="mmnav__foot-meta">Konya, Türkiye · <span>Voldi Creative</span></p>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- search area start -->
+    <div class="tp-search-area search-black p-relative">
+        <div class="tp-search-close">
+            <button class="tp-search-close-btn">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="path-1" d="M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path class="path-2" d="M1 1L11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="container container-1230">
+            <div class="row">
+                <div class="tp-search-wrapper">
+                    <div class="col-lg-8">
+                        <div class="tp-search-content">
+                            <div class="search p-relative">
+                                <input type="text" class="search-input" placeholder="Search">
+                                <button class="tp-search-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M18.0508 18.05L23.0009 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M20.8004 10.9C20.8004 5.43237 16.3679 1 10.9002 1C5.43246 1 1 5.43237 1 10.9C1 16.3676 5.43246 20.7999 10.9002 20.7999C16.3679 20.7999 20.8004 16.3676 20.8004 10.9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="body-overlay"></div>
+    <!-- search area end -->
+
+    <header>
+
+        <!-- header area start -->
+        <div id="header-sticky" class="tp-header-10-area tp-header-11-style tp-header-blur sticky-black-bg header-11-dark-style header-transparent">
+            <div class="container container-1630">
+                <div class="tp-header-10-wrapper mt-30">
+                    <div class="row align-items-center">
+                        <div class="col-xl-2 col-lg-4 col-md-6 col-7">
+                            <div class="tp-header-10-logo">
+                                <a class="mm-header-logo" href="index.html">
+                                    <img data-width="100%" src="assets/img/logo/logo-ikonsuz.svg" alt="Mailmyra">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-xl-10 col-lg-8 col-md-6 col-5">
+                            <div class="tp-header-10-box d-flex align-items-center justify-content-end justify-content-xl-between">
+                                <div class="tp-header-menu tp-header-10-menu tp-header-dropdown dropdown-black-bg d-none d-xl-block">
+                                    <nav class="tp-mobile-menu-active">
+                                        <ul>
+                                            <li class="has-dropdown">
+                                                <a href="product.html">Product</a>
+                                                <ul class="tp-submenu submenu mm-mega mm-mega--duo">
+                                                    <li class="mm-mega__head" aria-hidden="true">Product</li>
+                                                    <li class="mm-mega__body">
+                                                        <div class="mm-mega__links">
+                                                            <a href="how-it-works.html"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
+                                                            <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
+                                                            <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
+                                                        </div>
+                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="builder.html">
+                                                            <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
+                                                            <span class="mm-mega__featnote">Build your signature live — free, no sign-up.</span>
+                                                            <span class="mm-mega__featcta">Open the builder
+                                                                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                            </span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="compatibility.html">Works with</a>
+                                                <ul class="tp-submenu submenu mm-mega mm-mega--wide">
+                                                    <li class="mm-mega__head" aria-hidden="true">Email clients</li>
+                                                    <li class="mm-mega__body">
+                                                        <div class="mm-mega__grid">
+                                                            <a href="setup-outlook-classic.html"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
+                                                            <a href="setup-new-outlook.html"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
+                                                            <a href="setup-gmail.html"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
+                                                            <a href="setup-apple-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
+                                                            <a href="setup-ios-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
+                                                        </div>
+                                                        <aside class="mm-mega__feature" aria-hidden="true">
+                                                            <span class="mm-sigcard">
+                                                                <span class="mm-sigcard__row">
+                                                                    <span class="mm-sigcard__avatar">HY</span>
+                                                                    <span><strong>Hüseyin Yıldız</strong><em>Creative Director · Voldi</em></span>
+                                                                </span>
+                                                                <span class="mm-sigcard__rule"></span>
+                                                                <span class="mm-sigcard__line w1"></span>
+                                                                <span class="mm-sigcard__line w2"></span>
+                                                                <span class="mm-sigcard__links"><i></i><i></i><i></i></span>
+                                                            </span>
+                                                            <span class="mm-mega__featnote">One signature, identical in every client — real render, not a screenshot.</span>
+                                                            <span class="mm-mega__tags"><span>table-based</span><span>inline CSS</span></span>
+                                                        </aside>
+                                                    </li>
+                                                    <li class="mm-mega__foot"><a href="setup.html">All setup guides
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="solutions.html">Solutions</a>
+                                                <ul class="tp-submenu submenu mm-mega">
+                                                    <li class="mm-mega__head" aria-hidden="true">Who it&rsquo;s for</li>
+                                                    <li><a href="agencies.html"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a></li>
+                                                    <li><a href="enterprise.html"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a></li>
+                                                    <li><a href="small-teams.html"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="templates.html">Templates</a>
+                                                <ul class="tp-submenu submenu mm-mega">
+                                                    <li class="mm-mega__head" aria-hidden="true">Template gallery</li>
+                                                    <li><a href="templates-professionals.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a></li>
+                                                    <li><a href="templates-teams.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a></li>
+                                                    <li><a href="templates-agencies.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></li>
+                                                    <li class="mm-mega__foot"><a href="templates.html">Browse all templates
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="pricing.html">Pricing</a>
+                                                <ul class="tp-submenu submenu mm-mega">
+                                                    <li class="mm-mega__head" aria-hidden="true">Plans</li>
+                                                    <li><a href="pricing.html#pro"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>Pro</strong><span>$1 per sender/year — one person, one brand.</span></span></a></li>
+                                                    <li><a href="pricing.html#team"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>Team</strong><span>Same $1 — many senders, one brand.</span></span></a></li>
+                                                    <li><a href="pricing.html#agency"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M2 22h20"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></i><span class="mm-mega__txt"><strong>Agency</strong><span>Same $1 — isolated client orgs, white-label.</span></span></a></li>
+                                                    <li class="mm-mega__foot"><a href="contact.html">Agency plans — pooled seats, talk to us
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="faq.html">FAQ</a></li>
+                                            <li><a href="contact.html">Contact</a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                                <div class="tp-header-10-right d-flex align-items-center">
+                                    
+                                    <div class="d-none d-md-block">
+                                        <a class="mm-btn-outline" href="login.html">
+                                            <span class="mm-btn__face">
+                                                <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="d-none d-md-block ml-10">
+                                        <a class="mm-btn-solid" href="builder.html">
+                                            <span class="mm-btn__face">
+                                                <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="tp-header-10-offcanvas d-xl-none ml-15">
+                                        <div class="tp-header-bar">
+                                            <button class="tp-offcanvas-open-btn" aria-label="Open menu">
+                                                <i></i>
+                                                <i></i>
+                                                <i></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- header area end -->
+
+    </header>
+
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
+
+            <main>
+
+                <!-- ================================================================
+                     mm: SAYFA ICERIGI — su an temanin ORIJINAL bolumleri duruyor.
+                     Kabuk (preloader / header / mobil nav / ilerleme dugmesi /
+                     footer) index-it-solution-dark.html'den birebir turetildi.
+                     ================================================================ -->
+
+                <div class="pp-top-wrap">
+
+                    <!-- hero area start -->
+
+                    <div class="pp-about-me-area pp-about-me-ptb z-index-1 mm-hiw-hero" data-bg-color="#00102b">
+
+                        <div class="mmE-bgfx mm-hiw-bgfx" aria-hidden="true">
+                            <span class="mmE-aur" style="left:-8%;  top:-22%;    width:780px; height:560px; --ac:rgba(90,140,226,.40);  --ad:30s;"></span>
+                            <span class="mmE-aur" style="right:-6%; top:-10%;    width:620px; height:480px; --ac:rgba(137,180,239,.24); --ad:26s; --adl:-9s;"></span>
+                            <span class="mmE-aur" style="left:26%;  bottom:-30%; width:560px; height:420px; --ac:rgba(90,140,226,.22);  --ad:34s; --adl:-15s;"></span>
+                            <span class="mmE-aur" style="right:22%; bottom:-18%; width:420px; height:320px; --ac:rgba(242,165,115,.14); --ad:38s; --adl:-6s;"></span>
+
+                            <div class="mm-hiw-track">
+                                <span class="mm-hiw-cell" style="--i:0"></span>
+                                <span class="mm-hiw-cell" style="--i:1"></span>
+                                <span class="mm-hiw-cell" style="--i:2"></span>
+                                <span class="mm-hiw-cell" style="--i:3"></span>
+                            </div>
+
+                            <span class="mm-hiw-gridlit"></span>
+                            <span class="mm-hiw-spot"></span>
+                        </div>
+
+                        <div class="container-fluid">
+                            <div class="pp-about-me-heading text-center z-index-1 d-none d-md-block">
+                               
+                                <h4 class="pp-about-me-title mm-hiw-title">PRICING</h4>
+                            </div>
+                            <div class="pp-about-me-heading-slider text-center z-index-1 d-block d-md-none">
+                                <div class="swiper-container tp-brand-active">
+                                    <div class="swiper-wrapper slide-transtion">
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">PRICING</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">PRICING</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">PRICING</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">PRICING</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">PRICING</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container container-1350">
+                            <div class="row align-items-center">
+                                <div class="col-xl-4 col-lg-4 col-md-12">
+                                    <div class="pp-hero-left z-index-1">
+                                        <div class="pp-about-me-hero-left pt-90 pb-100 z-index-1">
+                                            <!-- mm: kucuk baslik -->
+                                            <h6 class="mm-hiw-kicker">ONE PRODUCT, ONE PRICE</h6>
+
+                                            <p class="mm-hiw-lead">
+                                                $1 per active sender, per year &mdash; the same price whether you
+                                                manage one signature or a hundred. No feature gates, no platform
+                                                fee, and your email never routes through us.
+                                            </p>
+
+                                            <!-- mm: CTA — sayfayi ilk bolume (#how-start) kaydirir -->
+                                            <a class="mm-btn-solid mm-hiw-cta" href="#pricing-start" data-mm-scrollto>
+                                                <span class="mm-btn__face">
+                                                    <span class="mm-btn__label">
+                                                        <span>See the price</span>
+                                                        <span aria-hidden="true">See the price</span>
+                                                    </span>
+                                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M7 2.5v9M3.5 8L7 11.5L10.5 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-7 order-lg-2 order-3">
+                                    <div class="pp-about-me-thumb z-index-1 text-center">
+                                        <img src="assets/img/about-me/about-me-thumb-1.png" alt="">
+                                    </div>
+                                </div>
+                                <div class="col-xl-1 col-lg-1 col-md-12 order-lg-3 order-2">
+
+                                    <ol class="mm-hiw-rail z-index-2">
+                                        <li class="mm-hiw-rail__step" style="--i:0">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>01</b>
+                                            <span>Price</span>
+                                        </li>
+                                        <li class="mm-hiw-rail__step" style="--i:1">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>02</b>
+                                            <span>Seats</span>
+                                        </li>
+                                        <li class="mm-hiw-rail__step" style="--i:2">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>03</b>
+                                            <span>Modes</span>
+                                        </li>
+                                        <li class="mm-hiw-rail__step" style="--i:3">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>04</b>
+                                            <span>Answers</span>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- hero area end -->
+
+
+                </div>
+                <!-- pricing area start -->
+                <div class="mm-tariff p-relative z-index-2" id="pricing-start" data-bg-color="#f4efe8">
+                    <span class="mm-tariff__bg" aria-hidden="true"></span>
+                    <div class="container container-1530">
+                        <div class="mm-pricing__intro">
+                            <div>
+                                <span class="mm-section-kicker">Simple annual pricing</span>
+                                <h2 id="mm-pricing-title" class="mm-tariff__heading">One price.<br><em>Every way you work.</em></h2>
+                            </div>
+                            <div class="mm-pricing__intro-copy">
+                                <p class="text_lacivert">Start free, then move to one clear annual price when you are ready to manage more senders.</p>
+                                <div class="mm-pricing__assurances" aria-label="Pricing assurances">
+                                    <span><i class="fa-light fa-calendar-check"></i> Annual billing</span>
+                                    <span><i class="fa-light fa-credit-card"></i> No card for trial</span>
+                                    <span><i class="fa-light fa-receipt"></i> No hidden fees</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mm-pricing-audience pricing_aud mb-4">
+                            <div class="mm-pricing-audience__tabs" role="tablist" aria-label="Mailmyra workspace type">
+                                <button type="button" class="is-active" role="tab" aria-selected="true" data-mm-audience="Pro" data-mm-card="pro">
+                                    <i class="fa-light fa-user"></i>
+                                    <span><strong>Pro</strong><small>Solo workspace</small></span>
+                                </button>
+                                <button type="button" role="tab" aria-selected="false" data-mm-audience="Team" data-mm-card="team">
+                                    <i class="fa-light fa-users"></i>
+                                    <span><strong>Teams</strong><small>Growing companies</small></span>
+                                </button>
+                                <button type="button" role="tab" aria-selected="false" data-mm-audience="Agency" data-mm-card="agency">
+                                    <i class="fa-light fa-building"></i>
+                                    <span><strong>Agency</strong><small>Multiple clients</small></span>
+                                </button>
+                            </div>
+                        
+                        </div>
+
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade show active" id="mm-pane-all" role="tabpanel" tabindex="0">
+                                <div class="app-price-box app-price-inner-style">
+                                    <div class="row">
+                                        <div class="col-xl-4 col-lg-6 col-md-6">
+                                            <div class="crp-price-item mm-plan" id="pro" data-mm-plan="pro">
+                                                <div class="mm-plan__top">
+                                                    <span class="mm-plan__icon"><i class="fa-light fa-user" aria-hidden="true"></i></span>
+                                                    <span class="mm-plan__name">Pro</span>
+                                                    <span class="mm-plan__tag">Solo workspace</span>
+                                                </div>
+
+                                                <div class="mm-plan__shape"><img src="assets/img/mailmyra/pricing/pro.png"></div>
+
+                                                <div class="crp-price-head">
+                                                    <h4 class="d-flex align-items-end gap-4">$1 <i>per active sender / year</i></h4>
+                                                    <p>Every feature included. The price is the same in all three.</p>
+                                                </div>
+
+                                                <div class="crp-price-list">
+                                                    <ul>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited saved signatures and templates</li>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Rich HTML copy and .htm download</li>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Brand controls: colour, type, logo</li>
+                                                        <li class="is-special"><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>One brand space, one sender</li>
+                                                    </ul>
+                                                </div>
+
+                                                <p class="mm-plan__example">
+                                                    <span>1 active sender</span><b>$1 a year</b>
+                                                </p>
+
+                                                <div class="app-price-btn-box">
+                                                    <a class="mm-btn-outline w-100" href="contact.html"><span class="mm-btn__face"><span class="mm-btn__label"><span>Start the 7-day trial</span><span aria-hidden="true">Start the 7-day trial</span></span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 col-lg-6 col-md-6">
+                                            <div class="crp-price-item mm-plan is-hot" id="team" data-mm-plan="team">
+                                                <span class="mm-plan__flag">Most chosen</span>
+                                                <div class="mm-plan__top">
+                                                    <span class="mm-plan__icon"><i class="fa-light fa-users" aria-hidden="true"></i></span>
+                                                    <span class="mm-plan__name">Team</span>
+                                                    <span class="mm-plan__tag">Growing companies</span>
+                                                </div>
+
+                                                <div class="mm-plan__shape"><img src="assets/img/mailmyra/pricing/team.png"></div>
+
+                                                <div class="crp-price-head">
+                                                    <h4 class="d-flex align-items-end gap-4">$1 <i>per active sender / year</i></h4>
+                                                    <p>Every feature included. The price is the same in all three.</p>
+                                                </div>
+
+                                                <div class="crp-price-list">
+                                                    <ul>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited saved signatures and templates</li>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Rich HTML copy and .htm download</li>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Brand controls: colour, type, logo</li>
+                                                        <li class="is-special"><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>One approved system across everyone</li>
+                                                    </ul>
+                                                </div>
+
+                                                <p class="mm-plan__example">
+                                                    <span>25 active senders</span><b>$25 a year</b>
+                                                </p>
+
+                                                <div class="app-price-btn-box">
+                                                    <a class="mm-btn-solid w-100" href="contact.html"><span class="mm-btn__face"><span class="mm-btn__label"><span>Start the 7-day trial</span><span aria-hidden="true">Start the 7-day trial</span></span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-xl-4 col-lg-6 col-md-6">
+                                            <div class="crp-price-item mm-plan" id="agency" data-mm-plan="agency">
+                                                <div class="mm-plan__top">
+                                                    <span class="mm-plan__icon"><i class="fa-light fa-building" aria-hidden="true"></i></span>
+                                                    <span class="mm-plan__name">Agency</span>
+                                                    <span class="mm-plan__tag">Multiple clients</span>
+                                                </div>
+
+                                                <div class="mm-plan__shape"><img src="assets/img/mailmyra/pricing/agency.png"></div>
+
+                                                <div class="crp-price-head">
+                                                    <h4 class="d-flex align-items-end gap-4">$1 <i>per active sender / year</i></h4>
+                                                    <p>Every feature included. The price is the same in all three.</p>
+                                                </div>
+
+                                                <div class="crp-price-list">
+                                                    <ul>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Unlimited saved signatures and templates</li>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Rich HTML copy and .htm download</li>
+                                                        <li><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Brand controls: colour, type, logo</li>
+                                                        <li class="is-special"><span><svg viewBox="0 0 10 9" width="10" height="9" fill="none" aria-hidden="true"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Isolated client orgs, white-label</li>
+                                                    </ul>
+                                                </div>
+
+                                                <p class="mm-plan__example">
+                                                    <span>200 senders across clients</span><b>$200 a year</b>
+                                                </p>
+
+                                                <div class="app-price-btn-box">
+                                                    <a class="mm-btn-outline w-100" href="contact.html"><span class="mm-btn__face"><span class="mm-btn__label"><span>Start the 7-day trial</span><span aria-hidden="true">Start the 7-day trial</span></span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    
+                    </div>
+                </div>
+                        <div class="mm-cmp" id="compare">
+                            <span class="mm-cmp__grid" aria-hidden="true"></span>
+                            <span class="mm-cmp__halo" aria-hidden="true"></span>
+                            <div class="container container-1530 mm-cmp__inner">
+                            <div class="mm-cmp__head">
+                                <span class="mm-section-kicker">Side by side</span>
+                                <h2 class="mm-cmp__title">Compare every feature.<br><em>The price row will bore you.</em></h2>
+                                <p>Most comparison tables exist to show what you are not getting. Ours shows the
+                                    opposite: the same price three times, and almost every row ticked in all three.
+                                    Only the shape of the workspace changes.</p>
+                            </div>
+                            <div class="mm-cmp__scroll">
+                                <table class="mm-cmp__table">
+                                    <caption class="mm-cmp__sr">Mailmyra workspaces compared feature by feature</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col" class="mm-cmp__corner">
+                        <span class="mm-cmp__cornerlabel">Features by plan</span>
+                        <span class="mm-cmp__cornernote">Everything below is included at the same <b>$1</b> per active sender, per year. Only the shape of the workspace changes.</span>
+                    </th>
+                                            <th scope="col" class="mm-cmp__plan" data-mm-col="pro">
+                                                <span class="mm-cmp__name">Pro</span>
+                                                <span class="mm-cmp__tag">Solo workspace</span>
+                                                <span class="mm-cmp__price"><b>$1</b> sender / year</span>
+                                                <a class="mm-btn-outline" href="contact.html"><span class="mm-btn__face"><span class="mm-btn__label"><span>Get started</span><span aria-hidden="true">Get started</span></span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                                            </th>
+                                            <th scope="col" class="mm-cmp__plan is-on" data-mm-col="team">
+                                                <span class="mm-cmp__flag">Most chosen</span>
+                                                <span class="mm-cmp__name">Team</span>
+                                                <span class="mm-cmp__tag">Growing companies</span>
+                                                <span class="mm-cmp__price"><b>$1</b> sender / year</span>
+                                                <a class="mm-btn-solid" href="contact.html"><span class="mm-btn__face"><span class="mm-btn__label"><span>Get started</span><span aria-hidden="true">Get started</span></span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                                            </th>
+                                            <th scope="col" class="mm-cmp__plan" data-mm-col="agency">
+                                                <span class="mm-cmp__name">Agency</span>
+                                                <span class="mm-cmp__tag">Multiple clients</span>
+                                                <span class="mm-cmp__price"><b>$1</b> sender / year</span>
+                                                <a class="mm-btn-outline" href="contact.html"><span class="mm-btn__face"><span class="mm-btn__label"><span>Get started</span><span aria-hidden="true">Get started</span></span><svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></a>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="mm-cmp__group">
+                                        <tr class="mm-cmp__band">
+                                            <th scope="colgroup" colspan="4">Signatures</th>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Saved signatures and templates</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Draft as many as you like and keep them all. Only published senders count as seats.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">Unlimited</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">Unlimited</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">Unlimited</b></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Brand controls</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Colour, type, layout and logo, so every signature keeps the same shape.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Legal disclaimer line</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>A footer line appended under the signature, for the text your legal team requires.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Preview per inbox</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>See the signature as Outlook, Gmail and Apple Mail will render it before you send it.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                    </tbody>
+                                    <tbody class="mm-cmp__group">
+                                        <tr class="mm-cmp__band">
+                                            <th scope="colgroup" colspan="4">Workspace</th>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Active senders</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>A sender starts counting the first time it is published. Drafts are free.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">1</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">Many, one brand</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">Many, across clients</b></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>One approved system for everyone</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Lock the brand rules once and apply them to every sender you manage.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Isolated client organisations</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Each client sits in its own sealed space; nothing leaks between them.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>White-label the workspace</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Your agency's identity on the workspace instead of ours.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Seats pooled across clients</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>One seat count across every client you run, billed together.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__no" aria-hidden="true">&mdash;</span><span class="mm-cmp__sr">Not included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                    </tbody>
+                                    <tbody class="mm-cmp__group">
+                                        <tr class="mm-cmp__band">
+                                            <th scope="colgroup" colspan="4">Export &amp; install</th>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Copy as rich HTML</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Paste straight into the signature editor of any mail client.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Download a <code>.htm</code> file</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>For Outlook on Windows, which keeps signatures as files on disk.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Step-by-step install guides</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>One guide per client: Outlook Classic, new Outlook, Gmail, Apple Mail, iOS Mail.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><span class="mm-cmp__yes" aria-hidden="true"><svg viewBox="0 0 10 9" width="10" height="9" fill="none"><path d="M1 5.69C1 5.69 2.6 6.6 3.4 7.93C3.4 7.93 5.8 2.71 9 0.97" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="mm-cmp__sr">Included</span></td>
+                                        </tr>
+                                    </tbody>
+                                    <tbody class="mm-cmp__group">
+                                        <tr class="mm-cmp__band">
+                                            <th scope="colgroup" colspan="4">Billing</th>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Price per active sender</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>The same list price in all three workspaces. No volume table, no tier to cross.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">$1 / year</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">$1 / year</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">$1 / year</b></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Minimum senders</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>You can start with a single sender.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">1</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">1</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">1</b></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Billing period</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>Annual only. The renewal is the same price.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">Annual</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">Annual</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">Annual</b></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Trial</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>The full product, no payment details asked.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">7 days, no card</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">7 days, no card</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">7 days, no card</b></td>
+                                        </tr>
+                                        <tr class="mm-cmp__row">
+                                            <th scope="row" class="mm-cmp__label">
+                                                <button type="button" class="mm-cmp__toggle" aria-expanded="false">
+                                                    <span>Platform fee</span><svg class="mm-cmp__chev" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                </button>
+                                                <span class="mm-cmp__desc" hidden>There is not one.</span>
+                                            </th>
+                                            <td class="mm-cmp__cell" data-mm-col="pro"><b class="mm-cmp__val">None</b></td>
+                                            <td class="mm-cmp__cell is-on" data-mm-col="team"><b class="mm-cmp__val">None</b></td>
+                                            <td class="mm-cmp__cell" data-mm-col="agency"><b class="mm-cmp__val">None</b></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mm-cmp__foot">Taxes calculated at invoice. Renews at the same price.</p>
+                            </div>
+                        </div>
+
+                <!-- pricing area end -->
+
+            <!-- testimonial area start -->
+                <div class="ais-testimonial-ptb mm-feats p-relative pt-100 pb-80">
+                    
+                    <div class="ais-testimonial-wrap z-index-1">
+                        <div class="container container-1230">
+                            <div class="mm-template-showcase__intro mm-feats__intro pb-0">
+                                <div>
+                                    <span class="mm-section-kicker">What the price covers</span>
+                                    <h2 class="mm-template-showcase__title">Everything included.<br><em>Nothing to upgrade to.</em></h2>
+                                </div>
+                                <div class="mm-template-showcase__intro-copy">
+                                    <p>Twelve things you never have to ask about, negotiate for, or climb a tier to reach.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="app-testimonial-warp mb-55">
+                        </div>
+                    </div>
+                    <div class="ais-testimonial-wrap z-index-1">
+                        <div class="app-testimonial-wrapper">
+                            <div class="app-testimonial-slider d-flex">
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-receipt" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">One price, every workspace</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Price</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>$1 per active sender, per year. Pro, Team and Agency all carry the same list price &mdash; the workspace changes shape, the number never does.</p>
+                                    </div>
+                                    <i class="fa-light fa-receipt mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-pen-nib" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Drafts are free</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Seats</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Save as many drafts as you like without paying for them. A seat only starts counting the first time that sender is actually published.</p>
+                                    </div>
+                                    <i class="fa-light fa-pen-nib mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-sliders" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">No feature gates</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Price</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Nothing is held back for a higher tier. Every template, every brand control and every export format is switched on from the first day.</p>
+                                    </div>
+                                    <i class="fa-light fa-sliders mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-lock-keyhole" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">No platform fee</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Price</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>The seat price is the whole invoice. No onboarding charge, no per-workspace fee, and no surprise line waiting for you at renewal.</p>
+                                    </div>
+                                    <i class="fa-light fa-lock-keyhole mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-user" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Minimum one sender</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Seats</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Start on your own and grow when you are ready. There is no five-seat floor to clear before you are allowed to begin.</p>
+                                    </div>
+                                    <i class="fa-light fa-user mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-calendar-check" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Annual billing</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Billing</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Billed once a year, and it renews at exactly the same price. No introductory rate that quietly doubles on you twelve months later.</p>
+                                    </div>
+                                    <i class="fa-light fa-calendar-check mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-credit-card" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">7-day full trial</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Billing</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>The complete product for seven days with nothing held back, and we never ask for a card before you have decided anything.</p>
+                                    </div>
+                                    <i class="fa-light fa-credit-card mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-copy" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Unlimited signatures</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Product</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Save as many signatures and templates as you need. Only the senders you actually publish count towards the seats on your invoice.</p>
+                                    </div>
+                                    <i class="fa-light fa-copy mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-file-code" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Every export format</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Export</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Copy the signature as rich HTML and paste it straight into your client, or download a .htm file for Outlook on Windows.</p>
+                                    </div>
+                                    <i class="fa-light fa-file-code mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-shield-check" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Never in the delivery path</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Privacy</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Your mail leaves your own server exactly as it did before. Mailmyra builds the signature and hands it to you &mdash; nothing more.</p>
+                                    </div>
+                                    <i class="fa-light fa-shield-check mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-wave-pulse" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">No tracking</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Privacy</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>No pixels, no click counters, no analytics quietly added to what you export. What leaves the builder is plain signature HTML.</p>
+                                    </div>
+                                    <i class="fa-light fa-wave-pulse mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-cloud-check" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Nothing to install</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Setup</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>No Outlook add-in, no server transport rule, no directory sync to negotiate with IT. You copy a signature and paste it where it belongs.</p>
+                                    </div>
+                                    <i class="fa-light fa-cloud-check mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                </div>
+                        </div>
+                        <div class="app-testimonial-wrapper ais-rtl">
+                            <div class="app-testimonial-slider d-flex">
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-credit-card" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">7-day full trial</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Billing</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>The complete product for seven days with nothing held back, and we never ask for a card before you have decided anything.</p>
+                                    </div>
+                                    <i class="fa-light fa-credit-card mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-copy" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Unlimited signatures</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Product</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Save as many signatures and templates as you need. Only the senders you actually publish count towards the seats on your invoice.</p>
+                                    </div>
+                                    <i class="fa-light fa-copy mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-file-code" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Every export format</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Export</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Copy the signature as rich HTML and paste it straight into your client, or download a .htm file for Outlook on Windows.</p>
+                                    </div>
+                                    <i class="fa-light fa-file-code mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-shield-check" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Never in the delivery path</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Privacy</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Your mail leaves your own server exactly as it did before. Mailmyra builds the signature and hands it to you &mdash; nothing more.</p>
+                                    </div>
+                                    <i class="fa-light fa-shield-check mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-wave-pulse" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">No tracking</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Privacy</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>No pixels, no click counters, no analytics quietly added to what you export. What leaves the builder is plain signature HTML.</p>
+                                    </div>
+                                    <i class="fa-light fa-wave-pulse mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-cloud-check" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Nothing to install</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Setup</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>No Outlook add-in, no server transport rule, no directory sync to negotiate with IT. You copy a signature and paste it where it belongs.</p>
+                                    </div>
+                                    <i class="fa-light fa-cloud-check mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-receipt" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">One price, every workspace</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Price</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>$1 per active sender, per year. Pro, Team and Agency all carry the same list price &mdash; the workspace changes shape, the number never does.</p>
+                                    </div>
+                                    <i class="fa-light fa-receipt mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-pen-nib" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Drafts are free</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Seats</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Save as many drafts as you like without paying for them. A seat only starts counting the first time that sender is actually published.</p>
+                                    </div>
+                                    <i class="fa-light fa-pen-nib mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-sliders" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">No feature gates</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Price</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Nothing is held back for a higher tier. Every template, every brand control and every export format is switched on from the first day.</p>
+                                    </div>
+                                    <i class="fa-light fa-sliders mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-lock-keyhole" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">No platform fee</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Price</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>The seat price is the whole invoice. No onboarding charge, no per-workspace fee, and no surprise line waiting for you at renewal.</p>
+                                    </div>
+                                    <i class="fa-light fa-lock-keyhole mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center ">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-user" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Minimum one sender</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Seats</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Start on your own and grow when you are ready. There is no five-seat floor to clear before you are allowed to begin.</p>
+                                    </div>
+                                    <i class="fa-light fa-user mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                <div class="app-testimonial-item mm-feat">
+                                    <div class="app-testimonial-item-icon-box d-flex align-items-center">
+                                        <div class="app-testimonial-item-icon">
+                                            <span><i class="fa-light fa-calendar-check" aria-hidden="true"></i></span>
+                                        </div>
+                                        <div class="app-testimonial-item-icon-content">
+                                            <h4 class="app-testimonial-item-icon-title">Annual billing</h4>
+                                        </div>
+                                    </div>
+                                        <span class="mm-feat__tag">Billing</span>
+                                    <div class="app-testimonial-item-content">
+                                        <p>Billed once a year, and it renews at exactly the same price. No introductory rate that quietly doubles on you twelve months later.</p>
+                                    </div>
+                                    <i class="fa-light fa-calendar-check mm-feat__ghost" aria-hidden="true"></i>
+                                </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- testimonial area end -->
+
+                <!-- faq area start -->
+                <section class="app-faq-area mm-faq p-relative" aria-labelledby="mm-faq-title">
+                    <div class="container container-1530">
+                        <div class="row align-items-start gx-xl-5">
+                            <div class="col-lg-5">
+                                <div class="app-faq-heading mm-faq__intro p-relative mb-50">
+                                    <span class="mm-section-kicker">FAQ</span>
+                                    <h2 id="mm-faq-title" class="mm-faq__title">Questions,<br><em>answered.</em></h2>
+                                    <p>Everything you need to know before building, exporting and managing signatures with Mailmyra.</p>
+                                    <figure class="mm-faq__visual">
+                                        <img src="assets/img/mailmyra/faq/mailmyra-faq-wide-v2.png" alt="Mailmyra questions resolved across email signatures" loading="lazy">
+                                        <figcaption><i class="fa-light fa-circle-check"></i> Inbox-ready answers <span>6 clients covered</span></figcaption>
+                                    </figure>
+                                </div>
+                            </div>
+                            <div class="col-lg-7">
+                                <div class="app-faq-wrap mm-faq__accordion z-index-1">
+                                    <div class="ai-faq-accordion-wrap">
+                                        <div class="accordion" id="mailmyraFaq">
+                                            <div class="accordion-items">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-buttons" type="button" data-bs-toggle="collapse" data-bs-target="#mailmyraFaqOne" aria-expanded="true" aria-controls="mailmyraFaqOne">
+                                                        What does Mailmyra do?
+                                                        <span class="accordion-icon"></span>
+                                                    </button>
+                                                </h2>
+                                                <div id="mailmyraFaqOne" class="accordion-collapse collapse show" data-bs-parent="#mailmyraFaq">
+                                                    <div class="accordion-body">
+                                                        <p>Mailmyra helps you design professional email signatures, preview them across major inboxes and export clean, table-based HTML that stays consistent when it reaches the recipient.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-items">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-buttons collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mailmyraFaqTwo" aria-expanded="false" aria-controls="mailmyraFaqTwo">
+                                                        Which email clients are supported?
+                                                        <span class="accordion-icon"></span>
+                                                    </button>
+                                                </h2>
+                                                <div id="mailmyraFaqTwo" class="accordion-collapse collapse" data-bs-parent="#mailmyraFaq">
+                                                    <div class="accordion-body">
+                                                        <p>You can preview and prepare signatures for Outlook Classic, New Outlook, Gmail, Apple Mail and iOS Mail, with layouts built around real email-client rendering constraints.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-items">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-buttons collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mailmyraFaqThree" aria-expanded="false" aria-controls="mailmyraFaqThree">
+                                                        Do I need to know HTML?
+                                                        <span class="accordion-icon"></span>
+                                                    </button>
+                                                </h2>
+                                                <div id="mailmyraFaqThree" class="accordion-collapse collapse" data-bs-parent="#mailmyraFaq">
+                                                    <div class="accordion-body">
+                                                        <p>No. Choose a template, enter your details and adjust the style visually. Mailmyra generates the email-safe HTML and keeps the technical structure out of your way.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-items">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-buttons collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mailmyraFaqFour" aria-expanded="false" aria-controls="mailmyraFaqFour">
+                                                        Can one template be used by a whole team?
+                                                        <span class="accordion-icon"></span>
+                                                    </button>
+                                                </h2>
+                                                <div id="mailmyraFaqFour" class="accordion-collapse collapse" data-bs-parent="#mailmyraFaq">
+                                                    <div class="accordion-body">
+                                                        <p>Yes. Create one approved signature system, lock the brand rules that matter and apply the same visual hierarchy to every teammate while keeping personal details accurate.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-items">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-buttons collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mailmyraFaqFive" aria-expanded="false" aria-controls="mailmyraFaqFive">
+                                                        Can campaign banners be updated centrally?
+                                                        <span class="accordion-icon"></span>
+                                                    </button>
+                                                </h2>
+                                                <div id="mailmyraFaqFive" class="accordion-collapse collapse" data-bs-parent="#mailmyraFaq">
+                                                    <div class="accordion-body">
+                                                        <p>Campaign content can be prepared once and kept consistent across selected senders, so launches and calls to action do not depend on manual edits in individual signatures.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion-items">
+                                                <h2 class="accordion-header">
+                                                    <button class="accordion-buttons collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#mailmyraFaqSix" aria-expanded="false" aria-controls="mailmyraFaqSix">
+                                                        How do I export and install a signature?
+                                                        <span class="accordion-icon"></span>
+                                                    </button>
+                                                </h2>
+                                                <div id="mailmyraFaqSix" class="accordion-collapse collapse" data-bs-parent="#mailmyraFaq">
+                                                    <div class="accordion-body">
+                                                        <p>Copy the signature as rich HTML or download the .htm file, then follow the client-specific installation guide for Outlook, Gmail, Apple Mail or your preferred inbox.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- faq area end -->
+
+
+                <!-- cta area start -->
+                <div class="app-cta-area mm-cta z-index-1">
+                    <div class="container container-1430">
+                        <div class="app-cta-wrap mm-cta__wrap">
+                            <span class="mm-cta__grid" aria-hidden="true"></span>
+                            <div class="row align-items-end">
+                                <div class="col-lg-6">
+                                    <div class="app-cta-wrapper mm-cta__copy pt-90 pb-90">
+                                        <div class="app-cta-heading mm-cta__heading mb-30">
+                                            <span class="mm-section-kicker">Get started</span>
+                                            <h2 class="mm-cta__title tp_fade_anim" data-delay=".2">Ready To <br> Build Yours.</h2>
+                                            <div class="tp_fade_anim" data-delay=".35">
+                                                <p>Pick the client your team lives in, build the signature once and <br> paste it where it belongs.</p>
+                                            </div>
+                                        </div>
+                                        <ul class="mm-cta__points tp_fade_anim" data-delay=".45">
+                                            <li>
+                                                <span class="mm-cta__bullet" aria-hidden="true"><i class="fa-light fa-arrow-right"></i></span>
+                                                <span class="mm-cta__point-text">Every client above gets the same signature, from the same export.</span>
+                                            </li>
+                                            <li>
+                                                <span class="mm-cta__bullet" aria-hidden="true"><i class="fa-light fa-arrow-right"></i></span>
+                                                <span class="mm-cta__point-text">Copy as rich HTML or download a .htm file, then follow the setup guide.</span>
+                                            </li>
+                                        </ul>
+                                        <div class="mm-cta__action tp_fade_anim" data-delay=".55">
+                                            <a class="mm-btn-solid" href="builder.html">
+                                                <span class="mm-btn__face">
+                                                    <span class="mm-btn__label"><span>Schedule a Demo</span><span aria-hidden="true">Schedule a Demo</span></span>
+                                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                    </svg>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="app-cta-thumb-wrap mm-cta__thumb-wrap">
+                                        <div class="app-cta-thumb mm-cta__thumb p-relative">
+                                            <div class="tp_fade_anim" data-fade-from="right" data-delay=".2">
+                                                <img src="assets/img/mailmyra/trial/cta.png" alt="The Mailmyra builder with a signature open in live preview" loading="lazy">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- cta area end -->
+
+            </main>
+
+
+            <footer class="mm-footer" id="mailmyra-footer">
+                <div class="mm-footer__grid" aria-hidden="true"></div>
+
+                <div class="container-fluid mm-footer__inner">
+                    <div class="row">
+                            <div class="colx-l-12">
+                                <div class="crp-footer-big-text-wrap tp_fade_anim" data-delay=".3">
+                                    <a class="crp-footer-big-text text-center" href="contact.html">
+                                        <span>
+                                            <span class="text-1">TRY THE BUILDER</span>
+                                            <span class="text-2">TRY THE BUILDER</span>
+                                        </span>
+                                        <i>
+                                            <svg
+                                                width="81"
+                                                height="81"
+                                                viewBox="0 0 81 81"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                aria-hidden="true"
+                                            >
+                                                <path
+                                                    d="M2 67.5L13.5 79L61 31.5V77H79V2H4V20H49.5L2 67.5Z"
+                                                    fill="currentColor"
+                                                />
+                                            </svg>
+
+                                            <svg
+                                                width="81"
+                                                height="81"
+                                                viewBox="0 0 81 81"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                aria-hidden="true"
+                                            >
+                                                <path
+                                                    d="M2 67.5L13.5 79L61 31.5V77H79V2H4V20H49.5L2 67.5Z"
+                                                    fill="currentColor"
+                                                />
+                                            </svg>
+                                        </i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="mm-footer__ledger tp_fade_anim" data-delay=".25">
+                        <section class="mm-footer__brand" aria-labelledby="mm-footer-brand">
+                            <div class="mm-footer__section-head">
+
+                                <h2 id="mm-footer-brand">Brand</h2>
+                            </div>
+                            <a class="mm-footer__logo" href="index.html" aria-label="Mailmyra home">
+                                <img src="assets/img/logo/mailmyra-white.svg" alt="Mailmyra">
+                            </a>
+                            <p>Signal Ledger by Mailmyra. Standardized signatures. Trusted conversations. Every time.</p>
+                            <span class="mm-footer__brand-rule" aria-hidden="true"></span>
+                            <div class="mm-footer__contact">
+                                <a href="mailto:hello@mailmyra.com"><i class="fa-light fa-envelope"></i> hello@mailmyra.com</a>
+                            </div>
+                        </section>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-product">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-product-panel" aria-label="Toggle Product links">
+
+                                <h2 id="mm-footer-product">Product</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-product-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="builder.html">Signature Builder</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="templates.html">Templates</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="how-it-works.html">How It Works</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="pricing.html">Pricing</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-solutions">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-solutions-panel" aria-label="Toggle Solutions links">
+                                <h2 id="mm-footer-solutions">Solutions</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-solutions-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="solutions.html#professionals">Professionals</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="solutions.html#teams">Teams</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="solutions.html#agencies">Agencies</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="solutions.html#campaigns">Campaigns</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-resources">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-resources-panel" aria-label="Toggle Resources links">
+                                <h2 id="mm-footer-resources">Resources</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-resources-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="compatibility.html">Compatibility</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="how-it-works.html">Install Guides</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="templates.html">Signature Examples</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-company">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-company-panel" aria-label="Toggle Company links">
+
+                                <h2 id="mm-footer-company">Company</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-company-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="index.html">About</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="#mailmyra-demo-form">Schedule a Demo</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="login.html">Log In</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <section class="mm-footer__connect mm-footer__accordion-item" aria-labelledby="mm-footer-connect">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-connect-panel" aria-label="Toggle Contact and Language">
+
+                                <h2 id="mm-footer-connect">Contact &amp; Language</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-connect-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <div class="mm-footer__socials" aria-label="Follow Mailmyra">
+                                        <div class="mm-footer__social-list">
+                                            <a href="https://facebook.com/mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on Facebook" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                                            <a href="https://youtube.com/@mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on YouTube" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                                            <a href="https://linkedin.com/company/mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on LinkedIn" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                                            <a href="https://instagram.com/mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on Instagram" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="mm-footer__connect-links">
+                                        <a href="mailto:hello@mailmyra.com"><i class="fa-light fa-envelope"></i> hello@mailmyra.com</a>
+                                    </div>
+                                    <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    <div class="mm-footer__language">
+                                        <i class="fa-light fa-globe" aria-hidden="true"></i>
+                                        <div class="mm-footer__language-control">
+                                            <label for="mm-footer-language">Language</label>
+                                            <select id="mm-footer-language" name="language" aria-label="Select language">
+                                                <option value="en" selected>English</option>
+                                                <option value="tr">Turkce</option>
+                                                <option value="de">Deutsch</option>
+                                                <option value="fr">Francais</option>
+                                                <option value="es">Espanol</option>
+                                                <option value="it">Italiano</option>
+                                                <option value="pt">Portugues</option>
+                                                <option value="nl">Nederlands</option>
+                                                <option value="pl">Polski</option>
+                                                <option value="ar">Arabic</option>
+                                                <option value="ja">Japanese</option>
+                                            </select>
+                                        </div>
+                                        <i class="fa-light fa-chevron-down mm-footer__language-chevron" aria-hidden="true"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="mm-footer__compat tp_fade_anim" data-delay=".35" aria-label="Supported email clients">
+                        <div class="mm-footer__rail-title">
+
+                            <span>Compatibility</span>
+                        </div>
+                        <div class="mm-footer__compat-marquee">
+                            <div class="mm-footer__compat-track">
+                                <div class="mm-footer__compat-list">
+                                    <a href="compatibility.html"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
+                                    <a href="compatibility.html"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
+                                    <a href="compatibility.html"><i class="fa-brands fa-google"></i> Gmail</a>
+                                    <a href="compatibility.html"><i class="fa-brands fa-apple"></i> Apple Mail</a>
+                                    <a href="compatibility.html"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
+                                    <a href="compatibility.html"><i class="fa-light fa-code"></i> HTML Export</a>
+                                </div>
+                                <div class="mm-footer__compat-list" aria-hidden="true">
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-google"></i> Gmail</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-apple"></i> Apple Mail</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-code"></i> HTML Export</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mm-footer__bottom">
+                        <div class="mm-footer__legal">
+                            <a href="security.html">Security &amp; Compliance</a>
+                            <a href="terms.html">Terms of Service</a>
+                            <a href="privacy.html">Privacy Policy</a>
+                            <a href="privacy.html#ccpa">CCPA</a>
+                            <a href="cookies.html">Manage Cookies</a>
+                        </div>
+                        <p>&copy; 2026 Mailmyra. All rights reserved.</p>
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+    </div>
+
+
+
+    <!-- JS here -->
+
+    <!-- JS here -->
+
+
+    <script>
+      (function () {
+        var compact = window.matchMedia('(max-width: 767px)').matches;
+        if (!compact) {
+          document.write('<script src="assets/js/vendor/jquery.min.js"><\/script>');
+          document.write('<script src="assets/js/bootstrap-bundle.min.js"><\/script>');
+          document.write('<script src="assets/js/plugin.min.js"><\/script>');
+          document.write('<script src="assets/js/atropos.js"><\/script>');
+          return;
+        }
+
+        function loadScript(src) {
+          return new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            var jqueryReady = loadScript('assets/js/vendor/jquery.min.js');
+            var gsapReady = loadScript('assets/js/plugin-mobile.min.js?v=mailmyra-0803-1');
+            loadScript('assets/js/bootstrap-bundle.min.js');
+            Promise.all([jqueryReady, gsapReady]).then(function () {
+              return loadScript('assets/js/mailmyra-mobile.min.js?v=mailmyra-0803-4');
+            });
+          });
+        });
+      })();
+    </script>
+    <script>
+      (function () {
+        var loaded = false;
+        function loadMailmyraSliders() {
+          if (loaded) return;
+          loaded = true;
+          function loadSliderSetup() {
+            var setup = document.createElement('script');
+            setup.src = 'assets/js/mailmyra-sliders.min.js?v=mailmyra-0803-3';
+            document.head.appendChild(setup);
+          }
+          if (window.Swiper) {
+            loadSliderSetup();
+            return;
+          }
+          var swiper = document.createElement('script');
+          swiper.src = 'assets/js/swiper-bundle.min.js';
+          swiper.onload = loadSliderSetup;
+          document.head.appendChild(swiper);
+        }
+        ['scroll', 'wheel', 'touchstart', 'keydown'].forEach(function (eventName) {
+          window.addEventListener(eventName, loadMailmyraSliders, { passive: true, once: true });
+        });
+      })();
+    </script>
+    <script>
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        document.write('<script src="assets/js/main.min.js?v=mailmyra-0803-perf-7"><\/script>');
+        document.write('<script src="assets/js/tp-cursor.js"><\/script>');
+        document.write('<script src="assets/js/mailmyra.min.js?v=mailmyra-0803-perf-4"><\/script>');
+      }
+    </script>
+
+    <!-- mm: bolum temasi gecisi (koyu ↔ acik).
+             GSAP'e BAGLI DEGIL — tema onu yalniz min-width:768px'te
+             yukluyordu ve gecis mobilde hic calismiyordu. Bu script
+             kosulsuz yuklenir, hesabi kendi yapar. -->
+    <script src="assets/js/mailmyra-lightzone.js?v=mailmyra-0803-5"></script>
+    <!-- mm: buyuyen mobil navigasyon (GSAP'e bagli degil, kosulsuz yuklenir) -->
+    <script src="assets/js/mailmyra-nav.js?v=mailmyra-0803-5"></script>
+
+    <!-- mm: ADVANCED CONTROL — tiklanan karta gore sol resmi degistir. -->
+    <script>
+    (function () {
+        var adv = document.querySelector('.mm-adv');
+        if (!adv) return;
+        var shots = [].slice.call(adv.querySelectorAll('.mm-adv__shot'));
+        adv.addEventListener('click', function (event) {
+            var item = event.target.closest('.accordion-items[data-mm-visual]');
+            if (!item) return;
+            var key = item.getAttribute('data-mm-visual');
+            shots.forEach(function (img) {
+                img.classList.toggle('is-on', img.getAttribute('data-mm-visual') === key);
+            });
+        });
+    })();
+    </script>
+
+    <!-- mm: SUREC PERDESI surucusu — mm-lightzone ile ayni desen:
+             rAF + tek olcum, GSAP yok, mobilde de calisir. Bolumun ustu
+             ekranin %88'inden %20'sine inerken ortu 1 → 0 erir. -->
+    <script>
+    (function () {
+        var section = document.querySelector('.mm-steps');
+        var veil = document.querySelector('.mm-steps__veil');
+        if (!section || !veil) return;
+
+        var queued = false;
+        var last = -1;
+
+        function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+        function measure() {
+            queued = false;
+            var vh = window.innerHeight || document.documentElement.clientHeight;
+            var top = section.getBoundingClientRect().top;
+            var op = clamp01((top - vh * 0.20) / (vh * 0.68));
+            if (Math.abs(op - last) < 0.003) return;
+            last = op;
+            veil.style.opacity = op.toFixed(3);
+        }
+
+        function queue() {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(measure);
+        }
+
+        window.addEventListener('scroll', queue, { passive: true });
+        window.addEventListener('resize', queue, { passive: true });
+        measure();
+    })();
+    </script>
+
+    <!-- mm: HERO BASLIGI — harf harf bolme.
+             Sadece isaretleme yapar, animasyon CSS'te (html.mm-ready).
+             Her harf kendi --c sirasini tasir; bosluklar span'a girmez ki
+             kelime araligi ve nowrap bozulmasin. Ekran okuyucu icin
+             aria-label ile tam metin korunur. -->
+    <script>
+    (function () {
+        var title = document.querySelector('.mm-hiw-title');
+        if (!title || title.querySelector('span')) return;
+
+        var text = title.textContent.trim();
+        var out = '';
+        var order = 0;
+
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charAt(i);
+            if (ch === ' ') { out += ' '; continue; }
+            out += '<span aria-hidden="true" style="--c:' + order + '">' + ch + '</span>';
+            order++;
+        }
+
+        title.setAttribute('aria-label', text);
+        title.innerHTML = out;
+    })();
+    </script>
+
+    <!-- mm: HERO FARE ISIGI — imlecin yuzdelik konumunu hero'ya --mx/--my
+             olarak yazar; boyama tamamen CSS'te. Yumusatma (lerp .14) sayesinde
+             isik imleci gecikmeli takip eder, sertlik olmaz. rAF yalniz hareket
+             varken doner, duruncan kendini kapatir. Dokunmatik/kalem cihazlarda
+             hic kurulmaz (pointer: fine). -->
+    <script>
+    (function () {
+        var hero = document.querySelector('.mm-hiw-hero');
+        if (!hero) return;
+        if (!window.matchMedia('(pointer: fine)').matches) return;
+
+        var toX = 50, toY = 38, atX = 50, atY = 38, ticking = 0;
+
+        function frame() {
+            atX += (toX - atX) * 0.14;
+            atY += (toY - atY) * 0.14;
+            hero.style.setProperty('--mx', atX.toFixed(2) + '%');
+            hero.style.setProperty('--my', atY.toFixed(2) + '%');
+            ticking = (Math.abs(toX - atX) > 0.05 || Math.abs(toY - atY) > 0.05)
+                ? requestAnimationFrame(frame)
+                : 0;
+        }
+
+        hero.addEventListener('mousemove', function (event) {
+            var box = hero.getBoundingClientRect();
+            toX = ((event.clientX - box.left) / box.width) * 100;
+            toY = ((event.clientY - box.top) / box.height) * 100;
+            hero.classList.add('is-lit');
+            if (!ticking) ticking = requestAnimationFrame(frame);
+        }, { passive: true });
+
+        hero.addEventListener('mouseleave', function () {
+            hero.classList.remove('is-lit');
+        });
+    })();
+    </script>
+
+    <!-- mm: sayfa ici yumusak kaydirma (hero CTA → #how-start).
+             Native anchor atlayisi ScrollSmoother'in transform'uyla yanlis
+             yere dusuyor; smoother varsa onun API'siyle, yoksa (mobilde GSAP
+             hic yuklenmiyor) native smooth ile kaydiriyoruz. -->
+    <script>
+    (function () {
+        var HEADER_GAP = 92; /* sabit header kapsulunun altina birak */
+        document.querySelectorAll('[data-mm-scrollto]').forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                var hash = link.getAttribute('href') || '';
+                if (hash.charAt(0) !== '#') return;
+                var target = document.querySelector(hash);
+                if (!target) return;
+                event.preventDefault();
+                var smoother = (window.ScrollSmoother && ScrollSmoother.get) ? ScrollSmoother.get() : null;
+                if (smoother) {
+                    smoother.scrollTo(target, true, 'top ' + HEADER_GAP + 'px');
+                } else {
+                    window.scrollTo({
+                        top: target.getBoundingClientRect().top + window.pageYOffset - HEADER_GAP,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    })();
+    </script>
+
+    <!-- mm: index'in hero (E) scriptleri ve canli-baglama binder'i
+             BILEREK alinmadi — onlar anasayfaya ozel. -->
+
+<script>
+/* ===== sayfa geneli: katman savunmaları + özel imleç ================= */
+(function(){
+  /* SAVUNMA: tema katmanları tıklamayı asla yutmasın.
+     .body-overlay tam ekran + pointer-events:auto — görünür değilken bile
+     yanlış durumda kalırsa içerikteki HER tıklamayı yutar (header ve alt
+     çubuk daha yüksek katmanda olduğundan çalışmaya devam eder). */
+  var mc = document.getElementById('magic-cursor');
+  if (mc) mc.style.display = 'none';
+  var pre = document.getElementById('preloader');
+  if (pre) pre.style.pointerEvents = 'none';
+  function guardOverlays(){
+    document.querySelectorAll('.body-overlay').forEach(function(o){
+      o.style.pointerEvents = o.classList.contains('opened') ? '' : 'none';
+    });
+  }
+  guardOverlays();
+  var mo = new MutationObserver(guardOverlays);
+  document.querySelectorAll('.body-overlay').forEach(function(o){
+    mo.observe(o, { attributes: true, attributeFilter: ['class', 'style'] });
+  });
+  document.addEventListener('click', function(){ setTimeout(guardOverlays, 60); }, true);
+
+  /* OTOMATİK İYİLEŞTİRİCİ: builder'ın üstünde yabancı katman varsa yakala,
+     etkisizleştir ve adını kaydet (mmdebug'da görünür) */
+  var healed = [];
+  function mmHeal(){
+    var E = document.getElementById('hv-E');
+    if (!E || !E.classList.contains('on')) return;
+    ['[data-f="name"]', '.mmE-canvas .paper', '.mmE-rail button', '.mmE-tpl button', '.mmE-colors button']
+      .forEach(function(sel){
+        var el = E.querySelector(sel);
+        if (!el) return;
+        var r = el.getBoundingClientRect();
+        if (!r.width) return;
+        var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        if (top && !top.closest('#smooth-content') && !top.closest('.hlab-switch')
+            && !top.closest('.mmCur') && !top.closest('.mmnav') && !top.closest('.mmnav-veil')) {
+          top.style.pointerEvents = 'none';
+          var tag = top.tagName + (typeof top.className === 'string' && top.className ? '.' + top.className.split(' ')[0] : '');
+          if (healed.indexOf(tag) < 0) healed.push(tag);
+        }
+      });
+  }
+  setInterval(mmHeal, 2000);
+
+  /* ?mmdebug — imlecin/tıklamanın hangi elemana indiğini sol altta göster */
+  if (location.search.indexOf('mmdebug') > -1) {
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;left:12px;bottom:70px;z-index:2147483647;padding:8px 12px;' +
+      'border-radius:8px;background:#00102b;color:#89b4ef;font:11px ui-monospace,Menlo,monospace;' +
+      'box-shadow:0 0 0 1px rgba(137,180,239,.4);pointer-events:none;max-width:70vw;';
+    toast.textContent = 'mmdebug: fareyi gezdir / tıkla';
+    document.body.appendChild(toast);
+    function label(t){
+      return t.tagName + ((typeof t.className === 'string' && t.className) ? '.' + t.className.split(' ').slice(0, 2).join('.') : '');
+    }
+    var lockUntil = 0;
+    document.addEventListener('mousemove', function(e){
+      if (Date.now() < lockUntil) return;
+      toast.textContent = '~ ' + label(e.target) + (healed.length ? ' | temizlenen: ' + healed.join(',') : '');
+    }, { passive: true });
+    document.addEventListener('pointerdown', function(e){
+      lockUntil = Date.now() + 2000;
+      toast.textContent = '↓ TIK: ' + label(e.target) + ' @' + Math.round(e.clientX) + ',' + Math.round(e.clientY);
+    }, true);
+  }
+
+  /* ÖZEL İMLEÇ: glow'lu turuncu OK (yalnız mouse'lu cihazlar) */
+  if (!window.matchMedia('(pointer: fine)').matches) return;
+  document.documentElement.classList.add('mm-cur');
+  var cur = document.createElement('span');
+  cur.className = 'mmCur hide';
+  cur.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none">' +
+    '<path d="M5 2.5 19.4 10.7 12.9 12.3 9.3 19.2 5 2.5Z" fill="#f2a573" stroke="#00102b" stroke-width="1.3" stroke-linejoin="round"/></svg>' +
+    '<i class="car"></i>';
+  document.body.appendChild(cur);
+  var seen = false;
+  document.addEventListener('mousemove', function(e){
+    if (!seen) { seen = true; cur.classList.remove('hide'); }
+    cur.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+    var t = e.target;
+    var inter = t.closest && t.closest('a,button,select,[role="button"]');
+    var isText = t.closest && t.closest('input,textarea,label');
+    cur.classList.toggle('hov', !!inter);
+    cur.classList.toggle('txt', !!isText && !inter);
+  }, { passive: true });
+  document.addEventListener('mousedown', function(){ cur.classList.add('down'); }, true);
+  document.addEventListener('mouseup', function(){ cur.classList.remove('down'); }, true);
+  document.addEventListener('mouseleave', function(){ cur.classList.add('hide'); seen = false; });
+})();
+</script>
+
+<script>
+/* Mobile and tablet footer accordion */
+(function(){
+  var footer = document.getElementById('mailmyra-footer');
+  if (!footer) return;
+
+  var media = window.matchMedia('(max-width: 991px)');
+  var items = Array.prototype.slice.call(footer.querySelectorAll('.mm-footer__accordion-item'));
+  var compact = null;
+
+  function setItem(item, open){
+    var trigger = item.querySelector('.mm-footer__section-head');
+    var panel = item.querySelector('.mm-footer__accordion-panel');
+    if (!trigger || !panel) return;
+    item.classList.toggle('is-open', open);
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    panel.inert = !open;
+  }
+
+  function syncFooter(){
+    var nextCompact = media.matches;
+    if (compact === nextCompact) return;
+    compact = nextCompact;
+    items.forEach(function(item){
+      var trigger = item.querySelector('.mm-footer__section-head');
+      if (trigger) trigger.tabIndex = compact ? 0 : -1;
+      setItem(item, compact ? false : true);
+    });
+  }
+
+  items.forEach(function(item){
+    var trigger = item.querySelector('.mm-footer__section-head');
+    if (!trigger) return;
+    function toggleItem(){
+      if (!media.matches) return;
+      var willOpen = !item.classList.contains('is-open');
+      items.forEach(function(other){ setItem(other, false); });
+      if (willOpen) setItem(item, true);
+    }
+    trigger.addEventListener('click', toggleItem);
+    trigger.addEventListener('keydown', function(event){
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      toggleItem();
+    });
+  });
+
+  if (media.addEventListener) media.addEventListener('change', syncFooter);
+  else media.addListener(syncFooter);
+  syncFooter();
+})();
+</script>
+
+
+    <!-- JS here -->
+    <!-- JS here -->
+
+    <!-- mm: ozellik kartlari — Atropos ile 3B egilme. atropos.js zaten
+         temanin kosullu yukleyicisinde var; burada yalniz hazir olunca
+         baglaniyor. Kutuphane gelmezse kartlar duz kalir, icerik bozulmaz.
+         `pointer: fine` yoksa (dokunmatik) hic kurulmuyor. -->
+    <script>
+      (function () {
+        if (!window.matchMedia('(pointer: fine)').matches) return;
+        var tries = 0;
+        (function boot() {
+          if (typeof Atropos === 'undefined') {
+            if (++tries > 40) return;
+            return setTimeout(boot, 150);
+          }
+          document.querySelectorAll('.mm-cap__tilt').forEach(function (el) {
+            Atropos({ el: el, activeOffset: 20, shadow: false, highlight: false, rotateXMax: 6, rotateYMax: 6 });
+          });
+        })();
+      })();
+    </script>
+
+
+    <!-- mm: PRICING SURUCUSU.
+             (1) koltuk hesaplayicisi — saf `koltuk x liste fiyati`, kademe YOK,
+                 teklif kutusuna BAGLI DEGIL (esik mantigi motor isi).
+             (2) SSS akordeonu — <details> yuksekligi native animate edilemez,
+                 Web Animations API ile suruluyor (faq.html ile ayni desen).
+             Rakamlar MM_PRICING'den okunur; sayfaya elle gomulmez. Ayni degerler
+             HTML'e de yazildi, boylece JS kapaliyken de fiyat gorunur. -->
+    <script>
+    window.MM_PRICING = {"centsPerSeatYear": 100, "currency": "USD", "minSeats": 1, "maxSeats": 1000, "contactAbove": 500};
+    (function () {
+        var C = window.MM_PRICING;
+
+        /* ---------------- hesaplayici ---------------- */
+        var input = document.getElementById('mm-seats');
+        if (input) {
+            var total   = document.getElementById('mm-calc-total');
+            var detail  = document.getElementById('mm-calc-detail');
+            var contact = document.getElementById('mm-calc-contact');
+
+            function money(cents) {
+                return cents % 100 === 0
+                    ? '$' + (cents / 100)
+                    : '$' + (cents / 100).toFixed(2);
+            }
+
+            /* Bos / 0 / negatif / harf girisi -> sessizce min'e cek. Hata
+               gostermiyoruz: kullanici yaziyorken kirmizi uyari cikarmak
+               hesaplayicida gereksiz gurultu. */
+            function normalise(raw) {
+                var s = String(raw);
+                /* Eksi isaretini ONCE yakala: rakam disini temizleyince "-5"
+                   "5"e donusuyor ve negatif girdi 5 koltuk gibi okunuyordu. */
+                var negative = /^\s*-/.test(s);
+                var n = parseInt(s.replace(/[^0-9]/g, ''), 10);
+                if (negative || !isFinite(n) || n < C.minSeats) n = C.minSeats;
+                if (n > C.maxSeats) n = C.maxSeats;
+                return n;
+            }
+
+            function render(seats) {
+                var cents = seats * C.centsPerSeatYear;
+                total.textContent = money(cents);
+                detail.textContent = seats + (seats === 1 ? ' sender' : ' senders')
+                    + ' × ' + money(C.centsPerSeatYear) + ' per year';
+                if (contact) contact.hidden = seats < C.contactAbove;
+            }
+
+            /* Yazarken kutuya dokunma (kullanici "1" yazip "10" yazacakken
+               1'e kilitlenmesin); sadece hesabi guncelle. Duzeltmeyi blur'da
+               ve buton tiklamasinda yap. */
+            input.addEventListener('input', function () {
+                render(normalise(input.value));
+            });
+            input.addEventListener('blur', function () {
+                var n = normalise(input.value);
+                input.value = n;
+                render(n);
+            });
+
+            Array.prototype.forEach.call(
+                document.querySelectorAll('[data-mm-step]'), function (b) {
+                    b.addEventListener('click', function () {
+                        var n = normalise(input.value) + parseInt(b.getAttribute('data-mm-step'), 10);
+                        n = normalise(n);
+                        input.value = n;
+                        render(n);
+                        input.focus({ preventScroll: true });
+                    });
+                });
+
+            render(normalise(input.value));
+        }
+
+        /* ---------------- calisma alani secici ----------------
+           Kartlar ZATEN hepsi gorunur; bu secici sekme degil, bir vurgulayici.
+           O yuzden role="tab" yok, aria-pressed'li dugmeler var. Sectigin
+           kart one cikar, karsilastirma tablosunda ilgili sutun isaretlenir. */
+        var segs = document.querySelectorAll('[data-mm-seg]');
+        if (segs.length) {
+            var segLine = document.getElementById('mm-seg-line');
+            var LINES = {"pro": "For one person building and managing a single professional identity.", "team": "For a company that wants one approved signature across everybody.", "agency": "For an agency running signatures on behalf of separate clients."};
+
+            function selectPlan(slug) {
+                Array.prototype.forEach.call(segs, function (b) {
+                    var on = b.getAttribute('data-mm-seg') === slug;
+                    b.classList.toggle('is-on', on);
+                    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+                });
+                Array.prototype.forEach.call(
+                    document.querySelectorAll('[data-mm-plan]'), function (card) {
+                        card.classList.toggle('is-on', card.getAttribute('data-mm-plan') === slug);
+                    });
+                Array.prototype.forEach.call(
+                    document.querySelectorAll('[data-mm-col]'), function (cell) {
+                        cell.classList.toggle('is-on', cell.getAttribute('data-mm-col') === slug);
+                    });
+                if (segLine && LINES[slug]) segLine.textContent = LINES[slug];
+            }
+
+            Array.prototype.forEach.call(segs, function (b) {
+                b.addEventListener('click', function () {
+                    selectPlan(b.getAttribute('data-mm-seg'));
+                });
+            });
+
+            /* Sol/sag ok ile de gezilebilsin */
+            document.querySelector('.mm-tariff__seg').addEventListener('keydown', function (e) {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                var list = Array.prototype.slice.call(segs);
+                var at = list.indexOf(document.activeElement);
+                if (at === -1) return;
+                e.preventDefault();
+                var next = list[(at + (e.key === 'ArrowRight' ? 1 : list.length - 1)) % list.length];
+                next.focus();
+                selectPlan(next.getAttribute('data-mm-seg'));
+            });
+        }
+
+        /* ---------------- SSS akordeonu ---------------- */
+        var list = document.getElementById('mm-tariff-faq-list');
+        if (!list) return;
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        Array.prototype.forEach.call(list.querySelectorAll('details'), function (item) {
+            var summary = item.querySelector('summary');
+            var wrap = item.querySelector('.mm-tariff-faq__wrap');
+            if (!summary || !wrap) return;
+            var running = null;
+
+            summary.addEventListener('click', function (event) {
+                if (reduce.matches) return;              /* native davranis */
+                event.preventDefault();
+                if (running) { running.cancel(); running = null; }
+
+                var opening = !item.open;
+                if (opening) item.open = true;           /* olcebilmek icin ac */
+                var full = wrap.scrollHeight;
+
+                running = wrap.animate(
+                    opening
+                        ? [{ height: '0px', opacity: 0 }, { height: full + 'px', opacity: 1 }]
+                        : [{ height: full + 'px', opacity: 1 }, { height: '0px', opacity: 0 }],
+                    { duration: opening ? 340 : 260,
+                      easing: opening ? 'cubic-bezier(.22,.61,.36,1)' : 'cubic-bezier(.4,0,.2,1)' });
+
+                running.onfinish = function () {
+                    if (!opening) item.open = false;
+                    wrap.style.height = '';
+                    running = null;
+                };
+                running.oncancel = function () { wrap.style.height = ''; };
+            });
+        });
+    })();
+    </script>
+
+
+    <!-- mm: CALISMA ALANI SEKMELERI (mm-audience-driver).
+             Sekmeler PANEL DEGISTIRMIYOR — uc kart da hep gorunur, sekme
+             yalnizca ilgili karti VURGULUYOR. Sebep: fiyat ucunde de ayni,
+             panel degistirmek ayni seyi iki kez soylemek olurdu.
+             Bootstrap tab kullanilmiyor (mobilde iki rAF sonra async
+             yukleniyor, o araliktaki dokunuslar oluyor). -->
+    <script>
+    (function () {
+        var tabs = document.querySelectorAll('[data-mm-card]');
+        if (!tabs.length) return;
+
+        function select(btn) {
+            var slug = btn.getAttribute('data-mm-card');
+            Array.prototype.forEach.call(tabs, function (t) {
+                var on = t === btn;
+                t.classList.toggle('is-active', on);
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+                t.tabIndex = on ? 0 : -1;
+            });
+            Array.prototype.forEach.call(
+                document.querySelectorAll('[data-mm-plan]'), function (card) {
+                    card.classList.toggle('is-hot', card.getAttribute('data-mm-plan') === slug);
+                });
+        }
+
+        Array.prototype.forEach.call(tabs, function (btn) {
+            btn.addEventListener('click', function () { select(btn); });
+        });
+
+        tabs[0].parentNode.addEventListener('keydown', function (e) {
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            var arr = Array.prototype.slice.call(tabs);
+            var at = arr.indexOf(document.activeElement);
+            if (at === -1) return;
+            e.preventDefault();
+            var next = arr[(at + (e.key === 'ArrowRight' ? 1 : arr.length - 1)) % arr.length];
+            next.focus();
+            select(next);
+        });
+
+        /* Acilista vurgulu kart Team; sekme de onunla eslesmeli. */
+        var initial = document.querySelector('[data-mm-card="team"]');
+        if (initial) select(initial);
+    })();
+    </script>
+
+
+    <!-- mm: KARSILASTIRMA TABLOSU — satir etiketindeki chevron aciklamayi acar.
+             Bootstrap collapse kullanilmiyor (mobilde iki rAF sonra async
+             yukleniyor, o araliktaki dokunuslar oluyor). -->
+    <script>
+    (function () {
+        var toggles = document.querySelectorAll('.mm-cmp__toggle');
+        if (!toggles.length) return;
+        Array.prototype.forEach.call(toggles, function (btn) {
+            btn.addEventListener('click', function () {
+                var open = btn.getAttribute('aria-expanded') === 'true';
+                var desc = btn.parentNode.querySelector('.mm-cmp__desc');
+                btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+                if (desc) desc.hidden = open;
+            });
+        });
+
+        /* Sekmeler zaten karti vurguluyor; tabloda da ayni sutun isaretlensin. */
+        var tabs = document.querySelectorAll('[data-mm-card]');
+        Array.prototype.forEach.call(tabs, function (t) {
+            t.addEventListener('click', function () {
+                var slug = t.getAttribute('data-mm-card');
+                Array.prototype.forEach.call(
+                    document.querySelectorAll('.mm-cmp [data-mm-col]'), function (c) {
+                        c.classList.toggle('is-on', c.getAttribute('data-mm-col') === slug);
+                    });
+            });
+        });
+    })();
+    </script>
+
+</body>
+
+</html>

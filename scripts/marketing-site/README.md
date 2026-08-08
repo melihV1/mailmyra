@@ -22,7 +22,21 @@ script tarafından yazılır. **Sorunun metnini `faq.html` içinde elle düzenle
 `works-with.html` değişirse assert'ler patlar (satır sayısı ve iki sınır satırı
 kontrol ediliyor). Patladığında sınırları yeniden bul, sabitleri güncelle.
 
-## `build-pricing-page.py` — `/pricing` sayfası
+## ⚠️ ÖNCE BUNU OKU — pricing sayfası artık ELLE düzenleniyor
+
+`build-pricing-page.py`'ı **koşma.** Sayfayı jeneratörle kurmuştuk; Hüseyin
+sonra **kendi kurdu** (kendi sekmeleri, kendi 3B görselleri, kendi intro CSS'i).
+Jeneratör onunkini baştan yazar. Script tarih olarak duruyor, çalıştırma.
+
+`main.css` de **baştan üretilmez, yalnız sonuna eklenir** — Hüseyin aynı
+dosyaya paralel yazıyor, yeniden üretmek onun CSS'ini siler.
+
+Canlı durumun kopyaları:
+- `pricing.html.snapshot` — sayfanın o günkü hâli (ham klasörü git altında değil)
+- `pricing-blocks.css` — `main.css`'in sonundaki el yazısı blok (tema
+  dosyasının tamamı commit'lenmiyor, değerli olan bu kuyruk)
+
+## `build-pricing-page.py` — `/pricing` sayfası (ARŞİV, koşma)
 
 ```bash
 python3 scripts/marketing-site/build-pricing-page.py
