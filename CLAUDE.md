@@ -70,11 +70,13 @@ kararı koda gömülmez.
   `apps/web/app/tokens.css`'te yaşıyor; Tailwind kurmak token disiplinini
   zayıflatıp iki paralel sistem yaratacaktı. Bkz. `docs/step1-manifesto.md`
   Karar A1.
-- **MySQL / MariaDB** (kendi sunucularında, ek maliyet yok) — karar: 2026-08-08,
-  Hüseyin. **PostgreSQL DEĞİL:** Plesk Windows'ta Postgres yerel desteklenmiyor.
-  Prisma provider `mysql`. Sonuçları: dizi kolonu yok (JSON ya da ara tablo) ·
-  `citext` yok (e-posta tekilliği collation'a bırakılır) · kısmi indeks yok ·
-  bütün tablolar `utf8mb4` olmalı (Türkçe karakter).
+- **MariaDB 11.8.3** (kendi sunucularında, ek maliyet yok) — karar: 2026-08-08,
+  Hüseyin. **PostgreSQL DEĞİL** (Plesk Windows desteklemiyor), **MySQL 8 de
+  değil** (Plesk'te tek seçenek MariaDB). Prisma provider `mysql`.
+  Sonuçları: `JSON` aslında LONGTEXT (içine indeks atılamaz) · dizi kolonu
+  yok · `citext` yok (collation'a bırakılır, açıkça pinle) · kısmi indeks
+  yok · bütün tablolar `utf8mb4`.
+  **Yalnız yerel bağlantı açık** — Mac'ten prod DB'ye bağlanılmaz.
 - **Prisma** ORM
 - **Migration panelden koşulur.** Plesk > Node.js > "Komut dosyası çalıştır" →
   `prisma migrate deploy`. Veritabanı dışarı AÇILMAZ, Mac'ten bağlanılmaz.

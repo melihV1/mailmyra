@@ -22,7 +22,7 @@ public API · AI üretim · SSO/SCIM.
 
 | Karar | Tarih |
 |---|---|
-| Veritabanı **MySQL 8** (Postgres değil — Plesk Windows desteklemiyor) | 2026-08-08 |
+| Veritabanı **MariaDB 11.8.3** (Postgres değil — Plesk Windows desteklemiyor; MySQL 8 de yok, Plesk'te tek seçenek MariaDB) | 2026-08-08 |
 | Migration **Plesk panelinden** `prisma migrate deploy`; DB dışarı açılmaz | 2026-08-08 |
 | E-posta: **Resend** | 2026-08-08 |
 | Koltuk **ayrı "yayına al" adımında** tükenir; taslak bedava | 2026-08-08 |
@@ -97,7 +97,18 @@ kararının kardeşi: kural motoru çatıdan bağımsız.
 
 ## 3. Faz 1 veri modeli
 
-MySQL 8 · `utf8mb4` · InnoDB · tüm para alanları **cent (int)**.
+MariaDB 11.8.3 · Prisma provider `mysql` · `utf8mb4` · InnoDB · tüm para
+alanları **cent (int)**.
+
+**MariaDB'nin MySQL 8'den farkları, şemayı etkileyenler:**
+
+| Konu | MariaDB 11.8'de durum | Sonuç |
+|---|---|---|
+| `JSON` tipi | **LONGTEXT + `json_valid()` CHECK** — native tip değil | İmza verisini bütün olarak okuyup yazdığımız için sorun yok. **JSON içine indeks atılamaz** — imza içeriğinde arama yapmayı planlamıyoruz, planlarsak ayrı kolon gerekir |
+| Kısmi indeks | yok (MySQL'de de yoktu) | Pasifleştirilen gönderici **silinmez, yeniden aktifleştirilir**; `UNIQUE(orgId, email)` yeter |
+| Collation | 11.4+ varsayılanı `utf8mb4_uca1400_ai_ci` (harf duyarsız) | E-posta tekilliği doğal çalışır. Yine de **açıkça pinlenecek** — `_bin`'e düşerse mükerrer hesap açılır |
+| İndeks uzunluğu | InnoDB dynamic satır formatında 3072 bayt | `VARCHAR(255)` utf8mb4 = 1020 bayt, unique indeks sorunsuz |
+| Native `UUID` tipi | var (10.7+) ama Prisma `mysql` provider'ı kullanmaz | Kimlikler Prisma `cuid()` ile `varchar` |
 
 ### User
 `id` · `email` (unique, lowercase normalize) · `passwordHash` ·
@@ -134,14 +145,15 @@ versiyonlanacak tablo da yok; string alan grandfather'a yeter.
 - `publishedAt == null` → **taslak**, koltuk yemez
 - `publishedAt != null && deactivatedAt == null` → **aktif**, koltuk tüketir
 
-**MySQL notu:** kısmi indeks yok. Bu yüzden pasifleştirilen kimlik
+**MariaDB notu:** kısmi indeks yok. Bu yüzden pasifleştirilen kimlik
 **silinmez, yeniden aktifleştirilir** — `UNIQUE(orgId, email)` böylece hem
 mükerrer koltuğu hem mükerrer kaydı engeller.
 
 ### Signature
 `id` · `orgId` · `senderIdentityId?` · `templateId` · `data` (JSON) ·
 `name` · `updatedAt` · `createdAt`
-`data` = `SignatureData` (renderer'ın tipi). MySQL 8 native JSON.
+`data` = `SignatureData` (renderer'ın tipi). MariaDB'de LONGTEXT +
+`json_valid()` CHECK olarak iner; bütün belge olarak okunup yazılır.
 
 ### Asset
 `id` · `orgId?` · `filename` (unique) · `sha256` · `kind`
@@ -263,7 +275,7 @@ değerlendirilir — detayı kardeş belgede.
 **Faz 0 — Temizlik.** ✅ `main` `bc095e4`'e alındı (FAQ+pricing merge edildi).
 
 **Faz 1 — Solo çekirdek. Tek başına satılabilir.**
-MySQL + Prisma + ilk migration · email/şifre auth + doğrulama + sıfırlama ·
+MariaDB + Prisma + ilk migration · email/şifre auth + doğrulama + sıfırlama ·
 panel: İmzalarım + Hesap · builder sunucuya kaydediyor (localStorage'dan
 göç) · gerçek oturumla gate'li export · ops CLI · Resend.
 → Bir Pro müşteriye bugün satılır.
