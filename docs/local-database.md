@@ -27,10 +27,16 @@ olarak bağlanır. Parolayı sen üret, aşağıdaki `PAROLA`nın yerine koy:
 ```sql
 CREATE DATABASE mailmyra_dev    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE DATABASE mailmyra_shadow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE mailmyra_test   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'mailmyra'@'localhost' IDENTIFIED BY 'PAROLA';
 GRANT ALL PRIVILEGES ON mailmyra_dev.*    TO 'mailmyra'@'localhost';
 GRANT ALL PRIVILEGES ON mailmyra_shadow.* TO 'mailmyra'@'localhost';
+GRANT ALL PRIVILEGES ON mailmyra_test.*   TO 'mailmyra'@'localhost';
 ```
+
+Üç veritabanı üç ayrı iş görüyor: `_dev` elle denerken, `_shadow` Prisma'nın
+şema doğrulaması için, `_test` entegrasyon testleri için. Testler her koşuda
+tablolarını boşaltıyor; ayrı olmasalar geliştirirken kurduğun veriyi silerlerdi.
 
 Sonra `.env.example`'ı `apps/web/.env.local` olarak kopyalayıp iki
 `DATABASE_URL` satırındaki parolayı doldur. Dosya `.gitignore`'da.
@@ -60,6 +66,40 @@ Doğrulanan davranış — `UNIQUE(email)` üzerinde ölçüldü:
 
 Yine de e-posta uygulama kodunda küçük harfe normalize edilir. Collation
 karşılaştırmayı halleder, *depolanan* değeri değil.
+
+## Günlük komutlar
+
+```bash
+npm test                             # birim testleri — veritabanı GEREKMEZ
+npm run test:db                      # entegrasyon testleri — MariaDB gerekir
+npm run db:migrate -w apps/web       # şema değişti, yeni migration üret
+npm run db:studio -w apps/web        # verilere göz atmak için
+```
+
+`test:db`, koşmadan önce migration'ları test veritabanına kendisi uyguluyor —
+şema değiştirdikten sonra elle bir şey yapmana gerek yok. Veritabanı ayakta
+değilse **sessizce atlamıyor**, ne yapman gerektiğini yazıp hata veriyor.
+
+## Prisma 7 hakkında iki şey
+
+**Bağlantı adresi şemada değil.** Prisma 7 `datasource` içindeki `url`'i
+kaldırdı; adresler [`apps/web/prisma.config.ts`](../apps/web/prisma.config.ts)
+içinde. `schema.prisma`'ya `url = env(...)` geri eklersen CLI reddeder.
+
+**Bağlantı driver adapter üzerinden.** `@prisma/adapter-mariadb` kullanıyoruz.
+Bunun deploy tarafında beklenmedik bir faydası var: bağlantı, Prisma'nın kendi
+sorgu motoru ikilisi yerine saf JS sürücüsünden geçiyor — Mac'te build alıp
+Windows'a zip attığımız akışta native ikili uyuşmazlığı bir kırılma noktası
+daha az.
+
+## Prod'da doğrulanacak (deploy provası)
+
+- **`sql_mode` strict mi?** Yerelde `STRICT_TRANS_TABLES` açık ve geçersiz ENUM
+  değeri hata veriyor. Strict değilse geçersiz değer sessizce `''` olur ve rol
+  kontrolü çöker. Panelden `SELECT @@sql_mode` ile bakılacak.
+- Migration'ın **kendisi** her tabloya `COLLATE utf8mb4_unicode_ci` yazıyor, o
+  yüzden sunucunun varsayılan collation'ı ne olursa olsun şema aynı iniyor.
+  Yine de ilk deploy'dan sonra bir tabloya `SHOW CREATE TABLE` atılacak.
 
 ## Servisi durdurma
 

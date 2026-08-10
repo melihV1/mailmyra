@@ -9,12 +9,19 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "cleanup": "tsx scripts/cleanup-orphans.ts",
-    "icons": "tsx scripts/generate-icons.ts"
+    "icons": "tsx scripts/generate-icons.ts",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@mailmyra/renderer": "*",
+    "@prisma/adapter-mariadb": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "framer-motion": "^12.42.2",
     "next": "^15.1.0",
+    "prisma": "^7.9.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.34.0"

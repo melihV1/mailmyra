@@ -15,7 +15,8 @@
     "dev:web": "npm run dev -w apps/web",
     "clean": "node scripts/clean.js",
     "clean:all": "node scripts/clean.js --all",
-    "doctor": "node scripts/doctor.js"
+    "doctor": "node scripts/doctor.js",
+    "test:db": "npm run test:db -w apps/web"
   },
   "overrides": {
     "react": "19.2.8",

@@ -1,0 +1,257 @@
+// Faz 1 veri modeli — docs/superpowers/specs/2026-08-08-backend-and-app-design.md §3
+//
+// Şema uygulamanın içinde duruyor çünkü migration Plesk panelinden, deploy
+// edilmiş uygulamanın kökünden koşuyor: `prisma migrate deploy`.
+//
+// MariaDB 11.8 notları (ölçüldü, varsayılmadı):
+//   · `Json` → LONGTEXT + CHECK(json_valid(...)); motor kendisi ekliyor
+//   · kısmi indeks yok → pasif gönderici silinmez, yeniden aktifleştirilir
+//   · collation veritabanı düzeyinde utf8mb4_unicode_ci olarak pinli
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Prisma 7'de bağlantı adresleri şemadan çıktı; `prisma.config.ts`'te.
+datasource db {
+  provider = "mysql"
+}
+
+// ─── Kimlik ve oturum ────────────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  /// Küçük harfe normalize edilerek yazılır. Collation harf duyarsız olduğu
+  /// için normalizasyon unutulsa bile mükerrer hesap açılamaz.
+  email           String    @unique @db.VarChar(255)
+  passwordHash    String    @db.VarChar(255)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  lastLoginAt     DateTime?
+
+  sessions         Session[]
+  emailTokens      EmailToken[]
+  memberships      Membership[]
+  legalAcceptances LegalAcceptance[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  /// Çerezde opak token durur, burada yalnız SHA-256'sı. Veritabanı sızarsa
+  /// oturumlar ele geçirilemez.
+  tokenHash  String   @unique @db.Char(64)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent  String?  @db.VarChar(512)
+  ip         String?  @db.VarChar(45)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  /// Süresi geçmiş oturumları toplayan iş bu indeksi kullanır.
+  @@index([expiresAt])
+}
+
+enum EmailTokenType {
+  verify
+  reset
+  invite
+}
+
+model EmailToken {
+  id        String         @id @default(cuid())
+  userId    String
+  type      EmailTokenType
+  tokenHash String         @unique @db.Char(64)
+  expiresAt DateTime
+  /// Tek kullanımlık: dolduğu an token ölür.
+  usedAt    DateTime?
+  createdAt DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([expiresAt])
+}
+
+// ─── Organizasyon, üyelik, koltuk ────────────────────────────────────────
+
+enum EntitlementState {
+  trial
+  active
+  past_due
+  cancelled
+}
+
+model Organization {
+  id String @id @default(cuid())
+
+  name String @db.VarChar(255)
+
+  /// Ajans ağacı (Faz 4). Fatura üst org'da durur, koltuk sayımı ağacı gezer.
+  /// `Restrict`: çocuğu olan org silinemez — sessizce müşteri kaybetmeyelim.
+  parentOrgId String?
+
+  /// Satın alınmış kapasite. Dönem içinde düşmez (iade yok).
+  entitledSeats Int @default(1)
+
+  /// Grandfather için: müşteri hangi fiyat listesinde kaydolduysa o kalır.
+  /// Kademe olmadığı için versiyonlanacak ayrı tablo yok, string yetiyor.
+  priceVersion String @db.VarChar(64) @default("2026-08-07-usd-1-year")
+
+  entitlementState EntitlementState @default(trial)
+  trialEndsAt      DateTime?
+  createdAt        DateTime         @default(now())
+
+  parent   Organization?  @relation("OrgTree", fields: [parentOrgId], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  children Organization[] @relation("OrgTree")
+
+  memberships      Membership[]
+  senderIdentities SenderIdentity[]
+  signatures       Signature[]
+  assets           Asset[]
+  legalAcceptances LegalAcceptance[]
+
+  @@index([parentOrgId])
+}
+
+enum Role {
+  owner
+  admin
+  editor
+  viewer
+}
+
+model Membership {
+  userId    String
+  orgId     String
+  role      Role
+  createdAt DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@id([userId, orgId])
+  @@index([orgId])
+}
+
+/// Koltuğu tüketen varlık. İmza değil, **gönderici kimliği** — bir kişinin üç
+/// imzası bir koltuk yer.
+model SenderIdentity {
+  id          String  @id @default(cuid())
+  orgId       String
+  displayName String  @db.VarChar(255)
+  email       String  @db.VarChar(255)
+  jobTitle    String? @db.VarChar(255)
+  department  String? @db.VarChar(255)
+
+  /// null → taslak, bedava. Dolu ve `deactivatedAt` boş → aktif, koltuk yer.
+  publishedAt   DateTime?
+  /// Dolu → pasif, koltuk serbest. Kimlik **silinmez**: kısmi indeks olmadığı
+  /// için mükerrerliği `@@unique([orgId, email])` engelliyor ve aynı adres
+  /// yeniden eklenecekse bu satır yeniden aktifleştiriliyor.
+  deactivatedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  signatures Signature[]
+
+  @@unique([orgId, email])
+  /// Koltuk sayımının tek sorgusu bu indeksten okur.
+  @@index([orgId, publishedAt, deactivatedAt])
+}
+
+// ─── İçerik ──────────────────────────────────────────────────────────────
+
+model Signature {
+  id    String @id @default(cuid())
+  orgId String
+
+  /// Atanmamış imza taslak olarak yaşayabilir. Gönderici silinirse
+  /// `SetNull` — müşterinin emeği göndericiyle birlikte gitmez.
+  senderIdentityId String?
+
+  templateId String @db.VarChar(64) @default("classic-horizontal")
+
+  /// renderer'ın `SignatureData` tipi. MariaDB'de LONGTEXT + json_valid()
+  /// CHECK olarak iner; bütün belge olarak okunup yazılır, içine indeks
+  /// atılmaz.
+  data Json
+
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  org    Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  sender SenderIdentity? @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, updatedAt])
+  @@index([senderIdentityId])
+}
+
+enum AssetKind {
+  avatar
+  logo
+  handSignature
+}
+
+/// CDN'deki görselin kaydı. Üretilen URL asla değişmez (2 numaralı mimari
+/// kural), bu tablo yalnız yaşam döngüsü ve KVKK silme talebi için var.
+model Asset {
+  id       String    @id @default(cuid())
+  orgId    String?
+  filename String    @unique @db.VarChar(255)
+  sha256   String    @db.Char(64)
+  kind     AssetKind
+  bytes    Int
+  createdAt DateTime @default(now())
+
+  org Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+  @@index([sha256])
+}
+
+// ─── Hukuk ve güvenlik ───────────────────────────────────────────────────
+
+enum LegalDocType {
+  terms
+  privacy
+  dpa
+}
+
+/// Bir *rıza* değil, **kabul kanıtı**: kim, hangi belge, hangi sürüm, ne
+/// zaman, hangi IP. Hesap silinse de kayıt durur (`SetNull`) — yoksa "kabul
+/// etti" iddiasını ispatlayacak hiçbir şey kalmaz.
+model LegalAcceptance {
+  id         String       @id @default(cuid())
+  userId     String?
+  orgId      String?
+  docType    LegalDocType
+  version    String       @db.VarChar(32)
+  acceptedAt DateTime     @default(now())
+  ip         String       @db.VarChar(45)
+
+  user User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  org  Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([orgId])
+}
+
+/// Auth uçlarının rate limit sayacı — bellekte değil burada.
+/// `web.config` süreç sayısını sabitlemiyor; iisnode birden fazla süreç
+/// açarsa bellek içi sayaç bölünür ve limit anlamsızlaşır.
+model AuthAttempt {
+  /// `ip:1.2.3.4` ya da `email:ali@voldi.net`
+  key         String   @db.VarChar(255)
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  /// Eski pencereleri temizleyen iş bu indeksten okur.
+  @@index([windowStart])
+}
