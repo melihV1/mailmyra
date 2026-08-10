@@ -70,8 +70,18 @@ kararı koda gömülmez.
   `apps/web/app/tokens.css`'te yaşıyor; Tailwind kurmak token disiplinini
   zayıflatıp iki paralel sistem yaratacaktı. Bkz. `docs/step1-manifesto.md`
   Karar A1.
-- **PostgreSQL** (kendi sunucularında, ek maliyet yok)
+- **MySQL / MariaDB** (kendi sunucularında, ek maliyet yok) — karar: 2026-08-08,
+  Hüseyin. **PostgreSQL DEĞİL:** Plesk Windows'ta Postgres yerel desteklenmiyor.
+  Prisma provider `mysql`. Sonuçları: dizi kolonu yok (JSON ya da ara tablo) ·
+  `citext` yok (e-posta tekilliği collation'a bırakılır) · kısmi indeks yok ·
+  bütün tablolar `utf8mb4` olmalı (Türkçe karakter).
 - **Prisma** ORM
+- **Migration panelden koşulur.** Plesk > Node.js > "Komut dosyası çalıştır" →
+  `prisma migrate deploy`. Veritabanı dışarı AÇILMAZ, Mac'ten bağlanılmaz.
+  Tuzak: "node PATH'te yok" hatası çıkarsa app kökünde `.npmrc` +
+  `scripts-prepend-node-path=true`.
+- **E-posta (doğrulama · davet · şifre sıfırlama): Resend** (karar: 2026-08-08).
+  Ayda 3.000 ücretsiz. SPF/DKIM domain doğrulaması gerekiyor.
 - Auth: basit oturum (email + şifre). Clerk/Auth0 kullanma.
 - **Bootstrap KULLANMA.** Hazır SaaS teması kullanma. Jenerik görünüm projenin en büyük düşmanı.
 
