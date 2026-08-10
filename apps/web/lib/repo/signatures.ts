@@ -98,6 +98,38 @@ export async function duplicateSignature(
   return { ok: true, id: copy.id };
 }
 
+export interface FullSignature {
+  id: string;
+  orgId: string;
+  name: string;
+  templateId: string;
+  data: unknown;
+  updatedAt: Date;
+}
+
+export type GetResult = { ok: true; signature: FullSignature } | RepoError;
+
+/** Builder'ın düzenleme için yüklediği tam kayıt. Okuma her role açık. */
+export async function getSignature(userId: string, signatureId: string): Promise<GetResult> {
+  const signature = await prisma.signature.findUnique({ where: { id: signatureId } });
+  if (!signature) return { ok: false, reason: 'not_found' };
+
+  const role = await roleIn(userId, signature.orgId);
+  if (!role || !can(role, 'signature:view')) return { ok: false, reason: 'not_found' };
+
+  return {
+    ok: true,
+    signature: {
+      id: signature.id,
+      orgId: signature.orgId,
+      name: signature.name,
+      templateId: signature.templateId,
+      data: signature.data,
+      updatedAt: signature.updatedAt,
+    },
+  };
+}
+
 export interface SignatureRow {
   id: string;
   name: string;

@@ -93,3 +93,8 @@ export async function revokeSession(token: string): Promise<void> {
 export async function revokeAllSessionsForUser(userId: string): Promise<void> {
   await prisma.session.deleteMany({ where: { userId } });
 }
+
+/** "Diğer oturumları kapat" — işlemi yapan oturum yaşamaya devam eder. */
+export async function revokeOtherSessions(userId: string, keepSessionId: string): Promise<void> {
+  await prisma.session.deleteMany({ where: { userId, id: { not: keepSessionId } } });
+}

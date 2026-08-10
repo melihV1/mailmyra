@@ -9,6 +9,7 @@ import { prisma } from '../lib/db';
 import {
   deleteSignature,
   duplicateSignature,
+  getSignature,
   listSignatures,
   saveSignature,
 } from '../lib/repo/signatures';
@@ -151,6 +152,35 @@ describe('deleting and duplicating', () => {
     // sessizce etkilerdi.
     expect(dup?.senderIdentityId).toBeNull();
     expect(dup?.data).toEqual(rows.find((r) => r.id === saved.id)?.data);
+  });
+});
+
+describe('reading one', () => {
+  test('a member reads their signature with its data', async () => {
+    const { userId, orgId } = await member('viewer', 'ali@voldi.net');
+    const owner = await prisma.user.create({ data: { email: 's@voldi.net', passwordHash: 'x' } });
+    await prisma.membership.create({ data: { userId: owner.id, orgId, role: 'owner' } });
+    const saved = await saveSignature(owner.id, { orgId, name: 'Okunan', data: DATA });
+    if (!saved.ok) throw new Error('unreachable');
+
+    // viewer OKUYABİLİR (signature:view herkese açık), yazamaz.
+    const got = await getSignature(userId, saved.id);
+
+    if (!got.ok) throw new Error(got.reason);
+    expect(got.signature.name).toBe('Okunan');
+    expect(got.signature.data).toEqual(DATA);
+  });
+
+  test('an outsider gets not_found, not forbidden', async () => {
+    const home = await member('owner', 'ali@voldi.net', 'A');
+    const saved = await saveSignature(home.userId, { orgId: home.orgId, name: 'Gizli', data: DATA });
+    if (!saved.ok) throw new Error('unreachable');
+    const stranger = await member('owner', 'y@baska.net', 'B');
+
+    expect(await getSignature(stranger.userId, saved.id)).toEqual({
+      ok: false,
+      reason: 'not_found',
+    });
   });
 });
 

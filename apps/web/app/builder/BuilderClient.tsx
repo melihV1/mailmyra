@@ -22,11 +22,26 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]['id'];
 
-export function BuilderClient({ gated, iconBaseUrl }: { gated: false | 'login' | 'verify'; iconBaseUrl: string }) {
+export function BuilderClient({
+  gated,
+  iconBaseUrl,
+  signatureId,
+  initialData,
+  initialName,
+}: {
+  gated: false | 'login' | 'verify';
+  iconBaseUrl: string;
+  /** Doluysa builder kayıtlı bir imzayı düzenliyor: kaynak sunucu, taslak değil. */
+  signatureId?: string;
+  initialData?: unknown;
+  initialName?: string;
+}) {
   const [data, dispatch] = useReducer(builderReducer, undefined, createEmptyData);
   const [step, setStep] = useState<StepId>('info');
   const [mobilePane, setMobilePane] = useState<'edit' | 'preview'>('edit');
   const [savedVisible, setSavedVisible] = useState(false);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -35,9 +50,17 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: false | 'login' |
   // çökmeye yol açabilir — `mergeWithEmpty` taslağı `createEmptyData()`
   // varsayılanlarıyla tamamlayarak bu çökme dikişini kapatır.
   useEffect(() => {
+    if (signatureId) {
+      // Düzenleme kipi: kaynak sunucudaki kayıt. localStorage taslağına
+      // DOKUNULMAZ — o, oturumsuz ziyaretçinin emeği.
+      if (initialData) dispatch({ type: 'load', value: mergeWithEmpty(initialData) });
+      loadedRef.current = true;
+      return;
+    }
     const draft = loadDraft(window.localStorage, Date.now());
     if (draft) dispatch({ type: 'load', value: mergeWithEmpty(draft) });
     loadedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounce'lu taslak kaydı + "Taslak kaydedildi" göstergesi.
@@ -46,6 +69,24 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: false | 'login' |
     if (JSON.stringify(data) === JSON.stringify(createEmptyData())) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
+      if (signatureId) {
+        // Otomatik kayıt sunucuya. Hata düzenlemeyi KİLİTLEMEZ (panel-brief
+        // §2.5): şerit çıkar, veri elde durur, sonraki değişiklik yeniden dener.
+        void fetch('/api/signatures', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: signatureId, name: initialName ?? '', data }),
+        }).then(
+          (res) => {
+            setSaveFailed(!res.ok);
+            if (res.ok) {
+              setSavedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+            }
+          },
+          () => setSaveFailed(true),
+        );
+        return;
+      }
       saveDraft(window.localStorage, data, Date.now());
       setSavedVisible(true);
       setTimeout(() => setSavedVisible(false), 2000);
@@ -162,11 +203,15 @@ export function BuilderClient({ gated, iconBaseUrl }: { gated: false | 'login' |
           style={{
             fontSize: 13,
             color: '#2e7d32',
-            opacity: savedVisible ? 1 : 0,
+            opacity: signatureId ? (savedAt || saveFailed ? 1 : 0) : savedVisible ? 1 : 0,
             transition: 'opacity 0.3s',
           }}
         >
-          Taslak kaydedildi ✓
+          {signatureId
+            ? saveFailed
+              ? 'Could not save — check your connection. Your edits are still here.'
+              : `Saved · ${savedAt ?? ''}`
+            : 'Taslak kaydedildi ✓'}
         </span>
       </div>
     </div>

@@ -1,6 +1,8 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '@prisma/client';
 
+import { pickDatabaseUrl } from './db-url';
+
 /**
  * Tekil Prisma istemcisi.
  *
@@ -19,8 +21,9 @@ import { PrismaClient } from '@prisma/client';
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createClient(): PrismaClient {
-  // Entegrasyon testleri geliştirme verisine dokunmasın diye ayrı adres.
-  const url = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
+  // Test adresi yalnız test koşusunda geçerli — seçim kuralı ve yaşanmış
+  // kaza için bkz. `db-url.ts`.
+  const url = pickDatabaseUrl(process.env);
   if (!url) {
     throw new Error(
       'DATABASE_URL tanımlı değil. apps/web/.env.local dosyasını .env.example' +

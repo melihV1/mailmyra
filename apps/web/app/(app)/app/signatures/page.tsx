@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { RowActions } from './RowActions';
 import { listSignatures } from '../../../../lib/repo/signatures';
 import styles from './signatures.module.css';
 
@@ -48,6 +49,7 @@ export default async function SignaturesPage() {
               <time className={styles.rowMeta} dateTime={s.updatedAt.toISOString()}>
                 {s.updatedAt.toLocaleDateString('en-GB')}
               </time>
+              <RowActions id={s.id} name={s.name} />
             </li>
           ))}
         </ul>

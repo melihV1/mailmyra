@@ -77,3 +77,39 @@
   color: var(--text-muted);
   font-size: var(--step-small);
 }
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action,
+.actionDanger {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action:hover {
+  border-color: var(--border-strong);
+}
+
+.actionDanger {
+  color: var(--danger-onlight, #b3341f);
+}
+
+.actionDanger:hover {
+  border-color: var(--danger-onlight, #b3341f);
+}
+
+.action:disabled,
+.actionDanger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -29,6 +29,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <Link href="/app/signatures" className={styles.navLink}>
             Signatures
           </Link>
+          <Link href="/app/account" className={styles.navLink}>
+            Account
+          </Link>
         </nav>
         <div className={styles.session}>
           <span className={styles.email}>{session.user.email}</span>
