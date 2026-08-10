@@ -11,6 +11,7 @@ const ftp = require('basic-ftp');
 
 const repoRoot = path.resolve(__dirname, '..');
 const nextDir = path.join(repoRoot, 'apps', 'web', '.next');
+const prismaDir = path.join(repoRoot, 'apps', 'web', 'prisma');
 
 function loadEnv() {
   const file = path.join(repoRoot, '.env.deploy');
@@ -101,6 +102,15 @@ async function main() {
     await client.ensureDir(remoteNext);
     await client.clearWorkingDir();
     await client.uploadFromDir(nextDir, remoteNext);
+
+    // Migration'lar da her deploy'da gider: panelden koşulan
+    // `prisma migrate deploy` şemanın SON hâlini bu klasörden okur. Yalnız
+    // .next taşınsaydı yeni tablo isteyen kod eski şemayla açılırdı.
+    const remotePrisma = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/prisma`;
+    console.log(`     prisma -> ${remotePrisma}`);
+    await client.ensureDir(remotePrisma);
+    await client.clearWorkingDir();
+    await client.uploadFromDir(prismaDir, remotePrisma);
     console.log('\nYükleme tamam.');
   } catch (err) {
     console.error(`\nFTP hatası: ${err && err.message ? err.message : err}`);
@@ -114,8 +124,10 @@ async function main() {
     [
       '',
       'Sunucuda yapılacak (elle, 2 adım):',
-      '  1) Plesk > Node.js > Uygulamayı yeniden başlat',
-      '  2) https://mailmyra.com/builder aç ve kontrol et',
+      '  1) (şema değiştiyse) Plesk > Node.js > Komut dosyası çalıştır:',
+      '       npx prisma migrate deploy',
+      '  2) Plesk > Node.js > Uygulamayı yeniden başlat',
+      '  3) Siteyi aç ve kontrol et',
       '',
       'Not: yüklemeden ÖNCE uygulamanın durdurulmuş olması gerekir.',
       '',
