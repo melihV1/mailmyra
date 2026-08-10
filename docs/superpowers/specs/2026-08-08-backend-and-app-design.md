@@ -106,7 +106,7 @@ alanları **cent (int)**.
 |---|---|---|
 | `JSON` tipi | **LONGTEXT + `json_valid()` CHECK** — native tip değil | İmza verisini bütün olarak okuyup yazdığımız için sorun yok. **JSON içine indeks atılamaz** — imza içeriğinde arama yapmayı planlamıyoruz, planlarsak ayrı kolon gerekir |
 | Kısmi indeks | yok (MySQL'de de yoktu) | Pasifleştirilen gönderici **silinmez, yeniden aktifleştirilir**; `UNIQUE(orgId, email)` yeter |
-| Collation | 11.4+ varsayılanı `utf8mb4_uca1400_ai_ci` (harf duyarsız) | E-posta tekilliği doğal çalışır. Yine de **açıkça pinlenecek** — `_bin`'e düşerse mükerrer hesap açılır |
+| Collation | Sunucu varsayılanına **güvenilmez** — 11.8.8'de ölçtük, `utf8mb4_general_ci` çıktı (`uca1400` derlenmiş ama varsayılan değil) | Veritabanı düzeyinde `utf8mb4_unicode_ci` **açıkça pinlendi**. Sebep: hem MariaDB'de hem MySQL'de var, Prisma'nın bildiği yol; `uca1400_*` MariaDB'ye özel ve Prisma'nın drift üretme riski var. Ölçüldü: `Ali@X.NET` ile `ali@x.net` mükerrer sayılıyor (istediğimiz), noktasız `alı@` ayrı kalıyor (yine istediğimiz) |
 | İndeks uzunluğu | InnoDB dynamic satır formatında 3072 bayt | `VARCHAR(255)` utf8mb4 = 1020 bayt, unique indeks sorunsuz |
 | Native `UUID` tipi | var (10.7+) ama Prisma `mysql` provider'ı kullanmaz | Kimlikler Prisma `cuid()` ile `varchar` |
 
