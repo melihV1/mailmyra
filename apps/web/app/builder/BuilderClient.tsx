@@ -22,7 +22,7 @@ const STEPS = [
 
 type StepId = (typeof STEPS)[number]['id'];
 
-export function BuilderClient({ gated, iconBaseUrl }: { gated: boolean; iconBaseUrl: string }) {
+export function BuilderClient({ gated, iconBaseUrl }: { gated: false | 'login' | 'verify'; iconBaseUrl: string }) {
   const [data, dispatch] = useReducer(builderReducer, undefined, createEmptyData);
   const [step, setStep] = useState<StepId>('info');
   const [mobilePane, setMobilePane] = useState<'edit' | 'preview'>('edit');

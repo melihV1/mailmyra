@@ -1,0 +1,115 @@
+import { can, type Role } from '@mailmyra/core';
+import type { Prisma } from '@prisma/client';
+
+import { prisma } from '../db';
+
+/**
+ * İmza deposu.
+ *
+ * Yetki kuralı `packages/core`'daki matristen okunur ve BURADA uygulanır —
+ * arayüz düğme gizler, kapı budur. Her fonksiyon önce çağıranın ilgili org'da
+ * ne olduğuna bakar; org dışından biri için imza mevcut bile değildir
+ * (`not_found`), yetkisi yetmeyen üye içinse `forbidden`.
+ */
+
+export type RepoError = { ok: false; reason: 'forbidden' | 'not_found' };
+
+async function roleIn(userId: string, orgId: string): Promise<Role | null> {
+  const membership = await prisma.membership.findUnique({
+    where: { userId_orgId: { userId, orgId } },
+  });
+  return membership?.role ?? null;
+}
+
+export interface SaveInput {
+  /** Doluysa güncelleme, boşsa yeni kayıt. */
+  id?: string;
+  orgId: string;
+  name: string;
+  /** Renderer'ın `SignatureData`'sı — burada şekline bakılmaz, bütün saklanır. */
+  data: unknown;
+}
+
+export type SaveResult = { ok: true; id: string } | RepoError;
+
+export async function saveSignature(userId: string, input: SaveInput): Promise<SaveResult> {
+  const role = await roleIn(userId, input.orgId);
+  if (!role) return { ok: false, reason: 'forbidden' };
+  if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
+
+  const data = input.data as Prisma.InputJsonValue;
+
+  if (input.id) {
+    // Güncellenecek satır ÇAĞIRANIN org'unda olmalı. `updateMany` + orgId
+    // şartı: başka org'un imzasına kendi org kimliğiyle uzanmak 0 satır
+    // günceller ve not_found döner — kimlik doğrulanmış sızma yolu kalmaz.
+    const updated = await prisma.signature.updateMany({
+      where: { id: input.id, orgId: input.orgId },
+      data: { name: input.name, data },
+    });
+    if (updated.count === 0) return { ok: false, reason: 'not_found' };
+    return { ok: true, id: input.id };
+  }
+
+  const created = await prisma.signature.create({
+    data: { orgId: input.orgId, name: input.name, data },
+  });
+  return { ok: true, id: created.id };
+}
+
+export type MutateResult = { ok: true } | RepoError;
+
+export async function deleteSignature(userId: string, signatureId: string): Promise<MutateResult> {
+  const signature = await prisma.signature.findUnique({ where: { id: signatureId } });
+  if (!signature) return { ok: false, reason: 'not_found' };
+
+  const role = await roleIn(userId, signature.orgId);
+  if (!role) return { ok: false, reason: 'not_found' }; // org dışına varlık sızdırma
+  if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
+
+  await prisma.signature.delete({ where: { id: signatureId } });
+  return { ok: true };
+}
+
+export type DuplicateResult = { ok: true; id: string } | RepoError;
+
+export async function duplicateSignature(
+  userId: string,
+  signatureId: string,
+): Promise<DuplicateResult> {
+  const signature = await prisma.signature.findUnique({ where: { id: signatureId } });
+  if (!signature) return { ok: false, reason: 'not_found' };
+
+  const role = await roleIn(userId, signature.orgId);
+  if (!role) return { ok: false, reason: 'not_found' };
+  if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
+
+  const copy = await prisma.signature.create({
+    data: {
+      orgId: signature.orgId,
+      name: `${signature.name} (copy)`,
+      templateId: signature.templateId,
+      data: signature.data as Prisma.InputJsonValue,
+      // Gönderici bağı bilerek kopyalanmıyor: kopyalansaydı çoğaltma işlemi
+      // koltuk davranışını sessizce etkilerdi.
+      senderIdentityId: null,
+    },
+  });
+  return { ok: true, id: copy.id };
+}
+
+export interface SignatureRow {
+  id: string;
+  name: string;
+  templateId: string;
+  updatedAt: Date;
+}
+
+/** Çağıranın üye olduğu org'lardaki imzalar — panel listesi buradan okur. */
+export async function listSignatures(userId: string): Promise<SignatureRow[]> {
+  return prisma.signature.findMany({
+    where: { org: { memberships: { some: { userId } } } },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true, name: true, templateId: true, updatedAt: true },
+  });
+}

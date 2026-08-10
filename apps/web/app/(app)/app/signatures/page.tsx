@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 import { currentSession } from '../../../../lib/auth/current';
-import { prisma } from '../../../../lib/db';
+import { listSignatures } from '../../../../lib/repo/signatures';
 import styles from './signatures.module.css';
 
 export const metadata = { title: 'Signatures — Mailmyra' };
@@ -15,11 +15,7 @@ export default async function SignaturesPage() {
   // Layout oturumu garantiledi; null buraya düşmez.
   const session = (await currentSession())!;
 
-  const signatures = await prisma.signature.findMany({
-    where: { org: { memberships: { some: { userId: session.user.id } } } },
-    orderBy: { updatedAt: 'desc' },
-    select: { id: true, name: true, templateId: true, updatedAt: true },
-  });
+  const signatures = await listSignatures(session.user.id);
 
   return (
     <section>

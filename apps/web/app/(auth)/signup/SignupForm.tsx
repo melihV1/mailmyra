@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+
+import { clearDraft, loadDraft } from '../../../lib/draft';
 
 import styles from '../auth.module.css';
 import { PRIVACY_URL, TERMS_URL, TERMS_VERSION } from '../legal-links';
@@ -11,12 +13,21 @@ import { PRIVACY_URL, TERMS_URL, TERMS_VERSION } from '../legal-links';
  * kutusu. Şirket adı sorusu bilerek yok — org "Workspace" adıyla açılır,
  * sonra panelden değiştirilir.
  *
- * Taslak taşıma şeridi (`mailmyra:draft:v1`) adım 7'de: imzayı sunucuya
- * kaydeden uç olmadan taşınacak yer yok.
+ * Taslak taşıma (panel-brief §2.1): builder'da başlanmış imza varsa şerit
+ * çıkar ve kullanıcı ONAYLARSA hesaba taşınır. Sessizce taşınmaz — kişinin
+ * başka bir hesabı olabilir.
  */
 export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
+  const [carryDraft, setCarryDraft] = useState(true);
+
+  // localStorage yalnız istemcide var; SSR ile ilk boyama aynı kalsın diye
+  // şerit effect'te açılıyor.
+  useEffect(() => {
+    setHasDraft(loadDraft(window.localStorage, Date.now()) !== null);
+  }, []);
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -35,6 +46,19 @@ export function SignupForm() {
     });
 
     if (res.ok) {
+      if (hasDraft && carryDraft) {
+        const draft = loadDraft(window.localStorage, Date.now());
+        if (draft) {
+          const saved = await fetch('/api/signatures', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: 'My first signature', data: draft }),
+          });
+          // Taslak yalnız sunucuya GERÇEKTEN yazıldıysa silinir; kayıt olup
+          // taşıma başarısız olursa kullanıcının emeği tarayıcıda durur.
+          if (saved.ok) clearDraft(window.localStorage);
+        }
+      }
       window.location.assign('/app/signatures');
       return;
     }
@@ -66,6 +90,19 @@ export function SignupForm() {
           <p className={styles.error} role="alert">
             {error}
           </p>
+        )}
+
+        {hasDraft && (
+          <label className={styles.terms}>
+            <input
+              type="checkbox"
+              checked={carryDraft}
+              onChange={(e) => setCarryDraft(e.target.checked)}
+            />
+            <span>
+              The signature you started in the builder is still here. Move it into your account?
+            </span>
+          </label>
         )}
 
         <form onSubmit={submit}>
