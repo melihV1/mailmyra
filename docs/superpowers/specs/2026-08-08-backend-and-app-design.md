@@ -24,7 +24,7 @@ public API · AI üretim · SSO/SCIM.
 |---|---|
 | Veritabanı **MariaDB 11.8.3** (Postgres değil — Plesk Windows desteklemiyor; MySQL 8 de yok, Plesk'te tek seçenek MariaDB) | 2026-08-08 |
 | Migration **Plesk panelinden** `prisma migrate deploy`; DB dışarı açılmaz | 2026-08-08 |
-| E-posta: **Resend** | 2026-08-08 |
+| E-posta: **sağlayıcı bağımsız SMTP** (nodemailer, ayar env'den). Resend kararı **iptal** — sağlayıcı Plesk SMTP / Google Workspace arasında test ediliyor | 2026-08-10 |
 | Koltuk **ayrı "yayına al" adımında** tükenir; taslak bedava | 2026-08-08 |
 | Auth kendi oturum sistemimiz (email+şifre). Clerk/Auth0 yok | CLAUDE.md |
 | Renderer saf TS kalır; sunucuda toplu export **aynı** renderer'ı kullanır | CLAUDE.md |
@@ -233,7 +233,7 @@ bundan doğal olarak çıkar — her müşterinin göndericisi aynı havuza yaz�
 
 ---
 
-## 6. E-posta akışları (Resend)
+## 6. E-posta akışları
 
 | Akış | Tetik | İçerik |
 |---|---|---|
@@ -242,8 +242,17 @@ bundan doğal olarak çıkar — her müşterinin göndericisi aynı havuza yaz�
 | Davet | admin davet eder | 7g, kabul edince Membership |
 | Koltuk uyarısı (Faz 2) | tavana yaklaşınca | bilgilendirme |
 
-`SPF` + `DKIM` domain doğrulaması kurulumun parçası. Gönderen:
-`no-reply@mailmyra.com`.
+**Sağlayıcı seçilmedi ve kod bunu bilmiyor.** Gönderim tek bir `Mailer`
+soyutlamasının arkasında (`apps/web/lib/mail/`), standart SMTP konuşuyor,
+bağlantı bilgisi env'den geliyor. Sağlayıcıya özel SDK yok — dönmek tek ayar.
+Şablonlar da bağımsız: yalnız `{ subject, html, text }` üretiyorlar.
+
+Yapılandırma yoksa geliştirmede konsola yazılır, **üretimde uygulama başlamaz**
+— sessizce log'a düşmek, hiçbir e-postanın gitmediğini kimsenin fark etmemesi
+olurdu.
+
+`SPF` + `DKIM` domain doğrulaması hangi sağlayıcı seçilirse seçilsin gerekli.
+Gönderen: `no-reply@mailmyra.com`. Ayrıntı: `docs/email-setup.md`.
 
 ---
 
@@ -290,7 +299,7 @@ değerlendirilir — detayı kardeş belgede.
 **Faz 1 — Solo çekirdek. Tek başına satılabilir.**
 MariaDB + Prisma + ilk migration · email/şifre auth + doğrulama + sıfırlama ·
 panel: İmzalarım + Hesap · builder sunucuya kaydediyor (localStorage'dan
-göç) · gerçek oturumla gate'li export · ops CLI · Resend.
+göç) · gerçek oturumla gate'li export · ops CLI · SMTP gönderimi.
 → Bir Pro müşteriye bugün satılır.
 
 **Faz 2 — Ekip.** Davet · roller · çoklu SenderIdentity · publish'te koltuk

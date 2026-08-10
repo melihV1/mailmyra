@@ -82,8 +82,13 @@ kararı koda gömülmez.
   `prisma migrate deploy`. Veritabanı dışarı AÇILMAZ, Mac'ten bağlanılmaz.
   Tuzak: "node PATH'te yok" hatası çıkarsa app kökünde `.npmrc` +
   `scripts-prepend-node-path=true`.
-- **E-posta (doğrulama · davet · şifre sıfırlama): Resend** (karar: 2026-08-08).
-  Ayda 3.000 ücretsiz. SPF/DKIM domain doğrulaması gerekiyor.
+- **E-posta (doğrulama · davet · şifre sıfırlama): sağlayıcı bağımsız SMTP**
+  (karar: 2026-08-10, Hüseyin — önceki **Resend kararı iptal**). Sağlayıcı
+  Plesk SMTP ile Google Workspace arasında test ediliyor; bu yüzden gönderim
+  tek bir soyutlamanın arkasında (`apps/web/lib/mail/`), nodemailer ile
+  standart SMTP, ayarlar env'den (`MAIL_HOST/PORT/USER/PASS/FROM`).
+  **Sağlayıcıya özel SDK kullanma.** Şablonlar sağlayıcıdan bağımsız.
+  SPF/DKIM her iki durumda da gerekli. Bkz. `docs/email-setup.md`.
 - Auth: basit oturum (email + şifre). Clerk/Auth0 kullanma.
 - **Bootstrap KULLANMA.** Hazır SaaS teması kullanma. Jenerik görünüm projenin en büyük düşmanı.
 
