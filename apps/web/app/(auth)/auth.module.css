@@ -1,0 +1,155 @@
+/* Giriş/kayıt/sıfırlama sayfalarının ortak dili. Açık tema (uygulama
+   tarafı), tek sütun, tek kart. */
+
+.wrap {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  padding: var(--space-3);
+  font-family: var(--font-body);
+}
+
+.card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-3);
+}
+
+.wordmark {
+  display: block;
+  text-align: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #00102b;
+  text-decoration: none;
+  margin-bottom: var(--space-3);
+  letter-spacing: -0.01em;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: #00102b;
+  text-align: center;
+  margin-bottom: var(--space-3);
+}
+
+.field {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
+.label {
+  display: block;
+  font-size: var(--step-small);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 1px;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.terms {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: var(--step-small);
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+  line-height: 1.5;
+}
+
+.terms a {
+  color: var(--brand-strong);
+}
+
+.submit {
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--brand-strong);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  margin-top: var(--space-1);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+/* AA: kırmızı tonu açık zeminde 4.5'in üstünde kalan --danger-onlight. */
+.error {
+  background: #fbeeec;
+  border: 1px solid #eccfc9;
+  border-radius: var(--radius-sm);
+  color: var(--danger-onlight, #b3341f);
+  font-size: var(--step-small);
+  padding: 10px 12px;
+  margin-bottom: var(--space-2);
+}
+
+.notice {
+  background: #eef4ec;
+  border: 1px solid #d3e2cf;
+  border-radius: var(--radius-sm);
+  color: #2f5d28;
+  font-size: var(--step-small);
+  padding: 10px 12px;
+  margin-bottom: var(--space-2);
+}
+
+.footer {
+  text-align: center;
+  font-size: var(--step-small);
+  color: var(--text-muted);
+  margin-top: var(--space-3);
+}
+
+.footer a {
+  color: var(--brand-strong);
+}
+
+.inlineLink {
+  font-size: var(--step-small);
+}
+
+.inlineLink a {
+  color: var(--brand-strong);
+}

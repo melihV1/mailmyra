@@ -164,6 +164,33 @@ export async function verifyEmailToken(token: string): Promise<TokenResult> {
   return { ok: true };
 }
 
+export type ResendResult =
+  | { ok: true }
+  | { ok: false; reason: 'already_verified' }
+  | { ok: false; reason: 'rate_limited'; retryAfterSeconds: number };
+
+/**
+ * Doğrulama e-postasını yeniden gönderir — paneldeki "doğrula" şeridinin
+ * düğmesi. Oturum gerektirir (uç `userId`yi oturumdan alır) ama kendi
+ * hesabına sınırsız gönderim SMTP itibarımızı yakar; sayaç kullanıcı başına.
+ */
+export async function resendVerification(userId: string, mailer: Mailer): Promise<ResendResult> {
+  const budget = await consumeAttempt(`verify-resend:${userId}`, { limit: 3 });
+  if (!budget.allowed) {
+    return { ok: false, reason: 'rate_limited', retryAfterSeconds: budget.retryAfterSeconds };
+  }
+
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  if (user.emailVerifiedAt) return { ok: false, reason: 'already_verified' };
+
+  const token = await issueEmailToken(userId, 'verify', VERIFY_TTL_MS);
+  await mailer.send({
+    to: user.email,
+    ...verifyEmail({ actionUrl: `${appUrl()}/verify-email?token=${token}` }),
+  });
+  return { ok: true };
+}
+
 // ─── Şifre sıfırlama ─────────────────────────────────────────────────────
 
 export interface ResetRequestInput {

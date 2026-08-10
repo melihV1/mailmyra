@@ -10,6 +10,7 @@ import {
   login,
   register,
   requestPasswordReset,
+  resendVerification,
   resetPassword,
   verifyEmailToken,
 } from '../lib/auth/flows';
@@ -210,6 +211,50 @@ describe('verifying the email address', () => {
       ok: false,
       reason: 'invalid_token',
     });
+  });
+});
+
+describe('resending the verification email', () => {
+  const userIdOf = async (email: string) =>
+    (await prisma.user.findUniqueOrThrow({ where: { email } })).id;
+
+  test('sends a fresh email whose token verifies the account', async () => {
+    await register(GOOD, mailer);
+    mailer.clear();
+
+    const result = await resendVerification(await userIdOf('ali@voldi.net'), mailer);
+
+    expect(result).toEqual({ ok: true });
+    expect(mailer.sent).toHaveLength(1);
+    expect(await verifyEmailToken(linkFromLastMail())).toEqual({ ok: true });
+  });
+
+  test('an already verified account gets nothing', async () => {
+    await register(GOOD, mailer);
+    await verifyEmailToken(linkFromLastMail());
+    mailer.clear();
+
+    const result = await resendVerification(await userIdOf('ali@voldi.net'), mailer);
+
+    expect(result).toEqual({ ok: false, reason: 'already_verified' });
+    expect(mailer.sent).toHaveLength(0);
+  });
+
+  test('the button cannot be hammered into a mail cannon', async () => {
+    // Uç oturum gerektiriyor ama kendi hesabına sınırsız gönderim, bizim
+    // SMTP itibarımızı yakar — sayaç kullanıcı başına.
+    await register(GOOD, mailer);
+    const userId = await userIdOf('ali@voldi.net');
+    mailer.clear();
+
+    for (let i = 0; i < 3; i++) {
+      expect((await resendVerification(userId, mailer)).ok).toBe(true);
+    }
+    const fourth = await resendVerification(userId, mailer);
+
+    expect(fourth.ok).toBe(false);
+    if (fourth.ok || fourth.reason !== 'rate_limited') throw new Error('beklenen rate_limited');
+    expect(mailer.sent).toHaveLength(3);
   });
 });
 
