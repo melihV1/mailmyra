@@ -192,6 +192,17 @@ POST /api/senders/:id/publish
 
 `FOR UPDATE` şart: iki eşzamanlı publish aksi hâlde tavanı aşar.
 
+**Ölçüldü** (`apps/web/test-db/publish.test.ts`, 2026-08-10). Önce kilitsiz
+yazıldı ki testin hatayı gerçekten yakaladığı görülsün: 1 koltuğa 2 eşzamanlı
+istek → **ikisi de** yayına girdi, 3 koltuğa 10 istek → **onu birden** girdi.
+Kilit eklendikten sonra 100 eşzamanlı istek / 7 koltuk → **tam 7**, hata yok,
+263 ms. Prisma'nın varsayılan transaction timeout'u (5 sn) ve bağlantı havuzu
+bu yükte sıkışmıyor.
+
+Sayım org ağacının tamamını geziyor (özyinelemeli CTE), `entitledSeats` ise
+ağacın kökünden okunuyor. "Ajans tek koltukla sınırsız müşteri yönetememeli"
+şartı böylece ayrı bir kural olarak değil, sayımın kendisinden çıkıyor.
+
 **Export ayrı bir kapı değil.** Export yalnız aktif kimlik için çalışır;
 böylece "frontend'de gizlemek" hiçbir anlam ifade etmez.
 

@@ -1,0 +1,19 @@
+import { prisma } from '../lib/db';
+
+/** Testler arası tam temizlik. Sıra önemli: çocuklar önce. */
+export async function truncateAll() {
+  await prisma.$transaction([
+    prisma.legalAcceptance.deleteMany(),
+    prisma.signature.deleteMany(),
+    prisma.senderIdentity.deleteMany(),
+    prisma.membership.deleteMany(),
+    prisma.emailToken.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.asset.deleteMany(),
+    prisma.authAttempt.deleteMany(),
+    // Org ağacı kendine referans veriyor ve `Restrict`; çocuklar önce gitmeli.
+    prisma.organization.deleteMany({ where: { parentOrgId: { not: null } } }),
+    prisma.organization.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
+}
