@@ -59,6 +59,19 @@ dosyası tut, script `cp` ile seçilir).
    `/login`'e düşmeli
 6. Panel > Node.js log'larında hata var mı
 
+## İlk canlı deploy'da yaşananlar (2026-08-10)
+
+- **IIS hata gövdelerini yutuyor.** Uygulamanın 4xx/5xx JSON yanıtlarının
+  gövdesini Plesk'in hata sayfası eziyor; formlar hep "Something went wrong"
+  gösteriyor. Çözüm PANELDEN: Hosting Settings → "Custom error documents"
+  KAPAT. `web.config`'e `httpErrors` YAZMA — bölüm kilitli, tüm site 0 baytlık
+  500'e düşer (2026-07-27).
+- **Kayıt 500'ü SMTP'den geliyordu.** Kullanıcı + org yazılıyor, çöküş son
+  halkada: gerçek SMTP bağlantısı reddediliyor. Teşhis yöntemi: aynı adresle
+  ikinci kayıt 409 döndüyse kullanıcı oluşmuştur → hata mail gönderiminde.
+  Başarısız görünen kayıtlar HESAP OLUŞTURUR; mail düzelince o hesaplar
+  girişte "Resend email" ile doğrulanır.
+
 ## Bilinen tuzaklar (hepsi yaşandı)
 
 - `web.config`'e `security`/`httpErrors`/`nodeProcessCommandLine` EKLEME —
