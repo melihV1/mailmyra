@@ -7,8 +7,9 @@ import { escapeHtml, renderLayout, renderText } from './layout';
  * Her biri yalnız `{ subject, html, text }` üretiyor; gönderimi kimin yaptığını
  * bilmiyorlar. Plesk SMTP'den Google Workspace'e geçmek bu dosyaya dokunmuyor.
  *
- * ⚠️ DİL: metinler İngilizce, sitenin 13 sayfasıyla tutarlı olsun diye. Panel
- * dili henüz kararlı değil; Türkçe'ye dönülecekse değişecek tek yer burası.
+ * DİL: İngilizce (karar: 2026-08-10, Hüseyin). Panel ve işlemsel e-postalar
+ * sitenin diliyle aynı — kullanıcı pazarlama sayfasından panele geçerken dil
+ * değişmiyor. Çift dil bilinçli olarak kapsam dışı.
  *
  * Süreler spec §6'dan: doğrulama 24 saat · sıfırlama 1 saat · davet 7 gün.
  */

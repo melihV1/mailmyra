@@ -11,6 +11,9 @@ Sahibi: **Voldi Creative** (Konya merkezli reklam/kreatif ajans).
 Geliştirici: **Hüseyin** (tek kişi, part-time). Kararları o verir, kodu onaylar.
 
 **Dil:** Kullanıcıyla Türkçe konuş. Kod, değişken adları, commit mesajları İngilizce.
+**Ürün dili İngilizce** (karar: 2026-08-10, Hüseyin): pazarlama sitesi, uygulama
+paneli ve işlemsel e-postalar. Kullanıcı siteden panele geçerken dil değişmez.
+Çift dil kapsam dışı.
 
 ---
 

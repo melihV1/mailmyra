@@ -89,5 +89,6 @@ geçerli ve testler bunu zorluyor — tablo tabanlı yerleşim (`<div>` yok), b�
 CSS satır içi (`<style>` yok), her tabloda açıkça `border="0"` (Outlook 2512
 aksi hâlde istenmeyen kenarlık ekliyor), her mesajda düz metin karşılığı.
 
-⚠️ **Metinler İngilizce**, sitenin 13 sayfasıyla tutarlı olsun diye. Panel dili
-kararlaştırılmadı; Türkçe'ye dönülecekse değişecek tek yer `templates/`.
+**Metinler İngilizce** (karar: 2026-08-10, Hüseyin) — panel ve e-postalar
+sitenin diliyle aynı. Çift dil kapsam dışı; gerekirse değişecek tek yer
+`templates/`.
