@@ -223,7 +223,9 @@ bundan doğal olarak çıkar — her müşterinin göndericisi aynı havuza yaz�
 |---|---|---|
 | Şifre hash | Node yerleşik **`crypto.scrypt`** | argon2/bcrypt native modül. Mac'te build alıp Windows'a zip atıyoruz; native binary uyuşmazlığı bu deploy hikâyesinin en olası kırılma noktası. scrypt sıfır bağımlılık |
 | Oturum | DB'de, opak token, `httpOnly` + `Secure` + `SameSite=Lax` | çok süreç ihtimali; ayrıca iptal edilebilir |
-| Süre | 30 gün kayan; her istekte `lastSeenAt` | |
+| Süre | 30 gün kayan; `lastSeenAt` **saatte bir** yenilenir | Önce "her istekte" yazmıştık. Uygularken görüldü ki bu, kimliği doğrulanmış her istekte bir `UPDATE` demek — sayfa başına birkaç yazma. Kayan sürenin istediği şey bu değil; saatlik yenileme 30 günlük pencereyi pratikte aynı kaydırıyor, yazma yükünü sıfırlıyor |
+| Hesap sızdırma | Kullanıcı bulunamadığında da scrypt koşturulur | Aksi hâlde giriş ucu var olmayan hesaba milisaniyede, var olana ~50 ms'de yanıt verir; bu fark şifreyi hiç bilmeden "kayıtlı mı" sorusunu yanıtlar |
+| Şifre hash formatı | `scrypt$N$r$p$tuz$özet` — parametreler kayıtta | Maliyet yıllar içinde yükselecek; parametreler yazılı olmasaydı yükselttiğimiz gün bütün eski şifreler doğrulanamaz hâle gelirdi |
 | CSRF | SameSite=Lax + durum değiştiren POST'ta çift-gönderim token | |
 | Rate limit | auth uçlarında DB sayacı: 5 deneme / 15dk / (ip+email) | |
 | Bot | CAPTCHA **yok** | dönüşümü düşürür ve çözmüyoruz; rate limit + e-posta doğrulama MVP'de yeterli |
