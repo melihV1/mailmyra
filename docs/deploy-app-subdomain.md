@@ -62,10 +62,13 @@ dosyası tut, script `cp` ile seçilir).
 ## İlk canlı deploy'da yaşananlar (2026-08-10)
 
 - **IIS hata gövdelerini yutuyor.** Uygulamanın 4xx/5xx JSON yanıtlarının
-  gövdesini Plesk'in hata sayfası eziyor; formlar hep "Something went wrong"
-  gösteriyor. Çözüm PANELDEN: Hosting Settings → "Custom error documents"
-  KAPAT. `web.config`'e `httpErrors` YAZMA — bölüm kilitli, tüm site 0 baytlık
-  500'e düşer (2026-07-27).
+  gövdesini önce Plesk'in, o kapatılınca IIS'in kendi hata sayfası eziyor;
+  formlar hep "Something went wrong" gösteriyor. Kalıcı çözüm `web.config`'e
+  `<httpErrors existingResponse="PassThrough" />` — **bu subdomain'de canlıda
+  denendi ve çalıştı** (önce yedek alınıp anında test edilerek). 2026-07-27'nin
+  "httpErrors kilitli" dersi ANA SİTE içindi; ana siteye taşınacaksa orada
+  aynı yedekli deneyle doğrula. Upload 500'ünün gerçek sebebi bu sayede
+  okundu: `.env.local`'de `CDN_WRITE_PATH`/`CDN_PUBLIC_URL` eksikti.
 - **Kayıt 500'ü SMTP'den geliyordu.** Kullanıcı + org yazılıyor, çöküş son
   halkada: gerçek SMTP bağlantısı reddediliyor. Teşhis yöntemi: aynı adresle
   ikinci kayıt 409 döndüyse kullanıcı oluşmuştur → hata mail gönderiminde.
