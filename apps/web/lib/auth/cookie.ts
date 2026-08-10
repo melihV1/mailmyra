@@ -33,3 +33,26 @@ export function sessionCookieOptions(
     maxAge: SESSION_TTL_SECONDS,
   };
 }
+
+function serialize(value: string, maxAge: number, env: { NODE_ENV?: string }): string {
+  const options = sessionCookieOptions(env);
+  const parts = [`${SESSION_COOKIE}=${value}`, `Max-Age=${maxAge}`, 'Path=/', 'HttpOnly', 'SameSite=Lax'];
+  if (options.secure) parts.push('Secure');
+  return parts.join('; ');
+}
+
+/** Route handler'ların `Set-Cookie` başlığına yazdığı değer. */
+export function sessionCookieHeader(
+  token: string,
+  env: { NODE_ENV?: string } = process.env,
+): string {
+  return serialize(token, SESSION_TTL_SECONDS, env);
+}
+
+/**
+ * Çıkışta çerezi düşürür. Aynı `Path` şart: taşımazsa tarayıcı ikisini ayrı
+ * çerez sayar ve çıkış yapılamaz.
+ */
+export function clearSessionCookieHeader(env: { NODE_ENV?: string } = process.env): string {
+  return serialize('', 0, env);
+}
