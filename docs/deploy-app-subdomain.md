@@ -40,9 +40,20 @@ Panel > Veritabanları > phpMyAdmin, `mailmyra_app` üzerinde:
 ```
 Mac'te:  npm run deploy        (build + .next ve prisma/ FTPS ile gider)
 Panelde: uygulamayı DURDUR yüklemeden ÖNCE (Windows dosya kilidi!)
-         (şema değiştiyse) Komut dosyası çalıştır → npx prisma migrate deploy
+         şema değiştiyse İKİ komut (sırayla) + restart:
+           exec -- prisma migrate deploy
+           exec -- prisma generate
          uygulamayı BAŞLAT
 ```
+
+**"Komut dosyası çalıştır" kutusu komutun başına `npm` ekler** (2026-08-11'de
+öğrenildi: `node_modules/...` yazınca `npm node_modules/...` koştu ve
+"Unknown command" dedi). Bu yüzden komutlar `exec -- prisma ...` biçiminde.
+
+**`prisma generate` şema değişiminde ŞART**: sunucudaki istemci ilk `npm
+ci`'da üretilir ve yeni tabloyu bilmez — migration inse bile uygulama 500
+verir (yaşandı: Invitation deploy'unda members ekranı 500'dü, generate +
+restart düzeltti).
 
 `.env.deploy` içinde `DEPLOY_FTP_REMOTE=/app.mailmyra.com/apps/web`
 (ana siteninkinden FARKLI — karıştırma; istersen iki ayrı `.env.deploy.*`
