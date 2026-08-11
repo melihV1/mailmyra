@@ -13,6 +13,10 @@
 }
 
 .primary {
+  /* Hem <a> hem <button> olarak kullanılıyor. */
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
   display: inline-block;
   background: var(--brand-strong);
   color: #ffffff;
@@ -111,5 +115,21 @@
 .action:disabled,
 .actionDanger:disabled {
   opacity: 0.5;
+  cursor: default;
+}
+
+.newWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.newError {
+  color: var(--danger-onlight, #b3341f);
+  font-size: var(--step-small);
+}
+
+.primary:disabled {
+  opacity: 0.6;
   cursor: default;
 }

@@ -1,6 +1,5 @@
-import Link from 'next/link';
-
 import { currentSession } from '../../../../lib/auth/current';
+import { NewSignatureButton } from './NewSignatureButton';
 import { RowActions } from './RowActions';
 import { listSignatures } from '../../../../lib/repo/signatures';
 import styles from './signatures.module.css';
@@ -22,11 +21,7 @@ export default async function SignaturesPage() {
     <section>
       <header className={styles.head}>
         <h1 className={styles.title}>Signatures</h1>
-        {signatures.length > 0 && (
-          <Link href="/builder" className={styles.primary}>
-            New signature
-          </Link>
-        )}
+        {signatures.length > 0 && <NewSignatureButton />}
       </header>
 
       {signatures.length === 0 ? (
@@ -36,9 +31,7 @@ export default async function SignaturesPage() {
             Build your first signature in a few minutes — pick a template, fill in your details,
             watch the live preview.
           </p>
-          <Link href="/builder" className={styles.primary}>
-            New signature
-          </Link>
+          <NewSignatureButton />
         </div>
       ) : (
         <ul className={styles.list}>
