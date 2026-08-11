@@ -25,7 +25,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
     );
     if (!sure) return;
     setBusy(true);
-    const res = await fetch(`/api/signatures/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/signatures/${id}/delete`, { method: 'POST' });
     setBusy(false);
     if (res.ok) router.refresh();
   };

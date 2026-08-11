@@ -77,6 +77,13 @@ dosyası tut, script `cp` ile seçilir).
 
 ## Bilinen tuzaklar (hepsi yaşandı)
 
+- **GET/POST dışındaki fiiller uygulamaya ULAŞMIYOR** — IIS'in WebDAV modülü
+  PATCH ve DELETE'i boş gövdeli 403'le yiyor (2026-08-11'de ölçüldü: oturumsuz
+  PATCH bizim 401 JSON'ımız yerine boş 403 döndü). Karar: API yalnız GET/POST
+  kullanır (`.../assign`, `.../delete`). Alternatif (denenmedi): web.config'te
+  `<modules><remove name="WebDAVModule"/>` — denenecekse httpErrors'taki gibi
+  yedekli-anında-testli yöntemle.
+
 - `web.config`'e `security`/`httpErrors`/`nodeProcessCommandLine` EKLEME —
   tüm site 0 baytlık 500 olur (2026-07-27)
 - Uygulama durmadan yükleme → kilitli dosyalar, yarım `.next`, "module not

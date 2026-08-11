@@ -25,8 +25,8 @@ export function AssignSelect({
   const change = async (value: string) => {
     setBusy(true);
     setFailed(false);
-    const res = await fetch(`/api/signatures/${signatureId}`, {
-      method: 'PATCH',
+    const res = await fetch(`/api/signatures/${signatureId}/assign`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ senderIdentityId: value === '' ? null : value }),
     });
