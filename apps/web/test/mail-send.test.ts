@@ -10,6 +10,7 @@ const config = {
   secure: false,
   auth: { user: 'u', pass: 'p' },
   from: 'Mailmyra <no-reply@mailmyra.com>',
+  allowSelfSigned: false,
 };
 
 const mail = {

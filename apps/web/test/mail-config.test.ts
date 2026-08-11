@@ -22,6 +22,7 @@ describe('reading the provider from the environment', () => {
         secure: false,
         auth: { user: 'no-reply@mailmyra.com', pass: 'gizli' },
         from: 'Mailmyra <no-reply@mailmyra.com>',
+        allowSelfSigned: false,
       },
     });
   });
@@ -77,6 +78,20 @@ describe('reading the provider from the environment', () => {
       ok: false,
       missing: ['MAIL_PORT'],
     });
+  });
+
+  it('can be told to accept a self-signed certificate — for the localhost relay', () => {
+    // Yaşandı (2026-08-11, canlı): Plesk'in posta sunucusu localhost'ta
+    // STARTTLS'e kendinden imzalı sertifikayla çıkıyor ve gönderim ESOCKET
+    // ile ölüyor. Trafik makineden çıkmadığı için doğrulamayı kapatmak
+    // güvenli — ama yalnız bu anahtar AÇIKÇA yazılırsa.
+    expect(readSmtpConfig({ ...full, MAIL_TLS_SELF_SIGNED: 'true' })).toMatchObject({
+      config: { allowSelfSigned: true },
+    });
+    expect(readSmtpConfig({ ...full, MAIL_TLS_SELF_SIGNED: 'yanlis' })).toMatchObject({
+      config: { allowSelfSigned: false },
+    });
+    expect(readSmtpConfig(full)).toMatchObject({ config: { allowSelfSigned: false } });
   });
 
   it('defaults to 587 when no port is given', () => {

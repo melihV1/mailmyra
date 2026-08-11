@@ -27,6 +27,9 @@ export function createSmtpMailer(
         port: config.port,
         secure: config.secure,
         auth: config.auth,
+        // Yalnız MAIL_TLS_SELF_SIGNED=true iken: localhost rölesinin
+        // kendinden imzalı sertifikası kabul edilir (bkz. config.ts).
+        tls: config.allowSelfSigned ? { rejectUnauthorized: false } : undefined,
       });
 
   const build = (mail: OutgoingMail) => ({

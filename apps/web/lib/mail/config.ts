@@ -5,6 +5,13 @@ export interface SmtpConfig {
   /** Kimlik doğrulaması istemeyen röleler için isteğe bağlı. */
   auth: { user: string; pass: string } | undefined;
   from: string;
+  /**
+   * Kendinden imzalı sertifikayı kabul et — YALNIZ localhost rölesi için.
+   * Yaşandı (2026-08-11, canlı): Plesk'in posta sunucusu localhost'ta
+   * STARTTLS'e kendinden imzalı sertifikayla çıkıyor, gönderim ESOCKET ile
+   * ölüyordu. Trafik makineden çıkmıyor; doğrulamayı kapatmak burada güvenli.
+   */
+  allowSelfSigned: boolean;
 }
 
 export type SmtpConfigResult =
@@ -57,5 +64,10 @@ export function readSmtpConfig(env: Record<string, string | undefined>): SmtpCon
       ? isImplicitTlsPort(port)
       : env.MAIL_SECURE.toLowerCase() === 'true';
 
-  return { ok: true, config: { host: host as string, port, secure, auth, from: from as string } };
+  const allowSelfSigned = env.MAIL_TLS_SELF_SIGNED?.toLowerCase() === 'true';
+
+  return {
+    ok: true,
+    config: { host: host as string, port, secure, auth, from: from as string, allowSelfSigned },
+  };
 }
