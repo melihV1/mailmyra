@@ -120,6 +120,20 @@ describe('the thirty days slide', () => {
   });
 });
 
+describe('parallel refresh', () => {
+  test('ten simultaneous reads of a stale session all succeed', async () => {
+    // Canlıda görüldü: layout ve sayfa aynı anda okuyunca saatlik yenileme
+    // yarışı MariaDB 1020 fırlatıyordu. Yarışı kaybetmek sessiz olmalı.
+    const user = await newUser();
+    const { token } = await createSession(user.id);
+    await prisma.session.updateMany({ data: { lastSeenAt: new Date(Date.now() - 2 * HOUR) } });
+
+    const results = await Promise.all(Array.from({ length: 10 }, () => readSession(token)));
+
+    for (const r of results) expect(r?.user.id).toBe(user.id);
+  });
+});
+
 describe('revoking', () => {
   test('a revoked session stops working immediately', async () => {
     const user = await newUser();

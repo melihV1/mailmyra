@@ -12,6 +12,10 @@ describe('the locked price model', () => {
     expect(PRICING.minSeats).toBe(1);
   });
 
+  test('a trial starts with five seats, not a wall after the first publish', () => {
+    expect(PRICING.trialSeats).toBe(5);
+  });
+
   test('the trial runs seven days and asks for no card', () => {
     expect(PRICING.trialDays).toBe(7);
     expect(PRICING.trialRequiresCard).toBe(false);

@@ -75,10 +75,17 @@ export async function readSession(token: string): Promise<ActiveSession | null> 
   let expiresAt = row.expiresAt;
   if (now - row.lastSeenAt.getTime() >= REFRESH_AFTER_MS) {
     expiresAt = new Date(now + TTL_MS);
-    await prisma.session.update({
-      where: { id: row.id },
-      data: { lastSeenAt: new Date(now), expiresAt },
-    });
+    try {
+      await prisma.session.update({
+        where: { id: row.id },
+        data: { lastSeenAt: new Date(now), expiresAt },
+      });
+    } catch {
+      // Aynı bayat oturuma iki istek aynı anda dokununca (layout + sayfa)
+      // MariaDB 1020 "record has changed" fırlatabiliyor — canlıda görüldü
+      // (2026-08-11). Yenileme yarışını kaybetmek zararsız: kazanan zaten
+      // aynı kaydırmayı yazdı. Oturumun kendisi geçerli, istek DEVAM eder.
+    }
   }
 
   return { id: row.id, user: row.user, expiresAt };

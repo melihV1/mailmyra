@@ -1,3 +1,4 @@
+import { PRICING } from '@mailmyra/core';
 import { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
@@ -78,6 +79,9 @@ export async function register(input: RegisterInput, mailer: Mailer): Promise<Re
         data: {
           name: input.orgName.trim() || 'Workspace',
           entitlementState: 'trial',
+          // Deneme 5 koltukla başlar (karar: 2026-08-11) — iş sabiti tek
+          // kaynakta: core/pricing. Şemadaki default(1) güvenlik tabanı.
+          entitledSeats: PRICING.trialSeats,
           trialEndsAt: new Date(Date.now() + TRIAL_MS),
         },
       });

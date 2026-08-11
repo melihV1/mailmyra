@@ -16,6 +16,9 @@ export const PRICING = {
   currency: 'USD',
   minSeats: 1,
   trialDays: 7,
+  /** Deneme koltuğu (karar: 2026-08-11, Hüseyin). Ekipler ikinci kişiyi
+   *  yayına alamadan duvara toslamasın; kayıtta org bu kapasiteyle açılır. */
+  trialSeats: 5,
   trialRequiresCard: false,
   hasFreePlan: false,
 } as const;
