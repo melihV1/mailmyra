@@ -1,4 +1,4 @@
-import { canPublish, seatStatus, type Decision } from '@mailmyra/core';
+import { can, canPublish, seatStatus, type Decision, type Role, type SeatStatus } from '@mailmyra/core';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
@@ -108,4 +108,126 @@ export async function deactivateSender(senderId: string): Promise<void> {
     where: { id: senderId },
     data: { deactivatedAt: new Date() },
   });
+}
+
+// ─── Ekran katmanı: rol sargısı ──────────────────────────────────────────
+// Koltuk mekaniği yukarıda ve kilit altında; buradaki fonksiyonlar "kim"
+// sorusunu cevaplar. Ekleme/yayına alma/pasifleştirme `sender:manage` ister
+// (owner+admin). Org dışına varlık sızdırılmaz: yabancıya `not_found`.
+
+async function roleFor(userId: string, orgId: string): Promise<Role | null> {
+  const m = await prisma.membership.findUnique({ where: { userId_orgId: { userId, orgId } } });
+  return m?.role ?? null;
+}
+
+/** Faz 1-2: kullanıcı tek org'lu; ilk üyelik esas alınır. */
+async function primaryOrgId(userId: string): Promise<string | null> {
+  const m = await prisma.membership.findFirst({
+    where: { userId },
+    orderBy: { createdAt: 'asc' },
+  });
+  return m?.orgId ?? null;
+}
+
+export type CreateSenderResult =
+  | { ok: true; id: string }
+  | { ok: false; reason: 'forbidden' | 'email_taken' };
+
+export async function createSender(
+  userId: string,
+  input: { displayName: string; email: string; jobTitle?: string },
+): Promise<CreateSenderResult> {
+  const orgId = await primaryOrgId(userId);
+  if (!orgId) return { ok: false, reason: 'forbidden' };
+  const role = await roleFor(userId, orgId);
+  if (!role || !can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
+
+  try {
+    const sender = await prisma.senderIdentity.create({
+      data: {
+        orgId,
+        displayName: input.displayName.trim(),
+        email: input.email.trim().toLowerCase(),
+        jobTitle: input.jobTitle?.trim() || null,
+      },
+    });
+    return { ok: true, id: sender.id };
+  } catch (error) {
+    // UNIQUE(orgId, email) — aynı adres ikinci kez eklenmez; pasifse
+    // silinmez, yeniden yayına alınır (kısmi indeks yok kuralı).
+    if ((error as { code?: string }).code === 'P2002') {
+      return { ok: false, reason: 'email_taken' };
+    }
+    throw error;
+  }
+}
+
+export type WrappedDecision = Decision | { allowed: false; reason: 'forbidden' | 'not_found' };
+
+export async function publishSenderAs(
+  userId: string,
+  senderId: string,
+): Promise<WrappedDecision> {
+  const sender = await prisma.senderIdentity.findUnique({ where: { id: senderId } });
+  if (!sender) return { allowed: false, reason: 'not_found' };
+  const role = await roleFor(userId, sender.orgId);
+  if (!role) return { allowed: false, reason: 'not_found' };
+  if (!can(role, 'sender:manage')) return { allowed: false, reason: 'forbidden' };
+  return publishSender(senderId);
+}
+
+export type DeactivateResult =
+  | { ok: true }
+  | { ok: false; reason: 'forbidden' | 'not_found' };
+
+export async function deactivateSenderAs(
+  userId: string,
+  senderId: string,
+): Promise<DeactivateResult> {
+  const sender = await prisma.senderIdentity.findUnique({ where: { id: senderId } });
+  if (!sender) return { ok: false, reason: 'not_found' };
+  const role = await roleFor(userId, sender.orgId);
+  if (!role) return { ok: false, reason: 'not_found' };
+  if (!can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
+  await deactivateSender(senderId);
+  return { ok: true };
+}
+
+export interface SenderRowData {
+  id: string;
+  displayName: string;
+  email: string;
+  jobTitle: string | null;
+  status: SeatStatus;
+  /** Atanmış imzaların adları — ekrandaki "atanmış imza" sütunu. */
+  signatureNames: string[];
+}
+
+export async function listSenders(userId: string): Promise<SenderRowData[]> {
+  const orgId = await primaryOrgId(userId);
+  if (!orgId) return [];
+  const rows = await prisma.senderIdentity.findMany({
+    where: { orgId },
+    orderBy: { createdAt: 'asc' },
+    include: { signatures: { select: { name: true } } },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    displayName: r.displayName,
+    email: r.email,
+    jobTitle: r.jobTitle,
+    status: seatStatus(r),
+    signatureNames: r.signatures.map((sig) => sig.name),
+  }));
+}
+
+/** Koltuk göstergesinin tek kaynağı: fatura ağacındaki aktif / satın alınmış. */
+export async function seatSummary(
+  userId: string,
+): Promise<{ active: number; entitled: number }> {
+  const orgId = await primaryOrgId(userId);
+  if (!orgId) return { active: 0, entitled: 0 };
+  const billingOrgId = await resolveBillingOrgId(prisma, orgId);
+  const org = await prisma.organization.findUniqueOrThrow({ where: { id: billingOrgId } });
+  return { active: await countActiveSeatsInTree(prisma, billingOrgId), entitled: org.entitledSeats };
 }

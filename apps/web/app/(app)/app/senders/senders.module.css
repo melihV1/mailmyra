@@ -1,0 +1,215 @@
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--step-h2);
+  color: #00102b;
+  letter-spacing: -0.01em;
+}
+
+/* ── Koltuk göstergesi — her zaman üstte (brief §2.6) ── */
+
+.meter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.meterText {
+  font-size: var(--step-small);
+  white-space: nowrap;
+}
+
+.meterTrack {
+  flex: 1;
+  min-width: 140px;
+  height: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  background: var(--brand-strong);
+  transition: width 0.3s ease;
+}
+
+.meterWarn {
+  background: #c96a2e;
+}
+
+.meterFull {
+  background: var(--danger-onlight, #b3341f);
+}
+
+.meterNote {
+  width: 100%;
+  font-size: var(--step-small);
+  color: var(--danger-onlight, #b3341f);
+}
+
+/* ── Taslak ekleme ── */
+
+.addForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--space-3);
+}
+
+.input {
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--step-small);
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  min-width: 180px;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 1px;
+}
+
+.addButton {
+  font: inherit;
+  font-size: var(--step-small);
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand-strong);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.addButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Liste ── */
+
+.list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px var(--space-2);
+}
+
+.rowName {
+  font-weight: 600;
+  min-width: 140px;
+}
+
+.rowMeta {
+  color: var(--text-muted);
+  font-size: var(--step-small);
+}
+
+/* Rozetler — tek dil (brief §2.6): Taslak nötr, Yayında şeftali, Pasif soluk */
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.draft {
+  color: var(--text-muted);
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.active {
+  color: #7c3d12;
+  background: #fbeadd;
+  border-color: #ecccab;
+}
+
+.inactive {
+  color: var(--text-muted);
+  background: none;
+  border-color: var(--border);
+  opacity: 0.7;
+}
+
+/* ── Eylemler ── */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.action {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.actionError {
+  font-size: var(--step-small);
+  color: var(--danger-onlight, #b3341f);
+}
+
+.empty {
+  background: var(--bg);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  padding: var(--space-4) var(--space-3);
+  text-align: center;
+  max-width: 560px;
+  margin: var(--space-3) auto 0;
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: #00102b;
+  margin-bottom: var(--space-1);
+}
+
+.emptyBody {
+  color: var(--text-muted);
+  line-height: var(--leading-normal);
+}
