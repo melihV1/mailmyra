@@ -231,3 +231,47 @@ export async function seatSummary(
   const org = await prisma.organization.findUniqueOrThrow({ where: { id: billingOrgId } });
   return { active: await countActiveSeatsInTree(prisma, billingOrgId), entitled: org.entitledSeats };
 }
+
+export type BulkResult =
+  | { ok: true; created: number; skipped: string[] }
+  | { ok: false; reason: 'forbidden' };
+
+/**
+ * CSV içe aktarmanın veri ucu. HEPSİ TASLAK girer — koltuk sayacı kıpırdamaz
+ * (brief §2.10: "CSV yüklemek koltuk harcamamalı"); bu yüzden tavana hiç
+ * bakılmaz, tavan doluyken bile içe aktarma çalışır. Mevcut adresler adıyla
+ * atlanır ki kullanıcı "kaç kişi zaten vardı" sorusunun cevabını görsün.
+ */
+export async function bulkCreateSenders(
+  userId: string,
+  rows: Array<{ displayName: string; email: string; jobTitle?: string }>,
+): Promise<BulkResult> {
+  const orgId = await primaryOrgId(userId);
+  if (!orgId) return { ok: false, reason: 'forbidden' };
+  const role = await roleFor(userId, orgId);
+  if (!role || !can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
+
+  const wanted = rows.map((r) => ({
+    displayName: r.displayName.trim(),
+    email: r.email.trim().toLowerCase(),
+    jobTitle: r.jobTitle?.trim() || null,
+  }));
+
+  const existing = await prisma.senderIdentity.findMany({
+    where: { orgId, email: { in: wanted.map((r) => r.email) } },
+    select: { email: true },
+  });
+  const skippedSet = new Set(existing.map((e) => e.email));
+  const fresh = wanted.filter((r) => !skippedSet.has(r.email));
+
+  if (fresh.length > 0) {
+    await prisma.senderIdentity.createMany({
+      data: fresh.map((r) => ({ orgId, ...r })),
+      // Yarış payı: sorgu ile ekleme arasında biri aynı adresi elle eklerse
+      // toplu iş patlamasın, o satır sessizce düşsün.
+      skipDuplicates: true,
+    });
+  }
+
+  return { ok: true, created: fresh.length, skipped: [...skippedSet] };
+}

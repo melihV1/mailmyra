@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { currentSession } from '../../../../lib/auth/current';
 import { listSenders, seatSummary } from '../../../../lib/repo/senders';
 import { AddSenderForm } from './AddSenderForm';
+import { ImportCsv } from './ImportCsv';
 import { SenderActions } from './SenderActions';
 import styles from './senders.module.css';
 
@@ -61,6 +62,7 @@ export default async function SendersPage() {
       </div>
 
       <AddSenderForm />
+      <ImportCsv />
 
       {senders.length === 0 ? (
         <div className={styles.empty}>

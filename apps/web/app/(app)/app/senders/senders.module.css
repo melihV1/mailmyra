@@ -213,3 +213,104 @@
   color: var(--text-muted);
   line-height: var(--leading-normal);
 }
+
+/* ── CSV içe aktarma ── */
+
+.importBox {
+  margin: calc(-1 * var(--space-2)) 0 var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.importToggle {
+  align-self: flex-start;
+  font: inherit;
+  font-size: var(--step-small);
+  color: var(--brand-strong);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.importBody {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fileInput {
+  font-size: var(--step-small);
+}
+
+.mapRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.mapField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mapLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.roleLikeSelect {
+  font: inherit;
+  font-size: var(--step-small);
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.previewWrap {
+  overflow-x: auto;
+}
+
+.preview {
+  border-collapse: collapse;
+  font-size: var(--step-small);
+}
+
+.preview td {
+  border: 1px solid var(--border);
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.lineNo {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.badRow td {
+  background: #fbeeec;
+}
+
+.rowErr {
+  color: var(--danger-onlight, #b3341f);
+  font-size: 0.75rem;
+}
+
+.importSummary {
+  font-size: var(--step-small);
+  line-height: 1.6;
+}
+
+.notice {
+  font-size: var(--step-small);
+  color: #2f5d28;
+}

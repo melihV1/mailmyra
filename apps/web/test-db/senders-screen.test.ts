@@ -7,6 +7,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { prisma } from '../lib/db';
 import {
+  bulkCreateSenders,
   createSender,
   deactivateSenderAs,
   listSenders,
@@ -115,5 +116,48 @@ describe('publish and deactivate through the role wrapper', () => {
       allowed: false,
       reason: 'seat_limit',
     });
+  });
+});
+
+describe('bulk import', () => {
+  test('rows land as drafts; the seat counter does not move', async () => {
+    const { userId } = await member('admin', 1); // tavan 1 — umursamamalı
+    const rows = Array.from({ length: 8 }, (_, i) => ({
+      displayName: `Kişi ${i}`,
+      email: `kisi${i}@voldi.net`,
+    }));
+
+    const result = await bulkCreateSenders(userId, rows);
+
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.created).toBe(8);
+    expect(result.skipped).toEqual([]);
+    expect((await seatSummary(userId)).active).toBe(0); // taslak koltuk yemez
+    expect(await listSenders(userId)).toHaveLength(8);
+  });
+
+  test('existing addresses are skipped by name, the rest still land', async () => {
+    const { userId } = await member('owner');
+    await createSender(userId, { displayName: 'Var Olan', email: 'mevcut@voldi.net' });
+
+    const result = await bulkCreateSenders(userId, [
+      { displayName: 'Mevcut Tekrar', email: 'MEVCUT@voldi.net' },
+      { displayName: 'Yeni', email: 'yeni@voldi.net' },
+    ]);
+
+    if (!result.ok) throw new Error(result.reason);
+    expect(result.created).toBe(1);
+    expect(result.skipped).toEqual(['mevcut@voldi.net']);
+    expect(await listSenders(userId)).toHaveLength(2);
+  });
+
+  test('an editor cannot bulk import — same line as single add', async () => {
+    const { orgId } = await member('owner');
+    const editor = await prisma.user.create({ data: { email: 'ed@voldi.net', passwordHash: 'x' } });
+    await prisma.membership.create({ data: { userId: editor.id, orgId, role: 'editor' } });
+
+    expect(await bulkCreateSenders(editor.id, [{ displayName: 'X', email: 'x@voldi.net' }])).toEqual(
+      { ok: false, reason: 'forbidden' },
+    );
   });
 });
