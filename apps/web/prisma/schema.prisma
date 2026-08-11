@@ -109,6 +109,7 @@ model Organization {
   children Organization[] @relation("OrgTree")
 
   memberships      Membership[]
+  invitations      Invitation[]
   senderIdentities SenderIdentity[]
   signatures       Signature[]
   assets           Asset[]
@@ -162,6 +163,27 @@ model SenderIdentity {
   @@unique([orgId, email])
   /// Koltuk sayımının tek sorgusu bu indeksten okur.
   @@index([orgId, publishedAt, deactivatedAt])
+}
+
+/// Henüz hesabı olmayan birini de davet edebilmek için `EmailToken`dan ayrı:
+/// o tablo bir `userId` ister, davetin muhatabının ise kullanıcısı olmayabilir.
+/// Kabulde `acceptedAt` dolar; kayıt silinmez — kim, ne zaman, hangi rolle
+/// katıldı sorusunun cevabı burada durur.
+model Invitation {
+  id        String   @id @default(cuid())
+  orgId     String
+  email     String   @db.VarChar(255)
+  role      Role
+  tokenHash String   @unique @db.Char(64)
+  expiresAt DateTime
+  acceptedAt DateTime?
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  /// Aynı adrese aynı org'dan tek bekleyen davet — yenisi eskisini değiştirir.
+  @@unique([orgId, email])
+  @@index([expiresAt])
 }
 
 // ─── İçerik ──────────────────────────────────────────────────────────────
