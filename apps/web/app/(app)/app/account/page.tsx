@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 import { currentSession } from '../../../../lib/auth/current';
 import { prisma } from '../../../../lib/db';
 import { AccountForms } from './AccountForms';
@@ -11,7 +13,11 @@ export const metadata = { title: 'Account — Mailmyra' };
  * hesap silme Faz 2'ye — ikisi de kendi doğrulama akışını istiyor.
  */
 export default async function AccountPage() {
-  const session = (await currentSession())!;
+  // Layout korumasına GÜVENME: App Router layout ile sayfayı paralel render
+  // edebiliyor; layout redirect'e karar verirken sayfa null oturumla çalışır
+  // (canlıda 500 olarak görüldü, 2026-08-11).
+  const session = await currentSession();
+  if (!session) redirect('/login?next=/app/account');
 
   const [sessions, acceptances] = await Promise.all([
     prisma.session.findMany({

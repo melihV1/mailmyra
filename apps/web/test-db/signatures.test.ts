@@ -7,6 +7,7 @@ import { afterAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { prisma } from '../lib/db';
 import {
+  assignSignature,
   deleteSignature,
   duplicateSignature,
   getSignature,
@@ -180,6 +181,65 @@ describe('reading one', () => {
     expect(await getSignature(stranger.userId, saved.id)).toEqual({
       ok: false,
       reason: 'not_found',
+    });
+  });
+});
+
+describe('assignment', () => {
+  const sender = (orgId: string, email = 'kisi@voldi.net') =>
+    prisma.senderIdentity.create({ data: { orgId, displayName: 'Kişi', email } });
+
+  test('an editor ties a signature to a sender and both screens see it', async () => {
+    const { userId, orgId } = await member('editor', 'ali@voldi.net');
+    const saved = await saveSignature(userId, { orgId, name: 'İş imzam', data: DATA });
+    if (!saved.ok) throw new Error('unreachable');
+    const s = await sender(orgId);
+
+    expect(await assignSignature(userId, saved.id, s.id)).toEqual({ ok: true });
+
+    const row = (await listSignatures(userId))[0];
+    expect(row?.senderName).toBe('Kişi');
+    expect(row?.senderStatus).toBe('draft');
+  });
+
+  test('unassigning with null clears the tie', async () => {
+    const { userId, orgId } = await member('editor', 'ali@voldi.net');
+    const saved = await saveSignature(userId, { orgId, name: 'X', data: DATA });
+    if (!saved.ok) throw new Error('unreachable');
+    const s = await sender(orgId);
+    await assignSignature(userId, saved.id, s.id);
+
+    expect(await assignSignature(userId, saved.id, null)).toEqual({ ok: true });
+    expect((await listSignatures(userId))[0]?.senderName).toBeNull();
+  });
+
+  test("a sender from ANOTHER org cannot be spliced in", async () => {
+    // Çapraz org ataması koltuk muhasebesini karıştırırdı: imza A org'unda,
+    // koltuğu B org'unda tüketen bir kimlik. Var olduğu bile söylenmez.
+    const home = await member('editor', 'ali@voldi.net', 'A');
+    const other = await member('owner', 'y@baska.net', 'B');
+    const saved = await saveSignature(home.userId, { orgId: home.orgId, name: 'X', data: DATA });
+    if (!saved.ok) throw new Error('unreachable');
+    const foreign = await sender(other.orgId, 'dis@baska.net');
+
+    expect(await assignSignature(home.userId, saved.id, foreign.id)).toEqual({
+      ok: false,
+      reason: 'not_found',
+    });
+    expect((await listSignatures(home.userId))[0]?.senderName).toBeNull();
+  });
+
+  test('a viewer cannot assign', async () => {
+    const owner = await member('owner', 's@voldi.net');
+    const saved = await saveSignature(owner.userId, { orgId: owner.orgId, name: 'X', data: DATA });
+    if (!saved.ok) throw new Error('unreachable');
+    const s = await sender(owner.orgId);
+    const viewer = await prisma.user.create({ data: { email: 'v@voldi.net', passwordHash: 'x' } });
+    await prisma.membership.create({ data: { userId: viewer.id, orgId: owner.orgId, role: 'viewer' } });
+
+    expect(await assignSignature(viewer.id, saved.id, s.id)).toEqual({
+      ok: false,
+      reason: 'forbidden',
     });
   });
 });

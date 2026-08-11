@@ -133,3 +133,47 @@
   opacity: 0.6;
   cursor: default;
 }
+
+.assignWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.assign {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.assignError {
+  font-size: 0.75rem;
+  color: var(--danger-onlight, #b3341f);
+}
+
+.senderBadge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  background: var(--surface);
+}
+
+.sb_active {
+  color: #7c3d12;
+  background: #fbeadd;
+  border-color: #ecccab;
+}
+
+.sb_inactive {
+  opacity: 0.7;
+}
+
+.sb_draft {
+}

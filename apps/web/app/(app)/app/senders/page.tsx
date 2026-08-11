@@ -1,3 +1,5 @@
+import { redirect } from 'next/navigation';
+
 import { currentSession } from '../../../../lib/auth/current';
 import { listSenders, seatSummary } from '../../../../lib/repo/senders';
 import { AddSenderForm } from './AddSenderForm';
@@ -18,7 +20,11 @@ const BADGE: Record<string, { label: string; cls: 'draft' | 'active' | 'inactive
  * düğme gizlenmez.
  */
 export default async function SendersPage() {
-  const session = (await currentSession())!;
+  // Layout korumasına GÜVENME: App Router layout ile sayfayı paralel render
+  // edebiliyor; layout redirect'e karar verirken sayfa null oturumla çalışır
+  // (canlıda 500 olarak görüldü, 2026-08-11).
+  const session = await currentSession();
+  if (!session) redirect('/login?next=/app/senders');
   const [seats, senders] = await Promise.all([
     seatSummary(session.user.id),
     listSenders(session.user.id),

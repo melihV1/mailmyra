@@ -1,4 +1,4 @@
-import { can, type Role } from '@mailmyra/core';
+import { can, seatStatus, type Role, type SeatStatus } from '@mailmyra/core';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
@@ -135,13 +135,62 @@ export interface SignatureRow {
   name: string;
   templateId: string;
   updatedAt: Date;
+  senderId: string | null;
+  senderName: string | null;
+  senderStatus: SeatStatus | null;
+}
+
+export type AssignResult = { ok: true } | RepoError;
+
+/**
+ * İmzayı bir göndericiye bağlar (ya da null ile çözer).
+ *
+ * İki taraf da AYNI org'da olmalı: çapraz atama, imzası A org'unda duran ama
+ * koltuğu B org'unda tüketen bir kimlik yaratır ve muhasebeyi kirletirdi.
+ * Yabancı gönderici için cevap `not_found` — varlığı bile söylenmez.
+ */
+export async function assignSignature(
+  userId: string,
+  signatureId: string,
+  senderIdentityId: string | null,
+): Promise<AssignResult> {
+  const signature = await prisma.signature.findUnique({ where: { id: signatureId } });
+  if (!signature) return { ok: false, reason: 'not_found' };
+
+  const role = await roleIn(userId, signature.orgId);
+  if (!role) return { ok: false, reason: 'not_found' };
+  if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
+
+  if (senderIdentityId !== null) {
+    const sender = await prisma.senderIdentity.findUnique({ where: { id: senderIdentityId } });
+    if (!sender || sender.orgId !== signature.orgId) return { ok: false, reason: 'not_found' };
+  }
+
+  await prisma.signature.update({ where: { id: signatureId }, data: { senderIdentityId } });
+  return { ok: true };
 }
 
 /** Çağıranın üye olduğu org'lardaki imzalar — panel listesi buradan okur. */
 export async function listSignatures(userId: string): Promise<SignatureRow[]> {
-  return prisma.signature.findMany({
+  const rows = await prisma.signature.findMany({
     where: { org: { memberships: { some: { userId } } } },
     orderBy: { updatedAt: 'desc' },
-    select: { id: true, name: true, templateId: true, updatedAt: true },
+    select: {
+      id: true,
+      name: true,
+      templateId: true,
+      updatedAt: true,
+      senderIdentityId: true,
+      sender: { select: { displayName: true, publishedAt: true, deactivatedAt: true } },
+    },
   });
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    templateId: r.templateId,
+    updatedAt: r.updatedAt,
+    senderId: r.senderIdentityId,
+    senderName: r.sender?.displayName ?? null,
+    senderStatus: r.sender ? seatStatus(r.sender) : null,
+  }));
 }
