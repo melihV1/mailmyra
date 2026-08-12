@@ -35,6 +35,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <Link href="/app/members" className={styles.navLink}>
             Members
           </Link>
+          {/* Rol gizlemesi YOK — yetkisiz rol sayfayı görür ama açıklamayla
+              (apps/web/app/(app)/app/brand/page.tsx). */}
+          <Link href="/app/brand" className={styles.navLink}>
+            Brand
+          </Link>
           <Link href="/app/account" className={styles.navLink}>
             Account
           </Link>

@@ -1,0 +1,200 @@
+/* Brand ekranı — token kullanımı senders.module.css / members.module.css ile
+   aynı desen (var(--space-*), var(--border), var(--brand-strong) vb.) */
+
+.head {
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--step-h2);
+  color: #00102b;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: var(--step-small);
+  margin-top: 4px;
+  max-width: 640px;
+}
+
+/* ── İki sütun: form solda, önizleme sağda (builder.module.css .columns
+   ile aynı fikir, tokenlarla) ── */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 1fr) minmax(360px, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+@media (max-width: 1023px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.previewCol {
+  position: sticky;
+  top: var(--space-2);
+}
+
+/* ── Alan satırları ── */
+
+.fieldRow {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  padding: 12px var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.fieldHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.fieldLabel {
+  font-weight: 600;
+  font-size: var(--step-small);
+}
+
+.modeSelect {
+  font: inherit;
+  font-size: var(--step-small);
+  padding: 6px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.fieldControl {
+  margin-top: 10px;
+}
+
+.textInput {
+  box-sizing: border-box;
+  font: inherit;
+  font-size: var(--step-small);
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  width: 100%;
+}
+
+.textInput:focus-visible {
+  outline: 2px solid var(--brand-strong);
+  outline-offset: 1px;
+}
+
+/* JSX'te .textInput ile birlikte uygulanır (senders'taki `${styles.badge}
+   ${styles[cls]}` desenindeki gibi) — composes: kullanılmadı, repoda emsali
+   yok. */
+.textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.colorInline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hex {
+  font-size: var(--step-small);
+}
+
+.ctaInputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ctaInputs .textInput {
+  flex: 1;
+  min-width: 180px;
+}
+
+/* ── Logo yükleme (VisualsStep deseni) ── */
+
+.uploadRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.uploadPreview {
+  max-width: 90px;
+  max-height: 90px;
+  border-radius: 4px;
+}
+
+.uploadUrl {
+  font-size: 0.75rem;
+  word-break: break-all;
+  color: var(--text-muted);
+}
+
+.fieldHint {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.fieldMessage {
+  font-size: var(--step-small);
+  color: var(--warning-onlight, #a8660f);
+  margin-top: 6px;
+}
+
+.removeButton {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 5px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+/* ── Kaydet çubuğu ── */
+
+.saveBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.primary {
+  font: inherit;
+  font-size: var(--step-small);
+  font-weight: 600;
+  color: #fff;
+  background: var(--brand-strong);
+  border: 0;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.savedNote {
+  font-size: var(--step-small);
+  color: var(--success-onlight, #1c7a53);
+}
+
+.dialogError {
+  font-size: var(--step-small);
+  color: var(--danger-onlight, #b3341f);
+}
