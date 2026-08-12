@@ -57,7 +57,7 @@ export interface RegisterInput {
 }
 
 export type RegisterResult =
-  | { ok: true; sessionToken: string }
+  | { ok: true; sessionToken: string; verificationMailSent: boolean }
   | { ok: false; reason: 'invalid_email' | 'weak_password' | 'email_taken' };
 
 export async function register(input: RegisterInput, mailer: Mailer): Promise<RegisterResult> {
@@ -100,13 +100,23 @@ export async function register(input: RegisterInput, mailer: Mailer): Promise<Re
   }
 
   const token = await issueEmailToken(userId, 'verify', VERIFY_TTL_MS);
-  await mailer.send({
-    to: email,
-    ...verifyEmail({ actionUrl: `${appUrl()}/verify-email?token=${token}` }),
-  });
+  // Hesap yukarıda commit'lendi; mail arızası onu geri alamaz. Eskiden
+  // buradaki fırlatma 500 oluyordu ve oturum da açılmıyordu — tekrar deneyen
+  // kullanıcı email_taken duvarına çarpıyordu. Kaçış yolu paneldeki doğrulama
+  // şeridi + "yeniden gönder"; arıza yine de log'a düşer, sessiz kalınmaz.
+  let verificationMailSent = true;
+  try {
+    await mailer.send({
+      to: email,
+      ...verifyEmail({ actionUrl: `${appUrl()}/verify-email?token=${token}` }),
+    });
+  } catch (error) {
+    verificationMailSent = false;
+    console.error('[mail] doğrulama maili gönderilemedi:', error);
+  }
 
   const session = await createSession(userId, { ip: input.ip });
-  return { ok: true, sessionToken: session.token };
+  return { ok: true, sessionToken: session.token, verificationMailSent };
 }
 
 // ─── Giriş ───────────────────────────────────────────────────────────────

@@ -25,5 +25,11 @@ export async function POST(req: Request): Promise<Response> {
     return json(result.reason === 'email_taken' ? 409 : 400, { error: result.reason });
   }
 
-  return json(200, { ok: true }, { 'Set-Cookie': sessionCookieHeader(result.sessionToken) });
+  // Bayrak istemciye açık: mail gitmediyse kullanıcı panele yine girer,
+  // doğrulama şeridi + "yeniden gönder" oradadır; istemci isterse bunu söyler.
+  return json(
+    200,
+    { ok: true, verificationMailSent: result.verificationMailSent },
+    { 'Set-Cookie': sessionCookieHeader(result.sessionToken) },
+  );
 }

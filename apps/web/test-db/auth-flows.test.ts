@@ -4,7 +4,7 @@
  * HTTP yok: akışlar saf girdi alıp sonuç dönüyor, e-postayı `MemoryMailer`e
  * yazıyor. Route handler'lar bunların ince sargısı olacak.
  */
-import { afterAll, beforeEach, describe, expect, test } from 'vitest';
+import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import {
   login,
@@ -16,8 +16,17 @@ import {
 } from '../lib/auth/flows';
 import { readSession } from '../lib/auth/session';
 import { MemoryMailer } from '../lib/mail/memory';
+import type { Mailer } from '../lib/mail';
 import { prisma } from '../lib/db';
 import { truncateAll } from './helpers';
+
+/** SMTP'nin çöktüğü an — doğrulama maili atılamıyor. */
+const brokenMailer: Mailer = {
+  kind: 'memory',
+  send: async () => {
+    throw new Error('SMTP down');
+  },
+};
 
 const mailer = new MemoryMailer();
 
@@ -92,6 +101,48 @@ describe('register', () => {
     expect(acceptance.docType).toBe('terms');
     expect(acceptance.version).toBe('2026-08-10');
     expect(acceptance.ip).toBe('10.0.0.7');
+  });
+
+  test('a broken mailer costs the mail, not the account or the session', async () => {
+    // Eski davranış: mail arızası 500'dü ve oturum da açılmıyordu; hesap ise
+    // commit'lenmişti — tekrar deneyen kullanıcı email_taken duvarına
+    // çarpıyordu. Yumuşatma: hesap + oturum yaşar, arıza log'a düşer,
+    // kaçış yolu paneldeki "yeniden gönder".
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = await register(GOOD, brokenMailer);
+
+      if (!result.ok) throw new Error(`kayit reddedildi: ${result.reason}`);
+      expect(result.verificationMailSent).toBe(false);
+      const user = await prisma.user.findUniqueOrThrow({ where: { email: 'ali@voldi.net' } });
+      const session = await readSession(result.sessionToken);
+      expect(session?.user.id).toBe(user.id);
+      expect(logged).toHaveBeenCalled();
+    } finally {
+      logged.mockRestore();
+    }
+  });
+
+  test('the happy path reports the verification mail as sent', async () => {
+    const result = await register(GOOD, mailer);
+    if (!result.ok) throw new Error('unreachable');
+    expect(result.verificationMailSent).toBe(true);
+  });
+
+  test('resend is the escape hatch after a failed first mail', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      await register(GOOD, brokenMailer);
+    } finally {
+      logged.mockRestore();
+    }
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: 'ali@voldi.net' } });
+
+    const resent = await resendVerification(user.id, mailer);
+
+    expect(resent).toEqual({ ok: true });
+    expect(mailer.sent).toHaveLength(1);
+    expect(await verifyEmailToken(linkFromLastMail())).toEqual({ ok: true });
   });
 
   test('refuses a weak password before touching the database', async () => {
