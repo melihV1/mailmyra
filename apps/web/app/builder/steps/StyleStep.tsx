@@ -4,15 +4,9 @@ import type { SignatureData, WebSafeFont } from '@mailmyra/renderer';
 import { contrastRatio } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, labelStyle, inputStyle } from '../fields';
+import { WEB_SAFE_FONTS } from '../../../lib/brand-doc';
 
-const FONTS: WebSafeFont[] = [
-  'Arial, Helvetica, sans-serif',
-  'Georgia, serif',
-  'Times New Roman, serif',
-  'Verdana, Geneva, sans-serif',
-  'Tahoma, Geneva, sans-serif',
-  'Trebuchet MS, sans-serif',
-];
+const FONTS: readonly WebSafeFont[] = WEB_SAFE_FONTS;
 
 const LIGHT_BG = '#ffffff';
 const PURE_BLACK = '#000000';
