@@ -1,19 +1,14 @@
 import { redirect } from 'next/navigation';
 
+import { can } from '@mailmyra/core';
 import { currentSession } from '../../../../lib/auth/current';
-import { listSenders, seatSummary } from '../../../../lib/repo/senders';
+import { listSenders, primaryOrgId, roleFor, seatSummary } from '../../../../lib/repo/senders';
 import { AddSenderForm } from './AddSenderForm';
 import { ImportCsv } from './ImportCsv';
-import { SenderActions } from './SenderActions';
+import { SenderTable } from './SenderTable';
 import styles from './senders.module.css';
 
 export const metadata = { title: 'Senders — Mailmyra' };
-
-const BADGE: Record<string, { label: string; cls: 'draft' | 'active' | 'inactive' }> = {
-  draft: { label: 'Draft', cls: 'draft' },
-  active: { label: 'Live', cls: 'active' },
-  inactive: { label: 'Inactive', cls: 'inactive' },
-};
 
 /**
  * Koltuk muhasebesinin görüldüğü yer (panel-brief §2.6). Gösterge her zaman
@@ -30,6 +25,10 @@ export default async function SendersPage() {
     seatSummary(session.user.id),
     listSenders(session.user.id),
   ]);
+
+  const orgId = await primaryOrgId(session.user.id);
+  const role = orgId ? await roleFor(session.user.id, orgId) : null;
+  const showExport = Boolean(role && can(role, 'signature:export'));
 
   const pct = seats.entitled > 0 ? Math.min(100, (seats.active / seats.entitled) * 100) : 0;
   const full = seats.active >= seats.entitled;
@@ -73,29 +72,12 @@ export default async function SendersPage() {
           </p>
         </div>
       ) : (
-        <ul className={styles.list}>
-          {senders.map((s) => {
-            const badge = BADGE[s.status]!;
-            return (
-              <li key={s.id} className={styles.row}>
-                <span className={styles.rowName}>{s.displayName}</span>
-                <span className={styles.rowMeta}>{s.email}</span>
-                {s.jobTitle && <span className={styles.rowMeta}>{s.jobTitle}</span>}
-                <span className={`${styles.badge} ${styles[badge.cls]}`}>{badge.label}</span>
-                <span className={styles.rowMeta}>
-                  {s.signatureNames.length > 0 ? s.signatureNames.join(', ') : '—'}
-                </span>
-                <SenderActions
-                  id={s.id}
-                  name={s.displayName}
-                  status={s.status}
-                  activeSeats={seats.active}
-                  entitledSeats={seats.entitled}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        <SenderTable
+          rows={senders}
+          showExport={showExport}
+          activeSeats={seats.active}
+          entitledSeats={seats.entitled}
+        />
       )}
     </section>
   );

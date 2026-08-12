@@ -46,6 +46,10 @@ bir göndericiye birden çok imza atanabilir.
   asıl kapı sunucuda.
 - İndirilen dosya: `mailmyra-imzalar-YYYY-AA-GG.zip`.
 
+Not: panel dili İngilizce (karar 2026-08-10) — §3'teki diyalog metinleri
+anlatım içindir, üründeki kopya İngilizcedir ("Export zip", "N signature
+files will be generated…", "Skipped: …").
+
 ## 4. API sözleşmesi
 
 `POST /api/senders/export-zip` — gövde `{ senderIds?: string[] }`
