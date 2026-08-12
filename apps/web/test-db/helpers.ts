@@ -5,6 +5,7 @@ export async function truncateAll() {
   await prisma.$transaction([
     prisma.legalAcceptance.deleteMany(),
     prisma.signature.deleteMany(),
+    prisma.brandSetting.deleteMany(),
     prisma.senderIdentity.deleteMany(),
     prisma.membership.deleteMany(),
     prisma.emailToken.deleteMany(),
