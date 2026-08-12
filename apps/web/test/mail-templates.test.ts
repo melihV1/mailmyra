@@ -1,15 +1,32 @@
 import { describe, expect, it } from 'vitest';
 
-import { inviteEmail, resetEmail, verifyEmail } from '../lib/mail/templates';
+import { inviteEmail, resetEmail, seatWarningEmail, verifyEmail } from '../lib/mail/templates';
 
 const URL_VERIFY = 'https://app.mailmyra.com/verify?token=abc123';
 const URL_RESET = 'https://app.mailmyra.com/reset?token=def456';
 const URL_INVITE = 'https://app.mailmyra.com/invite?token=ghi789';
+const URL_SENDERS = 'https://app.mailmyra.com/app/senders';
+
+const seatWarning = () =>
+  seatWarningEmail({
+    actionUrl: URL_SENDERS,
+    orgName: 'Voldi Creative',
+    activeSeats: 4,
+    entitledSeats: 5,
+  });
 
 const all = [
   ['verify', verifyEmail({ actionUrl: URL_VERIFY }), URL_VERIFY],
   ['reset', resetEmail({ actionUrl: URL_RESET }), URL_RESET],
   ['invite', inviteEmail({ actionUrl: URL_INVITE, orgName: 'Voldi Creative' }), URL_INVITE],
+  ['seat warning', seatWarning(), URL_SENDERS],
+] as const;
+
+/** Tek kullanımlık link taşıyanlar — koltuk uyarısının süresi yok. */
+const expiring = [
+  ['verify', verifyEmail({ actionUrl: URL_VERIFY })],
+  ['reset', resetEmail({ actionUrl: URL_RESET })],
+  ['invite', inviteEmail({ actionUrl: URL_INVITE, orgName: 'Voldi Creative' })],
 ] as const;
 
 describe.each(all)('the %s email', (_name, mail, url) => {
@@ -31,11 +48,6 @@ describe.each(all)('the %s email', (_name, mail, url) => {
 
   it('puts the link in the plain-text body too', () => {
     expect(mail.text).toContain(url);
-  });
-
-  it('says how long the link is good for', () => {
-    // Süresi geçmiş linke tıklayıp "bozuk" sanan kullanıcı destek yükü.
-    expect(mail.text).toMatch(/24 hours|1 hour|7 days/);
   });
 
   it('is laid out with tables, not divs', () => {
@@ -68,6 +80,49 @@ describe.each(all)('the %s email', (_name, mail, url) => {
     // var ve müşteri org adları "Şişli Ajans" olacak. Bildirimi belgeye de
     // koymak bedava.
     expect(mail.html).toMatch(/<meta[^>]+charset=["']?utf-8/i);
+  });
+});
+
+describe.each(expiring)('the %s email link lifetime', (_name, mail) => {
+  it('says how long the link is good for', () => {
+    // Süresi geçmiş linke tıklayıp "bozuk" sanan kullanıcı destek yükü.
+    expect(mail.text).toMatch(/24 hours|1 hour|7 days/);
+  });
+});
+
+describe('the seat warning email', () => {
+  it('says exactly how many seats are in use, with numbers', () => {
+    // Panel brief'in publish diyaloğuyla aynı ilke: rakamla söyle.
+    const mail = seatWarning();
+    expect(mail.subject).toContain('4 of 5');
+    expect(mail.text).toContain('4 of 5');
+    expect(mail.html).toContain('4 of 5');
+  });
+
+  it('names the workspace it is talking about', () => {
+    // Ajans kurulumunda bir owner'a birden çok ağacın maili düşebilir;
+    // hangi çalışma alanının dolduğu gövdeden okunabilmeli.
+    const mail = seatWarning();
+    expect(mail.html).toContain('Voldi Creative');
+    expect(mail.text).toContain('Voldi Creative');
+  });
+
+  it('offers a human contact, not a checkout', () => {
+    // İlk 10 müşteri elle faturalanıyor (kilitli karar) — mail "satın al"
+    // düğmesi vaat edemez. Gönderen no-reply@ kalabilir (açık karar), bu
+    // yüzden "cevapla" da denmez; panelle aynı dil: "contact us".
+    expect(seatWarning().text.toLowerCase()).toContain('contact us');
+  });
+
+  it('escapes a hostile organisation name', () => {
+    const mail = seatWarningEmail({
+      actionUrl: URL_SENDERS,
+      orgName: '<a href="https://kotu.example">Voldi</a>',
+      activeSeats: 4,
+      entitledSeats: 5,
+    });
+    expect(mail.html).not.toContain('<a href="https://kotu.example"');
+    expect(mail.html).toContain('&lt;a href=&quot;https://kotu.example&quot;&gt;');
   });
 });
 

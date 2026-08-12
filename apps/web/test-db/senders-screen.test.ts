@@ -6,6 +6,7 @@
 import { afterAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { prisma } from '../lib/db';
+import { MemoryMailer } from '../lib/mail';
 import {
   bulkCreateSenders,
   createSender,
@@ -15,6 +16,9 @@ import {
   seatSummary,
 } from '../lib/repo/senders';
 import { truncateAll } from './helpers';
+
+/** Bu dosyanın konusu rol sargısı; mailin kendisi seat-warning.test.ts'te sınanır. */
+const mail = new MemoryMailer();
 
 beforeEach(truncateAll);
 afterAll(async () => {
@@ -68,7 +72,7 @@ describe('publish and deactivate through the role wrapper', () => {
     const s = await createSender(userId, { displayName: 'Ali', email: 'ali@voldi.net' });
     if (!s.ok) throw new Error('unreachable');
 
-    expect(await publishSenderAs(userId, s.id)).toEqual({ allowed: true });
+    expect(await publishSenderAs(userId, s.id, mail)).toEqual({ allowed: true });
     expect(await seatSummary(userId)).toEqual({ active: 1, entitled: 1 });
     expect((await listSenders(userId))[0]?.status).toBe('active');
 
@@ -86,7 +90,7 @@ describe('publish and deactivate through the role wrapper', () => {
       data: { userId: viewer.id, orgId: owner.orgId, role: 'viewer' },
     });
 
-    expect(await publishSenderAs(viewer.id, s.id)).toEqual({
+    expect(await publishSenderAs(viewer.id, s.id, mail)).toEqual({
       allowed: false,
       reason: 'forbidden',
     });
@@ -99,7 +103,7 @@ describe('publish and deactivate through the role wrapper', () => {
     if (!s.ok) throw new Error('unreachable');
     const stranger = await member('admin');
 
-    expect(await publishSenderAs(stranger.userId, s.id)).toEqual({
+    expect(await publishSenderAs(stranger.userId, s.id, mail)).toEqual({
       allowed: false,
       reason: 'not_found',
     });
@@ -110,9 +114,9 @@ describe('publish and deactivate through the role wrapper', () => {
     const a = await createSender(userId, { displayName: 'A', email: 'a@voldi.net' });
     const b = await createSender(userId, { displayName: 'B', email: 'b@voldi.net' });
     if (!a.ok || !b.ok) throw new Error('unreachable');
-    await publishSenderAs(userId, a.id);
+    await publishSenderAs(userId, a.id, mail);
 
-    expect(await publishSenderAs(userId, b.id)).toEqual({
+    expect(await publishSenderAs(userId, b.id, mail)).toEqual({
       allowed: false,
       reason: 'seat_limit',
     });

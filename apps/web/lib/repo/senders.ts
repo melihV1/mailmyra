@@ -1,7 +1,16 @@
-import { can, canPublish, seatStatus, type Decision, type Role, type SeatStatus } from '@mailmyra/core';
+import {
+  can,
+  canPublish,
+  seatStatus,
+  seatWarningDue,
+  type Decision,
+  type Role,
+  type SeatStatus,
+} from '@mailmyra/core';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
+import { seatWarningEmail, type Mailer } from '../mail';
 
 /**
  * Koltuk zorlamasının tek noktası.
@@ -58,7 +67,38 @@ export async function countActiveSeats(orgId: string): Promise<number> {
   return countActiveSeatsInTree(prisma, billingOrgId);
 }
 
-export async function publishSender(senderId: string): Promise<Decision> {
+/** Linklerin tabanı — auth/flows ile aynı kural. */
+function appUrl(): string {
+  return process.env.APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+}
+
+/**
+ * %80 uyarısını fatura org'unun owner'larına dağıtır (spec §6). Owner'lara,
+ * çünkü faturayla muhatap onlar; admin gündelik işletmendir.
+ *
+ * Publish bu noktada commit'li — mail arızası onu geri alamaz, o yüzden her
+ * gönderim kendi başına yutulur ama log'a düşer.
+ */
+async function sendSeatWarning(
+  billingOrgId: string,
+  usage: { orgName: string; activeSeats: number; entitledSeats: number },
+  mailer: Mailer,
+): Promise<void> {
+  const owners = await prisma.membership.findMany({
+    where: { orgId: billingOrgId, role: 'owner' },
+    include: { user: { select: { email: true } } },
+  });
+  const body = seatWarningEmail({ actionUrl: `${appUrl()}/app/senders`, ...usage });
+  for (const owner of owners) {
+    try {
+      await mailer.send({ to: owner.user.email, ...body });
+    } catch (error) {
+      console.error('[mail] koltuk uyarısı gönderilemedi:', error);
+    }
+  }
+}
+
+export async function publishSender(senderId: string, mailer: Mailer): Promise<Decision> {
   // Kilitlenecek satırı bilmek için önce hangi ağaçta olduğumuzu öğreniyoruz.
   // Bir göndericinin org'u değişmiyor, bu okuma kilidin dışında güvenli.
   const known = await prisma.senderIdentity.findUniqueOrThrow({
@@ -67,7 +107,7 @@ export async function publishSender(senderId: string): Promise<Decision> {
   });
   const billingOrgId = await resolveBillingOrgId(prisma, known.orgId);
 
-  return prisma.$transaction(async (tx) => {
+  const { decision, crossed } = await prisma.$transaction(async (tx) => {
     // Fatura org'u satırına özel kilit. Aynı ağaç için ikinci bir publish
     // burada bekler; bu satır olmadan ikisi de "yer var" okur ve tavan aşılır.
     await tx.$queryRaw`SELECT id FROM Organization WHERE id = ${billingOrgId} FOR UPDATE`;
@@ -78,7 +118,7 @@ export async function publishSender(senderId: string): Promise<Decision> {
 
     // Zaten aktifse koltuk sayısı değişmiyor; `publishedAt`e dokunulmuyor ki
     // ilk yayın tarihi korunsun.
-    if (seatStatus(sender) === 'active') return { allowed: true } as const;
+    if (seatStatus(sender) === 'active') return { decision: { allowed: true } as const, crossed: null };
 
     const org = await tx.organization.findUniqueOrThrow({ where: { id: billingOrgId } });
     const activeSeats = await countActiveSeatsInTree(tx, billingOrgId);
@@ -88,14 +128,28 @@ export async function publishSender(senderId: string): Promise<Decision> {
       activeSeats,
       target: sender,
     });
-    if (!decision.allowed) return decision;
+    if (!decision.allowed) return { decision, crossed: null };
 
     await tx.senderIdentity.update({
       where: { id: senderId },
       data: { publishedAt: new Date(), deactivatedAt: null },
     });
-    return { allowed: true } as const;
+
+    // Eşik kararı kilidin ALTINDA veriliyor: publish'ler sıralandığı için
+    // geçişi tam olarak bir transaction görür — aynı anda iki uyarı çıkmaz.
+    const nowActive = activeSeats + 1;
+    return {
+      decision: { allowed: true } as const,
+      crossed: seatWarningDue({ activeSeats: nowActive, entitledSeats: org.entitledSeats })
+        ? { orgName: org.name, activeSeats: nowActive, entitledSeats: org.entitledSeats }
+        : null,
+    };
   });
+
+  // Gönderim bilerek transaction DIŞINDA: kilit SMTP'yi beklememeli ve mail
+  // arızası commit'lenmiş bir publish'i geri alamamalı.
+  if (crossed) await sendSeatWarning(billingOrgId, crossed, mailer);
+  return decision;
 }
 
 /**
@@ -167,13 +221,14 @@ export type WrappedDecision = Decision | { allowed: false; reason: 'forbidden' |
 export async function publishSenderAs(
   userId: string,
   senderId: string,
+  mailer: Mailer,
 ): Promise<WrappedDecision> {
   const sender = await prisma.senderIdentity.findUnique({ where: { id: senderId } });
   if (!sender) return { allowed: false, reason: 'not_found' };
   const role = await roleFor(userId, sender.orgId);
   if (!role) return { allowed: false, reason: 'not_found' };
   if (!can(role, 'sender:manage')) return { allowed: false, reason: 'forbidden' };
-  return publishSender(senderId);
+  return publishSender(senderId, mailer);
 }
 
 export type DeactivateResult =

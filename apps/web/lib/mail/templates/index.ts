@@ -65,6 +65,56 @@ export function resetEmail({ actionUrl }: ActionInput): MailBody {
   };
 }
 
+export interface SeatWarningInput extends ActionInput {
+  /** Kullanıcı yazımı — HTML'e girmeden önce kaçırılır. */
+  orgName: string;
+  /** Az önceki publish sonrası sayım — panel brief'in ilkesi: rakamla söyle. */
+  activeSeats: number;
+  entitledSeats: number;
+}
+
+/**
+ * %80 eşiği bilgilendirmesi (spec §6 "tavana yaklaşınca"). Süreli link yok.
+ *
+ * "Satın al" düğmesi YOK ve vaat edilmez: ilk 10 müşteri elle faturalanıyor
+ * (kilitli karar). "Cevapla" da denmez — gönderen no-reply@ kalabilir;
+ * panelle aynı dil kullanılır: "contact us".
+ */
+export function seatWarningEmail({
+  actionUrl,
+  orgName,
+  activeSeats,
+  entitledSeats,
+}: SeatWarningInput): MailBody {
+  const usage = `${activeSeats} of ${entitledSeats}`;
+  const contact =
+    'To add seats, contact us — billing is handled personally, so it takes one short email.';
+  return {
+    // Konu satırı HTML değil; ham hâliyle gider.
+    subject: `${orgName} is using ${usage} seats on Mailmyra`,
+    html: renderLayout({
+      heading: 'Your seats are filling up',
+      paragraphs: [
+        `<strong>${escapeHtml(orgName)}</strong> is now using <strong>${usage}</strong> active sender seats.`,
+        'Once every seat is taken, new senders cannot be published until a seat is freed or added.',
+      ],
+      actionUrl,
+      actionLabel: 'Review senders',
+      footnote: contact,
+    }),
+    text: renderText(
+      [
+        'Your seats are filling up',
+        '',
+        `${orgName} is now using ${usage} active sender seats.`,
+        'Once every seat is taken, new senders cannot be published until a seat is freed or added.',
+      ],
+      actionUrl,
+      contact,
+    ),
+  };
+}
+
 export interface InviteInput extends ActionInput {
   /** Kullanıcı yazımı — HTML'e girmeden önce kaçırılır. */
   orgName: string;

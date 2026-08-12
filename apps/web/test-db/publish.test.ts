@@ -9,8 +9,12 @@
 import { afterAll, beforeEach, describe, expect, test } from 'vitest';
 
 import { prisma } from '../lib/db';
+import { MemoryMailer } from '../lib/mail';
 import { countActiveSeats, deactivateSender, publishSender } from '../lib/repo/senders';
 import { truncateAll } from './helpers';
+
+/** Bu dosyanın konusu kilit; mailin kendisi seat-warning.test.ts'te sınanır. */
+const mail = new MemoryMailer();
 
 beforeEach(truncateAll);
 afterAll(async () => {
@@ -32,7 +36,7 @@ describe('publishing consumes a seat', () => {
     const org = await orgWithSeats(2);
     const sender = await senderIn(org.id);
 
-    const result = await publishSender(sender.id);
+    const result = await publishSender(sender.id, mail);
 
     expect(result).toEqual({ allowed: true });
     const after = await prisma.senderIdentity.findUniqueOrThrow({ where: { id: sender.id } });
@@ -44,9 +48,9 @@ describe('publishing consumes a seat', () => {
     const org = await orgWithSeats(1);
     const first = await senderIn(org.id);
     const second = await senderIn(org.id);
-    await publishSender(first.id);
+    await publishSender(first.id, mail);
 
-    const result = await publishSender(second.id);
+    const result = await publishSender(second.id, mail);
 
     expect(result).toEqual({ allowed: false, reason: 'seat_limit' });
     const after = await prisma.senderIdentity.findUniqueOrThrow({ where: { id: second.id } });
@@ -57,10 +61,10 @@ describe('publishing consumes a seat', () => {
   test('re-publishing an active sender changes nothing', async () => {
     const org = await orgWithSeats(1);
     const sender = await senderIn(org.id);
-    await publishSender(sender.id);
+    await publishSender(sender.id, mail);
     const first = await prisma.senderIdentity.findUniqueOrThrow({ where: { id: sender.id } });
 
-    const result = await publishSender(sender.id);
+    const result = await publishSender(sender.id, mail);
 
     expect(result).toEqual({ allowed: true });
     const second = await prisma.senderIdentity.findUniqueOrThrow({ where: { id: sender.id } });
@@ -72,7 +76,7 @@ describe('publishing consumes a seat', () => {
     const org = await orgWithSeats(10, { entitlementState: 'cancelled' });
     const sender = await senderIn(org.id);
 
-    expect(await publishSender(sender.id)).toEqual({ allowed: false, reason: 'not_entitled' });
+    expect(await publishSender(sender.id, mail)).toEqual({ allowed: false, reason: 'not_entitled' });
   });
 });
 
@@ -81,13 +85,13 @@ describe('deactivating frees the seat', () => {
     const org = await orgWithSeats(1);
     const leaver = await senderIn(org.id);
     const joiner = await senderIn(org.id);
-    await publishSender(leaver.id);
-    expect(await publishSender(joiner.id)).toEqual({ allowed: false, reason: 'seat_limit' });
+    await publishSender(leaver.id, mail);
+    expect(await publishSender(joiner.id, mail)).toEqual({ allowed: false, reason: 'seat_limit' });
 
     await deactivateSender(leaver.id);
 
     expect(await countActiveSeats(org.id)).toBe(0);
-    expect(await publishSender(joiner.id)).toEqual({ allowed: true });
+    expect(await publishSender(joiner.id, mail)).toEqual({ allowed: true });
   });
 
   test('reactivating clears the deactivation instead of creating a second row', async () => {
@@ -95,10 +99,10 @@ describe('deactivating frees the seat', () => {
     // çarpardı. Bu yüzden aynı satır yeniden aktifleşmeli.
     const org = await orgWithSeats(1);
     const sender = await senderIn(org.id);
-    await publishSender(sender.id);
+    await publishSender(sender.id, mail);
     await deactivateSender(sender.id);
 
-    expect(await publishSender(sender.id)).toEqual({ allowed: true });
+    expect(await publishSender(sender.id, mail)).toEqual({ allowed: true });
 
     const rows = await prisma.senderIdentity.findMany({ where: { orgId: org.id } });
     expect(rows).toHaveLength(1);
@@ -117,9 +121,9 @@ describe('the agency tree shares one pool', () => {
     const inClient = await senderIn(client.id);
     const inAgency = await senderIn(agency.id);
 
-    expect(await publishSender(inClient.id)).toEqual({ allowed: true });
+    expect(await publishSender(inClient.id, mail)).toEqual({ allowed: true });
 
-    expect(await publishSender(inAgency.id)).toEqual({ allowed: false, reason: 'seat_limit' });
+    expect(await publishSender(inAgency.id, mail)).toEqual({ allowed: false, reason: 'seat_limit' });
     expect(await countActiveSeats(agency.id)).toBe(1);
   });
 
@@ -131,7 +135,7 @@ describe('the agency tree shares one pool', () => {
       data: { name: 'Musteri', parentOrgId: agency.id, entitledSeats: 0 },
     });
 
-    expect(await publishSender((await senderIn(client.id)).id)).toEqual({ allowed: true });
+    expect(await publishSender((await senderIn(client.id)).id, mail)).toEqual({ allowed: true });
   });
 });
 
@@ -142,7 +146,7 @@ describe('two publishes at the same instant', () => {
     const a = await senderIn(org.id);
     const b = await senderIn(org.id);
 
-    const results = await Promise.all([publishSender(a.id), publishSender(b.id)]);
+    const results = await Promise.all([publishSender(a.id, mail), publishSender(b.id, mail)]);
 
     const allowed = results.filter((r) => r.allowed);
     expect(allowed).toHaveLength(1);
@@ -154,7 +158,7 @@ describe('two publishes at the same instant', () => {
     const senders = [];
     for (let i = 0; i < 10; i++) senders.push(await senderIn(org.id));
 
-    const results = await Promise.all(senders.map((s) => publishSender(s.id)));
+    const results = await Promise.all(senders.map((s) => publishSender(s.id, mail)));
 
     expect(results.filter((r) => r.allowed)).toHaveLength(3);
     expect(await countActiveSeats(org.id)).toBe(3);

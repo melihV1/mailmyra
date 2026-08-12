@@ -4,7 +4,7 @@ export type { Role, Permission, Member } from './roles';
 export { countActiveSeats, seatStatus } from './seats';
 export type { SeatBearing, SeatStatus } from './seats';
 
-export { canExport, canPublish } from './entitlement';
+export { SEAT_WARNING_RATIO, canExport, canPublish, seatWarningDue } from './entitlement';
 export type {
   BlockedReason,
   Decision,
@@ -12,6 +12,7 @@ export type {
   EntitlementState,
   ExportInput,
   PublishInput,
+  SeatWarningInput,
 } from './entitlement';
 
 export { PRICING, annualTotalCents } from './pricing';

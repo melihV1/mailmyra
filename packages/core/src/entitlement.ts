@@ -76,6 +76,32 @@ export function canPublish({ entitlement, activeSeats, target }: PublishInput): 
   return ALLOWED;
 }
 
+/** Bilgilendirme eşiği — spec §6 "tavana yaklaşınca". */
+export const SEAT_WARNING_RATIO = 0.8;
+
+export interface SeatWarningInput {
+  /** Az önce biten publish SONRASI aktif koltuk sayısı. */
+  activeSeats: number;
+  entitledSeats: number;
+}
+
+/**
+ * Bu publish %80 çizgisini aşağıdan geçti mi?
+ *
+ * Publish tek koltuk tüketir; "öncesi" tanım gereği bir eksik. Çizginin
+ * üstündeyken atılan her koltuk yeniden mail üretmesin diye yalnız GEÇİŞ
+ * anına bakılır — koltuk boşalıp çizgi yeniden geçilirse uyarı da yeniden
+ * düşer, ayrıca durum tutmaya gerek kalmaz.
+ */
+export function seatWarningDue({ activeSeats, entitledSeats }: SeatWarningInput): boolean {
+  if (entitledSeats <= 0 || activeSeats <= 0) return false;
+  // Bölme biçimi bilinçli: IEEE bölme doğru yuvarlar, 4/5 ve 12/15 tam olarak
+  // 0.8 literaliyle eşit çıkar. `entitledSeats * 0.8` çarpımı ise etmez.
+  const nowAtOrPast = activeSeats / entitledSeats >= SEAT_WARNING_RATIO;
+  const wasBelow = (activeSeats - 1) / entitledSeats < SEAT_WARNING_RATIO;
+  return nowAtOrPast && wasBelow;
+}
+
 export interface ExportInput {
   entitlement: Entitlement;
   target: SeatBearing;

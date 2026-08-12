@@ -6,7 +6,7 @@ export type { MailBody, Mailer, OutgoingMail } from './types';
 export type { SmtpConfig } from './config';
 export { readSmtpConfig } from './config';
 export { MemoryMailer } from './memory';
-export { inviteEmail, resetEmail, verifyEmail } from './templates';
+export { inviteEmail, resetEmail, seatWarningEmail, verifyEmail } from './templates';
 
 /**
  * Röle yokken geliştirmeye devam edebilmek için. Mesajı konsola yazar.

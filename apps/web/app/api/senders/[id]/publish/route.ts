@@ -1,4 +1,5 @@
 import { currentSession } from '../../../../../lib/auth/current';
+import { getMailer } from '../../../../../lib/mail';
 import { publishSenderAs } from '../../../../../lib/repo/senders';
 import { json } from '../../../auth/_shared';
 
@@ -11,7 +12,7 @@ export async function POST(
   if (!session) return json(401, { error: 'unauthenticated' });
 
   const { id } = await params;
-  const result = await publishSenderAs(session.user.id, id);
+  const result = await publishSenderAs(session.user.id, id, getMailer());
   if (result.allowed) return json(200, { ok: true });
 
   const status =
