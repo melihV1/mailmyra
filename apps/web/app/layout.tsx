@@ -5,6 +5,12 @@ import { MotionProvider } from '../components/motion/MotionProvider';
 
 export const metadata = { title: 'Mailmyra Dev' };
 
+/* tokens.css'teki `color-scheme: only light` kararının meta karşılığı.
+   İkisi birden gerekli: Chrome Android'in Auto Dark Mode'u bazı sürümlerde
+   yalnız meta etiketini tanıyor. Tema kararı 2026-07-27: koyu yüzeyler
+   renklerini kendisi boyar, tarayıcı karartmaz. */
+export const viewport = { colorScheme: 'only light' };
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="tr">

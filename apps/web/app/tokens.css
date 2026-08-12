@@ -5,6 +5,14 @@
    TEMA KARARI (2026-07-27): pazarlama sayfaları KOYU, uygulama (builder)
    AÇIK kalır — imza önizlemesi beyaz zemin gerektirir. */
 :root {
+  /* Yukarıdaki tema kararının CSS karşılığı: koyu yüzeyler renklerini
+     KENDİSİ boyar, tarayıcı karartmaz. `only` şart: düz `light` yalnız UA
+     varsayılanlarını seçer, Chrome Android'in "Auto Dark Mode"u gibi zorla
+     karartanlar sayfayı yine de ters çevirir (ölçüldü: koyu emülasyonda
+     CSSOM açıkken ekran koyuydu). `only light` bu karartmadan resmî çıkış
+     kapısıdır — builder koyu modlu cihazlarda okunmaz olmaktan böyle çıkar. */
+  color-scheme: only light;
+
   /* ── Marka ──────────────────────────────────────────────────────── */
   /* Beyaz metin taşıyan yüzeyler (buton, link). Beyazla kontrast 5.45. */
   --brand-strong: #2f66c8;

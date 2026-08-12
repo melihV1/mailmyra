@@ -219,7 +219,7 @@ export function BuilderClient({
 
   const previewPane = (
     <div className={styles.previewPane}>
-      <Preview html={html} />
+      <Preview html={html} textColor={data.visuals.textColor} />
       <ExportButtons
         html={html}
         filename="mailmyra-imza"
