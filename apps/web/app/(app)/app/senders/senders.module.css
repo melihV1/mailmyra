@@ -316,10 +316,8 @@
 }
 
 /* ── Seçim + zip dışa aktarma (spec: 2026-08-12-bulk-zip-export-design) ──
-   SenderActions.tsx'teki yayına alma onayı native window.confirm() kullanıyor
-   — sayfada yeniden kullanılabilir bir CSS diyalog deseni yok. Bu yüzden
-   aşağıdaki diyalog kendi görünümünü kurar, ama literal renk/gölge icat
-   etmez: dosyanın geri kalanı gibi tokens.css'teki değişkenlere bağlanır. */
+   Diyalog kabuğu artık paylaşılan components/ui/ConfirmDialog — eski
+   exportDialog/exportDialogActions sınıfları Task 6'da oraya taşındı. */
 
 .exportBar {
   display: flex;
@@ -333,27 +331,6 @@
   gap: 6px;
   align-items: center;
   font-size: var(--step-small);
-}
-
-.exportDialog {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  height: fit-content;
-  max-width: 420px;
-  width: calc(100% - var(--space-3));
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-3);
-  box-shadow: var(--shadow-card);
-}
-
-.exportDialogActions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: var(--space-2);
 }
 
 .exportError {

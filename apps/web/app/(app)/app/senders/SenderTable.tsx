@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import type { SenderRowData } from '../../../../lib/repo/senders';
 import { exportPlan } from '../../../../lib/export-plan';
+import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import { SenderActions } from './SenderActions';
 import styles from './senders.module.css';
 
@@ -170,8 +171,13 @@ export function SenderTable({
       </ul>
 
       {dialogOpen && (
-        <div role="dialog" aria-modal="true" className={styles.exportDialog}>
-          <h2>Export zip</h2>
+        <ConfirmDialog
+          title="Export zip"
+          onCancel={closeDialog}
+          onConfirm={plan.fileCount > 0 ? download : undefined}
+          confirmLabel={busy ? 'Preparing…' : 'Download'}
+          busy={busy}
+        >
           {plan.fileCount > 0 ? (
             <>
               <p>
@@ -190,17 +196,7 @@ export function SenderTable({
             </p>
           )}
           {error && <p className={styles.exportError}>{error}</p>}
-          <div className={styles.exportDialogActions}>
-            <button type="button" onClick={closeDialog} disabled={busy}>
-              Cancel
-            </button>
-            {plan.fileCount > 0 && (
-              <button type="button" onClick={download} disabled={busy}>
-                {busy ? 'Preparing…' : 'Download'}
-              </button>
-            )}
-          </div>
-        </div>
+        </ConfirmDialog>
       )}
     </div>
   );
