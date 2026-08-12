@@ -60,6 +60,19 @@ export function SenderTable({
     setSelected(selected.size === rows.length ? new Set() : new Set(rows.map((r) => r.id)));
   }
 
+  /* Diyalog her açılış/kapanışta önceki denemenin hatasını taşımasın —
+     reviewer bulgusu: Cancel sonrası seçim değişip yeniden açılınca eski
+     hata mesajı yeni denemeyi yanlış temsil ediyordu. */
+  function openDialog() {
+    setError(null);
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setError(null);
+    setDialogOpen(false);
+  }
+
   async function download() {
     setBusy(true);
     setError(null);
@@ -109,7 +122,7 @@ export function SenderTable({
             />
             Select all
           </label>
-          <button type="button" onClick={() => setDialogOpen(true)}>
+          <button type="button" onClick={openDialog}>
             Export zip{selected.size > 0 ? ` (${selected.size} selected)` : ''}
           </button>
         </div>
@@ -169,7 +182,7 @@ export function SenderTable({
           )}
           {error && <p className={styles.exportError}>{error}</p>}
           <div className={styles.exportDialogActions}>
-            <button type="button" onClick={() => setDialogOpen(false)} disabled={busy}>
+            <button type="button" onClick={closeDialog} disabled={busy}>
               Cancel
             </button>
             {plan.fileCount > 0 && (
