@@ -63,11 +63,25 @@ function ModeSelect({
   );
 }
 
-/** StyleStep'teki `ColorField` ile aynı: input[type=color] + hex kodu. */
-function ColorControl({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+/**
+ * StyleStep'teki `ColorField` ile aynı: input[type=color] + hex kodu.
+ * `fieldId` satırın `<label htmlFor>`ıyla eşleşsin diye — template/font
+ * select'leri ve disclaimer textarea'sı zaten kendi id'sini alıyordu, bu
+ * eksikti (review bulgusu): input'un id'si yoktu, `htmlFor` boşa işaret
+ * ediyor, hem label tıklaması hem erişilebilir ad çalışmıyordu.
+ */
+function ColorControl({
+  fieldId,
+  value,
+  onChange,
+}: {
+  fieldId: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <span className={styles.colorInline}>
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input id={fieldId} type="color" value={value} onChange={(e) => onChange(e.target.value)} />
       <code className={styles.hex}>{value}</code>
     </span>
   );
@@ -260,7 +274,11 @@ export function BrandClient({
             </div>
             {doc.brandColor && (
               <div className={styles.fieldControl}>
-                <ColorControl value={doc.brandColor.value} onChange={(v) => setValue('brandColor', v)} />
+                <ColorControl
+                  fieldId="brand-brandColor"
+                  value={doc.brandColor.value}
+                  onChange={(v) => setValue('brandColor', v)}
+                />
               </div>
             )}
           </div>
@@ -279,7 +297,11 @@ export function BrandClient({
             </div>
             {doc.textColor && (
               <div className={styles.fieldControl}>
-                <ColorControl value={doc.textColor.value} onChange={(v) => setValue('textColor', v)} />
+                <ColorControl
+                  fieldId="brand-textColor"
+                  value={doc.textColor.value}
+                  onChange={(v) => setValue('textColor', v)}
+                />
               </div>
             )}
           </div>
@@ -298,7 +320,11 @@ export function BrandClient({
             </div>
             {doc.mutedColor && (
               <div className={styles.fieldControl}>
-                <ColorControl value={doc.mutedColor.value} onChange={(v) => setValue('mutedColor', v)} />
+                <ColorControl
+                  fieldId="brand-mutedColor"
+                  value={doc.mutedColor.value}
+                  onChange={(v) => setValue('mutedColor', v)}
+                />
               </div>
             )}
           </div>
