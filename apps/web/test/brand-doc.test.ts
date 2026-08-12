@@ -8,6 +8,31 @@ const good = {
   cta: { value: { label: 'Book a call', url: 'https://voldi.net' }, mode: 'default' },
 };
 
+// Final inceleme notu (2026-08-12): CTA dalı ensureHttp ile normalize edip
+// SONRA doğruluyor — bu üç test o davranışı sabitler.
+describe('cta URL normalization', () => {
+  it('accepts a schemeless url and stores it normalized', () => {
+    const doc = parseBrandDocument({
+      cta: { value: { label: 'Book', url: 'voldi.net' }, mode: 'default' },
+    });
+    expect(doc?.cta?.value.url).toBe('https://voldi.net');
+  });
+
+  it('still rejects an empty url after normalization', () => {
+    expect(
+      parseBrandDocument({ cta: { value: { label: 'Book', url: '' }, mode: 'default' } }),
+    ).toBeNull();
+  });
+
+  it('still rejects a javascript: url on the cta branch', () => {
+    expect(
+      parseBrandDocument({
+        cta: { value: { label: 'X', url: 'javascript:alert(1)' }, mode: 'locked' },
+      }),
+    ).toBeNull();
+  });
+});
+
 describe('parseBrandDocument', () => {
   it('accepts a valid document and returns it typed', () => {
     const doc = parseBrandDocument(good);

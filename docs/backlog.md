@@ -218,3 +218,32 @@ Hiçbiri merge engeli değil; dosyaya bir daha dokunan alsın:
   (gerçek kaynak `data.layout.templateId`; export doğru kaynağı kullanıyor).
   İkinci şablon gelince liste ekranı bayat gösterir — marka ayarları
   turunda ele al. (Bu daldan önce de vardı.)
+
+---
+
+## Marka Ayarları — Ertelenen Küçük İşler (final review triyajı, 2026-08-12)
+
+Spec: `docs/superpowers/specs/2026-08-12-brand-settings-design.md`.
+Hiçbiri merge engeli değil; dosyaya bir daha dokunan alsın:
+
+- [ ] `brand-doc.ts`: `cta` value bekçisinde `Array.isArray` yok (JSON'dan
+  erişilemez, label tip kontrolü yakalar) · hex büyük-harf ve cta-fazla-anahtar
+  vakaları yalnız dolaylı kapsanıyor.
+- [ ] `brand-apply.ts`: bindirme dokunmasa da `extras` undefined→{} kimlik
+  kayması (davranış-nötr) · "her kilitli alan" testi 8 alanın 4'ünü sınıyor.
+- [ ] `repo/brand.ts`: upsert son-yazan-kazanır (mevcut emsal; tek admin
+  gerçekliğinde kabul).
+- [ ] `export.ts`: `templateIdOf` fallback dalı testsiz (ikinci şablon gelince
+  create-yolu kolonu da sınansın).
+- [ ] `ConfirmDialog`: `.panel:focus-visible outline:none` — panel etkileşimsiz,
+  düğme halkaları duruyor; tasarım tokenıyla yeniden ele al · odak tuzağı
+  `:not([disabled])` süzmüyor ve kapanışta odak tetikleyiciye dönmüyor ·
+  bileşen testi yok (DOM harness'i yok — ayrı iş).
+- [ ] Brand ekranı: 401 (oturum düşmesi) jenerik mesaja düşüyor (tüm panel
+  ekranlarında aynı) · "Not managed" satırlarında `htmlFor` render edilmeyen
+  kontrole işaret ediyor · CTA inputlarının erişilebilir adı yalnız placeholder.
+- [ ] Builder: kilit-UI kablolaması ve tohum akışı otomasyonsuz (tarayıcıyla
+  doğrulandı; harness işi).
+- [ ] ⚠️ FAZ 4 NOTU: `builder/page.tsx` markayı `primaryOrgId`'den çekiyor —
+  çok-org'lu kullanıcıda İMZANIN org'undan (`got.signature.orgId`) çekilmeli.
+  Ajans/müşteri org'ları gerçek olduğunda tek satırlık düzeltme.
