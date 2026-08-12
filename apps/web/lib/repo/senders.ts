@@ -27,7 +27,7 @@ type Db = Pick<Prisma.TransactionClient, '$queryRaw' | 'senderIdentity' | 'organ
  * Fatura sahibi org — ağacın kökü. Ajans kurulumunda `entitledSeats` orada
  * durur, müşteri org'larınınki anlamsızdır.
  */
-async function resolveBillingOrgId(db: Db, orgId: string): Promise<string> {
+export async function resolveBillingOrgId(db: Db, orgId: string): Promise<string> {
   const rows = await db.$queryRaw<Array<{ id: string }>>`
     WITH RECURSIVE up AS (
       SELECT id, parentOrgId FROM Organization WHERE id = ${orgId}
@@ -169,13 +169,13 @@ export async function deactivateSender(senderId: string): Promise<void> {
 // sorusunu cevaplar. Ekleme/yayına alma/pasifleştirme `sender:manage` ister
 // (owner+admin). Org dışına varlık sızdırılmaz: yabancıya `not_found`.
 
-async function roleFor(userId: string, orgId: string): Promise<Role | null> {
+export async function roleFor(userId: string, orgId: string): Promise<Role | null> {
   const m = await prisma.membership.findUnique({ where: { userId_orgId: { userId, orgId } } });
   return m?.role ?? null;
 }
 
 /** Faz 1-2: kullanıcı tek org'lu; ilk üyelik esas alınır. */
-async function primaryOrgId(userId: string): Promise<string | null> {
+export async function primaryOrgId(userId: string): Promise<string | null> {
   const m = await prisma.membership.findFirst({
     where: { userId },
     orderBy: { createdAt: 'asc' },
