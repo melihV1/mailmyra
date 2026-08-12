@@ -42,8 +42,12 @@ export function BuilderClient({
   brand?: BrandDocument | null;
 }) {
   const [data, dispatch] = useReducer(builderReducer, undefined, createEmptyData);
-  // Kayıtlı veri HİÇ değişmez — bindirme yalnız önizleme/export çıktısına
-  // işler. Kilit kalkınca kişinin girdiği ham değer geri görünür.
+  // Kayıtlı veri (reducer state, autosave gövdesi) HİÇ değişmez — kilit
+  // kalkınca kişinin girdiği ham değer geri görünür. `applied` iki yerde
+  // kullanılır: (1) önizleme/export çıktısı, (2) kilitli kontrollerin
+  // GÖSTERDİĞİ değer — aksi halde disabled bir renk/CTA/logo alanı, marka
+  // değiştikten sonra ekranda hâlâ eski kişisel değeri gösterip önizlemeyle
+  // çelişir. Adımlar yalnız `locked.has(alan) ? applied... : data...` sorar.
   const locked = useMemo(() => lockedBrandFields(brand), [brand]);
   const applied = useMemo(() => applyBrand(data, brand), [data, brand]);
   const [step, setStep] = useState<StepId>('info');
@@ -202,11 +206,21 @@ export function BuilderClient({
           </button>
         ))}
       </nav>
-      {step === 'info' && <InfoStep data={data} dispatch={dispatch} locked={locked} />}
-      {step === 'visuals' && <VisualsStep data={data} dispatch={dispatch} locked={locked} />}
+      {step === 'info' && (
+        <InfoStep data={data} applied={applied} dispatch={dispatch} locked={locked} />
+      )}
+      {step === 'visuals' && (
+        <VisualsStep data={data} applied={applied} dispatch={dispatch} locked={locked} />
+      )}
       {step === 'social' && <SocialStep data={data} dispatch={dispatch} />}
       {step === 'style' && (
-        <StyleStep data={data} dispatch={dispatch} iconLowContrast={iconLowContrast} locked={locked} />
+        <StyleStep
+          data={data}
+          applied={applied}
+          dispatch={dispatch}
+          iconLowContrast={iconLowContrast}
+          locked={locked}
+        />
       )}
       <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
         <button type="button" onClick={resetAll}>

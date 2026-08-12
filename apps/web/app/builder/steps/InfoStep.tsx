@@ -8,15 +8,20 @@ import styles from '../builder.module.css';
 
 export function InfoStep({
   data,
+  applied,
   dispatch,
   locked = new Set<BrandFieldName>(),
 }: {
   data: SignatureData;
+  /** `applyBrand(data, brand)` çıktısı — CTA/disclaimer kilitliyken
+   *  GÖSTERİLEN değer buradan okunur (bkz. StyleStep aynı desen). */
+  applied: SignatureData;
   dispatch: (a: BuilderAction) => void;
   /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
   locked?: Set<BrandFieldName>;
 }) {
   const extras = data.extras ?? {};
+  const appliedExtras = applied.extras ?? {};
   const customFields = extras.customFields ?? [];
 
   function setCustomField(i: number, patch: Partial<{ label: string; value: string; url: string }>) {
@@ -82,17 +87,20 @@ export function InfoStep({
         <TextField
           label="Buton metni"
           placeholder="Görüşme Ayarla"
-          value={extras.ctaLabel ?? ''}
+          value={locked.has('cta') ? (appliedExtras.ctaLabel ?? '') : (extras.ctaLabel ?? '')}
           onChange={(v) => dispatch({ type: 'patchExtras', value: { ctaLabel: v || undefined } })}
-          locked={locked.has('cta')}
+          disabled={locked.has('cta')}
         />
         <TextField
           label="Buton bağlantısı"
           placeholder="https://..."
-          value={extras.ctaUrl ?? ''}
+          value={locked.has('cta') ? (appliedExtras.ctaUrl ?? '') : (extras.ctaUrl ?? '')}
           onChange={(v) => dispatch({ type: 'patchExtras', value: { ctaUrl: v || undefined } })}
-          locked={locked.has('cta')}
+          disabled={locked.has('cta')}
         />
+        {locked.has('cta') && (
+          <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>
+        )}
       </FieldGroup>
 
       <FieldGroup title="Özel Alanlar">
@@ -151,7 +159,7 @@ export function InfoStep({
           <span style={labelStyle}>Feragatname / gizlilik notu</span>
           <textarea
             style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
-            value={extras.disclaimer ?? ''}
+            value={locked.has('disclaimer') ? (appliedExtras.disclaimer ?? '') : (extras.disclaimer ?? '')}
             disabled={locked.has('disclaimer')}
             onChange={(e) =>
               dispatch({ type: 'patchExtras', value: { disclaimer: e.target.value || undefined } })

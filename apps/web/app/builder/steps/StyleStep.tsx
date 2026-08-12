@@ -63,11 +63,16 @@ function ColorField({
 
 export function StyleStep({
   data,
+  applied,
   dispatch,
   iconLowContrast = false,
   locked = new Set<BrandFieldName>(),
 }: {
   data: SignatureData;
+  /** `applyBrand(data, brand)` çıktısı — kilitli kontroller GÖSTERİLEN
+   *  değeri buradan okur, ham `data`'dan değil (aksi halde marka
+   *  değiştikten sonra disabled kontrol eski kişisel değeri gösterir). */
+  applied: SignatureData;
   dispatch: (a: BuilderAction) => void;
   iconLowContrast?: boolean;
   /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
@@ -98,19 +103,19 @@ export function StyleStep({
       <FieldGroup title="Renkler">
         <ColorField
           label="Marka rengi"
-          value={data.visuals.brandColor}
+          value={locked.has('brandColor') ? applied.visuals.brandColor : data.visuals.brandColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { brandColor: v } })}
           locked={locked.has('brandColor')}
         />
         <ColorField
           label="Metin rengi"
-          value={data.visuals.textColor}
+          value={locked.has('textColor') ? applied.visuals.textColor : data.visuals.textColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { textColor: v } })}
           locked={locked.has('textColor')}
         />
         <ColorField
           label="İkincil metin rengi"
-          value={data.visuals.mutedColor}
+          value={locked.has('mutedColor') ? applied.visuals.mutedColor : data.visuals.mutedColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { mutedColor: v } })}
           locked={locked.has('mutedColor')}
         />
@@ -126,7 +131,7 @@ export function StyleStep({
           <span style={labelStyle}>Font</span>
           <select
             style={inputStyle}
-            value={data.visuals.fontFamily}
+            value={locked.has('fontFamily') ? applied.visuals.fontFamily : data.visuals.fontFamily}
             disabled={locked.has('fontFamily')}
             onChange={(e) =>
               dispatch({ type: 'patchVisuals', value: { fontFamily: e.target.value as WebSafeFont } })

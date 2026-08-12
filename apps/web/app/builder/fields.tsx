@@ -27,14 +27,19 @@ export function TextField({
   placeholder,
   required,
   locked,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   required?: boolean;
-  /** Marka ayarlarından yönetiliyor — kontrol pasif, kilit ipucu görünür. */
+  /** Marka ayarlarından yönetiliyor — kontrol pasif, kilit ipucu KENDİSİ görünür. */
   locked?: boolean;
+  /** Yalnız kontrolü pasifleştirir, ipucu basmaz — birden çok kontrolün TEK
+   *  bir paylaşılan ipucu altında toplandığı durumlar için (ör. CTA çifti:
+   *  iki alan aynı `cta` kilidine bağlı, ipucu grupta bir kez gösterilir). */
+  disabled?: boolean;
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
@@ -48,7 +53,7 @@ export function TextField({
         placeholder={placeholder}
         required={required}
         aria-required={required || undefined}
-        disabled={locked}
+        disabled={locked || disabled}
         onChange={(e) => onChange(e.target.value)}
       />
       {locked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}

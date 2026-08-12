@@ -17,10 +17,14 @@ const SLOTS: Array<{ key: VisualKey; kind: string; title: string; hint: string }
 
 export function VisualsStep({
   data,
+  applied,
   dispatch,
   locked = new Set<BrandFieldName>(),
 }: {
   data: SignatureData;
+  /** `applyBrand(data, brand)` çıktısı — logoUrl kilitliyken GÖSTERİLEN
+   *  değer buradan okunur (bkz. StyleStep aynı desen). */
+  applied: SignatureData;
   dispatch: (a: BuilderAction) => void;
   /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
   locked?: Set<BrandFieldName>;
@@ -53,10 +57,13 @@ export function VisualsStep({
   return (
     <div>
       {SLOTS.map((slot) => {
-        const url = data.visuals[slot.key];
         // Yalnız logo marka tarafından yönetilebilir — avatar ve el imzası
         // her zaman kişisel kalır.
         const isLocked = slot.key === 'logoUrl' && locked.has('logoUrl');
+        // Kilitliyken GÖSTERİLEN url bindirilmiş veriden gelir — aksi halde
+        // marka logosu değiştikten sonra bu kontrol eski kişisel logoyu
+        // göstermeye devam eder (önizleme/export ise yeni logoyu gösterir).
+        const url = isLocked ? applied.visuals[slot.key] : data.visuals[slot.key];
         return (
           <FieldGroup key={slot.key} title={slot.title}>
             <span style={labelStyle}>
