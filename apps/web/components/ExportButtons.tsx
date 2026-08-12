@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 
+import { wrapExportDoc } from '../lib/export-htm';
+
 /**
  * `gated` üç durumlu: `false` serbest · `'login'` oturum yok, girişe gönder ·
  * `'verify'` oturum var ama e-posta doğrulanmadı — düğme görünür ama pasif,
@@ -49,7 +51,7 @@ export function ExportButtons({
       router.push('/login?next=/builder');
       return;
     }
-    const doc = `<!doctype html><html><head><meta charset="utf-8"></head><body>${html}</body></html>`;
+    const doc = wrapExportDoc(html);
     const blob = new Blob([doc], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
