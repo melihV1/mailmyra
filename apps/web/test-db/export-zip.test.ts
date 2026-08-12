@@ -228,7 +228,7 @@ describe('brand overlay at the export sink', () => {
           // tipi karşılamaz, tüm alanlar burada açıkça verilir.
           visuals: {
             brandColor: '#ff0000', // kişisel seçim
-            iconColor: '#ff0000',
+            iconColor: '#123456', // brandColor ile çakışmasın (review bulgusu #3)
             textColor: '#333333',
             mutedColor: '#666666',
             fontFamily: 'Arial, Helvetica, sans-serif',

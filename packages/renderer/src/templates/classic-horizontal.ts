@@ -1,7 +1,7 @@
 import type { SignatureData, RenderOptions } from '../types';
 import { table, row, cell } from '../utils/table';
 import { styleToString } from '../utils/inline-style';
-import { htmlEscape, sanitizeUrl } from '../utils/escape';
+import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
 
 type Size = SignatureData['layout']['size'];
@@ -34,10 +34,6 @@ const PLATFORM_LABELS: Record<
   behance: 'Behance',
   dribbble: 'Dribbble',
 };
-
-function ensureHttp(url: string): string {
-  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
-}
 
 export function classicHorizontal(data: SignatureData, opts?: RenderOptions): string {
   const s = SIZES[data.layout.size] ?? SIZES.medium;

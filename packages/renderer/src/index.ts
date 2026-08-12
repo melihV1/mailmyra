@@ -3,4 +3,5 @@ export type { SignatureData, WebSafeFont, RenderOptions } from './types';
 export { fixtures } from './fixtures/samples';
 export type { Fixture } from './fixtures/samples';
 export { contrastRatio, isValidHex, normalizeHex } from './utils/color';
+export { ensureHttp } from './utils/escape';
 export { BRAND } from './brand';

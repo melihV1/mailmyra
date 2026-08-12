@@ -198,3 +198,22 @@
   font-size: var(--step-small);
   color: var(--danger-onlight, #b3341f);
 }
+
+/* Satır bazlı geçersiz-alan ipucu (review bulgusu #1) — dialogError ile
+   aynı renk, ama diyalog değil form satırı içinde. */
+.fieldError {
+  font-size: var(--step-small);
+  color: var(--danger-onlight, #b3341f);
+  margin-top: 6px;
+}
+
+/* Kontrast notu (review bulgusu #2) — StyleStep'in aynı uyarısı, builder'la
+   aynı görsel fikir, panelin token'larıyla. */
+.contrastNote {
+  background: #fff7e6;
+  border: 1px solid #dca16f;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: var(--space-2);
+  font-size: var(--step-small);
+}

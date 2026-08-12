@@ -101,7 +101,12 @@ export function SenderActions({
       {/* Diyaloglar `<span>` dışında: sabit konumlu overlay `<div>`i bir
           inline eleman içine gömmek geçersiz HTML/hydration uyarısı doğurur. */}
       {confirming === 'publish' && (
-        <ConfirmDialog title={`Publish ${name}?`} onCancel={closeConfirm} onConfirm={confirmPublish}>
+        <ConfirmDialog
+          title={`Publish ${name}?`}
+          onCancel={closeConfirm}
+          onConfirm={confirmPublish}
+          confirmLabel="Publish"
+        >
           <p>
             {`They become active, using ${afterPublish} of your ${entitledSeats} seat${entitledSeats === 1 ? '' : 's'}. Their signature can then be exported.`}
           </p>
@@ -112,6 +117,7 @@ export function SenderActions({
           title={`Deactivate ${name}?`}
           onCancel={closeConfirm}
           onConfirm={confirmDeactivate}
+          confirmLabel="Deactivate"
         >
           <p>
             Their seat is freed for someone else this period. Signatures already installed in

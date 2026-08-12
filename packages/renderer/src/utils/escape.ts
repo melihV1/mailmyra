@@ -18,3 +18,15 @@ export function sanitizeUrl(url: string): string {
   if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return '#';
   return htmlEscape(trimmed);
 }
+
+/**
+ * Şemasız URL'i https'e yükseltir (`voldi.net` → `https://voldi.net`).
+ * Zaten http(s):// ile başlıyorsa dokunmaz. Tek kaynak: şablonlar (web
+ * sitesi/CTA/özel alan linkleri) VE marka belgesi doğrulaması
+ * (`lib/brand-doc.ts`) aynı fonksiyonu kullanır — biri kabul edip diğeri
+ * reddetmesin diye (review bulgusu: eskiden yalnız burada, kopyası yoktu
+ * ama içe aktarılmıyordu).
+ */
+export function ensureHttp(url: string): string {
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}

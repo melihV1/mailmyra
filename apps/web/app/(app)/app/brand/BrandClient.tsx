@@ -3,10 +3,18 @@
 import { useMemo, useState } from 'react';
 import { BRAND, TEMPLATE_IDS, fixtures, renderSignature } from '@mailmyra/renderer';
 
-import { WEB_SAFE_FONTS, type BrandDocument, type BrandField, type BrandMode } from '../../../../lib/brand-doc';
+import {
+  WEB_SAFE_FONTS,
+  isValidBrandHex,
+  parseBrandDocument,
+  type BrandDocument,
+  type BrandField,
+  type BrandMode,
+} from '../../../../lib/brand-doc';
 import { applyBrand, seedBrandDefaults } from '../../../../lib/brand-apply';
 import { mergeWithEmpty } from '../../../builder/reducer';
 import { Preview } from '../../../builder/Preview';
+import { contrastWarnings } from '../../../builder/steps/StyleStep';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import styles from './brand.module.css';
 
@@ -178,7 +186,39 @@ export function BrandClient({
     [overlaid, iconBaseUrl],
   );
 
+  // Kontrast notları (review bulgusu #2): StyleStep'teki AYNI fonksiyon,
+  // bindirilmiş renklere göre — org kilitlediği kötü bir renk burada da
+  // uyarsın. Metinler Türkçe döner (builder ile aynı), çevrilmiyor — dil
+  // göçü bu işin kapsamı dışında.
+  const contrastNotes = useMemo(() => contrastWarnings(overlaid.visuals), [overlaid]);
+
+  /**
+   * Satır bazlı ipucu (review bulgusu #1, yarı 2): `parseBrandDocument` TEK
+   * yetkili kaynak — Save/diyalog onun sonucuna göre kilitlenir. Buradaki
+   * alan-bazlı kontroller yalnız HANGİ satırın ipucu göstereceğini bulmak
+   * için; parseBrandDocument'ın reddettiği her durumu birebir kapsamaları
+   * gerekmez (ör. bozuk CTA URL söz dizimi burada yakalanmaz ama yine de
+   * Save pasif kalır — parseBrandDocument onu zaten reddeder).
+   */
+  const fieldErrors = useMemo(() => {
+    const errs: Partial<Record<FieldKey, string>> = {};
+    if (doc.logoUrl && !doc.logoUrl.value.trim()) {
+      errs.logoUrl = 'Upload a logo or set this to Not managed.';
+    }
+    if (doc.cta && (!doc.cta.value.label.trim() || !doc.cta.value.url.trim())) {
+      errs.cta = 'Enter a label and URL, or set this to Not managed.';
+    }
+    for (const key of ['brandColor', 'textColor', 'mutedColor'] as const) {
+      const f = doc[key];
+      if (f && !isValidBrandHex(f.value)) errs[key] = 'Enter a valid hex color.';
+    }
+    return errs;
+  }, [doc]);
+
+  const isValid = useMemo(() => parseBrandDocument(doc) !== null, [doc]);
+
   function openDialog() {
+    if (!isValid) return; // yönetilen-ama-eksik alan varken diyalog açılmaz
     setError(null);
     setDialogOpen(true);
   }
@@ -279,6 +319,7 @@ export function BrandClient({
                   value={doc.brandColor.value}
                   onChange={(v) => setValue('brandColor', v)}
                 />
+                {fieldErrors.brandColor && <p className={styles.fieldError}>{fieldErrors.brandColor}</p>}
               </div>
             )}
           </div>
@@ -302,6 +343,7 @@ export function BrandClient({
                   value={doc.textColor.value}
                   onChange={(v) => setValue('textColor', v)}
                 />
+                {fieldErrors.textColor && <p className={styles.fieldError}>{fieldErrors.textColor}</p>}
               </div>
             )}
           </div>
@@ -325,6 +367,7 @@ export function BrandClient({
                   value={doc.mutedColor.value}
                   onChange={(v) => setValue('mutedColor', v)}
                 />
+                {fieldErrors.mutedColor && <p className={styles.fieldError}>{fieldErrors.mutedColor}</p>}
               </div>
             )}
           </div>
@@ -402,6 +445,7 @@ export function BrandClient({
                 )}
                 {logoBusy && <p className={styles.fieldMessage}>Uploading…</p>}
                 {logoMessage && <p className={styles.fieldMessage}>{logoMessage}</p>}
+                {fieldErrors.logoUrl && <p className={styles.fieldError}>{fieldErrors.logoUrl}</p>}
               </div>
             )}
           </div>
@@ -432,6 +476,7 @@ export function BrandClient({
                     onChange={(e) => setValue('cta', { ...doc.cta!.value, url: e.target.value })}
                   />
                 </div>
+                {fieldErrors.cta && <p className={styles.fieldError}>{fieldErrors.cta}</p>}
               </div>
             )}
           </div>
@@ -461,7 +506,12 @@ export function BrandClient({
           </div>
 
           <div className={styles.saveBar}>
-            <button type="button" className={styles.primary} onClick={openDialog}>
+            <button
+              type="button"
+              className={styles.primary}
+              onClick={openDialog}
+              disabled={!isValid}
+            >
               Save brand settings
             </button>
             {savedAt && !dialogOpen && <span className={styles.savedNote}>Saved · {savedAt}</span>}
@@ -469,6 +519,13 @@ export function BrandClient({
         </div>
 
         <div className={styles.previewCol}>
+          {contrastNotes.length > 0 && (
+            <div role="alert" className={styles.contrastNote}>
+              {contrastNotes.map((w) => (
+                <div key={w}>⚠️ {w}</div>
+              ))}
+            </div>
+          )}
           <Preview html={html} textColor={overlaid.visuals.textColor} />
         </div>
       </div>

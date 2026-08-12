@@ -78,7 +78,10 @@ export function StyleStep({
   /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
   locked?: Set<BrandFieldName>;
 }) {
-  const warnings = contrastWarnings(data.visuals);
+  // Bindirilmiş renkler denetlenir (review bulgusu #2): org kilitli kötü bir
+  // renk uyarı versin, marka geçersiz kılan kişisel bir renk YANLIŞ uyarmasın
+  // — kontrol `applyBrand` çıktısına göre yapılır, ham `data`'ya göre değil.
+  const warnings = contrastWarnings(applied.visuals);
 
   return (
     <div>

@@ -1,4 +1,4 @@
-import { TEMPLATE_IDS, type WebSafeFont } from '@mailmyra/renderer';
+import { TEMPLATE_IDS, ensureHttp, type WebSafeFont } from '@mailmyra/renderer';
 
 /**
  * Marka belgesi (spec §3). Her alan İSTEĞE BAĞLI { value, mode } — belgede
@@ -35,6 +35,13 @@ export const WEB_SAFE_FONTS = [
 
 const MODES: readonly string[] = ['locked', 'default'];
 const HEX = /^#[0-9a-f]{6}$/i;
+
+/** `parseBrandDocument`'ın renk denetimiyle AYNI regex — BrandClient satır
+ *  bazlı ipucu göstermek için tekrar kullanır (review bulgusu #1), ikinci
+ *  bir regex icat etmez. */
+export function isValidBrandHex(value: string): boolean {
+  return HEX.test(value);
+}
 
 function httpUrl(v: unknown): v is string {
   if (typeof v !== 'string') return false;
@@ -86,8 +93,15 @@ export function parseBrandDocument(input: unknown): BrandDocument | null {
         const v = f.value as { label?: unknown; url?: unknown } | null;
         if (!v || typeof v !== 'object') return null;
         if (Object.keys(v).length !== 2) return null;
-        if (typeof v.label !== 'string' || !v.label.trim() || !httpUrl(v.url)) return null;
-        out.cta = { value: { label: v.label, url: v.url }, mode: f.mode };
+        if (typeof v.label !== 'string' || !v.label.trim() || typeof v.url !== 'string') return null;
+        // Builder'daki ensureHttp ile AYNI normalize (tek kaynak: renderer
+        // paketi) — şemasız bir URL ("voldi.net") builder'da render'da kabul
+        // ediliyorken bu kapı reddediyordu (review bulgusu #1). Boş string
+        // normalize sonrası da geçersiz kalır ("https://" host'suz), o yüzden
+        // yönetilen-ama-boş alan hâlâ reddedilir — yalnız şema eksikliği düzeldi.
+        const url = ensureHttp(v.url);
+        if (!httpUrl(url)) return null;
+        out.cta = { value: { label: v.label, url }, mode: f.mode };
         break;
       }
       case 'disclaimer':
