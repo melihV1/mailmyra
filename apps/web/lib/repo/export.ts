@@ -61,7 +61,9 @@ export async function collectExportBundle(
   const bySender = new Map<string, typeof signatures>();
   for (const sig of signatures) {
     const key = sig.senderIdentityId!;
-    bySender.set(key, [...(bySender.get(key) ?? []), sig]);
+    const list = bySender.get(key);
+    if (list) list.push(sig);
+    else bySender.set(key, [sig]);
   }
 
   const names: ExportNameInput[] = [];
@@ -75,9 +77,7 @@ export async function collectExportBundle(
     }
     for (const sig of sigs) {
       // Kayıt gevşek doğrulanır; render öncesi builder'la aynı savunma.
-      // `sig.data` Prisma'da `Json` (LONGTEXT) — tip yalnız derleme
-      // zamanında iddia edilir, signatures.ts'teki yazma tarafı da aynı
-      // şekilde `as` ile geçer.
+      // Json kolonunda şema-doğrulaması yok; okuma sınırında tip iddiası bizde.
       const data = mergeWithEmpty(sig.data as Partial<SignatureData>);
       const fragment = renderSignature(
         data,
