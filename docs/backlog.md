@@ -194,3 +194,27 @@ yatay taşma yok (`scrollWidth <= innerWidth` doğrulandı).
 Not: Panoya kopyalanan `text/html` içeriğinin kendisi otomatik okunamadı
 (tarayıcı clipboard-read izni engelliyor) — yalnızca başarı uyarısı gözlemlendi,
 gerçek e-posta istemcisine yapıştırma testi elle yapılmalı.
+
+---
+
+## Zip Export — Ertelenen Küçük İşler (final review triyajı, 2026-08-12)
+
+Spec: `docs/superpowers/specs/2026-08-12-bulk-zip-export-design.md`.
+Hiçbiri merge engeli değil; dosyaya bir daha dokunan alsın:
+
+- [ ] `export.ts`: seçili id listesi sorgudan ÖNCE tavanla sınırlanmıyor
+  (binlerce id DB sorgusuna girer; tavan exportable üstünde). Ucuz ön-guard.
+- [ ] Route: tümü-sayı `senderIds` dizisi `[]`'a süzülüp "herkes" kapsamına
+  genişliyor — dolu-ama-geçersiz diziyi reddetmek daha dürüst.
+- [ ] SenderTable: `cancelled` çalışma alanına `no_exportable` kopyası
+  yanıltıcı ("plan bitti" demiyor) · 401'de login'e yönlendirme yok ·
+  diyalogda odak yönetimi/Escape yok (publish onayı da window.confirm —
+  marka ayarları turunda ortak diyalog bileşeniyle birlikte ele al).
+- [ ] `page.tsx` (senders): `primaryOrgId` render başına 3+ kez çözülüyor;
+  sayfaya bir daha dokunulduğunda Promise.all'a katla.
+- [ ] Spec §5 sıra cümlesi kodla çelişiyor (kod: canExport → tavan; doğrusu
+  kodunki) — spec cümlesi güncellenecek.
+- [ ] `Signature.templateId` kolonu `saveSignature`'da hiç yazılmıyor
+  (gerçek kaynak `data.layout.templateId`; export doğru kaynağı kullanıyor).
+  İkinci şablon gelince liste ekranı bayat gösterir — marka ayarları
+  turunda ele al. (Bu daldan önce de vardı.)
