@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import type { SignatureData } from '@mailmyra/renderer';
+
 import { createEmptyData } from '../../../builder/reducer';
 import styles from './signatures.module.css';
 
@@ -12,7 +14,14 @@ import styles from './signatures.module.css';
  * Link olarak bırakılsaydı builder taslak kipinde açılır, oturumlu
  * kullanıcının emeği yalnız tarayıcıda kalırdı (canlıda yaşandı, 2026-08-11).
  */
-export function NewSignatureButton() {
+export function NewSignatureButton({
+  seedData,
+}: {
+  /** Sunucuda `seedBrandDefaults` ile önceden bindirilmiş başlangıç verisi
+   *  (T8) — orgın markası varsa kilitli + varsayılan alanlar baştan dolu
+   *  gelir. Yoksa boş şablona düşülür. */
+  seedData?: SignatureData;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -24,7 +33,7 @@ export function NewSignatureButton() {
       const res = await fetch('/api/signatures', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Untitled signature', data: createEmptyData() }),
+        body: JSON.stringify({ name: 'Untitled signature', data: seedData ?? createEmptyData() }),
       });
       const body = (await res.json()) as { id?: string };
       if (res.ok && body.id) {

@@ -1,11 +1,14 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { seedBrandDefaults } from '../../../../lib/brand-apply';
 import { AssignSelect } from './AssignSelect';
 import { NewSignatureButton } from './NewSignatureButton';
 import { RowActions } from './RowActions';
-import { listSenders } from '../../../../lib/repo/senders';
+import { getBrand } from '../../../../lib/repo/brand';
+import { listSenders, primaryOrgId } from '../../../../lib/repo/senders';
 import { listSignatures } from '../../../../lib/repo/signatures';
+import { mergeWithEmpty } from '../../../builder/reducer';
 import styles from './signatures.module.css';
 
 export const metadata = { title: 'Signatures — Mailmyra' };
@@ -22,11 +25,17 @@ export default async function SignaturesPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/signatures');
 
-  const [signatures, senders] = await Promise.all([
+  const [signatures, senders, orgId] = await Promise.all([
     listSignatures(session.user.id),
     listSenders(session.user.id),
+    primaryOrgId(session.user.id),
   ]);
   const options = senders.map((x) => ({ id: x.id, displayName: x.displayName }));
+
+  // Yeni imza tohumu (T8): org'un markası varsa kilitli + varsayılan
+  // alanlar baştan doludur — kullanıcı boş formdan başlamaz.
+  const brand = orgId ? await getBrand(orgId) : null;
+  const seedData = seedBrandDefaults(mergeWithEmpty({}), brand);
   const SENDER_BADGE: Record<string, string> = {
     draft: 'Draft',
     active: 'Live',
@@ -37,7 +46,7 @@ export default async function SignaturesPage() {
     <section>
       <header className={styles.head}>
         <h1 className={styles.title}>Signatures</h1>
-        {signatures.length > 0 && <NewSignatureButton />}
+        {signatures.length > 0 && <NewSignatureButton seedData={seedData} />}
       </header>
 
       {signatures.length === 0 ? (
@@ -47,7 +56,7 @@ export default async function SignaturesPage() {
             Build your first signature in a few minutes — pick a template, fill in your details,
             watch the live preview.
           </p>
-          <NewSignatureButton />
+          <NewSignatureButton seedData={seedData} />
         </div>
       ) : (
         <ul className={styles.list}>

@@ -3,13 +3,18 @@
 import type { SignatureData } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { TextField, FieldGroup, labelStyle, inputStyle } from '../fields';
+import type { BrandFieldName } from '../../../lib/brand-apply';
+import styles from '../builder.module.css';
 
 export function InfoStep({
   data,
   dispatch,
+  locked = new Set<BrandFieldName>(),
 }: {
   data: SignatureData;
   dispatch: (a: BuilderAction) => void;
+  /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
+  locked?: Set<BrandFieldName>;
 }) {
   const extras = data.extras ?? {};
   const customFields = extras.customFields ?? [];
@@ -79,12 +84,14 @@ export function InfoStep({
           placeholder="Görüşme Ayarla"
           value={extras.ctaLabel ?? ''}
           onChange={(v) => dispatch({ type: 'patchExtras', value: { ctaLabel: v || undefined } })}
+          locked={locked.has('cta')}
         />
         <TextField
           label="Buton bağlantısı"
           placeholder="https://..."
           value={extras.ctaUrl ?? ''}
           onChange={(v) => dispatch({ type: 'patchExtras', value: { ctaUrl: v || undefined } })}
+          locked={locked.has('cta')}
         />
       </FieldGroup>
 
@@ -145,10 +152,14 @@ export function InfoStep({
           <textarea
             style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             value={extras.disclaimer ?? ''}
+            disabled={locked.has('disclaimer')}
             onChange={(e) =>
               dispatch({ type: 'patchExtras', value: { disclaimer: e.target.value || undefined } })
             }
           />
+          {locked.has('disclaimer') && (
+            <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>
+          )}
         </label>
       </FieldGroup>
     </div>

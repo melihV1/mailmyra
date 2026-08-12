@@ -56,3 +56,19 @@ export function seedBrandDefaults(
   if (!brand) return empty;
   return overlay(empty, brand, false);
 }
+
+/**
+ * Builder UI'nin tek karar noktası (T8): hangi kontrol `disabled` olacak.
+ * Mod mantığı burada bir kez değerlendirilir — adımlar yalnız `.has(...)`
+ * sorar, kilit kararını kendileri tekrar yazmaz.
+ */
+export type BrandFieldName = keyof BrandDocument;
+
+export function lockedBrandFields(brand: BrandDocument | null): Set<BrandFieldName> {
+  const out = new Set<BrandFieldName>();
+  if (!brand) return out;
+  for (const key of Object.keys(brand) as BrandFieldName[]) {
+    if (brand[key]?.mode === 'locked') out.add(key);
+  }
+  return out;
+}

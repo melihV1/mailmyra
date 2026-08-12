@@ -4,6 +4,8 @@ import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { renderSignature, contrastRatio } from '@mailmyra/renderer';
 import { builderReducer, createEmptyData, mergeWithEmpty } from './reducer';
 import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
+import { applyBrand, lockedBrandFields } from '../../lib/brand-apply';
+import type { BrandDocument } from '../../lib/brand-doc';
 import { needsGeneratedIcons } from '../../lib/icon-readiness';
 import { InfoStep } from './steps/InfoStep';
 import { VisualsStep } from './steps/VisualsStep';
@@ -28,6 +30,7 @@ export function BuilderClient({
   signatureId,
   initialData,
   initialName,
+  brand = null,
 }: {
   gated: false | 'login' | 'verify';
   iconBaseUrl: string;
@@ -35,8 +38,14 @@ export function BuilderClient({
   signatureId?: string;
   initialData?: unknown;
   initialName?: string;
+  /** Yalnız düzenleme kipinde (?sig=) dolu — anonim builder'da hep null. */
+  brand?: BrandDocument | null;
 }) {
   const [data, dispatch] = useReducer(builderReducer, undefined, createEmptyData);
+  // Kayıtlı veri HİÇ değişmez — bindirme yalnız önizleme/export çıktısına
+  // işler. Kilit kalkınca kişinin girdiği ham değer geri görünür.
+  const locked = useMemo(() => lockedBrandFields(brand), [brand]);
+  const applied = useMemo(() => applyBrand(data, brand), [data, brand]);
   const [step, setStep] = useState<StepId>('info');
   const [mobilePane, setMobilePane] = useState<'edit' | 'preview'>('edit');
   const [savedVisible, setSavedVisible] = useState(false);
@@ -96,14 +105,16 @@ export function BuilderClient({
     };
   }, [data]);
 
+  // Bindirilmiş verinin şablonu kullanılır: templateId kilitliyse önizleme/
+  // export de markanın şablonunu gösterir, kişinin ham seçimini değil.
   const html = useMemo(
     () =>
       renderSignature(
-        data,
-        data.layout.templateId,
+        applied,
+        applied.layout.templateId,
         iconBaseUrl ? { iconBaseUrl } : undefined,
       ),
-    [data, iconBaseUrl],
+    [applied, iconBaseUrl],
   );
 
   // İkon hazırlığı (spec §3d): outline/mono + sosyal varken iconColor/iconStyle
@@ -191,10 +202,12 @@ export function BuilderClient({
           </button>
         ))}
       </nav>
-      {step === 'info' && <InfoStep data={data} dispatch={dispatch} />}
-      {step === 'visuals' && <VisualsStep data={data} dispatch={dispatch} />}
+      {step === 'info' && <InfoStep data={data} dispatch={dispatch} locked={locked} />}
+      {step === 'visuals' && <VisualsStep data={data} dispatch={dispatch} locked={locked} />}
       {step === 'social' && <SocialStep data={data} dispatch={dispatch} />}
-      {step === 'style' && <StyleStep data={data} dispatch={dispatch} iconLowContrast={iconLowContrast} />}
+      {step === 'style' && (
+        <StyleStep data={data} dispatch={dispatch} iconLowContrast={iconLowContrast} locked={locked} />
+      )}
       <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
         <button type="button" onClick={resetAll}>
           Temizle / sıfırdan başla
@@ -219,7 +232,7 @@ export function BuilderClient({
 
   const previewPane = (
     <div className={styles.previewPane}>
-      <Preview html={html} textColor={data.visuals.textColor} />
+      <Preview html={html} textColor={applied.visuals.textColor} />
       <ExportButtons
         html={html}
         filename="mailmyra-imza"

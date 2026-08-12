@@ -4,6 +4,8 @@ import { useState } from 'react';
 import type { SignatureData } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, labelStyle } from '../fields';
+import type { BrandFieldName } from '../../../lib/brand-apply';
+import styles from '../builder.module.css';
 
 type VisualKey = 'avatarUrl' | 'logoUrl' | 'handSignatureUrl';
 
@@ -16,9 +18,12 @@ const SLOTS: Array<{ key: VisualKey; kind: string; title: string; hint: string }
 export function VisualsStep({
   data,
   dispatch,
+  locked = new Set<BrandFieldName>(),
 }: {
   data: SignatureData;
   dispatch: (a: BuilderAction) => void;
+  /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
+  locked?: Set<BrandFieldName>;
 }) {
   const [busy, setBusy] = useState<VisualKey | null>(null);
   const [messages, setMessages] = useState<Partial<Record<VisualKey, string>>>({});
@@ -49,6 +54,9 @@ export function VisualsStep({
     <div>
       {SLOTS.map((slot) => {
         const url = data.visuals[slot.key];
+        // Yalnız logo marka tarafından yönetilebilir — avatar ve el imzası
+        // her zaman kişisel kalır.
+        const isLocked = slot.key === 'logoUrl' && locked.has('logoUrl');
         return (
           <FieldGroup key={slot.key} title={slot.title}>
             <span style={labelStyle}>
@@ -61,6 +69,7 @@ export function VisualsStep({
                 <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{url}</code>
                 <button
                   type="button"
+                  disabled={isLocked}
                   onClick={() => {
                     dispatch({ type: 'patchVisuals', value: { [slot.key]: undefined } });
                     setMessages((m) => ({ ...m, [slot.key]: undefined }));
@@ -73,7 +82,7 @@ export function VisualsStep({
               <input
                 type="file"
                 accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
-                disabled={busy !== null}
+                disabled={busy !== null || isLocked}
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) void upload(slot, f);
@@ -81,6 +90,7 @@ export function VisualsStep({
                 }}
               />
             )}
+            {isLocked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}
             {busy === slot.key && <p style={{ fontSize: 13 }}>Yükleniyor…</p>}
             {messages[slot.key] && (
               <p style={{ fontSize: 13, color: '#a05a2c' }}>{messages[slot.key]}</p>

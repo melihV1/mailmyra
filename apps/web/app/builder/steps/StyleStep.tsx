@@ -5,6 +5,8 @@ import { contrastRatio } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, labelStyle, inputStyle } from '../fields';
 import { WEB_SAFE_FONTS } from '../../../lib/brand-doc';
+import type { BrandFieldName } from '../../../lib/brand-apply';
+import styles from '../builder.module.css';
 
 const FONTS: readonly WebSafeFont[] = WEB_SAFE_FONTS;
 
@@ -42,16 +44,19 @@ function ColorField({
   label,
   value,
   onChange,
+  locked = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  locked?: boolean;
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
       <span style={labelStyle}>{label}</span>
-      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} />
+      <input type="color" value={value} disabled={locked} onChange={(e) => onChange(e.target.value)} />
       <code style={{ marginLeft: 8, fontSize: 13 }}>{value}</code>
+      {locked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}
     </label>
   );
 }
@@ -60,10 +65,13 @@ export function StyleStep({
   data,
   dispatch,
   iconLowContrast = false,
+  locked = new Set<BrandFieldName>(),
 }: {
   data: SignatureData;
   dispatch: (a: BuilderAction) => void;
   iconLowContrast?: boolean;
+  /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
+  locked?: Set<BrandFieldName>;
 }) {
   const warnings = contrastWarnings(data.visuals);
 
@@ -92,16 +100,19 @@ export function StyleStep({
           label="Marka rengi"
           value={data.visuals.brandColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { brandColor: v } })}
+          locked={locked.has('brandColor')}
         />
         <ColorField
           label="Metin rengi"
           value={data.visuals.textColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { textColor: v } })}
+          locked={locked.has('textColor')}
         />
         <ColorField
           label="İkincil metin rengi"
           value={data.visuals.mutedColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { mutedColor: v } })}
+          locked={locked.has('mutedColor')}
         />
         <ColorField
           label="İkon rengi"
@@ -116,6 +127,7 @@ export function StyleStep({
           <select
             style={inputStyle}
             value={data.visuals.fontFamily}
+            disabled={locked.has('fontFamily')}
             onChange={(e) =>
               dispatch({ type: 'patchVisuals', value: { fontFamily: e.target.value as WebSafeFont } })
             }
@@ -126,6 +138,9 @@ export function StyleStep({
               </option>
             ))}
           </select>
+          {locked.has('fontFamily') && (
+            <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>
+          )}
         </label>
 
         <span style={labelStyle}>Boyut</span>

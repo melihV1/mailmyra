@@ -43,6 +43,14 @@
   top: 16px;
 }
 
+/* Kilitli marka kontrolü ipucu (T8) — kontrolün hemen yanında/altında. */
+.lockHint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #8a6d1a;
+}
+
 @media (max-width: 1023px) {
   .columns {
     grid-template-columns: 1fr;

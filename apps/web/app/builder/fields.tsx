@@ -2,6 +2,8 @@
 
 import type { CSSProperties, ReactNode } from 'react';
 
+import styles from './builder.module.css';
+
 export const labelStyle: CSSProperties = {
   display: 'block',
   fontSize: 13,
@@ -24,12 +26,15 @@ export function TextField({
   onChange,
   placeholder,
   required,
+  locked,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   required?: boolean;
+  /** Marka ayarlarından yönetiliyor — kontrol pasif, kilit ipucu görünür. */
+  locked?: boolean;
 }) {
   return (
     <label style={{ display: 'block', marginBottom: 12 }}>
@@ -43,8 +48,10 @@ export function TextField({
         placeholder={placeholder}
         required={required}
         aria-required={required || undefined}
+        disabled={locked}
         onChange={(e) => onChange(e.target.value)}
       />
+      {locked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}
     </label>
   );
 }

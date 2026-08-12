@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../lib/auth/current';
+import type { BrandDocument } from '../../lib/brand-doc';
 import { isExportGated } from '../../lib/export-gate';
+import { getBrand } from '../../lib/repo/brand';
+import { primaryOrgId } from '../../lib/repo/senders';
 import { getSignature } from '../../lib/repo/signatures';
 import { BuilderClient } from './BuilderClient';
 
@@ -34,6 +37,17 @@ export default async function BuilderPage({
     if (!got.ok) redirect('/app/signatures');
     editing = { id: got.signature.id, data: got.signature.data, name: got.signature.name };
   }
+
+  // Yalnız düzenleme kipi marka alır (T8) — anonim builder davranışı hiç
+  // değişmez. `session` burada `editing` doluyken çalışma zamanında her
+  // zaman doludur (yukarıdaki redirect garanti eder), ama TS bunu statik
+  // olarak bilemez — `session &&` açık kontrolü bu yüzden gerekli.
+  let brand: BrandDocument | null = null;
+  if (session && editing) {
+    const orgId = await primaryOrgId(session.user.id);
+    brand = orgId ? await getBrand(orgId) : null;
+  }
+
   const gated = !isExportGated()
     ? (false as const)
     : !session
@@ -51,6 +65,7 @@ export default async function BuilderPage({
       signatureId={editing?.id}
       initialData={editing?.data}
       initialName={editing?.name}
+      brand={brand}
     />
   );
 }
