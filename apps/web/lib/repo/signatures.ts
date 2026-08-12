@@ -32,12 +32,19 @@ export interface SaveInput {
 
 export type SaveResult = { ok: true; id: string } | RepoError;
 
+/** Kolon liste ekranı içindir; gerçek kaynak data.layout.templateId. */
+function templateIdOf(data: unknown): string {
+  const t = (data as { layout?: { templateId?: unknown } } | null)?.layout?.templateId;
+  return typeof t === 'string' && t ? t : 'classic-horizontal';
+}
+
 export async function saveSignature(userId: string, input: SaveInput): Promise<SaveResult> {
   const role = await roleIn(userId, input.orgId);
   if (!role) return { ok: false, reason: 'forbidden' };
   if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
 
   const data = input.data as Prisma.InputJsonValue;
+  const templateId = templateIdOf(input.data);
 
   if (input.id) {
     // Güncellenecek satır ÇAĞIRANIN org'unda olmalı. `updateMany` + orgId
@@ -45,14 +52,14 @@ export async function saveSignature(userId: string, input: SaveInput): Promise<S
     // günceller ve not_found döner — kimlik doğrulanmış sızma yolu kalmaz.
     const updated = await prisma.signature.updateMany({
       where: { id: input.id, orgId: input.orgId },
-      data: { name: input.name, data },
+      data: { name: input.name, data, templateId },
     });
     if (updated.count === 0) return { ok: false, reason: 'not_found' };
     return { ok: true, id: input.id };
   }
 
   const created = await prisma.signature.create({
-    data: { orgId: input.orgId, name: input.name, data },
+    data: { orgId: input.orgId, name: input.name, data, templateId },
   });
   return { ok: true, id: created.id };
 }

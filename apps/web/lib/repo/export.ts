@@ -2,9 +2,11 @@ import { can, canExport } from '@mailmyra/core';
 import { renderSignature, type SignatureData } from '@mailmyra/renderer';
 
 import { mergeWithEmpty } from '../../app/builder/reducer';
+import { applyBrand } from '../brand-apply';
 import { prisma } from '../db';
 import { nameExportFiles, type ExportNameInput } from '../export-filename';
 import { wrapExportDoc } from '../export-htm';
+import { getBrand } from './brand';
 import { primaryOrgId, resolveBillingOrgId, roleFor } from './senders';
 
 /**
@@ -49,6 +51,9 @@ export async function collectExportBundle(
   const billing = await prisma.organization.findUniqueOrThrow({ where: { id: billingOrgId } });
   const entitlement = { entitledSeats: billing.entitledSeats, state: billing.entitlementState };
 
+  // Marka bir kez okunur; bindirme render ÇIKIŞINDA (spec §4 — zorlamanın yeri).
+  const brand = await getBrand(orgId);
+
   const exportable = senders.filter((s) => canExport({ entitlement, target: s }).allowed);
   const unpublished = senders.length - exportable.length;
 
@@ -78,7 +83,7 @@ export async function collectExportBundle(
     for (const sig of sigs) {
       // Kayıt gevşek doğrulanır; render öncesi builder'la aynı savunma.
       // Json kolonunda şema-doğrulaması yok; okuma sınırında tip iddiası bizde.
-      const data = mergeWithEmpty(sig.data as Partial<SignatureData>);
+      const data = applyBrand(mergeWithEmpty(sig.data as Partial<SignatureData>), brand);
       const fragment = renderSignature(
         data,
         data.layout.templateId,

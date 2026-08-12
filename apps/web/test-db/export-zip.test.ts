@@ -208,3 +208,42 @@ describe('gates', () => {
     });
   });
 });
+
+describe('brand overlay at the export sink', () => {
+  test("a locked brand color replaces the person's color in the output", async () => {
+    const { userId, orgId } = await orgWithOwner();
+    const s = await liveSender(orgId, 'Ali Yılmaz');
+    await prisma.signature.create({
+      data: {
+        orgId,
+        senderIdentityId: s.id,
+        name: 'Kisisel',
+        data: mergeWithEmpty({
+          identity: { fullName: 'Ali Yılmaz' },
+          // e-posta şart: şablon brandColor'ı yalnız mailto/website
+          // linkinde ve CTA'da kullanıyor — link olmadan renk hiç
+          // basılmaz, test hiçbir şeyi kanıtlamaz.
+          contact: { email: 'ali@voldi.net' },
+          // `visuals` Partial<SignatureData> altında sığ — kısmi obje
+          // tipi karşılamaz, tüm alanlar burada açıkça verilir.
+          visuals: {
+            brandColor: '#ff0000', // kişisel seçim
+            iconColor: '#ff0000',
+            textColor: '#333333',
+            mutedColor: '#666666',
+            fontFamily: 'Arial, Helvetica, sans-serif',
+          },
+        }) as object,
+      },
+    });
+    await prisma.brandSetting.create({
+      data: { orgId, data: { brandColor: { value: '#7b9fd3', mode: 'locked' } } },
+    });
+
+    const r = await collectExportBundle(userId);
+
+    if (!r.ok) throw new Error(r.reason);
+    expect(r.files[0]?.html).toContain('#7b9fd3');
+    expect(r.files[0]?.html).not.toContain('#ff0000');
+  });
+});

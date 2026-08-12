@@ -83,6 +83,30 @@ describe('saving', () => {
     expect(result).toEqual({ ok: false, reason: 'forbidden' });
   });
 
+  test('saveSignature mirrors data.layout.templateId into the column', async () => {
+    // Backlog borcu: kolon hiç yazılmıyordu; ikinci şablon gelince liste
+    // ekranı bayat gösterecekti. Kolon HAM veriyi yansıtır (bindirme değil).
+    // Kolonun `@default("classic-horizontal")` olması create yolunda testi
+    // sahte biçimde geçirirdi (kolon zaten o değere doğar) — bu yüzden kolon
+    // elle boşaltılıp update yolu koşulur; asıl sınanan şey update'in
+    // kolonu data.layout.templateId'den YENİDEN yazdığıdır.
+    const { userId, orgId } = await member('owner', 'sahip-tid@voldi.net');
+    const created = await saveSignature(userId, { orgId, name: 'X', data: DATA });
+    if (!created.ok) throw new Error('unreachable');
+    await prisma.signature.update({ where: { id: created.id }, data: { templateId: '' } });
+
+    const result = await saveSignature(userId, {
+      id: created.id,
+      orgId,
+      name: 'X',
+      data: { layout: { templateId: 'classic-horizontal' } },
+    });
+
+    if (!result.ok) throw new Error('unreachable');
+    const row = await prisma.signature.findUniqueOrThrow({ where: { id: result.id } });
+    expect(row.templateId).toBe('classic-horizontal');
+  });
+
   test('updating a signature that lives in someone else’s org is refused', async () => {
     const home = await member('owner', 'ali@voldi.net', 'A');
     const mine = await saveSignature(home.userId, { orgId: home.orgId, name: 'Benim', data: DATA });
