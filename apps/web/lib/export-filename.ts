@@ -25,15 +25,30 @@ export function slugify(value: string): string {
 }
 
 export function nameExportFiles(inputs: ReadonlyArray<ExportNameInput>): string[] {
-  const used = new Map<string, number>();
+  // `baseCount`: aynı base'in kaçıncı görülüşü olduğu (ilk aday adı üretmek
+  // için). `usedNames`: gerçekten atanmış SONUÇ adları — reviewer bulgusu:
+  // yalnız base bazında sayınca "Ali Yılmaz" iki kez + "Ali Yılmaz 2" bir kez
+  // ikisi de "ali-yilmaz-2.htm"e düşüyordu ve jszip sessizce üzerine
+  // yazıyordu. Son adı da bu Set'e karşı kontrol edip çakışırsa sayaç
+  // artırılana kadar bumpluyoruz.
+  const baseCount = new Map<string, number>();
+  const usedNames = new Set<string>();
   return inputs.map((f) => {
     let base = slugify(f.senderName) || slugify(f.senderEmail.split('@')[0] ?? '') || 'imza';
     if (f.senderSignatureCount > 1) {
       const sig = slugify(f.signatureName);
       if (sig) base = `${base}--${sig}`;
     }
-    const n = (used.get(base) ?? 0) + 1;
-    used.set(base, n);
-    return n === 1 ? `${base}.htm` : `${base}-${n}.htm`;
+    const n = (baseCount.get(base) ?? 0) + 1;
+    baseCount.set(base, n);
+
+    let suffix = n;
+    let candidate = suffix === 1 ? `${base}.htm` : `${base}-${suffix}.htm`;
+    while (usedNames.has(candidate)) {
+      suffix += 1;
+      candidate = `${base}-${suffix}.htm`;
+    }
+    usedNames.add(candidate);
+    return candidate;
   });
 }

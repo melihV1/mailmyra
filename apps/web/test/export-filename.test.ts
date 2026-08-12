@@ -41,6 +41,24 @@ describe('nameExportFiles', () => {
     ]);
   });
 
+  it('never emits the same final name twice, even when a later base collides with an earlier suffixed name', () => {
+    // "Ali Yılmaz 2" slugifies to "ali-yilmaz-2" — the exact name the second
+    // "Ali Yılmaz" would already have claimed. Without checking the FINAL
+    // (suffixed) name against every other final name, jszip would silently
+    // overwrite one entry and a signature would vanish from the zip.
+    expect(
+      nameExportFiles([one('Ali Yılmaz'), one('Ali Yılmaz'), one('Ali Yılmaz 2')]),
+    ).toEqual(['ali-yilmaz.htm', 'ali-yilmaz-2.htm', 'ali-yilmaz-2-2.htm']);
+  });
+
+  it('bumps the suffix through a triple collision on the same base', () => {
+    expect(nameExportFiles([one('Ali Yılmaz'), one('Ali Yılmaz'), one('Ali Yılmaz')])).toEqual([
+      'ali-yilmaz.htm',
+      'ali-yilmaz-2.htm',
+      'ali-yilmaz-3.htm',
+    ]);
+  });
+
   it('falls back to the email local part when the name slugs to nothing', () => {
     expect(nameExportFiles([one('🎉🎉', { senderEmail: 'parti@voldi.net' })])).toEqual([
       'parti.htm',

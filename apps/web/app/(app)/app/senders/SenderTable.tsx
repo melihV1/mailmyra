@@ -92,9 +92,18 @@ export function SenderTable({
       const a = document.createElement('a');
       a.href = url;
       a.download = `mailmyra-imzalar-${new Date().toISOString().slice(0, 10)}.zip`;
+      // ExportButtons.tsx'teki gibi: bazı tarayıcılarda DOM'a hiç girmemiş
+      // bir <a>'nın click()'i tetiklenmiyor — önce ekle, sonra kaldır.
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       URL.revokeObjectURL(url);
       setDialogOpen(false);
+    } catch {
+      // reviewer bulgusu: fetch reddi veya res.blob() hatası önceden
+      // yakalanmadan kaçıyordu — kullanıcı diyalog sessizce açık kalırken
+      // hiçbir hata görmüyordu.
+      setError('Export failed — try again.');
     } finally {
       setBusy(false);
     }
