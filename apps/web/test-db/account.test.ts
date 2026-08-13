@@ -472,4 +472,98 @@ describe('deleteAccount', () => {
       }),
     ).toEqual({ ok: true });
   });
+
+  test('a missing CDN_WRITE_PATH is a hard error when there are assets to clean — nothing is deleted', async () => {
+    const { userId } = await freshUser();
+    const orgId = (await primaryOrgId(userId))!;
+    await prisma.asset.create({
+      data: {
+        orgId,
+        filename: `${randomBytes(8).toString('hex')}.png`,
+        sha256: createHash('sha256').update('konfig-eksik').digest('hex'),
+        kind: 'logo',
+        bytes: 42,
+      },
+    });
+
+    // .env.local'daki geliştirme değerini geçici olarak kaldırıyoruz — burada
+    // sınanan şey "prod'da unutulursa ne olur" senaryosu.
+    const previous = process.env.CDN_WRITE_PATH;
+    delete process.env.CDN_WRITE_PATH;
+    try {
+      await expect(
+        deleteAccount(userId, { password: GOOD.password, emailConfirm: GOOD.email }),
+      ).rejects.toThrow(/CDN_WRITE_PATH/);
+
+      // Hata silmeden ÖNCE atıldı — hesap, org ve asset satırı hâlâ duruyor.
+      expect(await prisma.user.findUnique({ where: { id: userId } })).not.toBeNull();
+      expect(await prisma.organization.findUnique({ where: { id: orgId } })).not.toBeNull();
+      expect(await prisma.asset.count({ where: { orgId } })).toBe(1);
+    } finally {
+      if (previous === undefined) delete process.env.CDN_WRITE_PATH;
+      else process.env.CDN_WRITE_PATH = previous;
+    }
+  });
+
+  test('a user who solely owns two orgs takes both — org rows, assets and files', async () => {
+    const { userId } = await freshUser();
+    const firstOrgId = (await primaryOrgId(userId))!;
+    // İkinci org: davetle katılınıp o org'da da tek üye kalınmış gibi —
+    // doğrudan prisma ile kuruluyor (members.test.ts'teki desenin aynısı).
+    const secondOrg = await prisma.organization.create({ data: { name: 'İkinci Alan' } });
+    await prisma.membership.create({
+      data: { userId, orgId: secondOrg.id, role: 'owner' },
+    });
+
+    const dir = await mkdtemp(join(tmpdir(), 'mailmyra-account-'));
+    try {
+      const inFirst = await writeAssetFile(dir, firstOrgId, 'logo');
+      const inSecond = await writeAssetFile(dir, secondOrg.id, 'avatar');
+
+      const result = await deleteAccount(
+        userId,
+        { password: GOOD.password, emailConfirm: GOOD.email },
+        { cdnWritePath: dir },
+      );
+
+      expect(result).toEqual({ ok: true });
+      expect(await prisma.user.findUnique({ where: { id: userId } })).toBeNull();
+      expect(await prisma.organization.findUnique({ where: { id: firstOrgId } })).toBeNull();
+      expect(await prisma.organization.findUnique({ where: { id: secondOrg.id } })).toBeNull();
+      expect(
+        await prisma.asset.count({ where: { orgId: { in: [firstOrgId, secondOrg.id] } } }),
+      ).toBe(0);
+      expect(await fileExists(inFirst.filePath)).toBe(false);
+      expect(await fileExists(inSecond.filePath)).toBe(false);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('a user who is last owner of a second org (that has another member) is refused — nothing deleted anywhere', async () => {
+    const { userId } = await freshUser();
+    const firstOrgId = (await primaryOrgId(userId))!;
+    // İkinci org'da aynı kullanıcı yine owner, ama yanında başka biri de var —
+    // orada tek başına ayrılamıyor.
+    const secondOrg = await prisma.organization.create({ data: { name: 'Ortakli Alan' } });
+    await prisma.membership.create({ data: { userId, orgId: secondOrg.id, role: 'owner' } });
+    const teammate = await prisma.user.create({
+      data: { email: 'teammate@voldi.net', passwordHash: await hashPassword('yeterince uzun sifre') },
+    });
+    await prisma.membership.create({
+      data: { userId: teammate.id, orgId: secondOrg.id, role: 'editor' },
+    });
+
+    const result = await deleteAccount(userId, {
+      password: GOOD.password,
+      emailConfirm: GOOD.email,
+    });
+
+    expect(result).toEqual({ ok: false, reason: 'workspace_has_members' });
+    // Ne birinci org, ne ikinci org, ne de kullanıcı silindi.
+    expect(await prisma.user.findUnique({ where: { id: userId } })).not.toBeNull();
+    expect(await prisma.organization.findUnique({ where: { id: firstOrgId } })).not.toBeNull();
+    expect(await prisma.organization.findUnique({ where: { id: secondOrg.id } })).not.toBeNull();
+    expect(await prisma.membership.count({ where: { orgId: secondOrg.id } })).toBe(2);
+  });
 });

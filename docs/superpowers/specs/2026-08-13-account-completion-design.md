@@ -33,12 +33,16 @@ Salt bilgi, sunucu render: mevcut `seatSummary` + `entitlementState` +
 
 ## 4. Hesap silme (iki aşama + çift kanıt)
 
-**Kural — core `canRemoveMember` ile kodlanır:**
-- Org'da TEK üye → org + kullanıcı birlikte silinir (tam temizlik).
-- Birden çok üye ve kullanıcı ayrılabilir (son owner değil) → yalnız
-  kullanıcı silinir, org yaşar (davetli üye serbest).
-- Son owner + başka üyeler → `409 workspace_has_members`: "önce üyeleri
-  çıkar ya da sahipliği devret" (ölü uç yok, iki yol linkli).
+**Kural — core `canRemoveMember` ile, kullanıcının TÜM üyelikleri üzerinden
+kodlanır** (davetle katıldığı ikinci bir org'u da olabilir; yalnız
+"birincil" org'a bakmak o org'u sessizce yetim bırakırdı):
+- Bir org'da TEK üye kullanıcıysa → o org + kullanıcı birlikte silinir (tam
+  temizlik) — kullanıcı birden fazla org'da tek üyeyse hepsi gider.
+- Birden çok üyeli bir org'da kullanıcı ayrılabilirse (son owner değil) →
+  yalnız o org'daki üyelik gider, org yaşar (davetli üye serbest).
+- Herhangi BİR org'da son owner + başka üyeler varsa → bütün işlem
+  `409 workspace_has_members` ile reddedilir, hiçbir şey silinmez (kısmi
+  silme yok — "önce üyeleri çıkar ya da sahipliği devret").
 
 **Akış:** Danger zone → `ConfirmDialog` uyarısı:
 > This permanently deletes your workspace: senders, signatures and **all
@@ -49,12 +53,19 @@ Silah: e-postayı aynen yaz + şifre. `POST /api/account/delete
 { password, emailConfirm }` → `invalid_credentials` · `email_mismatch` ·
 `workspace_has_members`.
 
-**Sunucu sırası (görseller-de-silinir kararı):** org silinecekse `Asset`
-satırlarından dosya adları toplanır → `CDN_WRITE_PATH` altında best-effort
-`unlink` (tek arıza durdurmaz, log'lanır) → transaction: asset satırları
-(SetNull yetimlerini önlemek için açıkça) + org (cascade) + kullanıcı
-(cascade). `LegalAcceptance` null'lanıp KALIR (hukuki kayıt). Başarıda
-çerez temizlenir, pazarlama köküne yönlendirilir.
+**Sunucu sırası (görseller-de-silinir kararı):** kullanıcının tek üye
+olduğu her org toplanır → `Asset` satırlarından dosya adları önceden
+toplanır → gerekiyorsa (asset varsa) `CDN_WRITE_PATH` çözülmezse hiçbir şey
+silinmeden ÖNCE sert hata (kod tabanının genel kuralı — bkz. storage.ts,
+upload route — sessizce yutulmaz) → **transaction ÖNCE**: asset satırları
+(SetNull yetimlerini önlemek için açıkça) + org'lar (cascade) + kullanıcı
+(cascade) → transaction commit olduktan **SONRA** dosyalar `CDN_WRITE_PATH`
+altında best-effort `unlink` (tek arıza durdurmaz, log'lanır). Sıra bilinçli:
+DB önce giderse en kötü ihtimalle diskte sahipsiz ama zararsız bir dosya
+kalır (`cleanup-orphans` temizler); tersi olsaydı yarıda kesilen bir
+transaction, artık var olmayan dosyalara işaret eden satırlar bırakabilirdi.
+`LegalAcceptance` null'lanıp KALIR (hukuki kayıt). Başarıda çerez temizlenir,
+pazarlama köküne yönlendirilir.
 
 ## 5. Hukuki sayfalar
 

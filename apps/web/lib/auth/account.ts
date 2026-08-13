@@ -4,7 +4,6 @@ import { join } from 'node:path';
 import { canRemoveMember, type Member } from '@mailmyra/core';
 
 import { prisma } from '../db';
-import { primaryOrgId } from '../repo/senders';
 import { checkPasswordPolicy, hashPassword, verifyPassword } from './password';
 import { revokeAllSessionsForUser, revokeOtherSessions } from './session';
 
@@ -53,8 +52,13 @@ export type DeleteAccountResult =
 /**
  * Hesap silme (spec §4). Karar (2026-08-13, Hüseyin): TAM temizlik — CDN
  * dosyaları dahil. Sahadaki imzalar kırılır; uyarı metni bunu açıkça söyler.
- * Kural core'daki `canRemoveMember` ile: tek üye → org da gider; ayrılabilir
- * üye → yalnız kullanıcı; son owner + üyeler → engel.
+ *
+ * Kural core'daki `canRemoveMember` ile, kullanıcının TÜM üyelikleri
+ * üzerinden değerlendirilir — davetle katıldığı ikinci (üçüncü...) bir org'u
+ * da olabilir, yalnız `primaryOrgId`'ye bakmak o org'ları sessizce yetim
+ * bırakırdı: bir org'da tek üye → o org da gider; ayrılabilir üye → yalnız
+ * o org'daki üyelik; herhangi bir org'da son owner + başka üyeler → bütün
+ * işlem engellenir (kısmi silme yok).
  */
 export async function deleteAccount(
   userId: string,
@@ -69,29 +73,61 @@ export async function deleteAccount(
     return { ok: false, reason: 'email_mismatch' };
   }
 
-  const orgId = await primaryOrgId(userId);
-  if (!orgId) {
-    await prisma.user.delete({ where: { id: userId } });
-    return { ok: true };
-  }
+  const myMemberships = await prisma.membership.findMany({ where: { userId } });
 
-  const members = (await prisma.membership.findMany({
-    where: { orgId },
-    select: { userId: true, role: true },
-  })) as Member[];
+  // Kullanıcının tek üye olduğu org'lar — bunlar kullanıcıyla birlikte gider.
+  const soleOrgIds: string[] = [];
+  for (const m of myMemberships) {
+    const members = (await prisma.membership.findMany({
+      where: { orgId: m.orgId },
+      select: { userId: true, role: true },
+    })) as Member[];
 
-  if (members.length > 1) {
-    if (!canRemoveMember(members, userId)) {
-      return { ok: false, reason: 'workspace_has_members' };
+    if (members.length > 1) {
+      if (!canRemoveMember(members, userId)) {
+        // Herhangi bir org'da engelleniyorsa hiçbir şey silinmedi — buraya
+        // kadar sadece okuma yaptık, geri almaya gerek yok.
+        return { ok: false, reason: 'workspace_has_members' };
+      }
+      // Ayrılabilir üye: bu org başkalarına kalır, dokunulmaz. Kullanıcı
+      // silinince Membership.userId cascade zaten bu satırı da götürecek.
+      continue;
     }
-    // Ayrılabilir üye: org başkalarına kalır, yalnız kullanıcı gider.
+    soleOrgIds.push(m.orgId);
+  }
+
+  if (soleOrgIds.length === 0) {
     await prisma.user.delete({ where: { id: userId } });
     return { ok: true };
   }
 
-  // Tek üye: çalışma alanı sahibiyle birlikte gider — CDN dosyaları dahil.
-  const assets = await prisma.asset.findMany({ where: { orgId }, select: { filename: true } });
+  // Silinecek her satır DB'den gitmeden önce dosya adlarını topluyoruz —
+  // transaction'dan sonra Asset satırları artık okunamaz.
+  const assets = await prisma.asset.findMany({
+    where: { orgId: { in: soleOrgIds } },
+    select: { filename: true },
+  });
   const writePath = opts.cdnWritePath ?? process.env.CDN_WRITE_PATH;
+  if (assets.length > 0 && !writePath) {
+    // Kod tabanının genel kuralı (bkz. storage.ts, upload route): eksik
+    // CDN_WRITE_PATH sessizce yutulmaz, sert konfigürasyon hatasıdır. Silmeden
+    // ÖNCE fırlatılır — hiçbir şey silinmemişken konfigürasyon düzeltilebilir.
+    throw new Error('CDN_WRITE_PATH must be set to delete an account with CDN assets');
+  }
+
+  // Transaction ÖNCE, unlink SONRA — bilinçli sıra. DB işlemi yarıda kesilirse
+  // (bağlantı kopması, kısıt hatası) satırlar diskte hâlâ duran dosyalara
+  // işaret etmemeli; bu, kırık bir referanstan çok daha kötü bir durumdur.
+  // Sıra tersine çevrilirse en kötü ihtimalle diskte sahipsiz ama zararsız bir
+  // dosya kalır — zaten kabul edilen, log'lanan arıza modeli (aşağıdaki
+  // best-effort `unlink` bloğu) ve `cleanup-orphans` script'i bunun için var.
+  await prisma.$transaction([
+    // Org silinince Asset.orgId SetNull olurdu — yetim satır bırakmıyoruz.
+    prisma.asset.deleteMany({ where: { orgId: { in: soleOrgIds } } }),
+    prisma.organization.deleteMany({ where: { id: { in: soleOrgIds } } }),
+    prisma.user.delete({ where: { id: userId } }),
+  ]);
+
   if (writePath) {
     for (const a of assets) {
       try {
@@ -102,11 +138,5 @@ export async function deleteAccount(
       }
     }
   }
-  await prisma.$transaction([
-    // Org silinince Asset.orgId SetNull olurdu — yetim satır bırakmıyoruz.
-    prisma.asset.deleteMany({ where: { orgId } }),
-    prisma.organization.delete({ where: { id: orgId } }),
-    prisma.user.delete({ where: { id: userId } }),
-  ]);
   return { ok: true };
 }
