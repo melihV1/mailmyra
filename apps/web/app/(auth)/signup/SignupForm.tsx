@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useEffect, useState, type FormEvent } from 'react';
 
 import { clearDraft, loadDraft } from '../../../lib/draft';
+import { LEGAL } from '../../../lib/legal-links';
 
 import styles from '../auth.module.css';
-import { PRIVACY_URL, TERMS_URL, TERMS_VERSION } from '../legal-links';
 
 /**
  * Kayıt üç alandan uzun değil (panel-brief §2.1): e-posta, şifre, kabul
@@ -41,7 +41,7 @@ export function SignupForm() {
       body: JSON.stringify({
         email: form.get('email'),
         password: form.get('password'),
-        termsVersion: TERMS_VERSION,
+        termsVersion: LEGAL.terms.version,
       }),
     });
 
@@ -133,8 +133,9 @@ export function SignupForm() {
           <label className={styles.terms}>
             <input type="checkbox" name="terms" required />
             <span>
-              I agree to the <a href={TERMS_URL}>Terms of Service</a> and the{' '}
-              <a href={PRIVACY_URL}>Privacy Policy</a>.
+              I agree to the <a href={LEGAL.terms.path}>Terms of Service</a>, the{' '}
+              <a href={LEGAL.privacy.path}>Privacy Policy</a>, and the{' '}
+              <a href={LEGAL.kvkk.path}>{LEGAL.kvkk.title}</a>.
             </span>
           </label>
 

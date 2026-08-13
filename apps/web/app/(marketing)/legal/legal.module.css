@@ -1,0 +1,87 @@
+/* Üç hukuk sayfasının (terms/privacy/kvkk) ortak kabuğu. Pazarlama route
+   grubunun koyu temasını (layout.module.css) miras alır — burada arka plan
+   yeniden boyanmaz, yalnız okuma genişliği ve tipografi düz metne göre
+   ayarlanır (hero'nun aksine burada glow/doku yok, uzun metin okunacak). */
+
+.page {
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-5) var(--space-3) var(--space-6);
+}
+
+.inner {
+  width: 100%;
+  max-width: 720px;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: var(--step-small);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brand-light);
+  margin-bottom: var(--space-1);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--step-h1);
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.version {
+  color: var(--dark-text-muted);
+  font-size: var(--step-small);
+  margin-bottom: var(--space-3);
+}
+
+/* Taslak uyarı kutusu — Badge.module.css'teki -ondark deseniyle aynı aile
+   (design-system.md §1.6), yalnız kutu formunda: sayfanın en üstünde,
+   gözden kaçmaz. */
+.draftBox {
+  background: color-mix(in srgb, var(--warning-ondark) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--warning-ondark) 40%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--warning-ondark);
+  font-size: var(--step-small);
+  line-height: var(--leading-normal);
+  padding: 10px var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.section {
+  margin-top: var(--space-4);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--step-h3);
+  letter-spacing: -0.005em;
+  margin-bottom: var(--space-1);
+}
+
+.section p,
+.section li {
+  color: var(--dark-text);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-1);
+}
+
+.section ul {
+  padding-left: 1.2em;
+}
+
+.section a {
+  color: var(--brand-light);
+}
+
+/* Bilinmeyen bir gerçeği (şirket sicil no gibi) doldurma yeri işaretler —
+   hukukçu incelemesinden önce Hüseyin'in dolduracağı yer, metnin geri
+   kalanından görsel olarak ayrışsın diye. */
+.placeholder {
+  color: var(--warning-ondark);
+  font-style: italic;
+}

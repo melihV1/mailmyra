@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { PRICING } from '@mailmyra/core';
 import { currentSession } from '../../../../lib/auth/current';
 import { prisma } from '../../../../lib/db';
+import { LEGAL } from '../../../../lib/legal-links';
 import { primaryOrgId, resolveBillingOrgId, seatSummary } from '../../../../lib/repo/senders';
 import { AccountForms, DangerZone } from './AccountForms';
 import styles from './account.module.css';
@@ -14,6 +15,14 @@ const STATE_LABEL: Record<string, string> = {
   active: 'Active',
   past_due: 'Past due',
   cancelled: 'Cancelled',
+};
+
+/** `LegalAcceptance.docType` → ilgili sayfa (Task 7: `dpa` henüz yayında
+ *  bir sayfaya bağlı değil, o yüzden haritada yok — link olmadan düz metin
+ *  kalır). Tek kaynak `lib/legal-links.ts`. */
+const LEGAL_DOC_LINK: Record<string, string> = {
+  terms: LEGAL.terms.path,
+  privacy: LEGAL.privacy.path,
 };
 
 /**
@@ -102,15 +111,20 @@ export default async function AccountPage() {
 
       <h2 className={styles.subtitle}>Legal</h2>
       <ul className={styles.list}>
-        {acceptances.map((a) => (
-          <li key={a.id} className={styles.row}>
-            <span className={styles.rowName}>{a.docType}</span>
-            <span className={styles.rowMeta}>v{a.version}</span>
-            <time className={styles.rowMeta} dateTime={a.acceptedAt.toISOString()}>
-              accepted {a.acceptedAt.toLocaleDateString('en-GB')}
-            </time>
-          </li>
-        ))}
+        {acceptances.map((a) => {
+          const href = LEGAL_DOC_LINK[a.docType];
+          return (
+            <li key={a.id} className={styles.row}>
+              <span className={styles.rowName}>
+                {href ? <a href={href}>{a.docType}</a> : a.docType}
+              </span>
+              <span className={styles.rowMeta}>v{a.version}</span>
+              <time className={styles.rowMeta} dateTime={a.acceptedAt.toISOString()}>
+                accepted {a.acceptedAt.toLocaleDateString('en-GB')}
+              </time>
+            </li>
+          );
+        })}
       </ul>
 
       <DangerZone userEmail={session.user.email} />

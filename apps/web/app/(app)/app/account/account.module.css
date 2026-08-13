@@ -150,6 +150,11 @@
   white-space: nowrap;
 }
 
+.rowName a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .rowMeta {
   color: var(--text-muted);
   white-space: nowrap;
