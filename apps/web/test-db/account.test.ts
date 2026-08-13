@@ -1,12 +1,19 @@
+import { createHash, randomBytes } from 'node:crypto';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import { changePassword } from '../lib/auth/account';
+import { changePassword, deleteAccount } from '../lib/auth/account';
 import { confirmEmailChange, login, register, requestEmailChange } from '../lib/auth/flows';
+import { hashPassword } from '../lib/auth/password';
 import { readSession, revokeOtherSessions } from '../lib/auth/session';
 import { hashToken } from '../lib/auth/token';
 import type { Mailer } from '../lib/mail';
 import { MemoryMailer } from '../lib/mail/memory';
 import { prisma } from '../lib/db';
+import { primaryOrgId } from '../lib/repo/senders';
 import { truncateAll } from './helpers';
 
 /** SMTP'nin çöktüğü an — bilgilendirme maili atılamıyor. */
@@ -50,6 +57,39 @@ const linkFromLastMail = () => {
   if (!url) throw new Error('e-postada link yok');
   return new URL(url).searchParams.get('token') ?? '';
 };
+
+// deleteAccount testleri için: gerçek dosya + gerçek Asset satırı. Dosya
+// adı gerçek CDN kuralına uyar (16 hex karakter) ama bu testte önemli olan
+// tek şey, deleteAccount'ın diskteki dosyayı gerçekten silmesi.
+async function writeAssetFile(
+  dir: string,
+  orgId: string,
+  kind: 'avatar' | 'logo' | 'handSignature',
+) {
+  const filename = `${randomBytes(8).toString('hex')}.png`;
+  const filePath = join(dir, filename);
+  const bytes = Buffer.from(`sahte-png-icerigi-${filename}`);
+  await writeFile(filePath, bytes);
+  await prisma.asset.create({
+    data: {
+      orgId,
+      filename,
+      sha256: createHash('sha256').update(bytes).digest('hex'),
+      kind,
+      bytes: bytes.length,
+    },
+  });
+  return { filename, filePath };
+}
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await readFile(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 describe('changing the password', () => {
   test('requires the current password', async () => {
@@ -297,5 +337,139 @@ describe('confirmEmailChange', () => {
     } finally {
       logged.mockRestore();
     }
+  });
+});
+
+describe('deleteAccount', () => {
+  test('a sole member takes the workspace and its CDN files with them', async () => {
+    const { userId } = await freshUser();
+    const orgId = (await primaryOrgId(userId))!;
+    const legal = await prisma.legalAcceptance.findFirstOrThrow({ where: { userId } });
+    const dir = await mkdtemp(join(tmpdir(), 'mailmyra-account-'));
+    try {
+      const asset1 = await writeAssetFile(dir, orgId, 'logo');
+      const asset2 = await writeAssetFile(dir, orgId, 'avatar');
+
+      const result = await deleteAccount(
+        userId,
+        { password: GOOD.password, emailConfirm: GOOD.email },
+        { cdnWritePath: dir },
+      );
+
+      expect(result).toEqual({ ok: true });
+      expect(await prisma.user.findUnique({ where: { id: userId } })).toBeNull();
+      expect(await prisma.organization.findUnique({ where: { id: orgId } })).toBeNull();
+      expect(await prisma.asset.count({ where: { orgId } })).toBe(0);
+      expect(await fileExists(asset1.filePath)).toBe(false);
+      expect(await fileExists(asset2.filePath)).toBe(false);
+
+      // Kabul kanıtı hesap ve org gitse de duruyor — yalnızca bağları koptu.
+      const survivor = await prisma.legalAcceptance.findUnique({ where: { id: legal.id } });
+      expect(survivor).not.toBeNull();
+      expect(survivor!.userId).toBeNull();
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('a missing CDN file does not stop the deletion', async () => {
+    const { userId } = await freshUser();
+    const orgId = (await primaryOrgId(userId))!;
+    const dir = await mkdtemp(join(tmpdir(), 'mailmyra-account-'));
+    try {
+      // Satır var, dosya hiç yazılmadı — silme diskte "yok" hatasıyla karşılaşacak.
+      await prisma.asset.create({
+        data: {
+          orgId,
+          filename: `${randomBytes(8).toString('hex')}.png`,
+          sha256: createHash('sha256').update('kayip-dosya').digest('hex'),
+          kind: 'logo',
+          bytes: 1234,
+        },
+      });
+
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const result = await deleteAccount(
+          userId,
+          { password: GOOD.password, emailConfirm: GOOD.email },
+          { cdnWritePath: dir },
+        );
+
+        expect(result).toEqual({ ok: true });
+        expect(await prisma.user.findUnique({ where: { id: userId } })).toBeNull();
+        expect(await prisma.organization.findUnique({ where: { id: orgId } })).toBeNull();
+        expect(await prisma.asset.count({ where: { orgId } })).toBe(0);
+        expect(logged).toHaveBeenCalled();
+      } finally {
+        logged.mockRestore();
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('an invited member leaves without touching the org', async () => {
+    const { userId: ownerId } = await freshUser();
+    const orgId = (await primaryOrgId(ownerId))!;
+    const editorPassword = 'editorun saglam sifresi';
+    const editor = await prisma.user.create({
+      data: { email: 'editor@voldi.net', passwordHash: await hashPassword(editorPassword) },
+    });
+    await prisma.membership.create({ data: { userId: editor.id, orgId, role: 'editor' } });
+
+    const result = await deleteAccount(editor.id, {
+      password: editorPassword,
+      emailConfirm: 'editor@voldi.net',
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(await prisma.user.findUnique({ where: { id: editor.id } })).toBeNull();
+    // Org ve owner el sürülmeden duruyor.
+    expect(await prisma.organization.findUnique({ where: { id: orgId } })).not.toBeNull();
+    expect(await prisma.user.findUnique({ where: { id: ownerId } })).not.toBeNull();
+    expect(await prisma.membership.count({ where: { orgId } })).toBe(1);
+  });
+
+  test('the last owner with members is refused', async () => {
+    const { userId: ownerId } = await freshUser();
+    const orgId = (await primaryOrgId(ownerId))!;
+    const editor = await prisma.user.create({
+      data: { email: 'editor2@voldi.net', passwordHash: await hashPassword('baska saglam sifre') },
+    });
+    await prisma.membership.create({ data: { userId: editor.id, orgId, role: 'editor' } });
+
+    const result = await deleteAccount(ownerId, {
+      password: GOOD.password,
+      emailConfirm: GOOD.email,
+    });
+
+    expect(result).toEqual({ ok: false, reason: 'workspace_has_members' });
+    expect(await prisma.user.findUnique({ where: { id: ownerId } })).not.toBeNull();
+    expect(await prisma.organization.findUnique({ where: { id: orgId } })).not.toBeNull();
+    expect(await prisma.membership.count({ where: { orgId } })).toBe(2);
+  });
+
+  test('the wrong password or wrong typed e-mail is refused', async () => {
+    const { userId } = await freshUser();
+
+    expect(
+      await deleteAccount(userId, { password: 'tamamen yanlis', emailConfirm: GOOD.email }),
+    ).toEqual({ ok: false, reason: 'invalid_credentials' });
+
+    expect(
+      await deleteAccount(userId, { password: GOOD.password, emailConfirm: 'baska@voldi.net' }),
+    ).toEqual({ ok: false, reason: 'email_mismatch' });
+
+    // Hesap hâlâ duruyor — reddedilen denemeler hiçbir şey silmedi.
+    expect(await prisma.user.findUnique({ where: { id: userId } })).not.toBeNull();
+
+    // Büyük/küçük harf normalize edilir: doğru adres farklı harf kasıyla da geçer.
+    expect(
+      await deleteAccount(userId, {
+        password: GOOD.password,
+        emailConfirm: GOOD.email.toUpperCase(),
+      }),
+    ).toEqual({ ok: true });
   });
 });
