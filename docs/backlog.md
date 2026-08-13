@@ -247,3 +247,32 @@ Hiçbiri merge engeli değil; dosyaya bir daha dokunan alsın:
 - [ ] ⚠️ FAZ 4 NOTU: `builder/page.tsx` markayı `primaryOrgId`'den çekiyor —
   çok-org'lu kullanıcıda İMZANIN org'undan (`got.signature.orgId`) çekilmeli.
   Ajans/müşteri org'ları gerçek olduğunda tek satırlık düzeltme.
+
+---
+
+## Account Tamamlama — Ertelenen Küçük İşler (final review triyajı, 2026-08-13)
+
+Spec: `docs/superpowers/specs/2026-08-13-account-completion-design.md`.
+Hiçbiri merge engeli değil; dosyaya bir daha dokunan alsın:
+
+- [ ] Şablonlar: `emailChangedNoticeEmail`'de `newEmail` için düşman-girdi
+  testi yok (EMAIL_SHAPE `<b>x@y.z`yi geçirir — kaçırma yük taşıyor, kod
+  doğru; 3 satırlık test).
+- [ ] Akışlar: parola-önce kontrol sırası yalnız kod okumasıyla kanıtlı ·
+  `changePassword` yolundaki token temizliği testsiz (reset yolu testli,
+  4 satır simetrik) · temizlik parola yazımıyla transaction'da değil
+  (oturum iptaliyle aynı mevcut desen).
+- [ ] Silme: org-başına üyelik sorgusu N+1 (üyelik sayısıyla sınırlı) ·
+  "tek üyelik = owner" varsayımı denetimsiz · `Organization.parent`
+  Restrict FK'sı ajans ağacı gelince silmede 500 üretir (atomik olduğundan
+  güvenli; Faz 4'te ele al).
+- [ ] Account UI: sayfa yüklemede mükerrer org-çözümleme sorguları ·
+  diyalogda gizli-düğme yaklaşımının ekran okuyucu keşfedilebilirliği
+  (ConfirmDialog geneli karar) · başarılı silmede yönlendirme uçarken
+  düğmeler kısaca yeniden aktifleşiyor (kozmetik) · parola/e-posta formları
+  tek busy/msg state paylaşıyor (kozmetik).
+- [ ] Hukuk (avukat turuna birlikte): `LegalDocType` enum'unda `kvkk` yok —
+  kabul yalnız `terms` için kaydediliyor; onay cümlesi üç belgeyi sayıyor
+  (aydınlatma "kabul" değil "bilgilendirme" — ifade avukata sorulacak) ·
+  metinlerdeki `[teyit edilecek]` yer tutucuları (ünvan, MERSİS/vergi no,
+  adres, mahkeme, iletişim) Hüseyin+avukat dolduracak.
