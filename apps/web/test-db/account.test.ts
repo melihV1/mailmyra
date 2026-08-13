@@ -6,7 +6,14 @@ import { join } from 'node:path';
 import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { changePassword, deleteAccount } from '../lib/auth/account';
-import { confirmEmailChange, login, register, requestEmailChange } from '../lib/auth/flows';
+import {
+  confirmEmailChange,
+  login,
+  register,
+  requestEmailChange,
+  requestPasswordReset,
+  resetPassword,
+} from '../lib/auth/flows';
 import { hashPassword } from '../lib/auth/password';
 import { readSession, revokeOtherSessions } from '../lib/auth/session';
 import { hashToken } from '../lib/auth/token';
@@ -233,6 +240,29 @@ describe('requestEmailChange', () => {
     expect(result).toEqual({ ok: false, reason: 'email_taken' });
     expect(mailer.sent).toHaveLength(0);
   });
+
+  test('the fourth request in a row is rate limited', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+
+    for (let i = 0; i < 3; i++) {
+      const result = await requestEmailChange(
+        userId,
+        { newEmail: `deneme${i}@voldi.net`, password: GOOD.password },
+        mailer,
+      );
+      expect(result.ok).toBe(true);
+    }
+    const fourth = await requestEmailChange(
+      userId,
+      { newEmail: 'deneme3@voldi.net', password: GOOD.password },
+      mailer,
+    );
+
+    expect(fourth.ok).toBe(false);
+    if (fourth.ok || fourth.reason !== 'rate_limited') throw new Error('beklenen rate_limited');
+    expect(mailer.sent).toHaveLength(3);
+  });
 });
 
 describe('confirmEmailChange', () => {
@@ -337,6 +367,30 @@ describe('confirmEmailChange', () => {
     } finally {
       logged.mockRestore();
     }
+  });
+});
+
+describe('password remediation revokes pending email changes', () => {
+  test('resetting the password kills an outstanding change token', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+    await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@voldi.net', password: GOOD.password },
+      mailer,
+    );
+    const changeToken = linkFromLastMail();
+
+    await requestPasswordReset({ email: GOOD.email, ip: '9.8.7.6' }, mailer);
+    const resetToken = linkFromLastMail();
+    await resetPassword({ token: resetToken, newPassword: 'yepyeni saglam sifre' });
+
+    // Şifreyi sıfırlayan "hesabımda biri var" diyordur — o birinin elindeki
+    // bekleyen adres-değişim token'ı artık işe yaramaz.
+    expect(await confirmEmailChange(changeToken, mailer)).toEqual({
+      ok: false,
+      reason: 'invalid_token',
+    });
   });
 });
 

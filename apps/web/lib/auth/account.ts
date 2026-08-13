@@ -40,6 +40,12 @@ export async function changePassword(
   if (options.keepSessionId) await revokeOtherSessions(userId, options.keepSessionId);
   else await revokeAllSessionsForUser(userId);
 
+  // Parola değiştiren kullanıcı "hesabımda biri var" diyordur; bekleyen adres
+  // değişikliği o birinin kaçış kapısı olamaz.
+  await prisma.emailToken.deleteMany({
+    where: { userId, type: 'email_change', usedAt: null },
+  });
+
   return { ok: true };
 }
 

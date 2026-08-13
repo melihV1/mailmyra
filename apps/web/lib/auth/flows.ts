@@ -215,7 +215,8 @@ export async function resendVerification(userId: string, mailer: Mailer): Promis
 
 export type EmailChangeRequestResult =
   | { ok: true }
-  | { ok: false; reason: 'invalid_email' | 'email_taken' | 'invalid_credentials' };
+  | { ok: false; reason: 'invalid_email' | 'email_taken' | 'invalid_credentials' }
+  | { ok: false; reason: 'rate_limited'; retryAfterSeconds: number };
 
 /**
  * Hesap sayfasından: "adresimi değiştir". Doğrulama YENİ adrese gider —
@@ -226,6 +227,14 @@ export async function requestEmailChange(
   input: { newEmail: string; password: string },
   mailer: Mailer,
 ): Promise<EmailChangeRequestResult> {
+  // "Yeniden gönder" ile aynı fikir: sınırsız deneme hem SMTP itibarımızı
+  // yakar hem şifre denemesini örtük biçimde kısıtsız bırakır — sayaç
+  // kullanıcı başına.
+  const budget = await consumeAttempt(`email-change:${userId}`, { limit: 3 });
+  if (!budget.allowed) {
+    return { ok: false, reason: 'rate_limited', retryAfterSeconds: budget.retryAfterSeconds };
+  }
+
   const email = normalizeEmail(input.newEmail);
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   // Adres hesabın anahtarı — değişiklik yeniden kimlik doğrulaması ister.
@@ -284,14 +293,22 @@ export async function confirmEmailChange(
   if (holder && holder.id !== record.userId) return { ok: false, reason: 'email_taken' };
 
   const before = await prisma.user.findUniqueOrThrow({ where: { id: record.userId } });
-  await prisma.$transaction([
-    prisma.emailToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
-    prisma.user.update({
-      where: { id: record.userId },
-      // Yeni adres az önce kanıtlandı — doğrulama damgası tazelenir.
-      data: { email: record.newEmail, emailVerifiedAt: new Date() },
-    }),
-  ]);
+  try {
+    await prisma.$transaction([
+      prisma.emailToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
+      prisma.user.update({
+        where: { id: record.userId },
+        // Yeni adres az önce kanıtlandı — doğrulama damgası tazelenir.
+        data: { email: record.newEmail, emailVerifiedAt: new Date() },
+      }),
+    ]);
+  } catch (error) {
+    // İki farklı token aynı adrese aynı anda — unique constraint son hakem.
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return { ok: false, reason: 'email_taken' };
+    }
+    throw error;
+  }
 
   // Eski adresin tek savunma anı. Arıza değişikliği geri almaz, sessiz de kalmaz.
   try {
@@ -371,6 +388,12 @@ export async function resetPassword(input: ResetInput): Promise<ResetResult> {
   // "Şifremi değiştirdim" çoğu zaman "hesabımda başkası var" demek: bütün
   // açık oturumlar ölür, saldırgan da kapı dışında kalır.
   await revokeAllSessionsForUser(record.userId);
+
+  // Parola değiştiren kullanıcı "hesabımda biri var" diyordur; bekleyen adres
+  // değişikliği o birinin kaçış kapısı olamaz.
+  await prisma.emailToken.deleteMany({
+    where: { userId: record.userId, type: 'email_change', usedAt: null },
+  });
 
   return { ok: true };
 }

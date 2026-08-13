@@ -16,6 +16,14 @@ export async function POST(req: Request): Promise<Response> {
   );
   if (result.ok) return json(200, { ok: true });
 
+  if (result.reason === 'rate_limited') {
+    return json(
+      429,
+      { error: result.reason, retryAfterSeconds: result.retryAfterSeconds },
+      { 'Retry-After': String(result.retryAfterSeconds) },
+    );
+  }
+
   const status =
     result.reason === 'invalid_email' ? 400 : result.reason === 'email_taken' ? 409 : 403; // invalid_credentials
   return json(status, { error: result.reason });

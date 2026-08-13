@@ -52,31 +52,39 @@ export function AccountForms({ otherSessionCount }: { otherSessionCount: number 
     setBusy(true);
     setMsg(null);
 
-    const res = await fetch('/api/account/change-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        newEmail,
-        password: data.get('password'),
-      }),
-    });
+    try {
+      const res = await fetch('/api/account/change-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newEmail,
+          password: data.get('password'),
+        }),
+      });
 
-    setBusy(false);
-    if (res.ok) {
-      form.reset();
-      setMsg({ kind: 'ok', text: `Check ${newEmail} — the switch happens when you confirm.` });
-      return;
+      if (res.ok) {
+        form.reset();
+        setMsg({ kind: 'ok', text: `Check ${newEmail} — the switch happens when you confirm.` });
+        return;
+      }
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setMsg({
+        kind: 'err',
+        text:
+          body.error === 'email_taken'
+            ? 'That address already has an account.'
+            : body.error === 'invalid_credentials'
+              ? 'Wrong password.'
+              : body.error === 'rate_limited'
+                ? 'Too many attempts — try again later.'
+                : 'Enter a valid address (or it is already yours).', // invalid_email ve tanınmayan hata gövdesi
+      });
+    } catch {
+      // Ağ arızası — istek panele hiç ulaşmamış olabilir.
+      setMsg({ kind: 'err', text: 'Something went wrong — try again.' });
+    } finally {
+      setBusy(false);
     }
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
-    setMsg({
-      kind: 'err',
-      text:
-        body.error === 'email_taken'
-          ? 'That address already has an account.'
-          : body.error === 'invalid_credentials'
-            ? 'Wrong password.'
-            : 'Enter a valid address (or it is already yours).', // invalid_email ve tanınmayan hata gövdesi
-    });
   };
 
   const signOutOthers = async () => {
@@ -186,30 +194,38 @@ export function DangerZone({ userEmail }: { userEmail: string }) {
   const confirmDelete = async () => {
     setBusy(true);
     setError(null);
-    const res = await fetch('/api/account/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emailConfirm, password }),
-    });
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emailConfirm, password }),
+      });
 
-    if (res.ok) {
-      // Çerez sunucuda temizlendi — geri dönülecek bir panel kalmadı.
-      window.location.href = 'https://mailmyra.com';
-      return;
+      if (res.ok) {
+        // Çerez sunucuda temizlendi — geri dönülecek bir panel kalmadı.
+        window.location.href = 'https://mailmyra.com';
+        return;
+      }
+
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(
+        body.error === 'invalid_credentials'
+          ? { text: 'Wrong password.' }
+          : body.error === 'email_mismatch'
+            ? { text: 'That does not match your account e-mail.' }
+            : body.error === 'workspace_has_members'
+              ? {
+                  text: 'Your workspace still has other members — remove them or transfer ownership first.',
+                  membersLink: true,
+                }
+              : { text: 'Something went wrong — try again.' }, // 500/401/tanınmayan gövde
+      );
+    } catch {
+      // Ağ arızası — istek panele hiç ulaşmamış olabilir.
+      setError({ text: 'Something went wrong — try again.' });
+    } finally {
+      setBusy(false);
     }
-
-    setBusy(false);
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
-    setError(
-      body.error === 'invalid_credentials'
-        ? { text: 'Wrong password.' }
-        : body.error === 'email_mismatch'
-          ? { text: 'That does not match your account e-mail.' }
-          : {
-              text: 'Your workspace still has other members — remove them or transfer ownership first.',
-              membersLink: true,
-            }, // workspace_has_members
-    );
   };
 
   return (
