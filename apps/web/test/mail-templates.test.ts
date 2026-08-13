@@ -1,11 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { inviteEmail, resetEmail, seatWarningEmail, verifyEmail } from '../lib/mail/templates';
+import {
+  emailChangeVerifyEmail,
+  emailChangedNoticeEmail,
+  inviteEmail,
+  resetEmail,
+  seatWarningEmail,
+  verifyEmail,
+} from '../lib/mail/templates';
 
 const URL_VERIFY = 'https://app.mailmyra.com/verify?token=abc123';
 const URL_RESET = 'https://app.mailmyra.com/reset?token=def456';
 const URL_INVITE = 'https://app.mailmyra.com/invite?token=ghi789';
 const URL_SENDERS = 'https://app.mailmyra.com/app/senders';
+const URL_CHANGE = 'https://app.mailmyra.com/confirm-email-change?token=jkl012';
+const URL_APP = 'https://app.mailmyra.com';
 
 const seatWarning = () =>
   seatWarningEmail({
@@ -20,6 +29,8 @@ const all = [
   ['reset', resetEmail({ actionUrl: URL_RESET }), URL_RESET],
   ['invite', inviteEmail({ actionUrl: URL_INVITE, orgName: 'Voldi Creative' }), URL_INVITE],
   ['seat warning', seatWarning(), URL_SENDERS],
+  ['email-change verify', emailChangeVerifyEmail({ actionUrl: URL_CHANGE }), URL_CHANGE],
+  ['email-changed notice', emailChangedNoticeEmail({ actionUrl: URL_APP, newEmail: 'yeni@voldi.net' }), URL_APP],
 ] as const;
 
 /** Tek kullanımlık link taşıyanlar — koltuk uyarısının süresi yok. */
@@ -27,6 +38,7 @@ const expiring = [
   ['verify', verifyEmail({ actionUrl: URL_VERIFY })],
   ['reset', resetEmail({ actionUrl: URL_RESET })],
   ['invite', inviteEmail({ actionUrl: URL_INVITE, orgName: 'Voldi Creative' })],
+  ['email-change verify', emailChangeVerifyEmail({ actionUrl: URL_CHANGE })],
 ] as const;
 
 describe.each(all)('the %s email', (_name, mail, url) => {
@@ -166,5 +178,23 @@ describe('what each email is for', () => {
     // Sıfırlama e-postası, hesabı olmayan birine de gidebilir (var/yok
     // sızdırmıyoruz). O kişi ne yapacağını bilmeli.
     expect(resetEmail({ actionUrl: URL_RESET }).text.toLowerCase()).toContain('ignore');
+  });
+});
+
+describe('the email-change pair', () => {
+  it('the notice names the new address in both bodies', () => {
+    const mail = emailChangedNoticeEmail({ actionUrl: URL_APP, newEmail: 'yeni@voldi.net' });
+    expect(mail.html).toContain('yeni@voldi.net');
+    expect(mail.text).toContain('yeni@voldi.net');
+  });
+
+  it('the notice tells the reader what to do if it was not them', () => {
+    // Eski adres sahibinin tek savunma anı bu mail — kaçış yolu yazılı olmalı.
+    expect(emailChangedNoticeEmail({ actionUrl: URL_APP, newEmail: 'x@voldi.net' }).text.toLowerCase())
+      .toContain('contact us');
+  });
+
+  it('the verify mail makes clear nothing changes until confirmed', () => {
+    expect(emailChangeVerifyEmail({ actionUrl: URL_CHANGE }).text.toLowerCase()).toContain('nothing changes');
   });
 });

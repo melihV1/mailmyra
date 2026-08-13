@@ -145,3 +145,57 @@ export function inviteEmail({ actionUrl, orgName }: InviteInput): MailBody {
     ),
   };
 }
+
+export function emailChangeVerifyEmail({ actionUrl }: ActionInput): MailBody {
+  return {
+    subject: 'Confirm your new e-mail address',
+    html: renderLayout({
+      heading: 'Confirm your new address',
+      paragraphs: [
+        'You asked to move your Mailmyra account to this address. Confirm it and the switch is done.',
+      ],
+      actionUrl,
+      actionLabel: 'Confirm new address',
+      footnote:
+        'This link is good for 24 hours. If you did not ask for this change, ignore this message — nothing changes.',
+    }),
+    text: renderText(
+      [
+        'Confirm your new address',
+        '',
+        'You asked to move your Mailmyra account to this address. Confirm it and the switch is done.',
+      ],
+      actionUrl,
+      'This link is good for 24 hours. If you did not ask for this change, ignore this message — nothing changes.',
+    ),
+  };
+}
+
+export interface ChangedNoticeInput extends ActionInput {
+  newEmail: string;
+}
+
+export function emailChangedNoticeEmail({ actionUrl, newEmail }: ChangedNoticeInput): MailBody {
+  const contact = 'If you did not make this change, contact us immediately.';
+  return {
+    subject: 'Your Mailmyra e-mail address was changed',
+    html: renderLayout({
+      heading: 'Your e-mail address was changed',
+      paragraphs: [
+        `Your Mailmyra account now signs in with <strong>${escapeHtml(newEmail)}</strong>. This address no longer has access.`,
+      ],
+      actionUrl,
+      actionLabel: 'Open Mailmyra',
+      footnote: contact,
+    }),
+    text: renderText(
+      [
+        'Your e-mail address was changed',
+        '',
+        `Your Mailmyra account now signs in with ${newEmail}. This address no longer has access.`,
+      ],
+      actionUrl,
+      contact,
+    ),
+  };
+}
