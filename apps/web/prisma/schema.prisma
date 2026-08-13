@@ -58,12 +58,16 @@ enum EmailTokenType {
   verify
   reset
   invite
+  email_change
 }
 
 model EmailToken {
   id        String         @id @default(cuid())
   userId    String
   type      EmailTokenType
+  /// Yalnız email_change: bekleyen yeni adres token'da durur, kullanıcıda
+  /// değil — onaylanmamış adres hesabın hiçbir yerine sızmaz.
+  newEmail  String?        @db.VarChar(255)
   tokenHash String         @unique @db.Char(64)
   expiresAt DateTime
   /// Tek kullanımlık: dolduğu an token ölür.
