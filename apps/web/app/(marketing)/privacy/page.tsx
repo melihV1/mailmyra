@@ -38,9 +38,8 @@ export default function PrivacyPage() {
             e-mail addresses of the people you are making signatures for) — this is{' '}
             <strong>your team&apos;s data, not ours</strong>. You are the data controller for
             it; Mailmyra only processes it on your behalf so it can be rendered into a signature
-            and stored in your workspace. If those people are in Türkiye, KVKK applies to that
-            processing — see our separate{' '}
-            <a href={LEGAL.kvkk.path}>{LEGAL.kvkk.title}</a>.
+            and stored in your workspace. See our{' '}
+            <a href={LEGAL.kvkk.path}>{LEGAL.kvkk.title}</a> for the Turkish-law disclosure.
           </li>
         </ul>
       </LegalSection>

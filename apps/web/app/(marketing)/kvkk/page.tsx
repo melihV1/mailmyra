@@ -27,7 +27,7 @@ export default function KvkkPage() {
           e-posta adresinize ilişkin veri sorumlusu, Konya merkezli{' '}
           <strong>Voldi Creative</strong>{' '}
           <span className={styles.placeholder}>
-            [tam ticaret unvanı, MERSİN/vergi no ve açık adres — teyit edilecek]
+            [tam ticaret unvanı, MERSİS/vergi no ve açık adres — teyit edilecek]
           </span>
           &apos;dır (&ldquo;Mailmyra&rdquo;, &ldquo;biz&rdquo;).
         </p>
