@@ -21,6 +21,23 @@
   margin: var(--space-3) 0 var(--space-1);
 }
 
+/* ── Plan kutusu — koltuk sayısı + fatura durumu, senders.module.css'teki
+   .meter'ın metin-yalnız versiyonu (Task 6: burada ilerleme çubuğu yok,
+   tek satır özet). ── */
+
+.planBox {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.planLine {
+  font-size: var(--step-small);
+  line-height: var(--leading-normal);
+}
+
 .forms {
   margin-bottom: var(--space-2);
 }
@@ -136,4 +153,36 @@
 .rowMeta {
   color: var(--text-muted);
   white-space: nowrap;
+}
+
+/* ── Tehlike bölgesi — hesap silme, sayfa dibi (Task 6) ── */
+
+.dangerZone {
+  margin-top: var(--space-4);
+  border: 1px solid var(--danger-onlight, #b3341f);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+}
+
+.dangerTitle {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--danger-onlight, #b3341f);
+  margin-bottom: var(--space-1);
+}
+
+.dangerButton {
+  font: inherit;
+  font-size: var(--step-small);
+  font-weight: 600;
+  color: var(--danger-onlight, #b3341f);
+  background: none;
+  border: 1px solid var(--danger-onlight, #b3341f);
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.dangerButton:hover {
+  background: #fbeeec;
 }
