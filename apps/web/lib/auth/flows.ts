@@ -3,8 +3,13 @@ import { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
 import type { Mailer } from '../mail';
-import { resetEmail, verifyEmail } from '../mail';
-import { checkPasswordPolicy, hashPassword, verifyPasswordAgainstMaybeHash } from './password';
+import { emailChangeVerifyEmail, emailChangedNoticeEmail, resetEmail, verifyEmail } from '../mail';
+import {
+  checkPasswordPolicy,
+  hashPassword,
+  verifyPassword,
+  verifyPasswordAgainstMaybeHash,
+} from './password';
 import { clearAttempts, consumeAttempt } from './rate-limit';
 import { createSession, revokeAllSessionsForUser } from './session';
 import { hashToken, newSessionToken } from './token';
@@ -26,6 +31,7 @@ function appUrl(): string {
 const VERIFY_TTL_MS = 24 * 60 * 60 * 1000; // spec §6: 24 saat
 const RESET_TTL_MS = 60 * 60 * 1000; // spec §6: 1 saat
 const TRIAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 gün kartsız deneme
+const EMAIL_CHANGE_TTL_MS = 24 * 60 * 60 * 1000; // doğrulama ile aynı süre
 
 // Amaç adres doğrulamak değil — gerçek doğrulama zaten gönderilen e-posta.
 // Bu yalnız bariz yazım hatasını formda yakalar.
@@ -202,6 +208,100 @@ export async function resendVerification(userId: string, mailer: Mailer): Promis
     to: user.email,
     ...verifyEmail({ actionUrl: `${appUrl()}/verify-email?token=${token}` }),
   });
+  return { ok: true };
+}
+
+// ─── E-posta adresi değişimi ─────────────────────────────────────────────
+
+export type EmailChangeRequestResult =
+  | { ok: true }
+  | { ok: false; reason: 'invalid_email' | 'email_taken' | 'invalid_credentials' };
+
+/**
+ * Hesap sayfasından: "adresimi değiştir". Doğrulama YENİ adrese gider —
+ * eski adres onaya kadar hiç değişmez (bkz. `confirmEmailChange`).
+ */
+export async function requestEmailChange(
+  userId: string,
+  input: { newEmail: string; password: string },
+  mailer: Mailer,
+): Promise<EmailChangeRequestResult> {
+  const email = normalizeEmail(input.newEmail);
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  // Adres hesabın anahtarı — değişiklik yeniden kimlik doğrulaması ister.
+  if (!(await verifyPassword(input.password, user.passwordHash))) {
+    return { ok: false, reason: 'invalid_credentials' };
+  }
+  if (!EMAIL_SHAPE.test(email) || email === user.email) {
+    return { ok: false, reason: 'invalid_email' };
+  }
+  if (await prisma.user.findUnique({ where: { email } })) {
+    return { ok: false, reason: 'email_taken' };
+  }
+
+  const token = newSessionToken();
+  await prisma.emailToken.create({
+    data: {
+      userId,
+      type: 'email_change',
+      newEmail: email,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + EMAIL_CHANGE_TTL_MS),
+    },
+  });
+  await mailer.send({
+    to: email,
+    ...emailChangeVerifyEmail({ actionUrl: `${appUrl()}/confirm-email-change?token=${token}` }),
+  });
+  return { ok: true };
+}
+
+export type EmailChangeConfirmResult =
+  | { ok: true }
+  | { ok: false; reason: 'invalid_token' | 'email_taken' };
+
+/**
+ * Yeni adresteki linke tıklanınca çalışır. Adres burada gerçekten değişir;
+ * eski adrese giden bilgilendirme en iyi çaba — arızası değişikliği geri
+ * almaz (bkz. altındaki try/catch).
+ */
+export async function confirmEmailChange(
+  token: string,
+  mailer: Mailer,
+): Promise<EmailChangeConfirmResult> {
+  const record = await prisma.emailToken.findUnique({ where: { tokenHash: hashToken(token) } });
+  if (
+    !record ||
+    record.type !== 'email_change' ||
+    !record.newEmail ||
+    record.usedAt ||
+    record.expiresAt <= new Date()
+  ) {
+    return { ok: false, reason: 'invalid_token' };
+  }
+  // Yarış: adres istekle onay arasında başkasına gitmiş olabilir.
+  const holder = await prisma.user.findUnique({ where: { email: record.newEmail } });
+  if (holder && holder.id !== record.userId) return { ok: false, reason: 'email_taken' };
+
+  const before = await prisma.user.findUniqueOrThrow({ where: { id: record.userId } });
+  await prisma.$transaction([
+    prisma.emailToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
+    prisma.user.update({
+      where: { id: record.userId },
+      // Yeni adres az önce kanıtlandı — doğrulama damgası tazelenir.
+      data: { email: record.newEmail, emailVerifiedAt: new Date() },
+    }),
+  ]);
+
+  // Eski adresin tek savunma anı. Arıza değişikliği geri almaz, sessiz de kalmaz.
+  try {
+    await mailer.send({
+      to: before.email,
+      ...emailChangedNoticeEmail({ actionUrl: appUrl(), newEmail: record.newEmail }),
+    });
+  } catch (error) {
+    console.error('[mail] adres-değişti bilgilendirmesi gönderilemedi:', error);
+  }
   return { ok: true };
 }
 

@@ -1,12 +1,21 @@
-import { afterAll, beforeEach, describe, expect, test } from 'vitest';
+import { afterAll, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { changePassword } from '../lib/auth/account';
-import { login, register } from '../lib/auth/flows';
+import { confirmEmailChange, login, register, requestEmailChange } from '../lib/auth/flows';
 import { readSession, revokeOtherSessions } from '../lib/auth/session';
 import { hashToken } from '../lib/auth/token';
+import type { Mailer } from '../lib/mail';
 import { MemoryMailer } from '../lib/mail/memory';
 import { prisma } from '../lib/db';
 import { truncateAll } from './helpers';
+
+/** SMTP'nin çöktüğü an — bilgilendirme maili atılamıyor. */
+const brokenMailer: Mailer = {
+  kind: 'memory',
+  send: async () => {
+    throw new Error('SMTP down');
+  },
+};
 
 const mailer = new MemoryMailer();
 beforeEach(async () => {
@@ -32,6 +41,15 @@ async function freshUser() {
   const user = await prisma.user.findUniqueOrThrow({ where: { email: GOOD.email } });
   return { userId: user.id, sessionToken: reg.sessionToken };
 }
+
+// auth-flows.test.ts'teki desenin aynısı: son gönderilen mailin metninden
+// linki, linkten token'ı ayıklar.
+const linkFromLastMail = () => {
+  const text = mailer.sent.at(-1)?.text ?? '';
+  const url = text.match(/https?:\/\/\S+/)?.[0];
+  if (!url) throw new Error('e-postada link yok');
+  return new URL(url).searchParams.get('token') ?? '';
+};
 
 describe('changing the password', () => {
   test('requires the current password', async () => {
@@ -94,5 +112,190 @@ describe('signing out other sessions', () => {
     expect(await readSession(a.sessionToken)).toBeNull();
     expect(await readSession(b.sessionToken)).toBeNull();
     expect(await prisma.session.count({ where: { tokenHash: hashToken(sessionToken) } })).toBe(1);
+  });
+});
+
+describe('requestEmailChange', () => {
+  test('sends a 24h verification to the NEW address and changes nothing yet', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+
+    const result = await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@voldi.net', password: GOOD.password },
+      mailer,
+    );
+
+    expect(result).toEqual({ ok: true });
+    // Doğrulama YENİ adrese gitti, eskisine değil.
+    expect(mailer.sent).toHaveLength(1);
+    expect(mailer.sent[0]?.to).toBe('yeni@voldi.net');
+    // Hesap hâlâ eski adresle giriş yapıyor — henüz hiçbir şey değişmedi.
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    expect(user.email).toBe(GOOD.email);
+
+    const tokenRow = await prisma.emailToken.findFirstOrThrow({
+      where: { userId, type: 'email_change' },
+    });
+    expect(tokenRow.newEmail).toBe('yeni@voldi.net');
+    // 24 saatlik pencere — birkaç saniyelik test payıyla.
+    const ttl = tokenRow.expiresAt.getTime() - Date.now();
+    expect(ttl).toBeGreaterThan(23 * 60 * 60 * 1000);
+    expect(ttl).toBeLessThanOrEqual(24 * 60 * 60 * 1000 + 5000);
+  });
+
+  test('refuses the wrong password', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+
+    const result = await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@voldi.net', password: 'tamamen yanlis' },
+      mailer,
+    );
+
+    expect(result).toEqual({ ok: false, reason: 'invalid_credentials' });
+    expect(mailer.sent).toHaveLength(0);
+    expect(await prisma.emailToken.count({ where: { type: 'email_change' } })).toBe(0);
+  });
+
+  test('refuses a malformed or same address', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+
+    const malformed = await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@', password: GOOD.password },
+      mailer,
+    );
+    const sameAddress = await requestEmailChange(
+      userId,
+      { newEmail: GOOD.email, password: GOOD.password },
+      mailer,
+    );
+
+    expect(malformed).toEqual({ ok: false, reason: 'invalid_email' });
+    expect(sameAddress).toEqual({ ok: false, reason: 'invalid_email' });
+    expect(mailer.sent).toHaveLength(0);
+  });
+
+  test('refuses an address another account holds', async () => {
+    const { userId } = await freshUser();
+    await register({ ...GOOD, email: 'baska@voldi.net' }, mailer);
+    mailer.clear();
+
+    const result = await requestEmailChange(
+      userId,
+      { newEmail: 'baska@voldi.net', password: GOOD.password },
+      mailer,
+    );
+
+    expect(result).toEqual({ ok: false, reason: 'email_taken' });
+    expect(mailer.sent).toHaveLength(0);
+  });
+});
+
+describe('confirmEmailChange', () => {
+  test('switches the address, refreshes verification, notifies the old one', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+    await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@voldi.net', password: GOOD.password },
+      mailer,
+    );
+    const token = linkFromLastMail();
+    // "Tazelenir" iddiasını gerçekten sınamak için önceden eski bir doğrulama
+    // damgası koyuyoruz — sonrasında ondan daha yeni olmalı.
+    await prisma.user.update({
+      where: { id: userId },
+      data: { emailVerifiedAt: new Date('2020-01-01') },
+    });
+    mailer.clear();
+
+    const result = await confirmEmailChange(token, mailer);
+
+    expect(result).toEqual({ ok: true });
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    expect(user.email).toBe('yeni@voldi.net');
+    expect(user.emailVerifiedAt).not.toBeNull();
+    expect(user.emailVerifiedAt!.getTime()).toBeGreaterThan(new Date('2020-01-01').getTime());
+    // Bilgilendirme ESKİ adrese gitti ve yeni adresi söylüyor.
+    expect(mailer.sent).toHaveLength(1);
+    expect(mailer.sent[0]?.to).toBe(GOOD.email);
+    expect(mailer.sent[0]?.text).toContain('yeni@voldi.net');
+  });
+
+  test('a used or foreign token is invalid', async () => {
+    const { userId } = await freshUser();
+    const verifyToken = linkFromLastMail(); // kayıttan kalan 'verify' tipi token — yabancı akış
+    mailer.clear();
+    await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@voldi.net', password: GOOD.password },
+      mailer,
+    );
+    const changeToken = linkFromLastMail();
+
+    // Yabancı: doğru şekilde ama yanlış akıştan gelen token.
+    expect(await confirmEmailChange(verifyToken, mailer)).toEqual({
+      ok: false,
+      reason: 'invalid_token',
+    });
+
+    // Tüketilmiş: bir kez kullan, ikincisi düşer.
+    expect(await confirmEmailChange(changeToken, mailer)).toEqual({ ok: true });
+    expect(await confirmEmailChange(changeToken, mailer)).toEqual({
+      ok: false,
+      reason: 'invalid_token',
+    });
+
+    expect(await confirmEmailChange('salakca-bir-deger', mailer)).toEqual({
+      ok: false,
+      reason: 'invalid_token',
+    });
+  });
+
+  test('loses the race if the address was taken meanwhile', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+    await requestEmailChange(
+      userId,
+      { newEmail: 'race@voldi.net', password: GOOD.password },
+      mailer,
+    );
+    const token = linkFromLastMail();
+
+    // İstek ile onay arasında üçüncü biri tam o adresle kayıt oldu.
+    await register({ ...GOOD, email: 'race@voldi.net' }, mailer);
+
+    const result = await confirmEmailChange(token, mailer);
+
+    expect(result).toEqual({ ok: false, reason: 'email_taken' });
+    const userA = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    expect(userA.email).toBe(GOOD.email);
+  });
+
+  test('a broken notice mailer does not undo the switch', async () => {
+    const { userId } = await freshUser();
+    mailer.clear();
+    await requestEmailChange(
+      userId,
+      { newEmail: 'yeni@voldi.net', password: GOOD.password },
+      mailer,
+    );
+    const token = linkFromLastMail();
+
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const result = await confirmEmailChange(token, brokenMailer);
+
+      expect(result).toEqual({ ok: true });
+      const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+      expect(user.email).toBe('yeni@voldi.net');
+      expect(logged).toHaveBeenCalled();
+    } finally {
+      logged.mockRestore();
+    }
   });
 });
