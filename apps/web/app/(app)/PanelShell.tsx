@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { ToastProvider } from './ToastProvider';
 import { LanguageMenu } from './navbar/LanguageMenu';
 import { NotificationsBell } from './navbar/NotificationsBell';
 import { SearchPalette } from './navbar/SearchPalette';
@@ -69,11 +70,16 @@ export function PanelShell({
   email,
   role,
   seatsFull,
+  seatsBadge,
+  avatarUrl,
   children,
 }: {
   email: string;
   role: string | null;
   seatsFull: boolean;
+  /** Sidebar'daki Senders rozeti, ör. "2/3" — temanın menü rozeti dili. */
+  seatsBadge?: string;
+  avatarUrl?: string | null;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -166,6 +172,7 @@ export function PanelShell({
       data-skin="default"
       data-bs-theme={dark ? 'dark' : 'light'}
     >
+      <ToastProvider>
       <div className="layout-wrapper layout-content-navbar">
         <div className="layout-container">
           {/* Semi-dark menü: attribute yalnız aside'da — içerik açık kalır */}
@@ -269,6 +276,11 @@ export function PanelShell({
                       <Link href={entry.href} className="menu-link">
                         <i className={`menu-icon icon-base ti ${entry.icon}`} aria-hidden="true" />
                         <div>{entry.label}</div>
+                        {entry.href === '/app/senders' && seatsBadge && (
+                          <div className="badge bg-label-primary rounded-pill ms-auto">
+                            {seatsBadge}
+                          </div>
+                        )}
                       </Link>
                     )}
                   </li>
@@ -308,7 +320,7 @@ export function PanelShell({
                   <ThemeMenu choice={theme} dark={dark} onChange={setTheme} />
                   <ShortcutsMenu />
                   <NotificationsBell />
-                  <UserMenu email={email} role={role} seatsFull={seatsFull} />
+                  <UserMenu email={email} role={role} seatsFull={seatsFull} avatarUrl={avatarUrl} />
                 </ul>
               </div>
             </nav>
@@ -351,6 +363,7 @@ export function PanelShell({
           }}
         />
       </div>
+      </ToastProvider>
     </div>
   );
 }

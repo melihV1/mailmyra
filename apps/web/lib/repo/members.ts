@@ -217,6 +217,7 @@ export interface MemberRow {
   email: string;
   role: Role;
   joinedAt: Date;
+  avatarUrl: string | null;
 }
 
 /** Görüntüleme her role açık (rol matrisi: signature:view herkeste). */
@@ -229,13 +230,14 @@ export async function listMembers(userId: string): Promise<MemberRow[]> {
   const rows = await prisma.membership.findMany({
     where: { orgId: m.orgId },
     orderBy: { createdAt: 'asc' },
-    include: { user: { select: { email: true } } },
+    include: { user: { select: { email: true, avatarUrl: true } } },
   });
   return rows.map((r) => ({
     userId: r.userId,
     email: r.user.email,
     role: r.role,
     joinedAt: r.createdAt,
+    avatarUrl: r.user.avatarUrl,
   }));
 }
 

@@ -272,6 +272,72 @@ export async function deactivateSenderAs(
   return { ok: true };
 }
 
+export type DeleteSenderResult =
+  | { ok: true }
+  | { ok: false; reason: 'forbidden' | 'not_found' | 'is_live' };
+
+/**
+ * Göndericiyi SİLER (Hüseyin, 2026-08-15 — pasifleştirme tek başına
+ * "listem şişiyor" derdini çözmüyordu). İki kural:
+ * · CANLI gönderici silinemez — önce pasifleştirilir; koltuk muhasebesi
+ *   silme üzerinden pas geçilmez (`is_live`).
+ * · Atanmış imzalar SİLİNMEZ — şemadaki `SetNull` bağı atamayı düşürür,
+ *   müşterinin emeği göndericiyle birlikte gitmez (schema yorumu bunu
+ *   baştan öngörmüştü). CDN görselleri de yerinde kalır (mimari kural).
+ */
+export async function deleteSenderAs(
+  userId: string,
+  senderId: string,
+): Promise<DeleteSenderResult> {
+  const sender = await prisma.senderIdentity.findUnique({ where: { id: senderId } });
+  if (!sender) return { ok: false, reason: 'not_found' };
+  const role = await roleFor(userId, sender.orgId);
+  if (!role) return { ok: false, reason: 'not_found' };
+  if (!can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
+  if (seatStatus(sender) === 'active') return { ok: false, reason: 'is_live' };
+  await prisma.senderIdentity.delete({ where: { id: senderId } });
+  return { ok: true };
+}
+
+export interface SenderDetail {
+  id: string;
+  displayName: string;
+  email: string;
+  jobTitle: string | null;
+  status: SeatStatus;
+  createdAt: Date;
+  publishedAt: Date | null;
+  deactivatedAt: Date | null;
+  signatures: Array<{ id: string; name: string; templateId: string; updatedAt: Date }>;
+}
+
+/** Gönderici detay sayfası — org kapsamı roleFor'la, yabancıya null. */
+export async function getSenderAs(userId: string, senderId: string): Promise<SenderDetail | null> {
+  const sender = await prisma.senderIdentity.findUnique({
+    where: { id: senderId },
+    include: {
+      signatures: {
+        select: { id: true, name: true, templateId: true, updatedAt: true },
+        orderBy: { updatedAt: 'desc' },
+      },
+    },
+  });
+  if (!sender) return null;
+  const role = await roleFor(userId, sender.orgId);
+  if (!role) return null;
+  return {
+    id: sender.id,
+    displayName: sender.displayName,
+    email: sender.email,
+    jobTitle: sender.jobTitle,
+    status: seatStatus(sender),
+    createdAt: sender.createdAt,
+    publishedAt: sender.publishedAt,
+    deactivatedAt: sender.deactivatedAt,
+    signatures: sender.signatures,
+  };
+}
+
 export interface SenderRowData {
   id: string;
   displayName: string;

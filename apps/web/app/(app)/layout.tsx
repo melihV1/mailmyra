@@ -46,6 +46,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         email={session.user.email}
         role={role}
         seatsFull={seats.entitled > 0 && seats.active >= seats.entitled}
+        seatsBadge={`${seats.active}/${seats.entitled}`}
+        avatarUrl={session.user.avatarUrl}
       >
         {children}
       </PanelShell>

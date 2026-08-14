@@ -115,9 +115,16 @@ export default async function MembersPage() {
                     <td>
                       <div className="d-flex align-items-center">
                         <div className="avatar avatar-sm me-3">
-                          <span className={`avatar-initial rounded-circle bg-label-${look.tone}`}>
-                            {m.email.slice(0, 1).toUpperCase()}
-                          </span>
+                          {m.avatarUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={m.avatarUrl} alt="" className="rounded-circle" />
+                          ) : (
+                            <span
+                              className={`avatar-initial rounded-circle bg-label-${look.tone}`}
+                            >
+                              {m.email.slice(0, 1).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div>
                           <span className="d-block fw-medium text-heading">

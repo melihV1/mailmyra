@@ -26,6 +26,9 @@ model User {
   email           String    @unique @db.VarChar(255)
   passwordHash    String    @db.VarChar(255)
   emailVerifiedAt DateTime?
+  /// Kullanıcı avatarı (CDN URL, /api/account/avatar yazar) — imza
+  /// görsellerinden bağımsız, panel arayüzü için (profil/navbar/üyeler).
+  avatarUrl       String?   @db.VarChar(500)
   createdAt       DateTime  @default(now())
   lastLoginAt     DateTime?
 

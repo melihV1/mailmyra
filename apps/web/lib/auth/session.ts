@@ -26,6 +26,7 @@ export interface SessionUser {
   id: string;
   email: string;
   emailVerifiedAt: Date | null;
+  avatarUrl: string | null;
 }
 
 export interface ActiveSession {
@@ -59,7 +60,7 @@ export async function readSession(token: string): Promise<ActiveSession | null> 
   const tokenHash = hashToken(token);
   const row = await prisma.session.findUnique({
     where: { tokenHash },
-    include: { user: { select: { id: true, email: true, emailVerifiedAt: true } } },
+    include: { user: { select: { id: true, email: true, emailVerifiedAt: true, avatarUrl: true } } },
   });
   if (!row) return null;
 

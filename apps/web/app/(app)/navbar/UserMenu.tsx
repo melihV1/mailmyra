@@ -14,10 +14,12 @@ export function UserMenu({
   email,
   role,
   seatsFull,
+  avatarUrl,
 }: {
   email: string;
   role: string | null;
   seatsFull: boolean;
+  avatarUrl?: string | null;
 }) {
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
   const initial = email.slice(0, 1).toUpperCase();
@@ -39,17 +41,29 @@ export function UserMenu({
         onClick={() => setOpen(!open)}
       >
         <div className="avatar avatar-online">
-          <span className="avatar-initial rounded-circle bg-label-primary">{initial}</span>
+          {avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatarUrl} alt="" className="rounded-circle" />
+          ) : (
+            <span className="avatar-initial rounded-circle bg-label-primary">{initial}</span>
+          )}
         </div>
       </button>
 
       <ul className={`dropdown-menu dropdown-menu-end${open ? ' show' : ''}`}>
         <li>
-          <Link href="/app/account" className="dropdown-item mt-0" onClick={() => setOpen(false)}>
+          <Link href="/app/profile" className="dropdown-item mt-0" onClick={() => setOpen(false)}>
             <div className="d-flex align-items-center">
               <div className="flex-shrink-0 me-2">
                 <div className="avatar avatar-online">
-                  <span className="avatar-initial rounded-circle bg-label-primary">{initial}</span>
+                  {avatarUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={avatarUrl} alt="" className="rounded-circle" />
+                  ) : (
+                    <span className="avatar-initial rounded-circle bg-label-primary">
+                      {initial}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex-grow-1">
@@ -63,7 +77,7 @@ export function UserMenu({
           <div className="dropdown-divider my-1 mx-n2" />
         </li>
         <li>
-          <Link href="/app/account" className="dropdown-item" onClick={() => setOpen(false)}>
+          <Link href="/app/profile" className="dropdown-item" onClick={() => setOpen(false)}>
             <i className="icon-base ti tabler-user me-3 icon-md" aria-hidden="true" />
             <span className="align-middle">My Profile</span>
           </Link>

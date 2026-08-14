@@ -136,6 +136,37 @@ export default async function BillingPage() {
           </div>
         </div>
       </div>
+
+      {/* Fatura geçmişi — otomatik abonelik YOK (kilitli karar); kayıtlar
+          şimdilik elle kesiliyor, tablo boş durumla iskelet olarak duruyor. */}
+      <div className="card mt-4">
+        <div className="card-header d-flex justify-content-between align-items-center">
+          <h5 className="card-title mb-0">Invoice history</h5>
+          <span className="badge bg-label-secondary">Manual billing</span>
+        </div>
+        <div className="table-responsive text-nowrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Date</th>
+                <th>Seats</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody className="table-border-bottom-0">
+              <tr>
+                <td colSpan={5} className="text-center py-5 text-body-secondary">
+                  <i className="icon-base ti tabler-file-dollar icon-26px d-block mx-auto mb-2" />
+                  No invoices recorded yet — invoices are issued manually by our team and will
+                  appear here.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </section>
   );
 }
