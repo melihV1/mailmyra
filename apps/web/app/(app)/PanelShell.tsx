@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { ToastProvider } from './ToastProvider';
 import { LanguageMenu } from './navbar/LanguageMenu';
@@ -91,6 +91,14 @@ export function PanelShell({
   const [dark, setDark] = useState(false);
   // Açık menü grupları — içindeki sayfadayken kendiliğinden açık başlar.
   const [openGroups, setOpenGroups] = useState<ReadonlySet<string>>(new Set());
+  /* Alt menü aç/kapa animasyonu — temanın menu.js `_toggleAnimation` akışının
+     React karşılığı: li'ye inline height basılır, `menu-item-animating`
+     (core.css: block-size .3s geçişi YALNIZ bu sınıfla) ve kapanışta
+     `menu-item-closing` eklenir; transitionend (+350ms emniyet) temizler.
+     Ref aynası, geciken timeout'ların bayat state okumaması için. */
+  const [groupAnim, setGroupAnim] = useState<Readonly<Record<string, 'opening' | 'closing'>>>({});
+  const groupAnimRef = useRef<Record<string, 'opening' | 'closing'>>({});
+  const groupRefs = useRef(new Map<string, HTMLLIElement>());
 
   /* Temanın menu.js'inin yaptığı iş: menü durumunu değiştirirken kabuğa
      `layout-transitioning` bas — core.css'teki .3s transform geçişi YALNIZ
@@ -138,13 +146,62 @@ export function PanelShell({
     }
   }, [pathname]);
 
-  const toggleGroup = (id: string) => {
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+  const finishGroupAnim = useCallback((id: string) => {
+    const anim = groupAnimRef.current[id];
+    if (!anim) return;
+    delete groupAnimRef.current[id];
+    const li = groupRefs.current.get(id);
+    if (li) {
+      li.style.height = '';
+      li.style.overflow = '';
+    }
+    if (anim === 'closing') {
+      setOpenGroups((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+    setGroupAnim((prev) => {
+      const next = { ...prev };
+      delete next[id];
       return next;
     });
+  }, []);
+
+  const toggleGroup = (id: string) => {
+    if (groupAnimRef.current[id]) return; // animasyon sürerken tıklamayı yut
+    const li = groupRefs.current.get(id);
+    const link = li?.querySelector<HTMLElement>(':scope > .menu-toggle');
+    const sub = li?.querySelector<HTMLElement>(':scope > .menu-sub');
+    if (!li || !link || !sub) {
+      setOpenGroups((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+      return;
+    }
+    const opening = !openGroups.has(id);
+    const linkH = Math.round(link.getBoundingClientRect().height);
+    li.style.overflow = 'hidden';
+    groupAnimRef.current[id] = opening ? 'opening' : 'closing';
+    setGroupAnim((prev) => ({ ...prev, [id]: opening ? 'opening' : 'closing' }));
+    if (opening) {
+      li.style.height = `${linkH}px`;
+      setOpenGroups((prev) => new Set([...prev, id]));
+      // Hedef yükseklik `.open` render edilip alt menü ölçülebilir olunca (temada 50ms).
+      window.setTimeout(() => {
+        li.style.height = `${linkH + Math.round(sub.getBoundingClientRect().height)}px`;
+      }, 50);
+    } else {
+      li.style.height = `${linkH + Math.round(sub.getBoundingClientRect().height)}px`;
+      window.setTimeout(() => {
+        li.style.height = `${linkH}px`;
+      }, 50);
+    }
+    window.setTimeout(() => finishGroupAnim(id), 350);
   };
 
   const toggleCollapsed = () => {
@@ -236,20 +293,35 @@ export function PanelShell({
                 if (entry.type === 'group') {
                   const childActive = entry.children.some((c) => pathname === c.href);
                   const isOpen = openGroups.has(entry.id);
+                  const anim = groupAnim[entry.id];
                   return (
                     <li
                       key={`g:${entry.id}`}
-                      className={`menu-item${isOpen ? ' open' : ''}${childActive ? ' active' : ''}`}
+                      ref={(el) => {
+                        if (el) groupRefs.current.set(entry.id, el);
+                        else groupRefs.current.delete(entry.id);
+                      }}
+                      onTransitionEnd={(e) => {
+                        if (e.target === e.currentTarget) finishGroupAnim(entry.id);
+                      }}
+                      className={`menu-item${isOpen ? ' open' : ''}${childActive ? ' active' : ''}${
+                        anim ? ' menu-item-animating' : ''
+                      }${anim === 'closing' ? ' menu-item-closing' : ''}`}
                     >
-                      <button
-                        type="button"
-                        className="menu-link menu-toggle w-100 text-start"
+                      {/* Temanın birebir markup'ı `<a>` — button+w-100 genişliği
+                          margin'leri ezip taşırıyordu (236px yerine 260px). */}
+                      <a
+                        href="#"
+                        className="menu-link menu-toggle"
                         aria-expanded={isOpen}
-                        onClick={() => toggleGroup(entry.id)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          toggleGroup(entry.id);
+                        }}
                       >
                         <i className={`menu-icon icon-base ti ${entry.icon}`} aria-hidden="true" />
                         <div>{entry.label}</div>
-                      </button>
+                      </a>
                       <ul className="menu-sub">
                         {entry.children.map((child) => (
                           <li
