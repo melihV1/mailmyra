@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { useBsPresence } from '../../../components/ui/useBsPresence';
 import { NOTIFICATION_LOOKS, timeAgo } from '../notification-looks';
 
 /**
@@ -30,6 +31,9 @@ function dayLabel(iso: string, now = new Date()): string {
 
 export function NotificationCenter({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [items, setItems] = useState<NotificationItem[] | null>(null);
+  // Tema geçişi: `show`suz mount → reflow → `show` (sağdan kayarak girer);
+  // kapanışta `show` düşer, panel kayarak çıkınca DOM'dan kalkar.
+  const { mounted, shown } = useBsPresence(open);
 
   useEffect(() => {
     if (!open) return;
@@ -48,7 +52,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
     return () => document.removeEventListener('keydown', escape);
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   const groups: Array<{ label: string; items: NotificationItem[] }> = [];
   for (const n of items ?? []) {
@@ -61,7 +65,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
   return (
     <>
       <div
-        className="offcanvas offcanvas-end show"
+        className={`offcanvas offcanvas-end${shown ? ' show' : ''}`}
         style={{ visibility: 'visible' }}
         tabIndex={-1}
         role="dialog"
@@ -126,7 +130,7 @@ export function NotificationCenter({ open, onClose }: { open: boolean; onClose: 
           )}
         </div>
       </div>
-      <div className="offcanvas-backdrop fade show" onClick={onClose} />
+      <div className={`offcanvas-backdrop fade${shown ? ' show' : ''}`} onClick={onClose} />
     </>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+
+import { useBsPresence } from './useBsPresence';
 
 /**
  * Panelin tek onay diyaloğu — görünüm temanın Bootstrap modal'ı
@@ -29,15 +31,30 @@ export function ConfirmDialog({
   tone?: 'primary' | 'danger';
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  /* Çıkış animasyonu: iptal yolları önce `show`u düşürür (tema geçişi
+     oynar), onCancel gerçek kaldırmayı 300ms sonra yapar. Onay yolu
+     çağıranda biter (genelde toast+refresh izler) — orada anında. */
+  const [leaving, setLeaving] = useState(false);
+  const { shown } = useBsPresence(!leaving);
+  const cancelTimer = useRef<number | null>(null);
+
+  const requestClose = () => {
+    if (busy || leaving) return;
+    setLeaving(true);
+    cancelTimer.current = window.setTimeout(onCancel, 300);
+  };
 
   useEffect(() => {
     panel.current?.focus();
+    return () => {
+      if (cancelTimer.current !== null) window.clearTimeout(cancelTimer.current);
+    };
   }, []);
 
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === 'Escape' && !busy) {
       e.stopPropagation();
-      onCancel();
+      requestClose();
       return;
     }
     if (e.key !== 'Tab') return;
@@ -59,11 +76,11 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="modal fade show d-block"
+      className={`modal fade d-block${shown ? ' show' : ''}`}
       // Bootstrap JS yok: perde ayrı eleman yerine zemin rengiyle (tema
       // backdrop tonu). Zemine mousedown = Cancel (eski davranış).
       style={{ backgroundColor: 'rgba(46, 38, 61, 0.5)' }}
-      onMouseDown={(e) => e.target === e.currentTarget && !busy && onCancel()}
+      onMouseDown={(e) => e.target === e.currentTarget && requestClose()}
     >
       <div className="modal-dialog modal-dialog-centered" role="document">
         <div
@@ -81,7 +98,7 @@ export function ConfirmDialog({
               type="button"
               className="btn-close"
               aria-label={cancelLabel}
-              onClick={onCancel}
+              onClick={requestClose}
               disabled={busy}
             />
           </div>
@@ -90,7 +107,7 @@ export function ConfirmDialog({
             <button
               type="button"
               className="btn btn-outline-secondary"
-              onClick={onCancel}
+              onClick={requestClose}
               disabled={busy}
             >
               {cancelLabel}
