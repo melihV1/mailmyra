@@ -3,6 +3,7 @@ import { can, canChangeRole, canRemoveMember, type Role } from '@mailmyra/core';
 import { prisma } from '../db';
 import { hashToken, newSessionToken } from '../auth/token';
 import { inviteEmail, type Mailer } from '../mail';
+import { notifyOrgManagers } from './notifications';
 
 /**
  * Üyeler ve davetler.
@@ -159,7 +160,54 @@ export async function acceptInvitation(token: string, userId: string): Promise<A
     ...starterOrgIds.map((id) => prisma.organization.delete({ where: { id } })),
   ]);
 
+  // Bildirim transaction DIŞINDA ve hata yutar — kabul commit'lendi,
+  // zile yazılamaması akışı geri alamaz (publish'teki mail kuralı).
+  const acceptor = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+  await notifyOrgManagers({
+    orgId: invitation.orgId,
+    type: 'invitation_accepted',
+    payload: { email: acceptor?.email ?? '', role: invitation.role },
+    excludeUserId: userId,
+  });
+
   return { ok: true, orgId: invitation.orgId };
+}
+
+// ─── Çalışma alanı ───────────────────────────────────────────────────────
+
+export interface WorkspaceInfo {
+  id: string;
+  name: string;
+}
+
+/** Members ekranının başlık kartı: kullanıcının birincil org'unun kimliği. */
+export async function getWorkspace(userId: string): Promise<WorkspaceInfo | null> {
+  const m = await prisma.membership.findFirst({
+    where: { userId },
+    orderBy: { createdAt: 'asc' },
+    include: { org: { select: { id: true, name: true } } },
+  });
+  return m ? { id: m.org.id, name: m.org.name } : null;
+}
+
+export type RenameResult = { ok: true } | { ok: false; reason: 'forbidden' | 'invalid_name' };
+
+/**
+ * Çalışma alanını yeniden adlandırır (2026-08-14: kayıtta ad sorulmuyor,
+ * herkes "Workspace" ile başlıyor — değiştirme yolu buydu, yoktu). Yetki
+ * `member:manage` (owner+admin): ad, davet mailinde ve koltuk uyarısında
+ * geçen bir yönetim bilgisi; `billing:manage` (yalnız owner) fazla dar olurdu.
+ */
+export async function renameWorkspaceAs(userId: string, name: string): Promise<RenameResult> {
+  const trimmed = name.trim();
+  if (trimmed.length === 0 || trimmed.length > 255) return { ok: false, reason: 'invalid_name' };
+  const orgId = await managerOrgId(userId);
+  if (!orgId) return { ok: false, reason: 'forbidden' };
+  await prisma.organization.update({ where: { id: orgId }, data: { name: trimmed } });
+  return { ok: true };
 }
 
 // ─── Üyeler ──────────────────────────────────────────────────────────────

@@ -33,6 +33,7 @@ model User {
   emailTokens      EmailToken[]
   memberships      Membership[]
   legalAcceptances LegalAcceptance[]
+  notifications    Notification[]
 }
 
 model Session {
@@ -119,6 +120,7 @@ model Organization {
   assets           Asset[]
   legalAcceptances LegalAcceptance[]
   brandSetting     BrandSetting?
+  notifications    Notification[]
 
   @@index([parentOrgId])
 }
@@ -293,4 +295,31 @@ model AuthAttempt {
   @@id([key, windowStart])
   /// Eski pencereleri temizleyen iş bu indeksten okur.
   @@index([windowStart])
+}
+
+/// Panel bildirimi — navbar zilinin kaynağı (karar 2026-08-13: türetilmiş
+/// besleme değil kalıcı tablo). Alıcı kullanıcıdır; org bağlamı satırı
+/// yorumlamak için. Üreticiler hata YUTAR — bildirim yazılamadı diye
+/// publish/davet akışı devrilmez (koltuk uyarı maili emsali).
+model Notification {
+  id      String  @id @default(cuid())
+  userId  String
+  orgId   String?
+  /// 'sender_published' | 'seat_warning' | 'invitation_accepted' — kod
+  /// tarafında NotificationType birliği; kolonda enum değil varchar,
+  /// yeni tip migration istemesin diye.
+  type    String  @db.VarChar(40)
+  /// Tipe özgü küçük yük (adlar, sayılar). MariaDB'de LONGTEXT'tir,
+  /// içine indeks atılmaz — sorgular userId/readAt üzerinden.
+  payload Json
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  org  Organization? @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  /// Zil rozeti: okunmamış sayısı bu indeksten.
+  @@index([userId, readAt])
+  /// Liste: kullanıcının son bildirimleri.
+  @@index([userId, createdAt])
 }
