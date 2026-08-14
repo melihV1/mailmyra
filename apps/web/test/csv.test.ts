@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { guessMapping, parseCsv, validateRows } from '../lib/csv';
+import { guessMapping, parseCsv, sendersToCsv, validateRows } from '../lib/csv';
 
 describe('parsing', () => {
   it('splits headers and rows', () => {
@@ -97,5 +97,51 @@ describe('validating rows', () => {
   it('normalises emails to lowercase like the rest of the system', () => {
     const result = validateRows([['Ali', 'ALI@Voldi.NET']], mapping);
     expect(result.valid[0]?.email).toBe('ali@voldi.net');
+  });
+});
+
+describe('exporting senders to csv', () => {
+  it('writes BOM, semicolon separator, CRLF and the header row', () => {
+    const csv = sendersToCsv([
+      {
+        displayName: 'Ayşe Yılmaz',
+        email: 'ayse@voldi.net',
+        jobTitle: 'Tasarımcı',
+        status: 'active',
+        signatureNames: ['Kurumsal'],
+      },
+    ]);
+    expect(csv.startsWith('﻿')).toBe(true);
+    const lines = csv.slice(1).split('\r\n');
+    expect(lines[0]).toBe('Name;Email;Job title;Status;Assigned signatures');
+    expect(lines[1]).toBe('Ayşe Yılmaz;ayse@voldi.net;Tasarımcı;Live;Kurumsal');
+    expect(lines[2]).toBe(''); // dosya CRLF ile biter
+  });
+
+  it('quotes cells containing the separator, quotes or newlines', () => {
+    const csv = sendersToCsv([
+      {
+        displayName: 'Ali; "Veli"',
+        email: 'ali@voldi.net',
+        jobTitle: null,
+        status: 'draft',
+        signatureNames: [],
+      },
+    ]);
+    const row = csv.slice(1).split('\r\n')[1]!;
+    expect(row).toBe('"Ali; ""Veli""";ali@voldi.net;;Draft;');
+  });
+
+  it('maps statuses to the panel labels and joins signature names', () => {
+    const csv = sendersToCsv([
+      {
+        displayName: 'Can',
+        email: 'can@voldi.net',
+        jobTitle: 'PM',
+        status: 'inactive',
+        signatureNames: ['A', 'B'],
+      },
+    ]);
+    expect(csv).toContain('Can;can@voldi.net;PM;Inactive;A, B');
   });
 });

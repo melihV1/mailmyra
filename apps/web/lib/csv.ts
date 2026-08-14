@@ -144,3 +144,44 @@ export function validateRows(
 
   return { valid, errors };
 }
+
+// ─── Dışa aktarma ────────────────────────────────────────────────────────
+
+export interface SenderCsvRow {
+  displayName: string;
+  email: string;
+  jobTitle: string | null;
+  status: string;
+  signatureNames: string[];
+}
+
+const STATUS_LABEL: Record<string, string> = {
+  draft: 'Draft',
+  active: 'Live',
+  inactive: 'Inactive',
+};
+
+/** `;` veya tırnak/yeni satır içeren hücre tırnaklanır (RFC 4180 kaçırması). */
+function csvCell(value: string): string {
+  return /[;"\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+}
+
+/**
+ * Gönderici listesini CSV'ye döker (CLAUDE.md Hafta 4 sözünün "dışa" yarısı,
+ * 2026-08-14). Biçim içe aktarıcının aynası: `;` ayracı (TR Excel varsayılanı,
+ * parseCsv de tanıyor) + UTF-8 BOM (Excel Türkçe karakteri ancak böyle doğru
+ * açıyor) + CRLF satır sonu.
+ */
+export function sendersToCsv(rows: SenderCsvRow[]): string {
+  const lines = [
+    ['Name', 'Email', 'Job title', 'Status', 'Assigned signatures'],
+    ...rows.map((r) => [
+      r.displayName,
+      r.email,
+      r.jobTitle ?? '',
+      STATUS_LABEL[r.status] ?? r.status,
+      r.signatureNames.join(', '),
+    ]),
+  ];
+  return '\uFEFF' + lines.map((cells) => cells.map(csvCell).join(';')).join('\r\n') + '\r\n';
+}
