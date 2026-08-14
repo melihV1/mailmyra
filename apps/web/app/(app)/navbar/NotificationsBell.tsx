@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { NOTIFICATION_LOOKS, timeAgo } from '../notification-looks';
+import { useToast } from '../ToastProvider';
+import { NotificationCenter } from './NotificationCenter';
 import { useDropdown } from './useDropdown';
 
 /**
@@ -22,8 +24,10 @@ interface NotificationItem {
 
 export function NotificationsBell() {
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
+  const toast = useToast();
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState<NotificationItem[] | null>(null);
+  const [centerOpen, setCenterOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -48,6 +52,7 @@ export function NotificationsBell() {
   const markAll = async () => {
     try {
       await fetch('/api/notifications/read-all', { method: 'POST' });
+      toast('success', 'All notifications marked as read.');
       setUnread(0);
       setItems((prev) =>
         prev ? prev.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })) : prev,
@@ -102,7 +107,15 @@ export function NotificationsBell() {
 
         <ul className="list-unstyled mb-0" style={{ maxHeight: 380, overflowY: 'auto' }}>
           {items === null ? (
-            <li className="py-4 px-4 text-center text-body-secondary">Loading…</li>
+            /* Tema iskeleti: metin yerine gri placeholder çubukları */
+            [1, 2].map((k) => (
+              <li key={k} className="px-4 py-3 border-bottom">
+                <div className="placeholder-glow">
+                  <span className="placeholder col-4 d-block mb-2" />
+                  <span className="placeholder col-9 d-block" />
+                </div>
+              </li>
+            ))
           ) : items.length === 0 ? (
             <li className="py-4 px-4 text-center text-body-secondary">
               You&apos;re all caught up.
@@ -135,8 +148,22 @@ export function NotificationsBell() {
               );
             })
           )}
+          <li className="border-top p-3">
+            <button
+              type="button"
+              className="btn btn-primary btn-sm w-100"
+              onClick={() => {
+                setOpen(false);
+                setCenterOpen(true);
+              }}
+            >
+              View all notifications
+            </button>
+          </li>
         </ul>
       </div>
+
+      <NotificationCenter open={centerOpen} onClose={() => setCenterOpen(false)} />
     </li>
   );
 }

@@ -87,8 +87,8 @@ export default async function SignaturesPage() {
                   return (
                     <tr key={s.id}>
                       <td>
-                        <span className="d-block fw-medium text-heading">{s.name}</span>
-                        <small className="text-body-secondary">{s.templateId}</small>
+                        <span className="d-block fw-medium text-heading mb-1">{s.name}</span>
+                        <span className="badge bg-label-info">{s.templateId}</span>
                       </td>
                       <td>
                         <AssignSelect signatureId={s.id} current={s.senderId} senders={options} />

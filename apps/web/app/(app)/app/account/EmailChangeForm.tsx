@@ -2,11 +2,14 @@
 
 import { useState, type FormEvent } from 'react';
 
+import { useToast } from '../../ToastProvider';
+
 /**
  * E-posta değiştirme — Account sekmesinde yaşar. Mantık eski
  * AccountForms'tan AYNEN (yeni adrese doğrulama maili, onaylanınca geçiş).
  */
 export function EmailChangeForm() {
+  const toast = useToast();
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,7 +33,7 @@ export function EmailChangeForm() {
 
       if (res.ok) {
         form.reset();
-        setMsg({ kind: 'ok', text: `Check ${newEmail} — the switch happens when you confirm.` });
+        toast('info', `Check ${newEmail} — the switch happens when you confirm.`, 'Confirmation sent');
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -93,6 +96,7 @@ export function EmailChangeForm() {
         </div>
         <div className="col-12">
           <button className="btn btn-primary" type="submit" disabled={busy}>
+            {busy ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> : <i className="icon-base ti tabler-mail-forward me-1" aria-hidden="true" />}
             Change e-mail
           </button>
         </div>

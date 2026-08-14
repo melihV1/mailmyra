@@ -6,6 +6,7 @@ import { getBrand } from '../../../lib/repo/brand';
 import { listNotifications } from '../../../lib/repo/notifications';
 import { listSenders, primaryOrgId, seatSummary } from '../../../lib/repo/senders';
 import { listSignatures } from '../../../lib/repo/signatures';
+import { TourLauncher } from '../TourLauncher';
 import { BarsChart } from '../charts/BarsChart';
 import { DonutChart } from '../charts/DonutChart';
 import { NOTIFICATION_LOOKS, timeAgo } from '../notification-looks';
@@ -172,7 +173,7 @@ export default async function DashboardPage() {
       {/* ── Stat kartları ── */}
       <div className="row g-4 mb-4">
         <div className="col-sm-6 col-xl-3">
-          <div className="card h-100">
+          <div className="card h-100" id="tour-seats">
             <div className="card-body">
               <div className="d-flex align-items-start justify-content-between mb-2">
                 <div className="content-left">
@@ -305,7 +306,10 @@ export default async function DashboardPage() {
                     : `${doneCount} of ${steps.length} steps done`}
                 </p>
               </div>
-              <span className="badge bg-label-primary rounded-pill">{stepsPct}%</span>
+              <div className="d-flex align-items-center gap-2">
+                <TourLauncher />
+                <span className="badge bg-label-primary rounded-pill">{stepsPct}%</span>
+              </div>
             </div>
             <div className="card-body">
               <div className="progress mb-4" style={{ height: 8 }} aria-hidden="true">
@@ -354,7 +358,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="col-xxl-4">
-          <div className="card h-100">
+          <div className="card h-100" id="tour-quick">
             <div className="card-header">
               <div className="card-title m-0">
                 <h5 className="mb-1">Quick actions</h5>

@@ -16,6 +16,7 @@ import { mergeWithEmpty } from '../../../builder/reducer';
 import { Preview } from '../../../builder/Preview';
 import { contrastWarnings } from '../../../builder/steps/StyleStep';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { useToast } from '../../ToastProvider';
 
 /**
  * Marka ekranı (Task 7) — görünüm tema diline taşındı (2026-08-14 turu),
@@ -168,6 +169,7 @@ export function BrandClient({
   liveSignatures: number;
   iconBaseUrl: string;
 }) {
+  const toast = useToast();
   const [doc, setDoc] = useState<BrandDocument>(initialBrand ?? {});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -315,6 +317,7 @@ export function BrandClient({
       }
       setDialogOpen(false);
       setSavedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+      toast('success', 'Brand settings saved — they apply from the next export.');
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {

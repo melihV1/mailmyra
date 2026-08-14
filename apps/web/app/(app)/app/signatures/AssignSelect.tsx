@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { useToast } from '../../ToastProvider';
+
 /**
  * İmzayı bir göndericiye bağlar. Publish'in anlamını tamamlayan bağ bu:
  * "bu KİŞİNİN şu imzası kullanımda." Boş seçenek bağı çözer.
@@ -17,6 +19,7 @@ export function AssignSelect({
   senders: Array<{ id: string; displayName: string }>;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -29,8 +32,10 @@ export function AssignSelect({
       body: JSON.stringify({ senderIdentityId: value === '' ? null : value }),
     });
     setBusy(false);
-    if (res.ok) router.refresh();
-    else setFailed(true);
+    if (res.ok) {
+      toast('success', value === '' ? 'Assignment removed.' : 'Signature assigned.');
+      router.refresh();
+    } else setFailed(true);
   };
 
   return (

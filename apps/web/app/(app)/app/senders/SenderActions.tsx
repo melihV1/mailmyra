@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { useToast } from '../../ToastProvider';
 
 /**
  * Yayına alma ONAY ister ve kaç koltuk gideceğini rakamla söyler
@@ -27,18 +28,20 @@ export function SenderActions({
   entitledSeats: number;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState<'publish' | 'deactivate' | null>(null);
+  const [confirming, setConfirming] = useState<'publish' | 'deactivate' | 'delete' | null>(null);
 
   const capFull = activeSeats >= entitledSeats;
 
-  const call = async (path: string) => {
+  const call = async (path: string, doneMessage: string) => {
     setBusy(true);
     setError(null);
     const res = await fetch(path, { method: 'POST' });
     setBusy(false);
     if (res.ok) {
+      toast('success', doneMessage);
       router.refresh();
       return;
     }
@@ -58,12 +61,17 @@ export function SenderActions({
 
   const confirmPublish = () => {
     setConfirming(null);
-    void call(`/api/senders/${id}/publish`);
+    void call(`/api/senders/${id}/publish`, `Published ${name} — a seat is now in use.`);
   };
 
   const confirmDeactivate = () => {
     setConfirming(null);
-    void call(`/api/senders/${id}/deactivate`);
+    void call(`/api/senders/${id}/deactivate`, `Deactivated ${name} — the seat is free again.`);
+  };
+
+  const confirmDelete = () => {
+    setConfirming(null);
+    void call(`/api/senders/${id}/delete`, `Deleted ${name}.`);
   };
 
   const afterPublish = activeSeats + 1;
@@ -72,25 +80,43 @@ export function SenderActions({
     <>
       <span className="d-inline-flex align-items-center gap-2">
         {status !== 'active' ? (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-primary"
-            onClick={() => setConfirming('publish')}
-            disabled={busy || capFull}
-            title={capFull ? `All ${entitledSeats} seats are in use.` : undefined}
-          >
-            Publish
-          </button>
+          <span data-mm-tip={capFull ? `All ${entitledSeats} seats are in use.` : undefined}>
+            <button
+              type="button"
+              className="btn btn-sm btn-success"
+              onClick={() => setConfirming('publish')}
+              disabled={busy || capFull}
+            >
+              <i className="icon-base ti tabler-send me-1" aria-hidden="true" />
+              Publish
+            </button>
+          </span>
         ) : (
           <button
             type="button"
-            className="btn btn-sm btn-outline-secondary"
+            className="btn btn-sm btn-label-warning"
             onClick={() => setConfirming('deactivate')}
             disabled={busy}
           >
+            <i className="icon-base ti tabler-player-pause me-1" aria-hidden="true" />
             Deactivate
           </button>
         )}
+        <span
+          data-mm-tip={
+            status === 'active' ? 'Live senders hold a seat — deactivate first.' : undefined
+          }
+        >
+          <button
+            type="button"
+            className="btn btn-sm btn-icon btn-label-danger"
+            aria-label={'Delete ' + name}
+            onClick={() => setConfirming('delete')}
+            disabled={busy || status === 'active'}
+          >
+            <i className="icon-base ti tabler-trash" aria-hidden="true" />
+          </button>
+        </span>
         {error && (
           <span className="text-danger small text-wrap" role="alert">
             {error}
@@ -121,6 +147,20 @@ export function SenderActions({
           <p>
             Their seat is freed for someone else this period. Signatures already installed in
             mail clients keep working.
+          </p>
+        </ConfirmDialog>
+      )}
+      {confirming === 'delete' && (
+        <ConfirmDialog
+          title={`Delete ${name}?`}
+          onCancel={closeConfirm}
+          onConfirm={confirmDelete}
+          confirmLabel="Delete"
+          tone="danger"
+        >
+          <p className="mb-0">
+            Their signatures are <strong>kept</strong> (just unassigned) and uploaded images
+            stay on the CDN. The sender identity itself cannot be recovered.
           </p>
         </ConfirmDialog>
       )}

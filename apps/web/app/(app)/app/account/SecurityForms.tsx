@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { useToast } from '../../ToastProvider';
+
 /**
  * Security sekmesi formları: parola değiştirme + diğer oturumları kapatma.
  * Mantık eski AccountForms'tan AYNEN taşındı (2026-08-14 sekme bölünmesi);
@@ -10,6 +12,7 @@ import { useState, type FormEvent } from 'react';
  */
 export function SecurityForms({ otherSessionCount }: { otherSessionCount: number }) {
   const router = useRouter();
+  const toast = useToast();
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -32,7 +35,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
     setBusy(false);
     if (res.ok) {
       form.reset();
-      setMsg({ kind: 'ok', text: 'Password changed. Every other session was signed out.' });
+      toast('success', 'Password changed. Every other session was signed out.');
       router.refresh();
       return;
     }
@@ -51,7 +54,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
     const res = await fetch('/api/account/signout-others', { method: 'POST' });
     setBusy(false);
     if (res.ok) {
-      setMsg({ kind: 'ok', text: 'Other sessions signed out.' });
+      toast('success', 'Other sessions signed out.');
       router.refresh();
     }
   };
@@ -98,6 +101,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
         </div>
         <div className="col-12 d-flex flex-wrap gap-2">
           <button className="btn btn-primary" type="submit" disabled={busy}>
+            {busy ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> : <i className="icon-base ti tabler-key me-1" aria-hidden="true" />}
             Change password
           </button>
           {otherSessionCount > 0 && (

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { useToast } from '../../ToastProvider';
 
 /**
  * Rol değiştirme + çıkarma. Son owner'da ikisi de pasif ve sebebi yazılı —
@@ -22,6 +23,7 @@ export function MemberActions({
   lastOwner: boolean;
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -44,8 +46,10 @@ export function MemberActions({
       body: JSON.stringify({ role: next }),
     });
     setBusy(false);
-    if (res.ok) router.refresh();
-    else fail((await res.json().catch(() => ({}))) as { error?: string });
+    if (res.ok) {
+      toast('success', `Role changed to ${next}.`);
+      router.refresh();
+    } else fail((await res.json().catch(() => ({}))) as { error?: string });
   };
 
   const remove = async () => {
@@ -56,7 +60,10 @@ export function MemberActions({
     setConfirming(false);
     if (res.ok) {
       if (isSelf) window.location.assign('/login');
-      else router.refresh();
+      else {
+        toast('success', 'Member removed.');
+        router.refresh();
+      }
     } else fail((await res.json().catch(() => ({}))) as { error?: string });
   };
 
@@ -76,15 +83,17 @@ export function MemberActions({
           <option value="editor">editor</option>
           <option value="viewer">viewer</option>
         </select>
-        <button
-          type="button"
-          className="btn btn-sm btn-outline-danger"
-          onClick={() => setConfirming(true)}
-          disabled={busy || lastOwner}
-          title={lastOwner ? 'The last owner cannot be removed.' : undefined}
-        >
-          {isSelf ? 'Leave' : 'Remove'}
-        </button>
+        <span data-mm-tip={lastOwner ? 'The last owner cannot be removed.' : undefined}>
+          <button
+            type="button"
+            className="btn btn-sm btn-label-danger"
+            onClick={() => setConfirming(true)}
+            disabled={busy || lastOwner}
+          >
+            <i className="icon-base ti tabler-user-minus me-1" aria-hidden="true" />
+            {isSelf ? 'Leave' : 'Remove'}
+          </button>
+        </span>
         {error && (
           <small className="text-danger text-wrap" role="alert">
             {error}
@@ -114,22 +123,27 @@ export function MemberActions({
 
 export function InvitationActions({ id }: { id: string }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
 
   const revoke = async () => {
     setBusy(true);
     const res = await fetch(`/api/invitations/${id}/revoke`, { method: 'POST' });
     setBusy(false);
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast('success', 'Invitation revoked.');
+      router.refresh();
+    }
   };
 
   return (
     <button
       type="button"
-      className="btn btn-sm btn-outline-danger"
+      className="btn btn-sm btn-label-danger"
       onClick={() => void revoke()}
       disabled={busy}
     >
+      {busy ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> : <i className="icon-base ti tabler-x me-1" aria-hidden="true" />}
       Revoke
     </button>
   );

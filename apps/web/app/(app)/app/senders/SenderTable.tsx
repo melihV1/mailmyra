@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 
 import type { SenderRowData } from '../../../../lib/repo/senders';
 import { exportPlan } from '../../../../lib/export-plan';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import { SenderActions } from './SenderActions';
+import { useToast } from '../../ToastProvider';
 
 /* Vuexy rozet dili: bg-label-* (dolu renk değil, pastel etiket). */
 const BADGE: Record<string, { label: string; cls: string }> = {
@@ -43,6 +45,7 @@ export function SenderTable({
   activeSeats: number;
   entitledSeats: number;
 }) {
+  const toast = useToast();
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -100,6 +103,10 @@ export function SenderTable({
       a.remove();
       URL.revokeObjectURL(url);
       setDialogOpen(false);
+      toast(
+        'success',
+        `Zip downloaded — ${plan.fileCount} signature file${plan.fileCount === 1 ? '' : 's'}.`,
+      );
     } catch {
       // reviewer bulgusu: fetch reddi veya res.blob() hatası önceden
       // yakalanmadan kaçıyordu — kullanıcı diyalog sessizce açık kalırken
@@ -127,7 +134,7 @@ export function SenderTable({
         <div className="d-flex flex-wrap gap-2">
           {/* Liste CSV'si her role açık — ekranda zaten görünen verinin
               dosyası; imza İÇERİĞİ veren zip'in rol kapısına girmez. */}
-          <a href="/api/senders/export-csv" className="btn btn-outline-secondary">
+          <a href="/api/senders/export-csv" className="btn btn-label-info">
             <i className="icon-base ti tabler-file-spreadsheet me-1" aria-hidden="true" />
             Export CSV
           </a>
@@ -179,7 +186,9 @@ export function SenderTable({
                     </td>
                   )}
                   <td>
-                    <span className="d-block fw-medium text-heading">{s.displayName}</span>
+                    <Link href={'/app/senders/' + s.id} className="d-block fw-medium text-heading">
+                      {s.displayName}
+                    </Link>
                     <small className="text-body-secondary">{s.email}</small>
                   </td>
                   <td>{s.jobTitle ?? '—'}</td>

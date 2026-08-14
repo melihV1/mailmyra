@@ -3,9 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { useToast } from '../../ToastProvider';
+
 /** Davet 7 gün geçerli; owner rolü davetle DAĞITILMAZ. */
 export function InviteForm() {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -25,7 +28,7 @@ export function InviteForm() {
     setBusy(false);
     if (res.ok) {
       form.reset();
-      setMsg({ kind: 'ok', text: 'Invitation sent — the link is good for 7 days.' });
+      toast('success', 'Invitation sent — the link is good for 7 days.');
       router.refresh();
       return;
     }
@@ -77,8 +80,14 @@ export function InviteForm() {
         </div>
         <div className="col-sm-3 col-lg-2">
           <button type="submit" className="btn btn-primary" disabled={busy}>
-            <i className="icon-base ti tabler-send me-1" aria-hidden="true" />
-            {busy ? 'Sending…' : 'Invite'}
+            {busy ? (
+              <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />Sending…</>
+            ) : (
+              <>
+                <i className="icon-base ti tabler-send me-1" aria-hidden="true" />
+                Invite
+              </>
+            )}
           </button>
         </div>
       </form>

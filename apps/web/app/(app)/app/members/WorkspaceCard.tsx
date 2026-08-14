@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { useToast } from '../../ToastProvider';
+
 /**
  * Çalışma alanı adı (2026-08-14): kayıtta sorulmuyor, herkes "Workspace"
  * ile başlıyor — burası değiştirme yeri. Ad davet mailinde ve koltuk uyarı
@@ -11,6 +13,7 @@ import { useState, type FormEvent } from 'react';
  */
 export function WorkspaceCard({ name, canManage }: { name: string; canManage: boolean }) {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -28,7 +31,7 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
 
     setBusy(false);
     if (res.ok) {
-      setMsg({ kind: 'ok', text: 'Workspace renamed.' });
+      toast('success', 'Workspace renamed.');
       router.refresh();
       return;
     }
@@ -76,7 +79,14 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
             </div>
             <div className="col-sm-4 col-lg-2">
               <button type="submit" className="btn btn-primary" disabled={busy}>
-                {busy ? 'Saving…' : 'Rename'}
+                {busy ? (
+                  <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />Saving…</>
+                ) : (
+                  <>
+                    <i className="icon-base ti tabler-pencil me-1" aria-hidden="true" />
+                    Rename
+                  </>
+                )}
               </button>
             </div>
           </form>

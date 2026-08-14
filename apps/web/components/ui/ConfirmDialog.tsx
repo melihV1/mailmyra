@@ -102,6 +102,13 @@ export function ConfirmDialog({
                 onClick={onConfirm}
                 disabled={busy}
               >
+                {busy && (
+                  <span
+                    className="spinner-border spinner-border-sm me-2"
+                    role="status"
+                    aria-hidden="true"
+                  />
+                )}
                 {confirmLabel}
               </button>
             )}

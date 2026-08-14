@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { useToast } from '../../ToastProvider';
 import { useDropdown } from '../../navbar/useDropdown';
 
 /**
@@ -14,6 +15,7 @@ import { useDropdown } from '../../navbar/useDropdown';
  */
 export function RowActions({ id, name }: { id: string; name: string }) {
   const router = useRouter();
+  const toast = useToast();
   const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -23,7 +25,10 @@ export function RowActions({ id, name }: { id: string; name: string }) {
     setBusy(true);
     const res = await fetch(`/api/signatures/${id}/duplicate`, { method: 'POST' });
     setBusy(false);
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast('success', `Duplicated “${name}”.`);
+      router.refresh();
+    }
   };
 
   const remove = async () => {
@@ -31,7 +36,10 @@ export function RowActions({ id, name }: { id: string; name: string }) {
     const res = await fetch(`/api/signatures/${id}/delete`, { method: 'POST' });
     setBusy(false);
     setConfirming(false);
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast('success', `Deleted “${name}”. Uploaded images stay on the CDN.`);
+      router.refresh();
+    }
   };
 
   return (

@@ -30,6 +30,7 @@ export function SearchPalette() {
   const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
   const [q, setQ] = useState('');
   const [hits, setHits] = useState<Hit[]>([]);
+  const [searching, setSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // ⌘K / Ctrl+K her yerden açar — temanın kısayolu.
@@ -58,6 +59,7 @@ export function SearchPalette() {
       setHits([]);
       return;
     }
+    setSearching(true);
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`);
@@ -66,6 +68,8 @@ export function SearchPalette() {
         setHits(body.hits);
       } catch {
         /* arama süstür, sayfa değil — sessiz geç */
+      } finally {
+        setSearching(false);
       }
     }, 250);
     return () => clearTimeout(t);
@@ -143,7 +147,15 @@ export function SearchPalette() {
                     ))}
                 </div>
               ))}
-              {q.trim().length >= 2 && hits.length === 0 && (
+              {searching && q.trim().length >= 2 && (
+                <div className="px-3 pb-2">
+                  <div className="placeholder-glow">
+                    <span className="placeholder col-7 d-block mb-2" />
+                    <span className="placeholder col-5 d-block" />
+                  </div>
+                </div>
+              )}
+              {!searching && q.trim().length >= 2 && hits.length === 0 && (
                 <span className="dropdown-item-text small text-body-secondary d-block pb-2">
                   No workspace content matched “{q.trim()}”.
                 </span>

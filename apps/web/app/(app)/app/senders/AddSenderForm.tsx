@@ -3,9 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { useToast } from '../../ToastProvider';
+
 /** Taslak ekler — koltuk yemez; sayaç yayına almada işler. */
 export function AddSenderForm() {
   const router = useRouter();
+  const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +32,7 @@ export function AddSenderForm() {
     setBusy(false);
     if (res.ok) {
       form.reset();
+      toast('success', 'Sender added as a draft — no seat used yet.');
       router.refresh();
       return;
     }
@@ -74,7 +78,14 @@ export function AddSenderForm() {
       </div>
       <div className="col-sm-6 col-lg-3">
         <button type="submit" className="btn btn-primary" disabled={busy}>
-          {busy ? 'Adding…' : 'Add sender'}
+          {busy ? (
+            <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />Adding…</>
+          ) : (
+            <>
+              <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
+              Add sender
+            </>
+          )}
         </button>
       </div>
       {error && (
