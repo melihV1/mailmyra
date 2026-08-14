@@ -19,8 +19,20 @@ export default async function BrandPage() {
   if (!orgId || !role || !can(role, 'brand:manage')) {
     return (
       <section>
-        <h1>Brand</h1>
-        <p>Brand settings are managed by workspace owners and admins.</p>
+        <h4 className="mb-4">Brand</h4>
+        <div className="card">
+          <div className="card-body text-center py-5">
+            <div className="avatar avatar-lg mx-auto mb-3">
+              <span className="avatar-initial rounded-circle bg-label-warning">
+                <i className="icon-base ti tabler-lock icon-26px" aria-hidden="true" />
+              </span>
+            </div>
+            <h5>Owners and admins only</h5>
+            <p className="text-body-secondary mb-0">
+              Brand settings are managed by workspace owners and admins.
+            </p>
+          </div>
+        </div>
       </section>
     );
   }

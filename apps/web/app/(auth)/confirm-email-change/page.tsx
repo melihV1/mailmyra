@@ -1,3 +1,4 @@
+import { AuthCard } from '../AuthCard';
 import { ConfirmRunner } from './ConfirmRunner';
 
 export const metadata = { title: 'Confirm e-mail change — Mailmyra' };
@@ -9,5 +10,9 @@ export default async function ConfirmEmailChangePage({
 }) {
   const params = await searchParams;
   const token = typeof params.token === 'string' ? params.token : '';
-  return <ConfirmRunner token={token} />;
+  return (
+    <AuthCard>
+      <ConfirmRunner token={token} />
+    </AuthCard>
+  );
 }

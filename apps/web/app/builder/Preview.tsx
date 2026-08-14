@@ -26,22 +26,61 @@ export function darkPreviewNote(textColor: string): string | null {
   );
 }
 
-export function Preview({ html, textColor }: { html: string; textColor: string }) {
+export function Preview({
+  html,
+  textColor,
+  chrome = 'plain',
+}: {
+  html: string;
+  textColor: string;
+  /** 'theme': Vuexy panelinde kullanım — düğmeler tema dili + EN etiket.
+   *  'plain' (varsayılan): builder'ın mevcut hâli, DEĞİŞMEDİ. */
+  chrome?: 'plain' | 'theme';
+}) {
   const [dark, setDark] = useState(false);
   const note = dark ? darkPreviewNote(textColor) : null;
   return (
     <div>
-      <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
-        <button type="button" onClick={() => setDark(false)} disabled={!dark}>
-          Açık zemin
-        </button>
-        <button type="button" onClick={() => setDark(true)} disabled={dark}>
-          Koyu zemin
-        </button>
-      </div>
-      {note && (
-        <p style={{ margin: '0 0 8px', fontSize: 13, color: '#8a6d1a' }}>{note}</p>
+      {chrome === 'theme' ? (
+        <div className="btn-group btn-group-sm mb-3" role="group" aria-label="Preview background">
+          <button
+            type="button"
+            className={`btn ${dark ? 'btn-outline-primary' : 'btn-primary'}`}
+            aria-pressed={!dark}
+            onClick={() => setDark(false)}
+          >
+            <i className="icon-base ti tabler-sun icon-14px me-1" aria-hidden="true" />
+            Light
+          </button>
+          <button
+            type="button"
+            className={`btn ${dark ? 'btn-primary' : 'btn-outline-primary'}`}
+            aria-pressed={dark}
+            onClick={() => setDark(true)}
+          >
+            <i className="icon-base ti tabler-moon-stars icon-14px me-1" aria-hidden="true" />
+            Dark
+          </button>
+        </div>
+      ) : (
+        <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
+          <button type="button" onClick={() => setDark(false)} disabled={!dark}>
+            Açık zemin
+          </button>
+          <button type="button" onClick={() => setDark(true)} disabled={dark}>
+            Koyu zemin
+          </button>
+        </div>
       )}
+      {note &&
+        (chrome === 'theme' ? (
+          <div className="alert alert-warning py-2 small" role="note">
+            Your text color is hard to read on a dark background. Most clients adapt colors in
+            dark mode — this preview shows one that does not.
+          </div>
+        ) : (
+          <p style={{ margin: '0 0 8px', fontSize: 13, color: '#8a6d1a' }}>{note}</p>
+        ))}
       <iframe
         title="signature-preview"
         sandbox=""

@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { useState } from 'react';
 
-import styles from '../auth.module.css';
-
 export function AcceptInvite({ token }: { token: string }) {
   const [state, setState] = useState<'idle' | 'busy' | 'fail' | 'member'>('idle');
 
@@ -24,36 +22,41 @@ export function AcceptInvite({ token }: { token: string }) {
   };
 
   return (
-    <main className={styles.wrap}>
-      <div className={styles.card}>
-        <span className={styles.wordmark}>Mailmyra</span>
-        <h1 className={styles.title}>Workspace invitation</h1>
+    <>
+      <h4 className="mb-1">Workspace invitation 🤝</h4>
+      <p className="mb-6">Join your team&apos;s workspace on Mailmyra.</p>
 
-        {state === 'fail' ? (
-          <p className={styles.error} role="alert">
-            This invitation has expired or was revoked. Ask the person who invited you to send a
-            new one.
+      {state === 'fail' ? (
+        <div className="alert alert-danger" role="alert">
+          This invitation has expired or was revoked. Ask the person who invited you to send a
+          new one.
+        </div>
+      ) : state === 'member' ? (
+        <>
+          <div className="alert alert-success" role="status">
+            You are already a member of this workspace.
+          </div>
+          <p className="text-center mb-0">
+            <Link href="/app/signatures">Go to the panel</Link>
           </p>
-        ) : state === 'member' ? (
-          <>
-            <p className={styles.notice} role="status">
-              You are already a member of this workspace.
-            </p>
-            <p className={styles.footer}>
-              <Link href="/app/signatures">Go to the panel</Link>
-            </p>
-          </>
-        ) : (
-          <>
-            <p className={styles.notice}>
-              You have been invited to join a workspace. Accepting connects this account to it.
-            </p>
-            <button className={styles.submit} type="button" onClick={accept} disabled={state === 'busy'}>
+        </>
+      ) : (
+        <>
+          <div className="alert alert-primary" role="note">
+            You have been invited to join a workspace. Accepting connects this account to it.
+          </div>
+          <div className="d-grid">
+            <button
+              className="btn btn-primary"
+              type="button"
+              onClick={() => void accept()}
+              disabled={state === 'busy'}
+            >
               {state === 'busy' ? 'Joining…' : 'Accept invitation'}
             </button>
-          </>
-        )}
-      </div>
-    </main>
+          </div>
+        </>
+      )}
+    </>
   );
 }

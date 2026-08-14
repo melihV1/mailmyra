@@ -3,8 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
-import styles from './senders.module.css';
-
 /** Taslak ekler — koltuk yemez; sayaç yayına almada işler. */
 export function AddSenderForm() {
   const router = useRouter();
@@ -45,29 +43,46 @@ export function AddSenderForm() {
   };
 
   return (
-    <form onSubmit={submit} className={styles.addForm}>
-      <input
-        className={styles.input}
-        name="displayName"
-        placeholder="Full name"
-        required
-        maxLength={255}
-      />
-      <input
-        className={styles.input}
-        name="email"
-        type="email"
-        placeholder="email@company.com"
-        required
-      />
-      <input className={styles.input} name="jobTitle" placeholder="Job title (optional)" />
-      <button type="submit" className={styles.addButton} disabled={busy}>
-        {busy ? 'Adding…' : 'Add sender'}
-      </button>
+    <form onSubmit={submit} className="row g-3">
+      <div className="col-sm-6 col-lg-3">
+        <input
+          className="form-control"
+          name="displayName"
+          placeholder="Full name"
+          aria-label="Full name"
+          required
+          maxLength={255}
+        />
+      </div>
+      <div className="col-sm-6 col-lg-3">
+        <input
+          className="form-control"
+          name="email"
+          type="email"
+          placeholder="email@company.com"
+          aria-label="Email"
+          required
+        />
+      </div>
+      <div className="col-sm-6 col-lg-3">
+        <input
+          className="form-control"
+          name="jobTitle"
+          placeholder="Job title (optional)"
+          aria-label="Job title (optional)"
+        />
+      </div>
+      <div className="col-sm-6 col-lg-3">
+        <button type="submit" className="btn btn-primary" disabled={busy}>
+          {busy ? 'Adding…' : 'Add sender'}
+        </button>
+      </div>
       {error && (
-        <span className={styles.actionError} role="alert">
-          {error}
-        </span>
+        <div className="col-12">
+          <span className="text-danger small" role="alert">
+            {error}
+          </span>
+        </div>
       )}
     </form>
   );

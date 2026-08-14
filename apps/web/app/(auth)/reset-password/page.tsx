@@ -1,3 +1,4 @@
+import { AuthCard } from '../AuthCard';
 import { ResetForms } from './ResetForms';
 
 export const metadata = { title: 'Reset password — Mailmyra' };
@@ -13,5 +14,9 @@ export default async function ResetPasswordPage({
 }) {
   const params = await searchParams;
   const token = typeof params.token === 'string' ? params.token : undefined;
-  return <ResetForms token={token} />;
+  return (
+    <AuthCard>
+      <ResetForms token={token} />
+    </AuthCard>
+  );
 }

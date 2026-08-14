@@ -3,8 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import styles from './signatures.module.css';
-
 /**
  * İmzayı bir göndericiye bağlar. Publish'in anlamını tamamlayan bağ bu:
  * "bu KİŞİNİN şu imzası kullanımda." Boş seçenek bağı çözer.
@@ -36,9 +34,9 @@ export function AssignSelect({
   };
 
   return (
-    <span className={styles.assignWrap}>
+    <span className="d-inline-flex align-items-center gap-2">
       <select
-        className={styles.assign}
+        className="form-select form-select-sm w-auto"
         value={current ?? ''}
         onChange={(e) => void change(e.target.value)}
         disabled={busy}
@@ -51,7 +49,7 @@ export function AssignSelect({
           </option>
         ))}
       </select>
-      {failed && <span className={styles.assignError}>Could not assign.</span>}
+      {failed && <small className="text-danger">Could not assign.</small>}
     </span>
   );
 }

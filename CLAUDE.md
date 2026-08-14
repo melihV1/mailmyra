@@ -72,7 +72,10 @@ kararı koda gömülmez.
   (builder, hero, hepsi) ve tokenlar zaten CSS custom property olarak
   `apps/web/app/tokens.css`'te yaşıyor; Tailwind kurmak token disiplinini
   zayıflatıp iki paralel sistem yaratacaktı. Bkz. `docs/step1-manifesto.md`
-  Karar A1.
+  Karar A1. (2026-08-13 revizyonu: PANEL Vuexy temasına geçti — aşağıdaki
+  "PANEL TEMASI" maddesine bak. 2026-08-14 eki: AUTH ekranları da Vuexy'ye
+  geçti — panelin kapısıdır. CSS Modules kuralı pazarlama sitesi ve
+  builder için geçerliliğini korur.)
 - **MariaDB 11.8.3** (kendi sunucularında, ek maliyet yok) — karar: 2026-08-08,
   Hüseyin. **PostgreSQL DEĞİL** (Plesk Windows desteklemiyor), **MySQL 8 de
   değil** (Plesk'te tek seçenek MariaDB). Prisma provider `mysql`.
@@ -93,7 +96,22 @@ kararı koda gömülmez.
   **Sağlayıcıya özel SDK kullanma.** Şablonlar sağlayıcıdan bağımsız.
   SPF/DKIM her iki durumda da gerekli. Bkz. `docs/email-setup.md`.
 - Auth: basit oturum (email + şifre). Clerk/Auth0 kullanma.
-- **Bootstrap KULLANMA.** Hazır SaaS teması kullanma. Jenerik görünüm projenin en büyük düşmanı.
+- **PANEL TEMASI: Vuexy (Pixinvent)** — karar: 2026-08-13, Hüseyin.
+  Uygulama paneli (`app/(app)/`) Vuexy admin temasının görsel sistemi
+  üzerine kurulur; HTML/Bootstrap 5 sürümünün CSS'i + bizim React
+  markup'ımız. Bu karar, önceki "Bootstrap KULLANMA / hazır SaaS teması
+  kullanma" yasağını **yalnız panel için** kaldırır. Sınırlar:
+  · Pazarlama sitesi Agntix yolunda kalır, Bootstrap'e geçmez.
+  · Renderer ve e-posta HTML kuralları DEĞİŞMEZ — imza çıktısına
+    Bootstrap/Vuexy hiçbir biçimde sızamaz.
+  · Builder ve imza önizlemesi Vuexy CSS'inden yalıtılır (iframe/scope).
+  · jQuery-ailesi eklentiler (DataTables vb.) ALINMAZ — tablo/etkileşim
+    React'te kalır, temadan yalnız CSS + yerleşim dili alınır.
+  · ⚠️ **Lisans:** eldeki kopya demo sitesinin aynası; canlıya temanın
+    hiçbir dosyası SATIN ALINMADAN giremez. Ücretli üründe kullanım
+    ThemeForest **Extended** lisansı gerektirir (Hüseyin alacak).
+- (Eski karar — 2026-07-24→2026-08-13: "Bootstrap kullanma, hazır SaaS
+  teması kullanma". Pazarlama sitesi ve builder için hâlâ geçerli.)
 
 ### Marka
 - Logo ve renkler **sabit** (`_eski/logo.svg`)

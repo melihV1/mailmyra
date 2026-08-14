@@ -1,60 +1,54 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { currentSession } from '../../lib/auth/current';
-import { SignOutButton } from './SignOutButton';
-import { VerifyBanner } from './VerifyBanner';
-import styles from './shell.module.css';
+import { primaryOrgId, roleFor, seatSummary } from '../../lib/repo/senders';
+import { PanelShell } from './PanelShell';
+import './panel-overrides.css';
 
 /**
- * Panel kabuğu. Bu grubun altındaki HER rota oturum ister — kontrol tek
- * yerde, sayfalar "kim bu?" diye sormaz.
+ * Panel kabuğu — Vuexy iskeleti (karar 2026-08-13, CLAUDE.md §Stack "PANEL
+ * TEMASI"). Bu grubun altındaki HER rota oturum ister — kontrol tek yerde,
+ * sayfalar "kim bu?" diye sormaz.
  *
  * Koruma middleware'de değil çünkü oturum doğrulaması Prisma istiyor ve
  * middleware edge çalışma zamanında Prisma yok. Sunucu bileşeni bizim
  * kurulumda aynı işi görüyor.
+ *
+ * Tema CSS'i <link> ile ve public/vuexy'den (gitignore'lu) gelir, bundle'a
+ * GİRMEZ: panel rotasından çıkınca React link etiketlerini söker, Vuexy
+ * kuralları builder/pazarlamaya sızamaz. Dosyalar yoksa (taze klon, ya da
+ * lisans satın alınmadan prod) panel çıplak ama çalışır kalır —
+ * `node scripts/vuexy-recolor.mjs` üretir.
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/signatures');
 
+  // Doğrulanmamış adres panele GİREMEZ (karar 2026-08-14, eski "banner +
+  // export kilidi" modelini değiştirir): kapı tek yerde, bekleme odası
+  // /verify-pending — doğrulama gelince kendi kendine panele döner.
+  if (!session.user.emailVerifiedAt) redirect('/verify-pending');
+
+  // Avatar menüsü kimlik kartı (rol) + Billing rozeti (koltuk doluluğu).
+  const orgId = await primaryOrgId(session.user.id);
+  const [role, seats] = await Promise.all([
+    orgId ? roleFor(session.user.id, orgId) : null,
+    seatSummary(session.user.id),
+  ]);
+
   return (
-    <div className={styles.shell}>
-      <header className={styles.topbar}>
-        <Link href="/app/signatures" className={styles.wordmark}>
-          Mailmyra
-        </Link>
-        <nav className={styles.nav} aria-label="Panel">
-          <Link href="/app/signatures" className={styles.navLink}>
-            Signatures
-          </Link>
-          <Link href="/app/senders" className={styles.navLink}>
-            Senders
-          </Link>
-          <Link href="/app/members" className={styles.navLink}>
-            Members
-          </Link>
-          {/* Rol gizlemesi YOK — yetkisiz rol sayfayı görür ama açıklamayla
-              (apps/web/app/(app)/app/brand/page.tsx). */}
-          <Link href="/app/brand" className={styles.navLink}>
-            Brand
-          </Link>
-          <Link href="/app/account" className={styles.navLink}>
-            Account
-          </Link>
-        </nav>
-        <div className={styles.session}>
-          <span className={styles.email}>{session.user.email}</span>
-          <SignOutButton />
-        </div>
-      </header>
-
-      {/* Doğrulanmamış adresle koltuk açılmasın: export doğrulanana kadar
-          kapalı, şerit bunu söylüyor ve kalıcı (panel-brief §2.2). */}
-      {!session.user.emailVerifiedAt && <VerifyBanner />}
-
-      <main className={styles.main}>{children}</main>
-    </div>
+    <>
+      <link rel="stylesheet" href="/vuexy/core.css" />
+      <link rel="stylesheet" href="/vuexy/icons.css" />
+      <link rel="stylesheet" href="/vuexy/layout.css" />
+      <PanelShell
+        email={session.user.email}
+        role={role}
+        seatsFull={seats.entitled > 0 && seats.active >= seats.entitled}
+      >
+        {children}
+      </PanelShell>
+    </>
   );
 }

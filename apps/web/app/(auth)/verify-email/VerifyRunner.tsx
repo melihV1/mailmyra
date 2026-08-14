@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-import styles from '../auth.module.css';
-
 /**
  * Doğrulama istemciden, tam bir kez POST edilir.
  *
@@ -34,36 +32,38 @@ export function VerifyRunner({ token }: { token: string }) {
   }, [token]);
 
   return (
-    <main className={styles.wrap}>
-      <div className={styles.card}>
-        <span className={styles.wordmark}>Mailmyra</span>
-        <h1 className={styles.title}>Email verification</h1>
+    <>
+      <h4 className="mb-1">Email verification ✉️</h4>
+      <p className="mb-6">One click and exporting opens up.</p>
 
-        {state === 'busy' && <p className={styles.notice}>Verifying…</p>}
+      {state === 'busy' && (
+        <div className="alert alert-secondary" role="status">
+          Verifying…
+        </div>
+      )}
 
-        {state === 'ok' && (
-          <>
-            <p className={styles.notice} role="status">
-              Your address is verified. Exporting is now open.
-            </p>
-            <p className={styles.footer}>
-              <Link href="/app/signatures">Go to your signatures</Link>
-            </p>
-          </>
-        )}
+      {state === 'ok' && (
+        <>
+          <div className="alert alert-success" role="status">
+            Your address is verified. Exporting is now open.
+          </div>
+          <p className="text-center mb-0">
+            <Link href="/app/signatures">Go to your signatures</Link>
+          </p>
+        </>
+      )}
 
-        {state === 'fail' && (
-          <>
-            <p className={styles.error} role="alert">
-              This link has expired or was already used. Sign in and use “Resend email” in the
-              banner to get a fresh one.
-            </p>
-            <p className={styles.footer}>
-              <Link href="/login">Sign in</Link>
-            </p>
-          </>
-        )}
-      </div>
-    </main>
+      {state === 'fail' && (
+        <>
+          <div className="alert alert-danger" role="alert">
+            This link has expired or was already used. Sign in and use “Resend email” in the
+            banner to get a fresh one.
+          </div>
+          <p className="text-center mb-0">
+            <Link href="/login">Sign in</Link>
+          </p>
+        </>
+      )}
+    </>
   );
 }

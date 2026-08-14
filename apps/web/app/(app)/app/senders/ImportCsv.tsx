@@ -78,13 +78,18 @@ export function ImportCsv() {
   );
 
   return (
-    <div className={styles.importBox}>
-      <button type="button" className={styles.importToggle} onClick={() => setOpen(!open)}>
+    <div className="mt-3">
+      <button
+        type="button"
+        className="btn btn-sm btn-outline-secondary"
+        onClick={() => setOpen(!open)}
+      >
+        <i className="icon-base ti tabler-upload me-1" aria-hidden="true" />
         {open ? 'Hide CSV import' : 'Import from CSV'}
       </button>
 
       {done && (
-        <span className={styles.notice} role="status">
+        <span className="text-success small ms-2" role="status">
           Added {done.created} sender{done.created === 1 ? '' : 's'} as drafts
           {done.skipped > 0 && ` — ${done.skipped} already existed and were skipped`}.
         </span>

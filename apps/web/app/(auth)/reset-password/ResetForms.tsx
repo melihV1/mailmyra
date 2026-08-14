@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 
-import styles from '../auth.module.css';
-
 function RequestForm() {
   const [state, setState] = useState<'idle' | 'busy' | 'sent'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -33,12 +31,15 @@ function RequestForm() {
   if (state === 'sent') {
     return (
       <>
-        <p className={styles.notice} role="status">
+        <div className="alert alert-success" role="status">
           If that address is registered, a reset link is on its way. The link is good for one
           hour.
-        </p>
-        <p className={styles.footer}>
-          <Link href="/login">Back to sign in</Link>
+        </div>
+        <p className="text-center mb-0">
+          <Link href="/login" className="d-inline-flex align-items-center">
+            <i className="icon-base ti tabler-chevron-left icon-sm me-1" aria-hidden="true" />
+            Back to sign in
+          </Link>
         </p>
       </>
     );
@@ -47,21 +48,35 @@ function RequestForm() {
   return (
     <>
       {error && (
-        <p className={styles.error} role="alert">
+        <div className="alert alert-danger" role="alert">
           {error}
-        </p>
+        </div>
       )}
-      <form onSubmit={submit}>
-        <label className={styles.field}>
-          <span className={styles.label}>Email</span>
-          <input className={styles.input} type="email" name="email" autoComplete="email" required />
-        </label>
-        <button className={styles.submit} type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Sending…' : 'Send reset link'}
-        </button>
+      <form onSubmit={submit} className="mb-6">
+        <div className="mb-6">
+          <label className="form-label" htmlFor="reset-email">
+            Email
+          </label>
+          <input
+            id="reset-email"
+            className="form-control"
+            type="email"
+            name="email"
+            autoComplete="email"
+            required
+          />
+        </div>
+        <div className="d-grid">
+          <button className="btn btn-primary" type="submit" disabled={state === 'busy'}>
+            {state === 'busy' ? 'Sending…' : 'Send reset link'}
+          </button>
+        </div>
       </form>
-      <p className={styles.footer}>
-        <Link href="/login">Back to sign in</Link>
+      <p className="text-center mb-0">
+        <Link href="/login" className="d-inline-flex align-items-center">
+          <i className="icon-base ti tabler-chevron-left icon-sm me-1" aria-hidden="true" />
+          Back to sign in
+        </Link>
       </p>
     </>
   );
@@ -104,10 +119,10 @@ function CompleteForm({ token }: { token: string }) {
   if (state === 'done') {
     return (
       <>
-        <p className={styles.notice} role="status">
+        <div className="alert alert-success" role="status">
           Password changed. Every other session has been signed out.
-        </p>
-        <p className={styles.footer}>
+        </div>
+        <p className="text-center mb-0">
           <Link href="/login">Sign in with the new password</Link>
         </p>
       </>
@@ -117,7 +132,7 @@ function CompleteForm({ token }: { token: string }) {
   return (
     <>
       {error && (
-        <p className={styles.error} role="alert">
+        <div className="alert alert-danger" role="alert">
           {error}
           {error.startsWith('This link') && (
             <>
@@ -125,35 +140,43 @@ function CompleteForm({ token }: { token: string }) {
               <Link href="/reset-password">Request a new link</Link>
             </>
           )}
-        </p>
+        </div>
       )}
       <form onSubmit={submit}>
-        <label className={styles.field}>
-          <span className={styles.label}>New password</span>
+        <div className="mb-6">
+          <label className="form-label" htmlFor="reset-new">
+            New password
+          </label>
           <input
-            className={styles.input}
+            id="reset-new"
+            className="form-control"
             type="password"
             name="password"
             autoComplete="new-password"
             minLength={10}
             required
           />
-          <span className={styles.hint}>At least 10 characters.</span>
-        </label>
-        <label className={styles.field}>
-          <span className={styles.label}>New password, again</span>
+          <div className="form-text">At least 10 characters.</div>
+        </div>
+        <div className="mb-6">
+          <label className="form-label" htmlFor="reset-again">
+            New password, again
+          </label>
           <input
-            className={styles.input}
+            id="reset-again"
+            className="form-control"
             type="password"
             name="again"
             autoComplete="new-password"
             minLength={10}
             required
           />
-        </label>
-        <button className={styles.submit} type="submit" disabled={state === 'busy'}>
-          {state === 'busy' ? 'Saving…' : 'Set new password'}
-        </button>
+        </div>
+        <div className="d-grid">
+          <button className="btn btn-primary" type="submit" disabled={state === 'busy'}>
+            {state === 'busy' ? 'Saving…' : 'Set new password'}
+          </button>
+        </div>
       </form>
     </>
   );
@@ -161,14 +184,14 @@ function CompleteForm({ token }: { token: string }) {
 
 export function ResetForms({ token }: { token: string | undefined }) {
   return (
-    <main className={styles.wrap}>
-      <div className={styles.card}>
-        <Link href="/" className={styles.wordmark}>
-          Mailmyra
-        </Link>
-        <h1 className={styles.title}>{token ? 'Choose a new password' : 'Reset your password'}</h1>
-        {token ? <CompleteForm token={token} /> : <RequestForm />}
-      </div>
-    </main>
+    <>
+      <h4 className="mb-1">{token ? 'Choose a new password 🔒' : 'Forgot password? 🔒'}</h4>
+      <p className="mb-6">
+        {token
+          ? 'Pick something long — length beats symbols.'
+          : 'Enter your email and we will send you a link to reset it.'}
+      </p>
+      {token ? <CompleteForm token={token} /> : <RequestForm />}
+    </>
   );
 }

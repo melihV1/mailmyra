@@ -1,131 +1,120 @@
 import { redirect } from 'next/navigation';
 
-import { PRICING } from '@mailmyra/core';
 import { currentSession } from '../../../../lib/auth/current';
 import { prisma } from '../../../../lib/db';
 import { LEGAL } from '../../../../lib/legal-links';
-import { primaryOrgId, resolveBillingOrgId, seatSummary } from '../../../../lib/repo/senders';
-import { AccountForms, DangerZone } from './AccountForms';
-import styles from './account.module.css';
+import { primaryOrgId, roleFor } from '../../../../lib/repo/senders';
+import { AccountTabs } from './AccountTabs';
+import { DangerZone } from './DangerZone';
+import { EmailChangeForm } from './EmailChangeForm';
 
 export const metadata = { title: 'Account — Mailmyra' };
 
-/** entitlementState enum değerlerinin ekran metni — trial ayrı ele alınıyor (aşağıda). */
-const STATE_LABEL: Record<string, string> = {
-  active: 'Active',
-  past_due: 'Past due',
-  cancelled: 'Cancelled',
-};
-
-/** `LegalAcceptance.docType` → ilgili sayfa (Task 7: `dpa` henüz yayında
- *  bir sayfaya bağlı değil, o yüzden haritada yok — link olmadan düz metin
- *  kalır). Tek kaynak `lib/legal-links.ts`. */
+/** `LegalAcceptance.docType` → ilgili sayfa (dpa henüz sayfaya bağlı değil,
+ *  haritada yok — link olmadan düz metin kalır). Tek kaynak lib/legal-links. */
 const LEGAL_DOC_LINK: Record<string, string> = {
   terms: LEGAL.terms.path,
   privacy: LEGAL.privacy.path,
 };
 
 /**
- * Hesap ekranı (panel-brief §2.11, Faz 1+2): plan kutusu · şifre/e-posta
- * değiştir · aktif oturumlar + diğerlerini kapat · hukuk kabulleri · tehlike
- * bölgesi (hesap silme). Task 6: e-posta değiştirme ve hesap silme UI'ı
- * eklendi — uçlar zaten Task 4/5'te yayında.
+ * Account sekmesi — kimlik kartı + e-posta değiştirme + hukuk kabulleri +
+ * hesap silme. Sekmeli yapı: temanın pages-account-settings-* düzeni
+ * (karar 2026-08-14); Security/Billing/Notifications kendi rotalarında.
  */
 export default async function AccountPage() {
-  // Layout korumasına GÜVENME: App Router layout ile sayfayı paralel render
-  // edebiliyor; layout redirect'e karar verirken sayfa null oturumla çalışır
-  // (canlıda 500 olarak görüldü, 2026-08-11).
+  // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/account');
 
-  // Fatura org'u koltuk sayısıyla aynı ağaçtan okunuyor — senders/page.tsx'teki
-  // seatSummary() çağrısıyla aynı kaynak, burada ayrıca entitlementState/trialEndsAt lazım.
   const orgId = await primaryOrgId(session.user.id);
-
-  const [sessions, acceptances, seats, billing] = await Promise.all([
-    prisma.session.findMany({
-      where: { userId: session.user.id },
-      orderBy: { lastSeenAt: 'desc' },
-      select: { id: true, ip: true, userAgent: true, lastSeenAt: true },
-    }),
+  const [role, acceptances] = await Promise.all([
+    orgId ? roleFor(session.user.id, orgId) : null,
     prisma.legalAcceptance.findMany({
       where: { userId: session.user.id },
       orderBy: { acceptedAt: 'desc' },
       select: { id: true, docType: true, version: true, acceptedAt: true },
     }),
-    seatSummary(session.user.id),
-    orgId
-      ? resolveBillingOrgId(prisma, orgId).then((billingOrgId) =>
-          prisma.organization.findUniqueOrThrow({
-            where: { id: billingOrgId },
-            select: { entitlementState: true, trialEndsAt: true },
-          }),
-        )
-      : Promise.resolve(null),
   ]);
 
-  const priceDisplay = (PRICING.perSeatYearCents / 100).toFixed(2);
+  const initial = session.user.email.slice(0, 1).toUpperCase();
+  const roleLabel = role ? role.slice(0, 1).toUpperCase() + role.slice(1) : 'Member';
 
   return (
-    <section className={styles.page}>
-      <h1 className={styles.title}>Account</h1>
-      <p className={styles.email}>{session.user.email}</p>
+    <section>
+      <AccountTabs />
 
-      <div className={styles.planBox} role="status">
-        <p className={styles.planLine}>
-          <strong>
-            {seats.active} / {seats.entitled}
-          </strong>{' '}
-          active senders
-          {billing && (
-            <>
-              {' · '}
-              {billing.entitlementState === 'trial'
-                ? billing.trialEndsAt
-                  ? `Trial ends ${billing.trialEndsAt.toLocaleDateString('en-GB')}`
-                  : 'Trial'
-                : (STATE_LABEL[billing.entitlementState] ?? billing.entitlementState)}
-            </>
-          )}
-          {' · '}
-          <strong>${priceDisplay}</strong> per active sender / year · To add seats, contact us.
-        </p>
+      <div className="card mb-4">
+        <div className="card-body">
+          <div className="d-flex align-items-center flex-wrap gap-4">
+            <div className="avatar avatar-xl">
+              <span className="avatar-initial rounded bg-label-primary fs-3">{initial}</span>
+            </div>
+            <div>
+              <h5 className="mb-1">{session.user.email}</h5>
+              <div className="d-flex flex-wrap gap-2">
+                <span className="badge bg-label-primary">{roleLabel}</span>
+                {session.user.emailVerifiedAt ? (
+                  <span className="badge bg-label-success">Verified</span>
+                ) : (
+                  <span className="badge bg-label-warning">Not verified</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <AccountForms otherSessionCount={sessions.length - 1} />
+      <div className="card mb-4">
+        <div className="card-header pb-2">
+          <h5 className="card-title mb-1">Change e-mail</h5>
+          <p className="card-subtitle mb-0">
+            We send a confirmation to the new address — the switch happens when you confirm.
+          </p>
+        </div>
+        <div className="card-body">
+          <EmailChangeForm />
+        </div>
+      </div>
 
-      <h2 className={styles.subtitle}>Active sessions</h2>
-      <ul className={styles.list}>
-        {sessions.map((s) => (
-          <li key={s.id} className={styles.row}>
-            <span className={styles.rowName}>
-              {s.id === session.id ? 'This device' : (s.userAgent?.slice(0, 60) ?? 'Unknown device')}
-            </span>
-            <span className={styles.rowMeta}>{s.ip ?? '—'}</span>
-            <time className={styles.rowMeta} dateTime={s.lastSeenAt.toISOString()}>
-              {s.lastSeenAt.toLocaleString('en-GB')}
-            </time>
-          </li>
-        ))}
-      </ul>
-
-      <h2 className={styles.subtitle}>Legal</h2>
-      <ul className={styles.list}>
-        {acceptances.map((a) => {
-          const href = LEGAL_DOC_LINK[a.docType];
-          return (
-            <li key={a.id} className={styles.row}>
-              <span className={styles.rowName}>
-                {href ? <a href={href}>{a.docType}</a> : a.docType}
-              </span>
-              <span className={styles.rowMeta}>v{a.version}</span>
-              <time className={styles.rowMeta} dateTime={a.acceptedAt.toISOString()}>
-                accepted {a.acceptedAt.toLocaleDateString('en-GB')}
-              </time>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="card mb-4">
+        <div className="card-header pb-2">
+          <h5 className="card-title mb-0">Legal</h5>
+        </div>
+        {acceptances.length === 0 ? (
+          <div className="card-body">
+            <p className="text-body-secondary mb-0">No recorded acceptances.</p>
+          </div>
+        ) : (
+          <div className="table-responsive text-nowrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Document</th>
+                  <th>Version</th>
+                  <th>Accepted</th>
+                </tr>
+              </thead>
+              <tbody className="table-border-bottom-0">
+                {acceptances.map((a) => {
+                  const href = LEGAL_DOC_LINK[a.docType];
+                  return (
+                    <tr key={a.id}>
+                      <td>{href ? <a href={href}>{a.docType}</a> : a.docType}</td>
+                      <td>v{a.version}</td>
+                      <td>
+                        <time dateTime={a.acceptedAt.toISOString()}>
+                          {a.acceptedAt.toLocaleDateString('en-GB')}
+                        </time>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <DangerZone userEmail={session.user.email} />
     </section>

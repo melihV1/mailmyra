@@ -16,19 +16,14 @@ import { mergeWithEmpty } from '../../../builder/reducer';
 import { Preview } from '../../../builder/Preview';
 import { contrastWarnings } from '../../../builder/steps/StyleStep';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
-import styles from './brand.module.css';
 
 /**
- * Marka ekranı (Task 7). Sol sütun 8 alan satırı — her satırın kendi mod
- * seçicisi var: "Not managed" (alan `doc`'tan SİLİNİR) / "Default" /
- * "Locked" (spec §3/§4). Sağ sütun `fixtures[0]`'ın (renderer'ın kendi örnek
- * verisi) bindirilmiş hâlinin canlı önizlemesi.
- *
- * Renk alanları StyleStep'in `ColorField`'ı AYNEN, logo yükleme
- * VisualsStep'in `/api/upload` akışı AYNEN, onay diyaloğu paylaşılan
- * `ConfirmDialog` (Task 6) — üçü de buraya kopyalandı, yeni bir desen icat
- * edilmedi. "Not managed / Default / Locked" mod seçici ise bu ekrana özel:
- * builder'da eşdeğeri yok çünkü kilit kavramı yalnız marka belgesinde var.
+ * Marka ekranı (Task 7) — görünüm tema diline taşındı (2026-08-14 turu),
+ * MANTIK AYNEN: her alanın "Not managed / Default / Locked" modu var
+ * (spec §3/§4; unmanaged alan belgeden SİLİNİR), sağda fixtures[0]'ın
+ * bindirilmiş hâlinin canlı önizlemesi (sandbox iframe — Vuexy CSS'i imzaya
+ * SIZAMAZ). Mod seçici artık temanın segmented düğme grubu; kilit ikonla
+ * söyleniyor. Doğrulamanın tek yetkilisi hâlâ parseBrandDocument.
  */
 
 type FieldKey = keyof BrandDocument;
@@ -42,41 +37,39 @@ const MODE_LABEL: Record<ModeOption, string> = {
 };
 
 function ModeSelect({
-  fieldId,
   label,
   value,
   onChange,
 }: {
-  fieldId: string;
   label: string;
   value: ModeOption;
   onChange: (mode: ModeOption) => void;
 }) {
   return (
-    <select
-      id={`${fieldId}-mode`}
-      className={styles.modeSelect}
-      value={value}
-      // InviteForm'daki `aria-label="Role"` deseni — bu seçicinin görünür
-      // bir <label> eşleniği yok (satır başlığı ayrı bir alanı işaret ediyor).
-      aria-label={`${label} management mode`}
-      onChange={(e) => onChange(e.target.value as ModeOption)}
-    >
+    <div className="btn-group btn-group-sm" role="group" aria-label={`${label} management mode`}>
       {(Object.keys(MODE_LABEL) as ModeOption[]).map((m) => (
-        <option key={m} value={m}>
+        <button
+          key={m}
+          type="button"
+          className={`btn ${value === m ? 'btn-primary' : 'btn-outline-primary'}`}
+          aria-pressed={value === m}
+          onClick={() => onChange(m)}
+        >
+          {m === 'locked' && (
+            <i className="icon-base ti tabler-lock icon-14px me-1" aria-hidden="true" />
+          )}
           {MODE_LABEL[m]}
-        </option>
+        </button>
       ))}
-    </select>
+    </div>
   );
 }
 
 /**
- * StyleStep'teki `ColorField` ile aynı: input[type=color] + hex kodu.
- * `fieldId` satırın `<label htmlFor>`ıyla eşleşsin diye — template/font
- * select'leri ve disclaimer textarea'sı zaten kendi id'sini alıyordu, bu
- * eksikti (review bulgusu): input'un id'si yoktu, `htmlFor` boşa işaret
- * ediyor, hem label tıklaması hem erişilebilir ad çalışmıyordu.
+ * Renk girişi — input-group: solda renk yuvası, sağda ELLE DE yazılabilen
+ * hex kutusu (2026-08-14: "renk kısmı kötü görünüyor" düzeltmesi; pembe
+ * <code> gitti). Geçersiz hex'i mevcut alan-bazlı doğrulama zaten uyarır,
+ * Save'i parseBrandDocument kilitler — burada ekstra bekçi yok.
  */
 function ColorControl({
   fieldId,
@@ -88,10 +81,81 @@ function ColorControl({
   onChange: (v: string) => void;
 }) {
   return (
-    <span className={styles.colorInline}>
-      <input id={fieldId} type="color" value={value} onChange={(e) => onChange(e.target.value)} />
-      <code className={styles.hex}>{value}</code>
-    </span>
+    <div className="input-group" style={{ maxWidth: 220 }}>
+      <input
+        id={fieldId}
+        type="color"
+        className="form-control form-control-color"
+        // Tarayıcının renk yuvası yalnız geçerli hex kabul eder; elle yazılan
+        // değer geçersizken yuva son geçerli rengi göstermeye devam eder.
+        value={isValidBrandHex(value) ? value : '#000000'}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <input
+        type="text"
+        className="form-control font-monospace"
+        aria-label="Hex value"
+        value={value}
+        maxLength={7}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
+/** Alan satırı kabuğu: başlık + mod seçici üstte, kontrol (yönetiliyorsa) altta. */
+function FieldRow({
+  label,
+  labelFor,
+  mode,
+  onMode,
+  divider = true,
+  children,
+}: {
+  label: string;
+  labelFor?: string;
+  mode: ModeOption;
+  onMode: (m: ModeOption) => void;
+  divider?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className={`p-4${divider ? ' border-bottom' : ''}`}>
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        {labelFor ? (
+          <label htmlFor={labelFor} className="fw-medium text-heading mb-0">
+            {label}
+          </label>
+        ) : (
+          <span className="fw-medium text-heading">{label}</span>
+        )}
+        <ModeSelect label={label} value={mode} onChange={onMode} />
+      </div>
+      {children && <div className="mt-3">{children}</div>}
+    </div>
+  );
+}
+
+/** Gruplu kart kabuğu — product-add sayfasının kart dili (ikonlu başlık). */
+function GroupCard({
+  title,
+  icon,
+  children,
+}: {
+  title: string;
+  icon: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="card mb-4">
+      <div className="card-header border-bottom py-3">
+        <h5 className="card-title mb-0 d-flex align-items-center">
+          <i className={`icon-base ti ${icon} icon-md me-2 text-primary`} aria-hidden="true" />
+          {title}
+        </h5>
+      </div>
+      <div className="card-body p-0">{children}</div>
+    </div>
   );
 }
 
@@ -260,273 +324,310 @@ export function BrandClient({
 
   return (
     <section>
-      <header className={styles.head}>
-        <h1 className={styles.title}>Brand</h1>
-        <p className={styles.subtitle}>
-          Set defaults new signatures start with, or lock a field so every sender in this
-          workspace uses the same value.
-        </p>
-      </header>
-
-      <div className={styles.layout}>
+      {/* Üst aksiyon çubuğu — temanın product-add başlığı: solda ad, sağda kaydet */}
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <label htmlFor="brand-templateId" className={styles.fieldLabel}>
-                Template
-              </label>
-              <ModeSelect
-                fieldId="brand-templateId"
+          <h4 className="mb-1">Brand</h4>
+          <p className="text-body-secondary mb-0">
+            Defaults and locks for every signature in this workspace
+          </p>
+        </div>
+        <div className="d-flex align-items-center gap-3">
+          {savedAt && !dialogOpen && (
+            <span className="badge bg-label-success">Saved · {savedAt}</span>
+          )}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={openDialog}
+            disabled={!isValid}
+          >
+            <i className="icon-base ti tabler-device-floppy me-1" aria-hidden="true" />
+            Save brand settings
+          </button>
+        </div>
+      </div>
+
+      <div className="row g-4">
+        {/* 6/6 bölünme (Hüseyin, 2026-08-14): önizleme büyük olsun */}
+        <div className="col-xl-6">
+          <GroupCard title="Design" icon="tabler-layout">
+              <FieldRow
                 label="Template"
-                value={doc.templateId?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('templateId', m, TEMPLATE_IDS[0]!)}
-              />
-            </div>
-            {doc.templateId && (
-              <div className={styles.fieldControl}>
-                <select
-                  id="brand-templateId"
-                  className={styles.textInput}
-                  value={doc.templateId.value}
-                  onChange={(e) => setValue('templateId', e.target.value)}
-                >
-                  {TEMPLATE_IDS.map((id) => (
-                    <option key={id} value={id}>
-                      {id}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+                labelFor="brand-templateId"
+                mode={doc.templateId?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('templateId', m, TEMPLATE_IDS[0]!)}
+              >
+                {doc.templateId && (
+                  <select
+                    id="brand-templateId"
+                    className="form-select w-auto"
+                    value={doc.templateId.value}
+                    onChange={(e) => setValue('templateId', e.target.value)}
+                  >
+                    {TEMPLATE_IDS.map((id) => (
+                      <option key={id} value={id}>
+                        {id}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FieldRow>
 
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <label htmlFor="brand-brandColor" className={styles.fieldLabel}>
-                Brand color
-              </label>
-              <ModeSelect
-                fieldId="brand-brandColor"
-                label="Brand color"
-                value={doc.brandColor?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('brandColor', m, BRAND.primary)}
-              />
-            </div>
-            {doc.brandColor && (
-              <div className={styles.fieldControl}>
-                <ColorControl
-                  fieldId="brand-brandColor"
-                  value={doc.brandColor.value}
-                  onChange={(v) => setValue('brandColor', v)}
-                />
-                {fieldErrors.brandColor && <p className={styles.fieldError}>{fieldErrors.brandColor}</p>}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <label htmlFor="brand-textColor" className={styles.fieldLabel}>
-                Text color
-              </label>
-              <ModeSelect
-                fieldId="brand-textColor"
-                label="Text color"
-                value={doc.textColor?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('textColor', m, '#333333')}
-              />
-            </div>
-            {doc.textColor && (
-              <div className={styles.fieldControl}>
-                <ColorControl
-                  fieldId="brand-textColor"
-                  value={doc.textColor.value}
-                  onChange={(v) => setValue('textColor', v)}
-                />
-                {fieldErrors.textColor && <p className={styles.fieldError}>{fieldErrors.textColor}</p>}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <label htmlFor="brand-mutedColor" className={styles.fieldLabel}>
-                Secondary text color
-              </label>
-              <ModeSelect
-                fieldId="brand-mutedColor"
-                label="Secondary text color"
-                value={doc.mutedColor?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('mutedColor', m, '#666666')}
-              />
-            </div>
-            {doc.mutedColor && (
-              <div className={styles.fieldControl}>
-                <ColorControl
-                  fieldId="brand-mutedColor"
-                  value={doc.mutedColor.value}
-                  onChange={(v) => setValue('mutedColor', v)}
-                />
-                {fieldErrors.mutedColor && <p className={styles.fieldError}>{fieldErrors.mutedColor}</p>}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <label htmlFor="brand-fontFamily" className={styles.fieldLabel}>
-                Font
-              </label>
-              <ModeSelect
-                fieldId="brand-fontFamily"
+              <FieldRow
                 label="Font"
-                value={doc.fontFamily?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('fontFamily', m, WEB_SAFE_FONTS[0])}
-              />
-            </div>
-            {doc.fontFamily && (
-              <div className={styles.fieldControl}>
-                <select
-                  id="brand-fontFamily"
-                  className={styles.textInput}
-                  value={doc.fontFamily.value}
-                  onChange={(e) => setValue('fontFamily', e.target.value as (typeof WEB_SAFE_FONTS)[number])}
-                >
-                  {WEB_SAFE_FONTS.map((f) => (
-                    <option key={f} value={f}>
-                      {f.split(',')[0]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+                labelFor="brand-fontFamily"
+                mode={doc.fontFamily?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('fontFamily', m, WEB_SAFE_FONTS[0])}
+                divider={false}
+              >
+                {doc.fontFamily && (
+                  <select
+                    id="brand-fontFamily"
+                    className="form-select w-auto"
+                    value={doc.fontFamily.value}
+                    onChange={(e) =>
+                      setValue('fontFamily', e.target.value as (typeof WEB_SAFE_FONTS)[number])
+                    }
+                  >
+                    {WEB_SAFE_FONTS.map((f) => (
+                      <option key={f} value={f}>
+                        {f.split(',')[0]}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FieldRow>
+          </GroupCard>
 
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <span className={styles.fieldLabel}>Logo</span>
-              <ModeSelect
-                fieldId="brand-logoUrl"
+          <GroupCard title="Colors" icon="tabler-palette">
+              <FieldRow
+                label="Brand color"
+                labelFor="brand-brandColor"
+                mode={doc.brandColor?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('brandColor', m, BRAND.primary)}
+              >
+                {doc.brandColor && (
+                  <>
+                    <ColorControl
+                      fieldId="brand-brandColor"
+                      value={doc.brandColor.value}
+                      onChange={(v) => setValue('brandColor', v)}
+                    />
+                    {fieldErrors.brandColor && (
+                      <small className="text-danger d-block mt-1">{fieldErrors.brandColor}</small>
+                    )}
+                  </>
+                )}
+              </FieldRow>
+
+              <FieldRow
+                label="Text color"
+                labelFor="brand-textColor"
+                mode={doc.textColor?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('textColor', m, '#333333')}
+              >
+                {doc.textColor && (
+                  <>
+                    <ColorControl
+                      fieldId="brand-textColor"
+                      value={doc.textColor.value}
+                      onChange={(v) => setValue('textColor', v)}
+                    />
+                    {fieldErrors.textColor && (
+                      <small className="text-danger d-block mt-1">{fieldErrors.textColor}</small>
+                    )}
+                  </>
+                )}
+              </FieldRow>
+
+              <FieldRow
+                label="Secondary text color"
+                labelFor="brand-mutedColor"
+                mode={doc.mutedColor?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('mutedColor', m, '#666666')}
+                divider={false}
+              >
+                {doc.mutedColor && (
+                  <>
+                    <ColorControl
+                      fieldId="brand-mutedColor"
+                      value={doc.mutedColor.value}
+                      onChange={(v) => setValue('mutedColor', v)}
+                    />
+                    {fieldErrors.mutedColor && (
+                      <small className="text-danger d-block mt-1">{fieldErrors.mutedColor}</small>
+                    )}
+                  </>
+                )}
+              </FieldRow>
+          </GroupCard>
+
+          <GroupCard title="Content & assets" icon="tabler-photo">
+              <FieldRow
                 label="Logo"
-                value={doc.logoUrl?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('logoUrl', m, '')}
-              />
-            </div>
-            {doc.logoUrl && (
-              <div className={styles.fieldControl}>
-                <span className={styles.fieldHint}>PNG, JPG or SVG · max 5MB · 360px/&lt;60KB target</span>
-                {doc.logoUrl.value ? (
-                  <div className={styles.uploadRow}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={doc.logoUrl.value} alt="Logo" className={styles.uploadPreview} />
-                    <code className={styles.uploadUrl}>{doc.logoUrl.value}</code>
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      onClick={() => {
-                        setValue('logoUrl', '');
-                        setLogoMessage(null);
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <input
-                    type="file"
-                    accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
-                    disabled={logoBusy}
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      if (f) void uploadLogo(f);
-                      e.target.value = '';
-                    }}
+                mode={doc.logoUrl?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('logoUrl', m, '')}
+              >
+                {doc.logoUrl && (
+                  <>
+                    <div className="form-text mb-2">
+                      PNG, JPG or SVG · max 5MB · 360px/&lt;60KB target
+                    </div>
+                    {doc.logoUrl.value ? (
+                      <div className="d-flex align-items-center flex-wrap gap-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={doc.logoUrl.value}
+                          alt="Logo"
+                          style={{ maxHeight: 48, maxWidth: 160 }}
+                          className="border rounded p-1"
+                        />
+                        <code className="text-truncate" style={{ maxWidth: 260 }}>
+                          {doc.logoUrl.value}
+                        </code>
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => {
+                            setValue('logoUrl', '');
+                            setLogoMessage(null);
+                          }}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <input
+                        type="file"
+                        className="form-control"
+                        accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
+                        disabled={logoBusy}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void uploadLogo(f);
+                          e.target.value = '';
+                        }}
+                      />
+                    )}
+                    {logoBusy && <small className="text-body-secondary d-block mt-1">Uploading…</small>}
+                    {logoMessage && (
+                      <small className="text-body-secondary d-block mt-1">{logoMessage}</small>
+                    )}
+                    {fieldErrors.logoUrl && (
+                      <small className="text-danger d-block mt-1">{fieldErrors.logoUrl}</small>
+                    )}
+                  </>
+                )}
+              </FieldRow>
+
+              <FieldRow
+                label="Call to action"
+                mode={doc.cta?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('cta', m, { label: '', url: '' })}
+              >
+                {doc.cta && (
+                  <>
+                    <div className="row g-2">
+                      <div className="col-sm-5">
+                        <input
+                          className="form-control"
+                          placeholder="Label"
+                          aria-label="CTA label"
+                          value={doc.cta.value.label}
+                          onChange={(e) =>
+                            setValue('cta', { ...doc.cta!.value, label: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="col-sm-7">
+                        <input
+                          className="form-control"
+                          placeholder="https://…"
+                          aria-label="CTA URL"
+                          value={doc.cta.value.url}
+                          onChange={(e) =>
+                            setValue('cta', { ...doc.cta!.value, url: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                    {fieldErrors.cta && (
+                      <small className="text-danger d-block mt-1">{fieldErrors.cta}</small>
+                    )}
+                  </>
+                )}
+              </FieldRow>
+
+              <FieldRow
+                label="Legal disclaimer"
+                labelFor="brand-disclaimer"
+                mode={doc.disclaimer?.mode ?? 'unmanaged'}
+                onMode={(m) => setMode('disclaimer', m, '')}
+                divider={false}
+              >
+                {doc.disclaimer && (
+                  <textarea
+                    id="brand-disclaimer"
+                    className="form-control"
+                    rows={3}
+                    value={doc.disclaimer.value}
+                    onChange={(e) => setValue('disclaimer', e.target.value)}
                   />
                 )}
-                {logoBusy && <p className={styles.fieldMessage}>Uploading…</p>}
-                {logoMessage && <p className={styles.fieldMessage}>{logoMessage}</p>}
-                {fieldErrors.logoUrl && <p className={styles.fieldError}>{fieldErrors.logoUrl}</p>}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <span className={styles.fieldLabel}>Call to action</span>
-              <ModeSelect
-                fieldId="brand-cta"
-                label="Call to action"
-                value={doc.cta?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('cta', m, { label: '', url: '' })}
-              />
-            </div>
-            {doc.cta && (
-              <div className={styles.fieldControl}>
-                <div className={styles.ctaInputs}>
-                  <input
-                    className={styles.textInput}
-                    placeholder="Label"
-                    value={doc.cta.value.label}
-                    onChange={(e) => setValue('cta', { ...doc.cta!.value, label: e.target.value })}
-                  />
-                  <input
-                    className={styles.textInput}
-                    placeholder="https://…"
-                    value={doc.cta.value.url}
-                    onChange={(e) => setValue('cta', { ...doc.cta!.value, url: e.target.value })}
-                  />
-                </div>
-                {fieldErrors.cta && <p className={styles.fieldError}>{fieldErrors.cta}</p>}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.fieldRow}>
-            <div className={styles.fieldHead}>
-              <label htmlFor="brand-disclaimer" className={styles.fieldLabel}>
-                Legal disclaimer
-              </label>
-              <ModeSelect
-                fieldId="brand-disclaimer"
-                label="Legal disclaimer"
-                value={doc.disclaimer?.mode ?? 'unmanaged'}
-                onChange={(m) => setMode('disclaimer', m, '')}
-              />
-            </div>
-            {doc.disclaimer && (
-              <div className={styles.fieldControl}>
-                <textarea
-                  id="brand-disclaimer"
-                  className={`${styles.textInput} ${styles.textarea}`}
-                  value={doc.disclaimer.value}
-                  onChange={(e) => setValue('disclaimer', e.target.value)}
-                />
-              </div>
-            )}
-          </div>
-
-          <div className={styles.saveBar}>
-            <button
-              type="button"
-              className={styles.primary}
-              onClick={openDialog}
-              disabled={!isValid}
-            >
-              Save brand settings
-            </button>
-            {savedAt && !dialogOpen && <span className={styles.savedNote}>Saved · {savedAt}</span>}
-          </div>
+              </FieldRow>
+          </GroupCard>
         </div>
 
-        <div className={styles.previewCol}>
-          {contrastNotes.length > 0 && (
-            <div role="alert" className={styles.contrastNote}>
-              {contrastNotes.map((w) => (
-                <div key={w}>⚠️ {w}</div>
-              ))}
+        <div className="col-xl-6">
+          {/* Önizleme yapışkan: uzun formda kaydırınca da gözün önünde */}
+          <div style={{ position: 'sticky', top: 90 }}>
+            <div className="card mb-4">
+              <div className="card-header pb-2">
+                <h5 className="card-title mb-1">Live preview</h5>
+                <p className="card-subtitle mb-0">Sample data with your brand applied</p>
+              </div>
+              <div className="card-body">
+                {contrastNotes.length > 0 && (
+                  <div role="alert" className="alert alert-warning py-2">
+                    {contrastNotes.map((w) => (
+                      <div key={w} className="small">
+                        ⚠️ {w}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <Preview html={html} textColor={overlaid.visuals.textColor} chrome="theme" />
+              </div>
             </div>
-          )}
-          <Preview html={html} textColor={overlaid.visuals.textColor} />
+
+            <div className="card">
+              <div className="card-header pb-2">
+                <h5 className="card-title mb-0">How modes work</h5>
+              </div>
+              <div className="card-body d-grid gap-3">
+                <div className="d-flex align-items-start gap-2">
+                  <span className="badge bg-label-secondary flex-shrink-0">Not managed</span>
+                  <small className="text-body-secondary">
+                    The workspace stays out of it — every signature keeps its own value.
+                  </small>
+                </div>
+                <div className="d-flex align-items-start gap-2">
+                  <span className="badge bg-label-info flex-shrink-0">Default</span>
+                  <small className="text-body-secondary">
+                    Pre-fills new signatures; people can still change it afterwards.
+                  </small>
+                </div>
+                <div className="d-flex align-items-start gap-2">
+                  <span className="badge bg-label-success flex-shrink-0">Locked</span>
+                  <small className="text-body-secondary">
+                    Forced on every export — existing values are overridden, nothing is rewritten
+                    in saved signatures.
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -542,7 +643,11 @@ export function BrandClient({
             {`This will affect ${liveSignatures} live signature${liveSignatures === 1 ? '' : 's'}.`}
           </p>
           <p>Changes apply from the next export — e-mails already sent do not change.</p>
-          {error && <p className={styles.dialogError}>{error}</p>}
+          {error && (
+            <p className="text-danger mb-0" role="alert">
+              {error}
+            </p>
+          )}
         </ConfirmDialog>
       )}
     </section>

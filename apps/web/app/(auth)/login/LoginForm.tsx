@@ -3,8 +3,6 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 
-import styles from '../auth.module.css';
-
 export function LoginForm({ next }: { next: string }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -40,55 +38,61 @@ export function LoginForm({ next }: { next: string }) {
   };
 
   return (
-    <main className={styles.wrap}>
-      <div className={styles.card}>
-        <Link href="/" className={styles.wordmark}>
-          Mailmyra
-        </Link>
-        <h1 className={styles.title}>Sign in</h1>
+    <>
+      <h4 className="mb-1">Welcome back 👋</h4>
+      <p className="mb-6">Sign in to manage your signatures and senders.</p>
 
-        {error && (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        )}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
 
-        <form onSubmit={submit}>
-          <label className={styles.field}>
-            <span className={styles.label}>Email</span>
-            <input
-              className={styles.input}
-              type="email"
-              name="email"
-              autoComplete="email"
-              required
-            />
+      <form onSubmit={submit} className="mb-6">
+        <div className="mb-6">
+          <label className="form-label" htmlFor="login-email">
+            Email
           </label>
+          <input
+            id="login-email"
+            className="form-control"
+            type="email"
+            name="email"
+            autoComplete="email"
+            required
+          />
+        </div>
 
-          <label className={styles.field}>
-            <span className={styles.label}>Password</span>
-            <input
-              className={styles.input}
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              required
-            />
-          </label>
+        <div className="mb-6">
+          <div className="d-flex justify-content-between">
+            <label className="form-label" htmlFor="login-password">
+              Password
+            </label>
+            <Link href="/reset-password">
+              <small>Forgot password?</small>
+            </Link>
+          </div>
+          <input
+            id="login-password"
+            className="form-control"
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            required
+          />
+        </div>
 
-          <p className={styles.inlineLink}>
-            <Link href="/reset-password">Forgot your password?</Link>
-          </p>
-
-          <button className={styles.submit} type="submit" disabled={busy}>
+        <div className="d-grid">
+          <button className="btn btn-primary" type="submit" disabled={busy}>
             {busy ? 'Signing in…' : 'Sign in'}
           </button>
-        </form>
+        </div>
+      </form>
 
-        <p className={styles.footer}>
-          No account yet? <Link href="/signup">Create one</Link>
-        </p>
-      </div>
-    </main>
+      <p className="text-center mb-0">
+        <span>New on Mailmyra? </span>
+        <Link href="/signup">Create an account</Link>
+      </p>
+    </>
   );
 }

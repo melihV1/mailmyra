@@ -3,11 +3,12 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import styles from './members.module.css';
+import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 
 /**
  * Rol değiştirme + çıkarma. Son owner'da ikisi de pasif ve sebebi yazılı —
- * backend zaten reddediyor, arayüz sürprizi önlüyor.
+ * backend zaten reddediyor, arayüz sürprizi önlüyor. Çıkarma onayı artık
+ * window.confirm değil, ortak ConfirmDialog (tema modal'ı; 2026-08-14).
  */
 export function MemberActions({
   targetUserId,
@@ -23,6 +24,7 @@ export function MemberActions({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const fail = (body: { error?: string }) =>
     setError(
@@ -47,16 +49,11 @@ export function MemberActions({
   };
 
   const remove = async () => {
-    const sure = window.confirm(
-      isSelf
-        ? 'Leave this workspace? You will lose access immediately.'
-        : 'Remove this member? They lose access immediately; signatures and senders stay.',
-    );
-    if (!sure) return;
     setBusy(true);
     setError(null);
     const res = await fetch(`/api/members/${targetUserId}/remove`, { method: 'POST' });
     setBusy(false);
+    setConfirming(false);
     if (res.ok) {
       if (isSelf) window.location.assign('/login');
       else router.refresh();
@@ -64,35 +61,54 @@ export function MemberActions({
   };
 
   return (
-    <span className={styles.actions}>
-      <select
-        className={styles.roleSelect}
-        value={role}
-        onChange={(e) => void changeRole(e.target.value)}
-        disabled={busy || lastOwner}
-        title={lastOwner ? 'The last owner cannot be demoted.' : undefined}
-        aria-label="Change role"
-      >
-        <option value="owner">owner</option>
-        <option value="admin">admin</option>
-        <option value="editor">editor</option>
-        <option value="viewer">viewer</option>
-      </select>
-      <button
-        type="button"
-        className={styles.danger}
-        onClick={remove}
-        disabled={busy || lastOwner}
-        title={lastOwner ? 'The last owner cannot be removed.' : undefined}
-      >
-        {isSelf ? 'Leave' : 'Remove'}
-      </button>
-      {error && (
-        <span className={styles.error} role="alert">
-          {error}
-        </span>
+    <>
+      <span className="d-inline-flex align-items-center gap-2">
+        <select
+          className="form-select form-select-sm w-auto"
+          value={role}
+          onChange={(e) => void changeRole(e.target.value)}
+          disabled={busy || lastOwner}
+          title={lastOwner ? 'The last owner cannot be demoted.' : undefined}
+          aria-label="Change role"
+        >
+          <option value="owner">owner</option>
+          <option value="admin">admin</option>
+          <option value="editor">editor</option>
+          <option value="viewer">viewer</option>
+        </select>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-danger"
+          onClick={() => setConfirming(true)}
+          disabled={busy || lastOwner}
+          title={lastOwner ? 'The last owner cannot be removed.' : undefined}
+        >
+          {isSelf ? 'Leave' : 'Remove'}
+        </button>
+        {error && (
+          <small className="text-danger text-wrap" role="alert">
+            {error}
+          </small>
+        )}
+      </span>
+
+      {confirming && (
+        <ConfirmDialog
+          title={isSelf ? 'Leave this workspace?' : 'Remove this member?'}
+          onCancel={() => !busy && setConfirming(false)}
+          onConfirm={remove}
+          confirmLabel={isSelf ? 'Leave' : 'Remove'}
+          tone="danger"
+          busy={busy}
+        >
+          <p className="mb-0">
+            {isSelf
+              ? 'You will lose access immediately.'
+              : 'They lose access immediately; signatures and senders stay.'}
+          </p>
+        </ConfirmDialog>
       )}
-    </span>
+    </>
   );
 }
 
@@ -108,7 +124,12 @@ export function InvitationActions({ id }: { id: string }) {
   };
 
   return (
-    <button type="button" className={styles.danger} onClick={revoke} disabled={busy}>
+    <button
+      type="button"
+      className="btn btn-sm btn-outline-danger"
+      onClick={() => void revoke()}
+      disabled={busy}
+    >
       Revoke
     </button>
   );

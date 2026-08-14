@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
-import styles from './senders.module.css';
 
 /**
  * Yayına alma ONAY ister ve kaç koltuk gideceğini rakamla söyler
@@ -71,11 +70,11 @@ export function SenderActions({
 
   return (
     <>
-      <span className={styles.actions}>
+      <span className="d-inline-flex align-items-center gap-2">
         {status !== 'active' ? (
           <button
             type="button"
-            className={styles.action}
+            className="btn btn-sm btn-outline-primary"
             onClick={() => setConfirming('publish')}
             disabled={busy || capFull}
             title={capFull ? `All ${entitledSeats} seats are in use.` : undefined}
@@ -85,7 +84,7 @@ export function SenderActions({
         ) : (
           <button
             type="button"
-            className={styles.action}
+            className="btn btn-sm btn-outline-secondary"
             onClick={() => setConfirming('deactivate')}
             disabled={busy}
           >
@@ -93,7 +92,7 @@ export function SenderActions({
           </button>
         )}
         {error && (
-          <span className={styles.actionError} role="alert">
+          <span className="text-danger small text-wrap" role="alert">
             {error}
           </span>
         )}

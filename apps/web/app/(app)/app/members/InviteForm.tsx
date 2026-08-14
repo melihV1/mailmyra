@@ -3,8 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
-import styles from './members.module.css';
-
 /** Davet 7 gün geçerli; owner rolü davetle DAĞITILMAZ. */
 export function InviteForm() {
   const router = useRouter();
@@ -44,27 +42,46 @@ export function InviteForm() {
   };
 
   return (
-    <form onSubmit={submit} className={styles.inviteForm}>
-      <input
-        className={styles.input}
-        name="email"
-        type="email"
-        placeholder="teammate@company.com"
-        required
-      />
-      <select className={styles.roleSelect} name="role" defaultValue="editor" aria-label="Role">
-        <option value="admin">admin</option>
-        <option value="editor">editor</option>
-        <option value="viewer">viewer</option>
-      </select>
-      <button type="submit" className={styles.primary} disabled={busy}>
-        {busy ? 'Sending…' : 'Invite'}
-      </button>
+    <div>
       {msg && (
-        <span className={msg.kind === 'ok' ? styles.notice : styles.error} role="status">
+        <div
+          className={`alert ${msg.kind === 'ok' ? 'alert-success' : 'alert-danger'}`}
+          role="status"
+        >
           {msg.text}
-        </span>
+        </div>
       )}
-    </form>
+      <form onSubmit={submit} className="row g-3 align-items-end">
+        <div className="col-sm-6 col-lg-5">
+          <label className="form-label" htmlFor="invite-email">
+            Email
+          </label>
+          <input
+            id="invite-email"
+            className="form-control"
+            name="email"
+            type="email"
+            placeholder="teammate@company.com"
+            required
+          />
+        </div>
+        <div className="col-sm-3 col-lg-2">
+          <label className="form-label" htmlFor="invite-role">
+            Role
+          </label>
+          <select id="invite-role" className="form-select" name="role" defaultValue="editor">
+            <option value="admin">admin</option>
+            <option value="editor">editor</option>
+            <option value="viewer">viewer</option>
+          </select>
+        </div>
+        <div className="col-sm-3 col-lg-2">
+          <button type="submit" className="btn btn-primary" disabled={busy}>
+            <i className="icon-base ti tabler-send me-1" aria-hidden="true" />
+            {busy ? 'Sending…' : 'Invite'}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

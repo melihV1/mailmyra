@@ -6,12 +6,12 @@ import type { SenderRowData } from '../../../../lib/repo/senders';
 import { exportPlan } from '../../../../lib/export-plan';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import { SenderActions } from './SenderActions';
-import styles from './senders.module.css';
 
-const BADGE: Record<string, { label: string; cls: 'draft' | 'active' | 'inactive' }> = {
-  draft: { label: 'Draft', cls: 'draft' },
-  active: { label: 'Live', cls: 'active' },
-  inactive: { label: 'Inactive', cls: 'inactive' },
+/* Vuexy rozet dili: bg-label-* (dolu renk değil, pastel etiket). */
+const BADGE: Record<string, { label: string; cls: string }> = {
+  draft: { label: 'Draft', cls: 'bg-label-secondary' },
+  active: { label: 'Live', cls: 'bg-label-success' },
+  inactive: { label: 'Inactive', cls: 'bg-label-warning' },
 };
 
 /** Hata gövdesi → panel dilinde (İngilizce) açıklama. */
@@ -121,54 +121,89 @@ export function SenderTable({
     );
 
   return (
-    <div>
-      {showExport && (
-        <div className={styles.exportBar}>
-          <label className={styles.selectAll}>
-            <input
-              type="checkbox"
-              checked={rows.length > 0 && selected.size === rows.length}
-              onChange={toggleAll}
-            />
-            Select all
-          </label>
-          <button type="button" onClick={openDialog}>
-            Export zip{selected.size > 0 ? ` (${selected.size} selected)` : ''}
-          </button>
+    <div className="card">
+      <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <h5 className="card-title mb-0">All senders</h5>
+        <div className="d-flex flex-wrap gap-2">
+          {/* Liste CSV'si her role açık — ekranda zaten görünen verinin
+              dosyası; imza İÇERİĞİ veren zip'in rol kapısına girmez. */}
+          <a href="/api/senders/export-csv" className="btn btn-outline-secondary">
+            <i className="icon-base ti tabler-file-spreadsheet me-1" aria-hidden="true" />
+            Export CSV
+          </a>
+          {showExport && (
+            <button type="button" className="btn btn-primary" onClick={openDialog}>
+              <i className="icon-base ti tabler-file-zip me-1" aria-hidden="true" />
+              Export zip{selected.size > 0 ? ` (${selected.size} selected)` : ''}
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
-      <ul className={styles.list}>
-        {rows.map((s) => {
-          const badge = BADGE[s.status]!;
-          return (
-            <li key={s.id} className={styles.row}>
+      <div className="table-responsive text-nowrap">
+        <table className="table table-hover">
+          <thead>
+            <tr>
               {showExport && (
-                <input
-                  type="checkbox"
-                  aria-label={`Select ${s.displayName}`}
-                  checked={selected.has(s.id)}
-                  onChange={() => toggle(s.id)}
-                />
+                <th style={{ width: '1%' }}>
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    aria-label="Select all"
+                    checked={rows.length > 0 && selected.size === rows.length}
+                    onChange={toggleAll}
+                  />
+                </th>
               )}
-              <span className={styles.rowName}>{s.displayName}</span>
-              <span className={styles.rowMeta}>{s.email}</span>
-              {s.jobTitle && <span className={styles.rowMeta}>{s.jobTitle}</span>}
-              <span className={`${styles.badge} ${styles[badge.cls]}`}>{badge.label}</span>
-              <span className={styles.rowMeta}>
-                {s.signatureNames.length > 0 ? s.signatureNames.join(', ') : '—'}
-              </span>
-              <SenderActions
-                id={s.id}
-                name={s.displayName}
-                status={s.status}
-                activeSeats={activeSeats}
-                entitledSeats={entitledSeats}
-              />
-            </li>
-          );
-        })}
-      </ul>
+              <th>Sender</th>
+              <th>Job title</th>
+              <th>Signatures</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody className="table-border-bottom-0">
+            {rows.map((s) => {
+              const badge = BADGE[s.status]!;
+              return (
+                <tr key={s.id}>
+                  {showExport && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        aria-label={`Select ${s.displayName}`}
+                        checked={selected.has(s.id)}
+                        onChange={() => toggle(s.id)}
+                      />
+                    </td>
+                  )}
+                  <td>
+                    <span className="d-block fw-medium text-heading">{s.displayName}</span>
+                    <small className="text-body-secondary">{s.email}</small>
+                  </td>
+                  <td>{s.jobTitle ?? '—'}</td>
+                  <td>
+                    {s.signatureNames.length > 0 ? s.signatureNames.join(', ') : '—'}
+                  </td>
+                  <td>
+                    <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                  </td>
+                  <td>
+                    <SenderActions
+                      id={s.id}
+                      name={s.displayName}
+                      status={s.status}
+                      activeSeats={activeSeats}
+                      entitledSeats={entitledSeats}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
       {dialogOpen && (
         <ConfirmDialog
@@ -195,7 +230,7 @@ export function SenderTable({
               first.
             </p>
           )}
-          {error && <p className={styles.exportError}>{error}</p>}
+          {error && <p className="text-danger mb-0">{error}</p>}
         </ConfirmDialog>
       )}
     </div>

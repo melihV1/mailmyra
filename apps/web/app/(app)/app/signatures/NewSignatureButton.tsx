@@ -6,7 +6,6 @@ import { useState } from 'react';
 import type { SignatureData } from '@mailmyra/renderer';
 
 import { createEmptyData } from '../../../builder/reducer';
-import styles from './signatures.module.css';
 
 /**
  * "New signature" düz bir /builder linki DEĞİL: önce sunucuda kayıt açılır,
@@ -48,11 +47,12 @@ export function NewSignatureButton({
   };
 
   return (
-    <span className={styles.newWrap}>
-      <button type="button" className={styles.primary} onClick={create} disabled={busy}>
+    <span className="d-inline-flex align-items-center gap-2">
+      <button type="button" className="btn btn-primary" onClick={create} disabled={busy}>
+        <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
         {busy ? 'Creating…' : 'New signature'}
       </button>
-      {failed && <span className={styles.newError}>Could not create — try again.</span>}
+      {failed && <small className="text-danger">Could not create — try again.</small>}
     </span>
   );
 }

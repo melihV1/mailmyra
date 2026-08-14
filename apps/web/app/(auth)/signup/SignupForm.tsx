@@ -6,8 +6,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { clearDraft, loadDraft } from '../../../lib/draft';
 import { LEGAL } from '../../../lib/legal-links';
 
-import styles from '../auth.module.css';
-
 /**
  * Kayıt üç alandan uzun değil (panel-brief §2.1): e-posta, şifre, kabul
  * kutusu. Şirket adı sorusu bilerek yok — org "Workspace" adıyla açılır,
@@ -79,75 +77,82 @@ export function SignupForm() {
   };
 
   return (
-    <main className={styles.wrap}>
-      <div className={styles.card}>
-        <Link href="/" className={styles.wordmark}>
-          Mailmyra
-        </Link>
-        <h1 className={styles.title}>Create your account</h1>
+    <>
+      <h4 className="mb-1">Adventure starts here 🚀</h4>
+      <p className="mb-6">One signature, every inbox — 7-day full trial, no card.</p>
 
-        {error && (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        )}
+      {error && (
+        <div className="alert alert-danger" role="alert">
+          {error}
+        </div>
+      )}
 
-        {hasDraft && (
-          <label className={styles.terms}>
-            <input
-              type="checkbox"
-              checked={carryDraft}
-              onChange={(e) => setCarryDraft(e.target.checked)}
-            />
-            <span>
-              The signature you started in the builder is still here. Move it into your account?
-            </span>
+      {hasDraft && (
+        <div className="alert alert-primary d-flex align-items-start gap-2" role="note">
+          <input
+            id="signup-draft"
+            className="form-check-input mt-1 flex-shrink-0"
+            type="checkbox"
+            checked={carryDraft}
+            onChange={(e) => setCarryDraft(e.target.checked)}
+          />
+          <label htmlFor="signup-draft" className="mb-0">
+            The signature you started in the builder is still here. Move it into your account?
           </label>
-        )}
+        </div>
+      )}
 
-        <form onSubmit={submit}>
-          <label className={styles.field}>
-            <span className={styles.label}>Email</span>
-            <input
-              className={styles.input}
-              type="email"
-              name="email"
-              autoComplete="email"
-              required
-            />
+      <form onSubmit={submit} className="mb-6">
+        <div className="mb-6">
+          <label className="form-label" htmlFor="signup-email">
+            Email
           </label>
+          <input
+            id="signup-email"
+            className="form-control"
+            type="email"
+            name="email"
+            autoComplete="email"
+            required
+          />
+        </div>
 
-          <label className={styles.field}>
-            <span className={styles.label}>Password</span>
-            <input
-              className={styles.input}
-              type="password"
-              name="password"
-              autoComplete="new-password"
-              minLength={10}
-              required
-            />
-            <span className={styles.hint}>At least 10 characters. Length beats symbols.</span>
+        <div className="mb-6">
+          <label className="form-label" htmlFor="signup-password">
+            Password
           </label>
+          <input
+            id="signup-password"
+            className="form-control"
+            type="password"
+            name="password"
+            autoComplete="new-password"
+            minLength={10}
+            required
+          />
+          <div className="form-text">At least 10 characters. Length beats symbols.</div>
+        </div>
 
-          <label className={styles.terms}>
-            <input type="checkbox" name="terms" required />
-            <span>
-              I agree to the <a href={LEGAL.terms.path}>Terms of Service</a>, the{' '}
-              <a href={LEGAL.privacy.path}>Privacy Policy</a>, and the{' '}
-              <a href={LEGAL.kvkk.path}>{LEGAL.kvkk.title}</a>.
-            </span>
+        <div className="mb-6 form-check">
+          <input id="signup-terms" className="form-check-input" type="checkbox" name="terms" required />
+          <label className="form-check-label" htmlFor="signup-terms">
+            I agree to the <a href={LEGAL.terms.path}>Terms of Service</a>, the{' '}
+            <a href={LEGAL.privacy.path}>Privacy Policy</a>, and the{' '}
+            <a href={LEGAL.kvkk.path}>{LEGAL.kvkk.title}</a>.
           </label>
+        </div>
 
-          <button className={styles.submit} type="submit" disabled={busy}>
+        <div className="d-grid">
+          <button className="btn btn-primary" type="submit" disabled={busy}>
             {busy ? 'Creating…' : 'Create account'}
           </button>
-        </form>
+        </div>
+      </form>
 
-        <p className={styles.footer}>
-          Already have an account? <Link href="/login">Sign in</Link>
-        </p>
-      </div>
-    </main>
+      <p className="text-center mb-0">
+        <span>Already have an account? </span>
+        <Link href="/login">Sign in instead</Link>
+      </p>
+    </>
   );
 }

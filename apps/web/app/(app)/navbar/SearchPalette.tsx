@@ -1,0 +1,157 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
+
+import { useDropdown } from './useDropdown';
+
+/**
+ * Navbar araması — temanın "Search ⌘K" yeri. Panel sayfaları anında,
+ * içerik (imza/gönderici/üye) /api/search'ten debounce'la gelir.
+ */
+
+interface Hit {
+  group: string;
+  label: string;
+  sublabel: string;
+  href: string;
+}
+
+const PAGES: ReadonlyArray<{ label: string; href: string; icon: string }> = [
+  { label: 'Dashboard', href: '/app', icon: 'tabler-layout-dashboard' },
+  { label: 'Signatures', href: '/app/signatures', icon: 'tabler-signature' },
+  { label: 'Senders', href: '/app/senders', icon: 'tabler-users' },
+  { label: 'Members', href: '/app/members', icon: 'tabler-user-cog' },
+  { label: 'Brand', href: '/app/brand', icon: 'tabler-palette' },
+  { label: 'Account', href: '/app/account', icon: 'tabler-user-circle' },
+];
+
+export function SearchPalette() {
+  const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
+  const [q, setQ] = useState('');
+  const [hits, setHits] = useState<Hit[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // ⌘K / Ctrl+K her yerden açar — temanın kısayolu.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setOpen(true);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [setOpen]);
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+    else {
+      setQ('');
+      setHits([]);
+    }
+  }, [open]);
+
+  // Debounce'lu içerik araması.
+  useEffect(() => {
+    if (q.trim().length < 2) {
+      setHits([]);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`);
+        if (!res.ok) return;
+        const body = (await res.json()) as { hits: Hit[] };
+        setHits(body.hits);
+      } catch {
+        /* arama süstür, sayfa değil — sessiz geç */
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  const pages = q.trim()
+    ? PAGES.filter((p) => p.label.toLowerCase().includes(q.trim().toLowerCase()))
+    : PAGES;
+
+  const groups = [...new Set(hits.map((h) => h.group))];
+
+  return (
+    <div className="navbar-nav align-items-center" ref={ref}>
+      <div className="nav-item navbar-search-wrapper px-md-0 px-2 mb-0 position-relative">
+        <button
+          type="button"
+          className="nav-item nav-link search-toggler d-flex align-items-center px-0"
+          aria-label="Search (Ctrl+K)"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          <i className="icon-base ti tabler-search icon-md me-2" aria-hidden="true" />
+          <span className="d-none d-md-inline-block text-body-secondary fw-normal">
+            Search <span className="text-body-secondary">⌘K</span>
+          </span>
+        </button>
+
+        {open && (
+          <div
+            className="dropdown-menu show p-0"
+            style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', left: 0, minWidth: 340 }}
+          >
+            <div className="p-3 border-bottom">
+              <input
+                ref={inputRef}
+                type="search"
+                className="form-control"
+                placeholder="Search signatures, senders, members…"
+                aria-label="Search"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </div>
+            <div style={{ maxHeight: 380, overflowY: 'auto' }}>
+              <h6 className="dropdown-header text-uppercase small">Pages</h6>
+              {pages.length === 0 && (
+                <span className="dropdown-item-text small text-body-secondary">No page match</span>
+              )}
+              {pages.map((p) => (
+                <Link
+                  key={p.href}
+                  href={p.href}
+                  className="dropdown-item d-flex align-items-center"
+                  onClick={() => setOpen(false)}
+                >
+                  <i className={`icon-base ti ${p.icon} icon-md me-2`} aria-hidden="true" />
+                  {p.label}
+                </Link>
+              ))}
+              {groups.map((g) => (
+                <div key={g}>
+                  <h6 className="dropdown-header text-uppercase small">{g}</h6>
+                  {hits
+                    .filter((h) => h.group === g)
+                    .map((h, i) => (
+                      <Link
+                        key={`${g}:${i}`}
+                        href={h.href}
+                        className="dropdown-item"
+                        onClick={() => setOpen(false)}
+                      >
+                        <span className="d-block">{h.label}</span>
+                        <small className="text-body-secondary">{h.sublabel}</small>
+                      </Link>
+                    ))}
+                </div>
+              ))}
+              {q.trim().length >= 2 && hits.length === 0 && (
+                <span className="dropdown-item-text small text-body-secondary d-block pb-2">
+                  No workspace content matched “{q.trim()}”.
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../lib/auth/current';
+import { AuthCard } from '../AuthCard';
 import { AcceptInvite } from './AcceptInvite';
 
 export const metadata = { title: 'Invitation — Mailmyra' };
@@ -23,5 +24,9 @@ export default async function InvitePage({
     redirect(`/login?next=${encodeURIComponent(`/invite?token=${token}`)}`);
   }
 
-  return <AcceptInvite token={token} />;
+  return (
+    <AuthCard>
+      <AcceptInvite token={token} />
+    </AuthCard>
+  );
 }

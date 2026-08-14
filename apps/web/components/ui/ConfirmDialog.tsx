@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, type ReactNode } from 'react';
 
-import styles from './ConfirmDialog.module.css';
-
 /**
- * Panelin tek onay diyaloğu (backlog borcu: zip diyaloğunda odak/Escape
- * yoktu, publish window.confirm idi). Odak açılışta panele gelir, Tab
- * içeride döner, Escape = Cancel. Metinler çağıranın işi — bileşen kabuk.
+ * Panelin tek onay diyaloğu — görünüm temanın Bootstrap modal'ı
+ * (2026-08-14 tema turu), davranış eskisiyle AYNEN: odak açılışta panele
+ * gelir, Tab içeride döner, Escape = Cancel, zeminde tıklama = Cancel.
+ * Metinler çağıranın işi — bileşen kabuk. `tone="danger"` yıkıcı onaylarda
+ * (silme) düğmeyi kırmızıya çevirir.
  */
 export function ConfirmDialog({
   title,
@@ -17,6 +17,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   busy = false,
+  tone = 'primary',
 }: {
   title: string;
   children: ReactNode;
@@ -25,6 +26,7 @@ export function ConfirmDialog({
   confirmLabel?: string;
   cancelLabel?: string;
   busy?: boolean;
+  tone?: 'primary' | 'danger';
 }) {
   const panel = useRef<HTMLDivElement>(null);
 
@@ -56,27 +58,54 @@ export function ConfirmDialog({
   }
 
   return (
-    <div className={styles.overlay} onMouseDown={(e) => e.target === e.currentTarget && !busy && onCancel()}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className={styles.panel}
-        ref={panel}
-        tabIndex={-1}
-        onKeyDown={onKeyDown}
-      >
-        <h2 className={styles.title}>{title}</h2>
-        <div className={styles.body}>{children}</div>
-        <div className={styles.actions}>
-          <button type="button" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
-          </button>
-          {onConfirm && (
-            <button type="button" onClick={onConfirm} disabled={busy}>
-              {confirmLabel}
+    <div
+      className="modal fade show d-block"
+      // Bootstrap JS yok: perde ayrı eleman yerine zemin rengiyle (tema
+      // backdrop tonu). Zemine mousedown = Cancel (eski davranış).
+      style={{ backgroundColor: 'rgba(46, 38, 61, 0.5)' }}
+      onMouseDown={(e) => e.target === e.currentTarget && !busy && onCancel()}
+    >
+      <div className="modal-dialog modal-dialog-centered" role="document">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          className="modal-content"
+          ref={panel}
+          tabIndex={-1}
+          onKeyDown={onKeyDown}
+        >
+          <div className="modal-header">
+            <h5 className="modal-title">{title}</h5>
+            <button
+              type="button"
+              className="btn-close"
+              aria-label={cancelLabel}
+              onClick={onCancel}
+              disabled={busy}
+            />
+          </div>
+          <div className="modal-body">{children}</div>
+          <div className="modal-footer">
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={onCancel}
+              disabled={busy}
+            >
+              {cancelLabel}
             </button>
-          )}
+            {onConfirm && (
+              <button
+                type="button"
+                className={`btn ${tone === 'danger' ? 'btn-danger' : 'btn-primary'}`}
+                onClick={onConfirm}
+                disabled={busy}
+              >
+                {confirmLabel}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

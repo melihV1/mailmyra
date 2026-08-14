@@ -1,3 +1,4 @@
+import { AuthCard } from '../AuthCard';
 import { VerifyRunner } from './VerifyRunner';
 
 export const metadata = { title: 'Verify email — Mailmyra' };
@@ -9,5 +10,9 @@ export default async function VerifyEmailPage({
 }) {
   const params = await searchParams;
   const token = typeof params.token === 'string' ? params.token : '';
-  return <VerifyRunner token={token} />;
+  return (
+    <AuthCard>
+      <VerifyRunner token={token} />
+    </AuthCard>
+  );
 }
