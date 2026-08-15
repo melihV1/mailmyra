@@ -12,8 +12,11 @@ export const metadata = { title: 'Mailmyra Dev' };
 export const viewport = { colorScheme: 'only light' };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  /* Ürün dili İngilizce (karar 2026-08-10) — lang="tr" kalınca
+     text-transform: uppercase Türkçe kuralla i→İ üretiyordu ("JOB TİTLE").
+     Türkçe tek sayfa /kvkk kendi lang'ını LegalDoc üstünden taşır. */
   return (
-    <html lang="tr">
+    <html lang="en">
       <body>
         {/* MotionProvider (LazyMotion + domAnimation, Karar D1) tüm rotaları
             sarmalar ama `domAnimation` chunk'ı yalnız bir `m.*` bileşeni

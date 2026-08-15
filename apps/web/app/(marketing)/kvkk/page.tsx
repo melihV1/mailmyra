@@ -12,6 +12,7 @@ export const metadata = { title: 'KVKK Aydınlatma Metni — Mailmyra' };
 export default function KvkkPage() {
   return (
     <LegalDoc
+      lang="tr"
       eyebrow="Hukuki"
       title="KVKK Aydınlatma Metni"
       versionLine={`Yürürlük tarihi: ${LEGAL.kvkk.version}`}

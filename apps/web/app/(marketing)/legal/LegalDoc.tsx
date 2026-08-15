@@ -11,16 +11,19 @@ export function LegalDoc({
   title,
   versionLine,
   draftNotice,
+  lang,
   children,
 }: {
   eyebrow: string;
   title: string;
   versionLine: string;
   draftNotice: ReactNode;
+  /** Sayfanın dili kökten (en) sapıyorsa — /kvkk "tr" geçer. */
+  lang?: string;
   children: ReactNode;
 }) {
   return (
-    <main className={styles.page}>
+    <main className={styles.page} lang={lang}>
       <div className={styles.inner}>
         <p className={styles.eyebrow}>{eyebrow}</p>
         <h1 className={styles.title}>{title}</h1>
