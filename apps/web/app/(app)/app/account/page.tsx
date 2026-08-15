@@ -48,7 +48,13 @@ export default async function AccountPage() {
         <div className="card-body">
           <div className="d-flex align-items-center flex-wrap gap-4">
             <div className="avatar avatar-xl">
-              <span className="avatar-initial rounded bg-label-primary fs-3">{initial}</span>
+              {/* Navbar/üye listesiyle aynı kaynak: yüklü avatar varsa o, yoksa harf. */}
+              {session.user.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={session.user.avatarUrl} alt="" className="rounded" />
+              ) : (
+                <span className="avatar-initial rounded bg-label-primary fs-3">{initial}</span>
+              )}
             </div>
             <div>
               <h5 className="mb-1">{session.user.email}</h5>
