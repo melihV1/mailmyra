@@ -202,6 +202,8 @@ export function SenderTable({
                     <SenderActions
                       id={s.id}
                       name={s.displayName}
+                      email={s.email}
+                      jobTitle={s.jobTitle}
                       status={s.status}
                       activeSeats={activeSeats}
                       entitledSeats={entitledSeats}

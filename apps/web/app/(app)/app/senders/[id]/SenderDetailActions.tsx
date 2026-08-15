@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { ConfirmDialog } from '../../../../../components/ui/ConfirmDialog';
 import { useToast } from '../../../ToastProvider';
 
+import { EditSenderDialog } from '../EditSenderDialog';
+
 /**
  * Detay sayfası aksiyonları — listedeki SenderActions ile AYNI uçlar, geniş
  * düğme düzeni. Silme yalnız taslak/pasifte (canlı önce pasifleştirilir —
@@ -14,12 +16,16 @@ import { useToast } from '../../../ToastProvider';
 export function SenderDetailActions({
   id,
   name,
+  email,
+  jobTitle,
   status,
   activeSeats,
   entitledSeats,
 }: {
   id: string;
   name: string;
+  email: string;
+  jobTitle: string | null;
   status: 'draft' | 'active' | 'inactive';
   activeSeats: number;
   entitledSeats: number;
@@ -29,6 +35,7 @@ export function SenderDetailActions({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<'publish' | 'deactivate' | 'delete' | null>(null);
+  const [editing, setEditing] = useState(false);
 
   const capFull = activeSeats >= entitledSeats;
 
@@ -59,6 +66,15 @@ export function SenderDetailActions({
   return (
     <>
       <div className="d-grid gap-2">
+        <button
+          type="button"
+          className="btn btn-label-primary"
+          onClick={() => setEditing(true)}
+          disabled={busy}
+        >
+          <i className="icon-base ti tabler-edit me-1" aria-hidden="true" />
+          Edit details
+        </button>
         {status !== 'active' ? (
           <span data-mm-tip={capFull ? `All ${entitledSeats} seats are in use.` : undefined}>
             <button
@@ -106,6 +122,12 @@ export function SenderDetailActions({
         )}
       </div>
 
+      {editing && (
+        <EditSenderDialog
+          sender={{ id, displayName: name, email, jobTitle, status }}
+          onClose={() => setEditing(false)}
+        />
+      )}
       {confirming === 'publish' && (
         <ConfirmDialog
           title={`Publish ${name}?`}

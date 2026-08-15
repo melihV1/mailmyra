@@ -299,6 +299,52 @@ export async function deleteSenderAs(
   return { ok: true };
 }
 
+export type UpdateSenderResult =
+  | { ok: true }
+  | { ok: false; reason: 'forbidden' | 'not_found' | 'email_taken' | 'email_locked' };
+
+/**
+ * Gönderici düzenleme (Hüseyin, 2026-08-14). Ad ve ünvan her durumda
+ * değişir; E-POSTA canlı göndericide KİLİTLİ (`email_locked`) — koltuk
+ * "aktif gönderici kimliği"dir, canlıyken adres değiştirmek koltuk
+ * muhasebesini silmedeki `is_live` kuralıyla aynı sebepten pas geçerdi.
+ * Önce pasifleştir, sonra adresi değiştir.
+ */
+export async function updateSenderAs(
+  userId: string,
+  senderId: string,
+  input: { displayName: string; email: string; jobTitle?: string },
+): Promise<UpdateSenderResult> {
+  const sender = await prisma.senderIdentity.findUnique({ where: { id: senderId } });
+  if (!sender) return { ok: false, reason: 'not_found' };
+  const role = await roleFor(userId, sender.orgId);
+  if (!role) return { ok: false, reason: 'not_found' };
+  if (!can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
+
+  const email = input.email.trim().toLowerCase();
+  if (email !== sender.email && seatStatus(sender) === 'active') {
+    return { ok: false, reason: 'email_locked' };
+  }
+
+  try {
+    await prisma.senderIdentity.update({
+      where: { id: senderId },
+      data: {
+        displayName: input.displayName.trim(),
+        email,
+        jobTitle: input.jobTitle?.trim() || null,
+      },
+    });
+    return { ok: true };
+  } catch (error) {
+    // UNIQUE(orgId, email) — org içinde başka göndericinin adresi alınamaz.
+    if ((error as { code?: string }).code === 'P2002') {
+      return { ok: false, reason: 'email_taken' };
+    }
+    throw error;
+  }
+}
+
 export interface SenderDetail {
   id: string;
   displayName: string;

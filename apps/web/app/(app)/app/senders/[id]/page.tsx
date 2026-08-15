@@ -101,6 +101,8 @@ export default async function SenderDetailPage({
               <SenderDetailActions
                 id={sender.id}
                 name={sender.displayName}
+                email={sender.email}
+                jobTitle={sender.jobTitle}
                 status={sender.status}
                 activeSeats={seats.active}
                 entitledSeats={seats.entitled}

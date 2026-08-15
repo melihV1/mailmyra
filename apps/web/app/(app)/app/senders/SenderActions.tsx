@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import { useToast } from '../../ToastProvider';
 
+import { EditSenderDialog } from './EditSenderDialog';
+
 /**
  * Yayına alma ONAY ister ve kaç koltuk gideceğini rakamla söyler
  * (panel-brief §2.6). Tavan doluysa düğme pasif ve sebep görünür —
@@ -17,12 +19,16 @@ import { useToast } from '../../ToastProvider';
 export function SenderActions({
   id,
   name,
+  email,
+  jobTitle,
   status,
   activeSeats,
   entitledSeats,
 }: {
   id: string;
   name: string;
+  email: string;
+  jobTitle: string | null;
   status: 'draft' | 'active' | 'inactive';
   activeSeats: number;
   entitledSeats: number;
@@ -32,6 +38,7 @@ export function SenderActions({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<'publish' | 'deactivate' | 'delete' | null>(null);
+  const [editing, setEditing] = useState(false);
 
   const capFull = activeSeats >= entitledSeats;
 
@@ -102,6 +109,15 @@ export function SenderActions({
             Deactivate
           </button>
         )}
+        <button
+          type="button"
+          className="btn btn-sm btn-icon btn-label-primary"
+          aria-label={'Edit ' + name}
+          onClick={() => setEditing(true)}
+          disabled={busy}
+        >
+          <i className="icon-base ti tabler-edit" aria-hidden="true" />
+        </button>
         <span
           data-mm-tip={
             status === 'active' ? 'Live senders hold a seat — deactivate first.' : undefined
@@ -125,6 +141,12 @@ export function SenderActions({
       </span>
       {/* Diyaloglar `<span>` dışında: sabit konumlu overlay `<div>`i bir
           inline eleman içine gömmek geçersiz HTML/hydration uyarısı doğurur. */}
+      {editing && (
+        <EditSenderDialog
+          sender={{ id, displayName: name, email, jobTitle, status }}
+          onClose={() => setEditing(false)}
+        />
+      )}
       {confirming === 'publish' && (
         <ConfirmDialog
           title={`Publish ${name}?`}
