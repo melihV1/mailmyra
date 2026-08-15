@@ -3,7 +3,7 @@ import './tokens.css';
 import './fonts.css';
 import { MotionProvider } from '../components/motion/MotionProvider';
 
-export const metadata = { title: 'Mailmyra Dev' };
+export const metadata = { title: 'Mailmyra' };
 
 /* tokens.css'teki `color-scheme: only light` kararının meta karşılığı.
    İkisi birden gerekli: Chrome Android'in Auto Dark Mode'u bazı sürümlerde

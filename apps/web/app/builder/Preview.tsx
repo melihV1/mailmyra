@@ -81,9 +81,13 @@ export function Preview({
         ) : (
           <p style={{ margin: '0 0 8px', fontSize: 13, color: '#8a6d1a' }}>{note}</p>
         ))}
+      {/* allow-same-origin ŞART (2026-08-15): sandbox="" iframe'i opak
+          origin'dir ve Chrome PNA opak→localhost görsel isteklerini keser —
+          dev'de fixture/ikon görselleri sessizce kırılıyordu. Script'ler
+          yine yasak (allow-scripts YOK); CSS yalıtımı iframe'in doğası. */}
       <iframe
         title="signature-preview"
-        sandbox=""
+        sandbox="allow-same-origin"
         srcDoc={wrapPreviewDoc(html, dark ? '#1a1a1a' : '#ffffff')}
         style={{
           width: '100%',

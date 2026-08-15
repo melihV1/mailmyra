@@ -34,9 +34,12 @@ const full: SignatureData = {
   },
   visuals: {
     ...baseVisuals,
-    avatarUrl: 'https://placehold.co/240x240/7b9fd3/ffffff/png',
-    logoUrl: 'https://placehold.co/360x120/1a1a1a/ffffff/png',
-    handSignatureUrl: 'https://placehold.co/300x100/333333/ffffff/png',
+    /* Yerel fixture görselleri (apps/web/public/brand-fixture) — placehold.co
+       üçüncü partiydi: panel içi önizleme dış servise bağımlı olmasın.
+       Göreli yol yeter; önizleme iframe'i base URL'i uygulamadan alır. */
+    avatarUrl: '/brand-fixture/avatar.png',
+    logoUrl: '/brand-fixture/logo.png',
+    handSignatureUrl: '/brand-fixture/hand-signature.png',
   },
   social: [
     { platform: 'linkedin', url: 'https://linkedin.com/company/voldi' },

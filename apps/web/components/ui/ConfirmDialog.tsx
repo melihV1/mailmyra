@@ -31,23 +31,42 @@ export function ConfirmDialog({
   tone?: 'primary' | 'danger';
 }) {
   const panel = useRef<HTMLDivElement>(null);
+  const root = useRef<HTMLDivElement>(null);
   /* Çıkış animasyonu: iptal yolları önce `show`u düşürür (tema geçişi
      oynar), onCancel gerçek kaldırmayı 300ms sonra yapar. Onay yolu
-     çağıranda biter (genelde toast+refresh izler) — orada anında. */
+     çağıranda biter (busy/hata akışları diyalog İÇİNDE yaşayabildiği için
+     erken soldurAMAyız — DangerZone/Brand/zip emsalleri); onun yerine
+     unmount anında aşağıdaki hayalet klon soluşu oynar. */
   const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
   const { shown } = useBsPresence(!leaving);
   const cancelTimer = useRef<number | null>(null);
 
   const requestClose = () => {
     if (busy || leaving) return;
     setLeaving(true);
+    leavingRef.current = true;
     cancelTimer.current = window.setTimeout(onCancel, 300);
   };
 
   useEffect(() => {
     panel.current?.focus();
+    /* StrictMode'un dev'deki çift mount'unda bir önceki cleanup'ın hayaleti
+       boyanmadan silinsin — gerçek unmount'ta yeni mount olmaz, hayalet kalır. */
+    document.querySelectorAll('[data-mm-modal-ghost]').forEach((g) => g.remove());
+    const node = root.current;
     return () => {
       if (cancelTimer.current !== null) window.clearTimeout(cancelTimer.current);
+      /* Parent'ın anlık unmount'u (onay başarısı dahil) tema geçişi olmadan
+         kalmasın: inert bir klon bırak, `show`suz bırakınca solup gider. */
+      if (leavingRef.current || !node) return;
+      const ghost = node.cloneNode(true) as HTMLElement;
+      ghost.setAttribute('data-mm-modal-ghost', '');
+      ghost.style.pointerEvents = 'none';
+      document.body.appendChild(ghost);
+      void ghost.offsetHeight; // reflow — sınıf değişimi geçiş saysın
+      ghost.classList.remove('show');
+      window.setTimeout(() => ghost.remove(), 350);
     };
   }, []);
 
@@ -76,6 +95,7 @@ export function ConfirmDialog({
 
   return (
     <div
+      ref={root}
       className={`modal fade d-block${shown ? ' show' : ''}`}
       // Bootstrap JS yok: perde ayrı eleman yerine zemin rengiyle (tema
       // backdrop tonu). Zemine mousedown = Cancel (eski davranış).

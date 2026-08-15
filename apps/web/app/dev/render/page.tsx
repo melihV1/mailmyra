@@ -43,15 +43,17 @@ export default function DevRenderPage() {
           >
             <h2>{fx.title}</h2>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              {/* allow-same-origin: opak origin + Chrome PNA localhost
+                  görsellerini kesiyordu (builder Preview ile aynı karar). */}
               <iframe
                 title={`${fx.id}-light`}
-                sandbox=""
+                sandbox="allow-same-origin"
                 srcDoc={wrapPreviewDoc(html, '#ffffff')}
                 style={{ width: 620, height: 280, border: '1px solid #ddd' }}
               />
               <iframe
                 title={`${fx.id}-dark`}
-                sandbox=""
+                sandbox="allow-same-origin"
                 srcDoc={wrapPreviewDoc(html, '#1a1a1a')}
                 style={{ width: 620, height: 280, border: '1px solid #ddd' }}
               />
