@@ -124,6 +124,7 @@ model Organization {
   legalAcceptances LegalAcceptance[]
   brandSetting     BrandSetting?
   notifications    Notification[]
+  invoices         Invoice[]
 
   @@index([parentOrgId])
 }
@@ -325,4 +326,40 @@ model Notification {
   @@index([userId, readAt])
   /// Liste: kullanıcının son bildirimleri.
   @@index([userId, createdAt])
+}
+
+/// Manuel kesilen fatura KAYDI (karar 2026-08-15, Hüseyin: fatura
+/// görüntülenip yazdırılabilsin). Otomatik abonelik YAZILMAZ (CLAUDE.md
+/// kilitli karar) — satırı ekip elle açar (şimdilik SQL), panel yalnız
+/// listeler, gösterir, yazdırır. Kesim arayüzü bilinçli olarak YOK.
+/// Fatura ajans ağacında kök (billing) org'a kesilir.
+model Invoice {
+  id    String @id @default(cuid())
+  orgId String
+
+  /// İnsan-okur numara (ör. MM-2026-0001) — elle verilir, global benzersiz.
+  number String @unique @db.VarChar(32)
+
+  issuedAt DateTime
+  dueAt    DateTime?
+
+  /// Tutarlar cent — kayan noktalı para yok. `amountCents` gerçeğin
+  /// kaynağıdır; seats×unit'ten saparsa ekran farkı "Adjustment" gösterir.
+  seats       Int
+  unitCents   Int    @default(100)
+  amountCents Int
+  currency    String @default("USD") @db.VarChar(8)
+
+  /// 'due' | 'paid' | 'void' — kod tarafında InvoiceStatus birliği;
+  /// kolonda enum değil varchar (Notification.type emsali).
+  status String @default("due") @db.VarChar(16)
+
+  /// Faturaya basılan serbest not (havale bilgisi, dönem açıklaması).
+  note String? @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, issuedAt])
 }

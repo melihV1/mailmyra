@@ -3,6 +3,7 @@ import { prisma } from '../lib/db';
 /** Testler arası tam temizlik. Sıra önemli: çocuklar önce. */
 export async function truncateAll() {
   await prisma.$transaction([
+    prisma.invoice.deleteMany(),
     prisma.notification.deleteMany(),
     prisma.legalAcceptance.deleteMany(),
     prisma.signature.deleteMany(),

@@ -1,8 +1,11 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { PRICING } from '@mailmyra/core';
 import { currentSession } from '../../../../../lib/auth/current';
 import { prisma } from '../../../../../lib/db';
+import { invoiceDate, INVOICE_STATUS_BADGE, money } from '../../../../../lib/invoice-format';
+import { listInvoicesAs } from '../../../../../lib/repo/invoices';
 import { primaryOrgId, resolveBillingOrgId, seatSummary } from '../../../../../lib/repo/senders';
 import { AccountTabs } from '../AccountTabs';
 
@@ -27,7 +30,7 @@ export default async function BillingPage() {
   if (!session) redirect('/login?next=/app/account/billing');
 
   const orgId = await primaryOrgId(session.user.id);
-  const [seats, billing] = await Promise.all([
+  const [seats, billing, invoices] = await Promise.all([
     seatSummary(session.user.id),
     orgId
       ? resolveBillingOrgId(prisma, orgId).then((billingOrgId) =>
@@ -37,6 +40,8 @@ export default async function BillingPage() {
           }),
         )
       : Promise.resolve(null),
+    // null = billing:manage yok (owner değil) — tablo yerine kısa not.
+    listInvoicesAs(session.user.id),
   ]);
 
   const priceDisplay = (PRICING.perSeatYearCents / 100).toFixed(2);
@@ -137,35 +142,76 @@ export default async function BillingPage() {
         </div>
       </div>
 
-      {/* Fatura geçmişi — otomatik abonelik YOK (kilitli karar); kayıtlar
-          şimdilik elle kesiliyor, tablo boş durumla iskelet olarak duruyor. */}
+      {/* Fatura geçmişi — otomatik abonelik YOK (kilitli karar); kayıtları
+          ekip elle keser, burası yalnız listeler. Görme hakkı billing:manage
+          (owner) — tutarlar org'un ticari bilgisi. */}
       <div className="card mt-4">
         <div className="card-header d-flex justify-content-between align-items-center">
           <h5 className="card-title mb-0">Invoice history</h5>
           <span className="badge bg-label-secondary">Manual billing</span>
         </div>
-        <div className="table-responsive text-nowrap">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Invoice</th>
-                <th>Date</th>
-                <th>Seats</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody className="table-border-bottom-0">
-              <tr>
-                <td colSpan={5} className="text-center py-5 text-body-secondary">
-                  <i className="icon-base ti tabler-file-dollar icon-26px d-block mx-auto mb-2" />
-                  No invoices recorded yet — invoices are issued manually by our team and will
-                  appear here.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        {invoices === null ? (
+          <div className="card-body pt-0 text-body-secondary">
+            Invoices are visible to workspace owners.
+          </div>
+        ) : (
+          <div className="table-responsive text-nowrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Invoice</th>
+                  <th>Date</th>
+                  <th>Seats</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody className="table-border-bottom-0">
+                {invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-5 text-body-secondary">
+                      <i className="icon-base ti tabler-file-dollar icon-26px d-block mx-auto mb-2" />
+                      No invoices recorded yet — invoices are issued manually by our team and
+                      will appear here.
+                    </td>
+                  </tr>
+                ) : (
+                  invoices.map((inv) => {
+                    const badge = INVOICE_STATUS_BADGE[inv.status];
+                    return (
+                      <tr key={inv.id}>
+                        <td>
+                          <Link
+                            href={`/app/account/billing/invoices/${inv.id}`}
+                            className="fw-medium text-heading"
+                          >
+                            {inv.number}
+                          </Link>
+                        </td>
+                        <td>{invoiceDate(inv.issuedAt)}</td>
+                        <td>{inv.seats}</td>
+                        <td>{money(inv.amountCents, inv.currency)}</td>
+                        <td>
+                          <span className={`badge ${badge.cls}`}>{badge.label}</span>
+                        </td>
+                        <td>
+                          <Link
+                            href={`/app/account/billing/invoices/${inv.id}`}
+                            className="btn btn-sm btn-icon btn-label-secondary"
+                            aria-label={`View invoice ${inv.number}`}
+                          >
+                            <i className="icon-base ti tabler-eye" aria-hidden="true" />
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </section>
   );
