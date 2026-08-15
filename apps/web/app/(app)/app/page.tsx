@@ -296,11 +296,14 @@ export default async function DashboardPage() {
       {/* ── Getting started + Quick actions ── */}
       <div className="row g-4 mb-4">
         <div className="col-xxl-8">
-          <div className="card h-100">
+          {/* Tamamlanınca tek satıra iner (Codex denetimi P2): adım listesi
+              işini bitirmiş onboarding'in ekranı kaplaması gerekmez; tur
+              düğmesi ve %100 rozeti başlıkta yaşamaya devam eder. */}
+          <div className={`card${doneCount === steps.length ? '' : ' h-100'}`}>
             <div className="card-header d-flex justify-content-between align-items-start">
               <div className="card-title m-0">
                 <h5 className="mb-1">Getting started</h5>
-                <p className="card-subtitle">
+                <p className="card-subtitle mb-0">
                   {doneCount === steps.length
                     ? 'All set — your workspace is fully up and running.'
                     : `${doneCount} of ${steps.length} steps done`}
@@ -311,49 +314,57 @@ export default async function DashboardPage() {
                 <span className="badge bg-label-primary rounded-pill">{stepsPct}%</span>
               </div>
             </div>
-            <div className="card-body">
-              <div className="progress mb-4" style={{ height: 8 }} aria-hidden="true">
-                <div className="progress-bar" style={{ width: `${stepsPct}%` }} />
-              </div>
-              <ul className="list-unstyled mb-0 d-grid gap-3">
-                {steps.map((step, i) => (
-                  <li key={step.label} className="d-flex align-items-center">
-                    <div className="avatar avatar-sm flex-shrink-0 me-3">
-                      <span
-                        className={`avatar-initial rounded-circle ${step.done ? 'bg-label-success' : 'bg-label-secondary'}`}
-                      >
-                        {step.done ? (
-                          <i className="icon-base ti tabler-check icon-18px" aria-hidden="true" />
-                        ) : (
-                          i + 1
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex-grow-1">
-                      <span
-                        className={`d-block fw-medium ${step.done ? 'text-body-secondary text-decoration-line-through' : 'text-heading'}`}
-                      >
-                        {step.label}
-                      </span>
-                      <small className="text-body-secondary">{step.note}</small>
-                    </div>
-                    {!step.done &&
-                      (step.external ? (
-                        <a href={step.href} className="btn btn-sm btn-label-primary flex-shrink-0">
-                          Start
-                        </a>
-                      ) : (
-                        <Link
-                          href={step.href}
-                          className="btn btn-sm btn-label-primary flex-shrink-0"
+            {doneCount < steps.length && (
+              <div className="card-body">
+                <div className="progress mb-4" style={{ height: 8 }} aria-hidden="true">
+                  <div className="progress-bar" style={{ width: `${stepsPct}%` }} />
+                </div>
+                <ul className="list-unstyled mb-0 d-grid gap-3">
+                  {steps.map((step, i) => (
+                    <li key={step.label} className="d-flex align-items-center">
+                      <div className="avatar avatar-sm flex-shrink-0 me-3">
+                        <span
+                          className={`avatar-initial rounded-circle ${step.done ? 'bg-label-success' : 'bg-label-secondary'}`}
                         >
-                          Start
-                        </Link>
-                      ))}
-                  </li>
-                ))}
-              </ul>
-            </div>
+                          {step.done ? (
+                            <i
+                              className="icon-base ti tabler-check icon-18px"
+                              aria-hidden="true"
+                            />
+                          ) : (
+                            i + 1
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex-grow-1">
+                        <span
+                          className={`d-block fw-medium ${step.done ? 'text-body-secondary text-decoration-line-through' : 'text-heading'}`}
+                        >
+                          {step.label}
+                        </span>
+                        <small className="text-body-secondary">{step.note}</small>
+                      </div>
+                      {!step.done &&
+                        (step.external ? (
+                          <a
+                            href={step.href}
+                            className="btn btn-sm btn-label-primary flex-shrink-0"
+                          >
+                            Start
+                          </a>
+                        ) : (
+                          <Link
+                            href={step.href}
+                            className="btn btn-sm btn-label-primary flex-shrink-0"
+                          >
+                            Start
+                          </Link>
+                        ))}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 

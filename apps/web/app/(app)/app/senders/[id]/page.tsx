@@ -106,6 +106,7 @@ export default async function SenderDetailPage({
                 status={sender.status}
                 activeSeats={seats.active}
                 entitledSeats={seats.entitled}
+                assignedCount={sender.signatures.length}
               />
             </div>
           </div>

@@ -21,6 +21,7 @@ export function SenderDetailActions({
   status,
   activeSeats,
   entitledSeats,
+  assignedCount,
 }: {
   id: string;
   name: string;
@@ -29,6 +30,8 @@ export function SenderDetailActions({
   status: 'draft' | 'active' | 'inactive';
   activeSeats: number;
   entitledSeats: number;
+  /** Atanmış imza sayısı — tekil export ancak canlı + imzalıyken mümkün. */
+  assignedCount: number;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -38,6 +41,40 @@ export function SenderDetailActions({
   const [editing, setEditing] = useState(false);
 
   const capFull = activeSeats >= entitledSeats;
+  const exportable = status === 'active' && assignedCount > 0;
+
+  /* Tekil export — toplu zip ucunun tek göndericili hâli (Codex denetimi:
+     "sender detayından export başlatılamıyor"). Kapı sırası ve dosya
+     üretimi sunucuda aynı; burada yalnız indirme koreografisi var. */
+  const downloadZip = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/senders/export-zip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderIds: [id] }),
+      });
+      if (!res.ok) {
+        setError('Export failed — try again.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mailmyra-imzalar-${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('success', `Downloaded ${name}'s signature file${assignedCount === 1 ? '' : 's'}.`);
+    } catch {
+      setError('Export failed — try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const call = async (path: string, doneMessage: string, redirect = false) => {
     setBusy(true);
@@ -98,6 +135,26 @@ export function SenderDetailActions({
             Deactivate
           </button>
         )}
+
+        <span
+          data-mm-tip={
+            exportable
+              ? undefined
+              : status !== 'active'
+                ? 'Only live senders can be exported.'
+                : 'Assign a signature first.'
+          }
+        >
+          <button
+            type="button"
+            className="btn btn-label-info w-100"
+            onClick={() => void downloadZip()}
+            disabled={busy || !exportable}
+          >
+            <i className="icon-base ti tabler-download me-1" aria-hidden="true" />
+            Download signature
+          </button>
+        </span>
 
         <span
           data-mm-tip={

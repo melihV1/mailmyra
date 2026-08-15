@@ -19,8 +19,12 @@ export const NOTIFICATION_LOOKS: Record<
     icon: 'tabler-alert-triangle',
     tone: 'warning',
     title: 'Seats almost full',
+    /* Geçmiş zamanlı OLAY dili (Codex denetimi P0, 2026-08-15): eski kayıt
+       "3 of 3 seats in use" diye ŞİMDİKİ durum gibi okunuyor, kenar çubuğu
+       1/3 derken çelişki sanılıyordu. Anlık durumun kaynağı rozet/dashboard;
+       bildirim yalnız o anki eşiğin kaydıdır. */
     body: (p) =>
-      `${String(p.activeSeats ?? '?')} of ${String(p.entitledSeats ?? '?')} seats in use.`,
+      `Seat usage reached ${String(p.activeSeats ?? '?')} of ${String(p.entitledSeats ?? '?')} at the time.`,
   },
   invitation_accepted: {
     icon: 'tabler-user-plus',
