@@ -12,6 +12,7 @@ import {
   duplicateSignature,
   getSignature,
   listSignatures,
+  renameSignature,
   saveSignature,
 } from '../lib/repo/signatures';
 import { truncateAll } from './helpers';
@@ -177,6 +178,47 @@ describe('deleting and duplicating', () => {
     // sessizce etkilerdi.
     expect(dup?.senderIdentityId).toBeNull();
     expect(dup?.data).toEqual(rows.find((r) => r.id === saved.id)?.data);
+  });
+});
+
+describe('renaming', () => {
+  test('an editor renames; data and template stay put', async () => {
+    const { userId, orgId } = await member('editor', 'ali@voldi.net');
+    const saved = await saveSignature(userId, { orgId, name: 'Eski ad', data: DATA });
+    if (!saved.ok) throw new Error(saved.reason);
+
+    expect(await renameSignature(userId, saved.id, 'Yeni ad')).toEqual({ ok: true });
+
+    const fresh = await prisma.signature.findUniqueOrThrow({ where: { id: saved.id } });
+    expect(fresh.name).toBe('Yeni ad');
+    expect(fresh.templateId).toBe('classic-horizontal');
+  });
+
+  test('a viewer cannot rename; a stranger sees not_found', async () => {
+    const owner = await member('owner', 'sahip@voldi.net');
+    const saved = await saveSignature(owner.userId, {
+      orgId: owner.orgId,
+      name: 'İmza',
+      data: DATA,
+    });
+    if (!saved.ok) throw new Error(saved.reason);
+
+    const viewer = await prisma.user.create({
+      data: { email: 'v@voldi.net', passwordHash: 'x' },
+    });
+    await prisma.membership.create({
+      data: { userId: viewer.id, orgId: owner.orgId, role: 'viewer' },
+    });
+    expect(await renameSignature(viewer.id, saved.id, 'X')).toEqual({
+      ok: false,
+      reason: 'forbidden',
+    });
+
+    const stranger = await member('owner', 'yabanci@voldi.net', 'Rakip');
+    expect(await renameSignature(stranger.userId, saved.id, 'X')).toEqual({
+      ok: false,
+      reason: 'not_found',
+    });
   });
 });
 

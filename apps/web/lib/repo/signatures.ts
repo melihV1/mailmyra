@@ -78,6 +78,23 @@ export async function deleteSignature(userId: string, signatureId: string): Prom
   return { ok: true };
 }
 
+/** Tablodan hızlı ad değişikliği — builder'a girmeden (2026-08-15). */
+export async function renameSignature(
+  userId: string,
+  signatureId: string,
+  name: string,
+): Promise<MutateResult> {
+  const signature = await prisma.signature.findUnique({ where: { id: signatureId } });
+  if (!signature) return { ok: false, reason: 'not_found' };
+
+  const role = await roleIn(userId, signature.orgId);
+  if (!role) return { ok: false, reason: 'not_found' };
+  if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
+
+  await prisma.signature.update({ where: { id: signatureId }, data: { name } });
+  return { ok: true };
+}
+
 export type DuplicateResult = { ok: true; id: string } | RepoError;
 
 export async function duplicateSignature(
