@@ -136,15 +136,73 @@ export function InvitationActions({ id }: { id: string }) {
     }
   };
 
+  /* Taze link üretir (eski link ölür): 'email' maili yeniden yollar,
+     'link' URL'yi panoya kopyalar — elden iletmek için. */
+  const refresh = async (delivery: 'email' | 'link') => {
+    setBusy(true);
+    const res = await fetch(`/api/invitations/${id}/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ delivery }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      toast('danger', 'Could not refresh the invitation. Please try again.');
+      return;
+    }
+    if (delivery === 'email') {
+      toast('success', 'Invitation e-mail sent again — the old link no longer works.');
+    } else {
+      const body = (await res.json().catch(() => ({}))) as { actionUrl?: string };
+      if (body.actionUrl) {
+        try {
+          await navigator.clipboard.writeText(body.actionUrl);
+          toast('success', 'Fresh invite link copied — the old link no longer works.');
+        } catch {
+          // Pano reddedilirse link kaybolmasın: eski link ZATEN öldü,
+          // kullanıcı yeniyi elle kopyalayabilsin.
+          window.prompt('Copy the invite link:', body.actionUrl);
+        }
+      }
+    }
+    router.refresh();
+  };
+
   return (
-    <button
-      type="button"
-      className="btn btn-sm btn-label-danger"
-      onClick={() => void revoke()}
-      disabled={busy}
-    >
-      {busy ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> : <i className="icon-base ti tabler-x me-1" aria-hidden="true" />}
-      Revoke
-    </button>
+    <span className="d-inline-flex align-items-center gap-2">
+      <button
+        type="button"
+        className="btn btn-sm btn-icon btn-label-primary"
+        aria-label="Resend invitation e-mail"
+        data-mm-tip="Resend e-mail"
+        onClick={() => void refresh('email')}
+        disabled={busy}
+      >
+        <i className="icon-base ti tabler-send" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        className="btn btn-sm btn-icon btn-label-secondary"
+        aria-label="Copy invite link"
+        data-mm-tip="Copy fresh link"
+        onClick={() => void refresh('link')}
+        disabled={busy}
+      >
+        <i className="icon-base ti tabler-link" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        className="btn btn-sm btn-label-danger"
+        onClick={() => void revoke()}
+        disabled={busy}
+      >
+        {busy ? (
+          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+        ) : (
+          <i className="icon-base ti tabler-x me-1" aria-hidden="true" />
+        )}
+        Revoke
+      </button>
+    </span>
   );
 }

@@ -13,6 +13,7 @@ import {
   inviteMember,
   listInvitations,
   listMembers,
+  refreshInvitation,
   removeMember,
   revokeInvitation,
 } from '../lib/repo/members';
@@ -101,6 +102,67 @@ describe('inviting', () => {
     expect(
       await inviteMember(o.userId, { email: 'x@voldi.net', role: 'owner' as never }, mailer),
     ).toEqual({ ok: false, reason: 'invalid_role' });
+  });
+});
+
+describe('refreshing an invitation', () => {
+  test('resend (send=true) mails a fresh link; the old link dies, the new one works', async () => {
+    const o = await owner();
+    await inviteMember(o.userId, { email: 'yeni@voldi.net', role: 'editor' }, mailer);
+    const oldToken = inviteLinkToken();
+    const [invitation] = await listInvitations(o.userId);
+
+    const r = await refreshInvitation(o.userId, invitation!.id, true, mailer);
+
+    expect(r.ok).toBe(true);
+    expect(mailer.sent).toHaveLength(2);
+    const newToken = inviteLinkToken();
+    expect(newToken).not.toBe(oldToken);
+
+    const invitee = await prisma.user.create({ data: { email: 'yeni@voldi.net', passwordHash: 'x' } });
+    expect(await acceptInvitation(oldToken, invitee.id)).toEqual({
+      ok: false,
+      reason: 'invalid_token',
+    });
+    expect(await acceptInvitation(newToken, invitee.id)).toMatchObject({ ok: true });
+  });
+
+  test('copy-link (send=false) returns the URL without mailing and extends the expiry', async () => {
+    const o = await owner();
+    await inviteMember(o.userId, { email: 'yeni@voldi.net', role: 'viewer' }, mailer);
+    const [invitation] = await listInvitations(o.userId);
+    await prisma.invitation.update({
+      where: { id: invitation!.id },
+      data: { expiresAt: new Date(Date.now() + 60_000) }, // bitmek üzere
+    });
+
+    const r = await refreshInvitation(o.userId, invitation!.id, false, mailer);
+
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.actionUrl).toContain('/invite?token=');
+    expect(mailer.sent).toHaveLength(1); // yalnız ilk davet maili
+    const fresh = await prisma.invitation.findUniqueOrThrow({ where: { id: invitation!.id } });
+    expect(fresh.expiresAt.getTime()).toBeGreaterThan(Date.now() + 6 * 24 * 60 * 60 * 1000);
+  });
+
+  test('an editor cannot refresh; a foreign invitation is not_found', async () => {
+    const o = await owner();
+    await inviteMember(o.userId, { email: 'yeni@voldi.net', role: 'viewer' }, mailer);
+    const [invitation] = await listInvitations(o.userId);
+
+    const editor = await prisma.user.create({ data: { email: 'e@voldi.net', passwordHash: 'x' } });
+    await prisma.membership.create({ data: { userId: editor.id, orgId: o.orgId, role: 'editor' } });
+    expect(await refreshInvitation(editor.id, invitation!.id, true, mailer)).toEqual({
+      ok: false,
+      reason: 'forbidden',
+    });
+
+    const other = await owner('baska@voldi.net');
+    expect(await refreshInvitation(other.userId, invitation!.id, true, mailer)).toEqual({
+      ok: false,
+      reason: 'not_found',
+    });
   });
 });
 

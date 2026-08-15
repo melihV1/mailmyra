@@ -102,6 +102,47 @@ export async function listInvitations(userId: string): Promise<InvitationRow[]> 
   });
 }
 
+export type RefreshInvitationResult =
+  | { ok: true; actionUrl: string }
+  | { ok: false; reason: 'forbidden' | 'not_found' };
+
+/**
+ * Bekleyen davete TAZE link üretir. Token hash'li saklandığı için eski link
+ * geri çıkarılamaz — hem "resend" hem "copy link" yeni token demektir ve
+ * eski link o anda ölür (davetin upsert felsefesiyle tutarlı: iki canlı
+ * link olmaz). `send` true ise davet maili yeniden gider; false ise link
+ * yalnız çağırana döner (elden iletmek için).
+ */
+export async function refreshInvitation(
+  userId: string,
+  invitationId: string,
+  send: boolean,
+  mailer: Mailer,
+): Promise<RefreshInvitationResult> {
+  const orgId = await managerOrgId(userId);
+  if (!orgId) return { ok: false, reason: 'forbidden' };
+  const invitation = await prisma.invitation.findFirst({
+    where: { id: invitationId, orgId, acceptedAt: null },
+  });
+  if (!invitation) return { ok: false, reason: 'not_found' };
+
+  const token = newSessionToken();
+  await prisma.invitation.update({
+    where: { id: invitation.id },
+    data: { tokenHash: hashToken(token), expiresAt: new Date(Date.now() + INVITE_TTL_MS) },
+  });
+
+  const actionUrl = `${appUrl()}/invite?token=${token}`;
+  if (send) {
+    const org = await prisma.organization.findUniqueOrThrow({ where: { id: orgId } });
+    await mailer.send({
+      to: invitation.email,
+      ...inviteEmail({ actionUrl, orgName: org.name }),
+    });
+  }
+  return { ok: true, actionUrl };
+}
+
 export type RevokeResult = { ok: true } | { ok: false; reason: 'forbidden' | 'not_found' };
 
 export async function revokeInvitation(userId: string, invitationId: string): Promise<RevokeResult> {
