@@ -17,13 +17,78 @@ interface Hit {
   href: string;
 }
 
-const PAGES: ReadonlyArray<{ label: string; href: string; icon: string }> = [
-  { label: 'Dashboard', href: '/app', icon: 'tabler-layout-dashboard' },
-  { label: 'Signatures', href: '/app/signatures', icon: 'tabler-signature' },
-  { label: 'Senders', href: '/app/senders', icon: 'tabler-users' },
-  { label: 'Members', href: '/app/members', icon: 'tabler-user-cog' },
-  { label: 'Brand', href: '/app/brand', icon: 'tabler-palette' },
-  { label: 'Account', href: '/app/account', icon: 'tabler-user-circle' },
+/* HER panel sayfası burada olmalı (Hüseyin, 2026-08-15: "billing yazıyorum
+   göstermiyor") — keywords görünmez eş anlamlılardır, etiketle birlikte
+   aranır. Builder `external`: sidebar'daki gibi tam sayfa <a> (CSS yalıtımı). */
+const PAGES: ReadonlyArray<{
+  label: string;
+  href: string;
+  icon: string;
+  keywords: string;
+  external?: boolean;
+}> = [
+  { label: 'Dashboard', href: '/app', icon: 'tabler-layout-dashboard', keywords: 'home overview' },
+  {
+    label: 'Signatures',
+    href: '/app/signatures',
+    icon: 'tabler-signature',
+    keywords: 'template assign',
+  },
+  {
+    label: 'Senders',
+    href: '/app/senders',
+    icon: 'tabler-users',
+    keywords: 'seat publish deactivate csv import export zip',
+  },
+  {
+    label: 'Members',
+    href: '/app/members',
+    icon: 'tabler-user-cog',
+    keywords: 'team invite invitation role workspace rename',
+  },
+  {
+    label: 'Brand',
+    href: '/app/brand',
+    icon: 'tabler-palette',
+    keywords: 'color logo font lock default template',
+  },
+  {
+    label: 'Account',
+    href: '/app/account',
+    icon: 'tabler-user-circle',
+    keywords: 'profile email change delete legal',
+  },
+  {
+    label: 'Security',
+    href: '/app/account/security',
+    icon: 'tabler-lock',
+    keywords: 'password sessions sign out',
+  },
+  {
+    label: 'Billing & Plan',
+    href: '/app/account/billing',
+    icon: 'tabler-credit-card',
+    keywords: 'invoice payment price seats trial plan',
+  },
+  {
+    label: 'Notifications',
+    href: '/app/account/notifications',
+    icon: 'tabler-bell',
+    keywords: 'alerts preferences',
+  },
+  {
+    label: 'My profile',
+    href: '/app/profile',
+    icon: 'tabler-user',
+    keywords: 'avatar photo cover timeline',
+  },
+  {
+    label: 'Open builder',
+    href: '/builder',
+    icon: 'tabler-edit',
+    keywords: 'editor design create new signature',
+    external: true,
+  },
 ];
 
 export function SearchPalette() {
@@ -75,18 +140,21 @@ export function SearchPalette() {
     return () => clearTimeout(t);
   }, [q]);
 
-  const pages = q.trim()
-    ? PAGES.filter((p) => p.label.toLowerCase().includes(q.trim().toLowerCase()))
+  const needle = q.trim().toLowerCase();
+  const pages = needle
+    ? PAGES.filter((p) => `${p.label} ${p.keywords}`.toLowerCase().includes(needle))
     : PAGES;
 
   const groups = [...new Set(hits.map((h) => h.group))];
 
   return (
-    <div className="navbar-nav align-items-center" ref={ref}>
-      <div className="nav-item navbar-search-wrapper px-md-0 px-2 mb-0 position-relative">
+    /* flex-grow + w-100: görünürdeki arama şeridinin TAMAMI tıklanabilir
+       (Hüseyin, 2026-08-15 — eskiden yalnız ikon+yazı kadardı). */
+    <div className="navbar-nav align-items-center flex-grow-1" ref={ref}>
+      <div className="nav-item navbar-search-wrapper px-md-0 px-2 mb-0 position-relative w-100">
         <button
           type="button"
-          className="nav-item nav-link search-toggler d-flex align-items-center px-0"
+          className="nav-item nav-link search-toggler d-flex align-items-center px-0 w-100 text-start"
           aria-label="Search (Ctrl+K)"
           aria-expanded={open}
           onClick={() => setOpen(!open)}
@@ -100,7 +168,12 @@ export function SearchPalette() {
         {open && (
           <div
             className="dropdown-menu show p-0"
-            style={{ position: 'absolute', top: 'calc(100% + 0.5rem)', left: 0, minWidth: 340 }}
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 0.5rem)',
+              left: 0,
+              width: 'min(480px, calc(100vw - 2rem))',
+            }}
           >
             <div className="p-3 border-bottom">
               <input
@@ -118,17 +191,29 @@ export function SearchPalette() {
               {pages.length === 0 && (
                 <span className="dropdown-item-text small text-body-secondary">No page match</span>
               )}
-              {pages.map((p) => (
-                <Link
-                  key={p.href}
-                  href={p.href}
-                  className="dropdown-item d-flex align-items-center"
-                  onClick={() => setOpen(false)}
-                >
-                  <i className={`icon-base ti ${p.icon} icon-md me-2`} aria-hidden="true" />
-                  {p.label}
-                </Link>
-              ))}
+              {pages.map((p) =>
+                p.external ? (
+                  <a
+                    key={p.href}
+                    href={p.href}
+                    className="dropdown-item d-flex align-items-center"
+                    onClick={() => setOpen(false)}
+                  >
+                    <i className={`icon-base ti ${p.icon} icon-md me-2`} aria-hidden="true" />
+                    {p.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={p.href}
+                    href={p.href}
+                    className="dropdown-item d-flex align-items-center"
+                    onClick={() => setOpen(false)}
+                  >
+                    <i className={`icon-base ti ${p.icon} icon-md me-2`} aria-hidden="true" />
+                    {p.label}
+                  </Link>
+                ),
+              )}
               {groups.map((g) => (
                 <div key={g}>
                   <h6 className="dropdown-header text-uppercase small">{g}</h6>
