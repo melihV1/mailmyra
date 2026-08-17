@@ -21,8 +21,8 @@ export function darkPreviewNote(textColor: string): string | null {
     return null; // geçersiz hex — renk seçici geçerli üretir, bozuk girişte sessiz
   }
   return (
-    'Metin rengin koyu zeminde okunmuyor. Çoğu e-posta istemcisi koyu modda ' +
-    'renkleri kendisi uyarlar; bu önizleme uyarlamayan istemciyi gösterir.'
+    'Your text color is hard to read on a dark background. Most clients adapt colors ' +
+    'in dark mode; this preview shows one that does not.'
   );
 }
 
@@ -65,10 +65,10 @@ export function Preview({
       ) : (
         <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
           <button type="button" onClick={() => setDark(false)} disabled={!dark}>
-            Açık zemin
+            Light
           </button>
           <button type="button" onClick={() => setDark(true)} disabled={dark}>
-            Koyu zemin
+            Dark
           </button>
         </div>
       )}

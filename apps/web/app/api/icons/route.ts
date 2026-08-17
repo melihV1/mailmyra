@@ -24,22 +24,22 @@ function jsonError(status: number, error: string): Response {
 export async function POST(req: Request): Promise<Response> {
   const ip = clientIp(req);
   if (!limiter.check(ip, Date.now())) {
-    return jsonError(429, 'Çok fazla ikon isteği. Bir saat sonra tekrar deneyin.');
+    return jsonError(429, 'Too many icon requests. Try again in an hour.');
   }
 
   const writePath = process.env.CDN_WRITE_PATH;
   if (!writePath) {
-    return jsonError(500, 'Sunucu yapılandırması eksik (CDN_WRITE_PATH).');
+    return jsonError(500, 'Server configuration is incomplete (CDN_WRITE_PATH).');
   }
 
   let color: unknown;
   try {
     ({ color } = (await req.json()) as { color?: unknown });
   } catch {
-    return jsonError(400, 'Geçersiz istek gövdesi.');
+    return jsonError(400, 'Invalid request body.');
   }
   if (typeof color !== 'string' || !isValidHex(color)) {
-    return jsonError(400, 'Geçersiz renk. #rgb veya #rrggbb formatında hex bekleniyor.');
+    return jsonError(400, 'Invalid color. Expected a hex value like #rgb or #rrggbb.');
   }
 
   // Kota tavanı: spoofable IP × 16.7M olası renk, ikon dizinlerini sınırsız
@@ -60,13 +60,13 @@ export async function POST(req: Request): Promise<Response> {
     if (m?.[1]) colors.add(m[1]);
   }
   if (colors.size >= cap && !colors.has(requestedHex)) {
-    return jsonError(507, 'İkon depolama tavanına ulaşıldı. Yönetici ile iletişime geçin.');
+    return jsonError(507, 'Icon storage limit reached. Contact an administrator.');
   }
 
   try {
     const { lowContrast } = await generateColoredIcons(writePath, color);
     return Response.json(lowContrast ? { ready: true, lowContrast: true } : { ready: true });
   } catch {
-    return jsonError(500, 'İkon üretimi başarısız oldu. Tekrar deneyin.');
+    return jsonError(500, 'Could not build the icons. Try again.');
   }
 }

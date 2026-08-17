@@ -10,9 +10,9 @@ import styles from '../builder.module.css';
 type VisualKey = 'avatarUrl' | 'logoUrl' | 'handSignatureUrl';
 
 const SLOTS: Array<{ key: VisualKey; kind: string; title: string; hint: string }> = [
-  { key: 'avatarUrl', kind: 'avatar', title: 'Profil fotoğrafı', hint: '180px, <40KB hedef' },
-  { key: 'logoUrl', kind: 'logo', title: 'Şirket logosu', hint: '360px, <60KB hedef' },
-  { key: 'handSignatureUrl', kind: 'handSignature', title: 'El imzası', hint: '300px, <50KB hedef' },
+  { key: 'avatarUrl', kind: 'avatar', title: 'Profile photo', hint: '180px, target under 40KB' },
+  { key: 'logoUrl', kind: 'logo', title: 'Company logo', hint: '360px, target under 60KB' },
+  { key: 'handSignatureUrl', kind: 'handSignature', title: 'Handwritten signature', hint: '300px, target under 50KB' },
 ];
 
 export function VisualsStep({
@@ -42,13 +42,13 @@ export function VisualsStep({
       const res = await fetch('/api/upload', { method: 'POST', body: form });
       const body = (await res.json()) as { url?: string; error?: string; warning?: string };
       if (!res.ok || !body.url) {
-        setMessages((m) => ({ ...m, [slot.key]: body.error ?? 'Yükleme başarısız.' }));
+        setMessages((m) => ({ ...m, [slot.key]: body.error ?? 'Upload failed.' }));
         return;
       }
       dispatch({ type: 'patchVisuals', value: { [slot.key]: body.url } });
       if (body.warning) setMessages((m) => ({ ...m, [slot.key]: `⚠️ ${body.warning}` }));
     } catch {
-      setMessages((m) => ({ ...m, [slot.key]: 'Ağ hatası — tekrar deneyin.' }));
+      setMessages((m) => ({ ...m, [slot.key]: 'Network error — try again.' }));
     } finally {
       setBusy(null);
     }
@@ -67,7 +67,7 @@ export function VisualsStep({
         return (
           <FieldGroup key={slot.key} title={slot.title}>
             <span style={labelStyle}>
-              PNG, JPG veya SVG · max 5MB · {slot.hint}
+              PNG, JPG or SVG · max 5MB · {slot.hint}
             </span>
             {url ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -82,7 +82,7 @@ export function VisualsStep({
                     setMessages((m) => ({ ...m, [slot.key]: undefined }));
                   }}
                 >
-                  Kaldır
+                  Remove
                 </button>
               </div>
             ) : (
@@ -97,8 +97,8 @@ export function VisualsStep({
                 }}
               />
             )}
-            {isLocked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}
-            {busy === slot.key && <p style={{ fontSize: 13 }}>Yükleniyor…</p>}
+            {isLocked && <span className={styles.lockHint}>🔒 Managed in brand settings</span>}
+            {busy === slot.key && <p style={{ fontSize: 13 }}>Uploading…</p>}
             {messages[slot.key] && (
               <p style={{ fontSize: 13, color: '#a05a2c' }}>{messages[slot.key]}</p>
             )}

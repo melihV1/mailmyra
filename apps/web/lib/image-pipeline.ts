@@ -52,7 +52,7 @@ async function compressToBudget(
       : {
           buffer,
           ext: 'png',
-          warning: `Görsel önerilen boyutu aşıyor (${Math.round(buffer.length / 1024)}KB) — e-postaları yavaşlatabilir.`,
+          warning: `Image is over the recommended size (${Math.round(buffer.length / 1024)}KB) — it can slow e-mails down.`,
         };
   }
   let best: Buffer | null = null;
@@ -63,7 +63,7 @@ async function compressToBudget(
   return {
     buffer: best!,
     ext: 'jpg',
-    warning: `Görsel önerilen boyutu aşıyor (${Math.round(best!.length / 1024)}KB) — e-postaları yavaşlatabilir.`,
+    warning: `Image is over the recommended size (${Math.round(best!.length / 1024)}KB) — it can slow e-mails down.`,
   };
 }
 
@@ -72,14 +72,14 @@ export async function processImage(
   kind: UploadKind,
 ): Promise<{ buffer: Buffer; filename: string; width: number; height: number; warning?: string }> {
   if (input.length > MAX_INPUT_BYTES) {
-    throw new PipelineError(413, 'Dosya 5MB sınırını aşıyor.');
+    throw new PipelineError(413, 'The file is over the 5MB limit.');
   }
   const format = detectFormat(input);
   if (format === 'webp' || format === 'gif') {
-    throw new PipelineError(400, 'WebP ve GIF kabul edilmez. PNG, JPG veya SVG yükleyin.');
+    throw new PipelineError(400, 'WebP and GIF are not accepted. Upload a PNG, JPG or SVG.');
   }
   if (format === 'unknown') {
-    throw new PipelineError(400, 'Dosya görsel olarak tanınamadı. PNG, JPG veya SVG yükleyin.');
+    throw new PipelineError(400, 'That file is not a readable image. Upload a PNG, JPG or SVG.');
   }
 
   const target = KIND_TARGETS[kind];
@@ -118,7 +118,7 @@ export async function processImage(
     hasAlpha = !stats.isOpaque;
   } catch (e) {
     if (e instanceof PipelineError) throw e;
-    throw new PipelineError(400, 'Görsel işlenemedi: boyutlar çok büyük veya dosya bozuk.', { cause: e });
+    throw new PipelineError(400, 'Could not process the image: it is too large or the file is damaged.', { cause: e });
   }
 
   // İŞLEME BÖLGESİ: burada yakalama YOK. Beklenmeyen bir hata gerçek bir bug'dır

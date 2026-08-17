@@ -10,7 +10,7 @@ import { darkPreviewNote } from '../app/builder/Preview';
  */
 describe('darkPreviewNote', () => {
   it('explains the empty-looking box for the default dark ink (#333333)', () => {
-    expect(darkPreviewNote('#333333')).toMatch(/koyu zemin/i);
+    expect(darkPreviewNote('#333333')).toMatch(/dark background/i);
   });
 
   it('appears for near-black text, the worst case (#1a1a1a on #1a1a1a)', () => {

@@ -16,10 +16,10 @@ import { ExportButtons } from '../../components/ExportButtons';
 import styles from './builder.module.css';
 
 const STEPS = [
-  { id: 'info', title: 'Bilgiler' },
-  { id: 'visuals', title: 'Görseller' },
-  { id: 'social', title: 'Sosyal' },
-  { id: 'style', title: 'Stil' },
+  { id: 'info', title: 'Details' },
+  { id: 'visuals', title: 'Images' },
+  { id: 'social', title: 'Social' },
+  { id: 'style', title: 'Style' },
 ] as const;
 
 type StepId = (typeof STEPS)[number]['id'];
@@ -187,7 +187,7 @@ export function BuilderClient({
     iconsNeeded && contrastRatio(data.visuals.iconColor, '#ffffff') < ICON_LOW_CONTRAST_ON_WHITE;
 
   function resetAll() {
-    if (!window.confirm('Taslak silinecek ve form sıfırlanacak. Emin misin?')) return;
+    if (!window.confirm('This clears the saved draft and resets the form. Continue?')) return;
     clearDraft(window.localStorage);
     dispatch({ type: 'reset' });
   }
@@ -224,7 +224,7 @@ export function BuilderClient({
       )}
       <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
         <button type="button" onClick={resetAll}>
-          Temizle / sıfırdan başla
+          Clear and start over
         </button>
         <span
           style={{
@@ -238,7 +238,7 @@ export function BuilderClient({
             ? saveFailed
               ? 'Could not save — check your connection. Your edits are still here.'
               : `Saved · ${savedAt ?? ''}`
-            : 'Taslak kaydedildi ✓'}
+            : 'Draft saved ✓'}
         </span>
       </div>
     </div>
@@ -249,20 +249,20 @@ export function BuilderClient({
       <Preview html={html} textColor={applied.visuals.textColor} />
       <ExportButtons
         html={html}
-        filename="mailmyra-imza"
+        filename="mailmyra-signature"
         gated={gated}
         disabled={exportDisabled}
         disabledNote={
           exportDisabled
             ? iconsFailed
-              ? 'İkonlar üretilemedi — tekrar deneyin'
-              : 'İkonlar hazırlanıyor…'
+              ? 'Could not build the icons — try again'
+              : 'Preparing icons…'
             : undefined
         }
       />
       {iconsNeeded && iconsFailed && exportDisabled && (
         <button type="button" onClick={() => setRetryTick((n) => n + 1)}>
-          Yeniden dene
+          Try again
         </button>
       )}
     </div>
@@ -270,18 +270,18 @@ export function BuilderClient({
 
   return (
     <main className={styles.shell}>
-      <h1 style={{ fontSize: 22 }}>İmza Oluşturucu</h1>
+      <h1 style={{ fontSize: 22 }}>Signature builder</h1>
 
       <div className={styles.mobileTabs}>
         <button type="button" disabled={mobilePane === 'edit'} onClick={() => setMobilePane('edit')}>
-          Düzenle
+          Edit
         </button>
         <button
           type="button"
           disabled={mobilePane === 'preview'}
           onClick={() => setMobilePane('preview')}
         >
-          Önizle
+          Preview
         </button>
       </div>
 

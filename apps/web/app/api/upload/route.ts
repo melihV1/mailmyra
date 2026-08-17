@@ -25,30 +25,30 @@ function jsonError(status: number, error: string): Response {
 export async function POST(req: Request): Promise<Response> {
   const ip = clientIp(req);
   if (!limiter.check(ip, Date.now())) {
-    return jsonError(429, 'Çok fazla yükleme. Bir saat sonra tekrar deneyin.');
+    return jsonError(429, 'Too many uploads. Try again in an hour.');
   }
 
   const contentLengthHeader = req.headers.get('content-length');
   const contentLength = contentLengthHeader === null ? NaN : Number(contentLengthHeader);
   if (Number.isFinite(contentLength) && contentLength > MAX_CONTENT_LENGTH_BYTES) {
-    return jsonError(413, 'Dosya 5MB sınırını aşıyor.');
+    return jsonError(413, 'The file is over the 5MB limit.');
   }
 
   const writePath = process.env.CDN_WRITE_PATH;
   if (!writePath || !process.env.CDN_PUBLIC_URL) {
-    return jsonError(500, 'Sunucu yapılandırması eksik (CDN_WRITE_PATH / CDN_PUBLIC_URL).');
+    return jsonError(500, 'Server configuration is incomplete (CDN_WRITE_PATH / CDN_PUBLIC_URL).');
   }
   const quotaBytes = envInt(process.env.CDN_DISK_QUOTA_MB, 5120) * 1024 * 1024;
   if ((await dirSizeBytes(writePath)) >= quotaBytes) {
-    return jsonError(507, 'Depolama kotası doldu. Yönetici ile iletişime geçin.');
+    return jsonError(507, 'Storage quota is full. Contact an administrator.');
   }
 
   const form = await req.formData();
   const file = form.get('file');
   const kind = form.get('kind');
-  if (!(file instanceof Blob)) return jsonError(400, 'Dosya bulunamadı.');
+  if (!(file instanceof Blob)) return jsonError(400, 'No file received.');
   if (typeof kind !== 'string' || !KINDS.includes(kind as UploadKind)) {
-    return jsonError(400, 'Geçersiz görsel türü.');
+    return jsonError(400, 'Unsupported image type.');
   }
 
   const input = Buffer.from(await file.arrayBuffer());

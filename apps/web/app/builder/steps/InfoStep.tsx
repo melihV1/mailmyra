@@ -31,105 +31,105 @@ export function InfoStep({
 
   return (
     <div>
-      <FieldGroup title="Kimlik">
+      <FieldGroup title="Identity">
         <TextField
-          label="Ad Soyad"
+          label="Full name"
           required
           value={data.identity.fullName}
           onChange={(v) => dispatch({ type: 'patchIdentity', value: { fullName: v } })}
         />
         <TextField
-          label="Ünvan"
+          label="Job title"
           value={data.identity.jobTitle ?? ''}
           onChange={(v) => dispatch({ type: 'patchIdentity', value: { jobTitle: v || undefined } })}
         />
         <TextField
-          label="Departman"
+          label="Department"
           value={data.identity.department ?? ''}
           onChange={(v) => dispatch({ type: 'patchIdentity', value: { department: v || undefined } })}
         />
         <TextField
-          label="Şirket"
+          label="Company"
           value={data.identity.company ?? ''}
           onChange={(v) => dispatch({ type: 'patchIdentity', value: { company: v || undefined } })}
         />
       </FieldGroup>
 
-      <FieldGroup title="İletişim">
+      <FieldGroup title="Contact">
         <TextField
-          label="E-posta"
+          label="E-mail"
           value={data.contact.email ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { email: v || undefined } })}
         />
         <TextField
-          label="Telefon"
+          label="Phone"
           value={data.contact.phone ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { phone: v || undefined } })}
         />
         <TextField
-          label="Mobil"
+          label="Mobile"
           value={data.contact.mobile ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { mobile: v || undefined } })}
         />
         <TextField
-          label="Web sitesi"
+          label="Website"
           value={data.contact.website ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { website: v || undefined } })}
         />
         <TextField
-          label="Adres"
+          label="Address"
           value={data.contact.address ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { address: v || undefined } })}
         />
       </FieldGroup>
 
-      <FieldGroup title="CTA Butonu">
+      <FieldGroup title="Call to action">
         <TextField
-          label="Buton metni"
-          placeholder="Görüşme Ayarla"
+          label="Button label"
+          placeholder="Book a meeting"
           value={locked.has('cta') ? (appliedExtras.ctaLabel ?? '') : (extras.ctaLabel ?? '')}
           onChange={(v) => dispatch({ type: 'patchExtras', value: { ctaLabel: v || undefined } })}
           disabled={locked.has('cta')}
         />
         <TextField
-          label="Buton bağlantısı"
+          label="Button link"
           placeholder="https://..."
           value={locked.has('cta') ? (appliedExtras.ctaUrl ?? '') : (extras.ctaUrl ?? '')}
           onChange={(v) => dispatch({ type: 'patchExtras', value: { ctaUrl: v || undefined } })}
           disabled={locked.has('cta')}
         />
         {locked.has('cta') && (
-          <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>
+          <span className={styles.lockHint}>🔒 Managed in brand settings</span>
         )}
       </FieldGroup>
 
-      <FieldGroup title="Özel Alanlar">
+      <FieldGroup title="Custom fields">
         {customFields.map((f, i) => (
           <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
             <input
               style={{ ...inputStyle, flex: 1 }}
-              placeholder="Etiket"
-              aria-label={`Özel alan ${i + 1} etiketi`}
+              placeholder="Label"
+              aria-label={`Custom field ${i + 1} label`}
               value={f.label}
               onChange={(e) => setCustomField(i, { label: e.target.value })}
             />
             <input
               style={{ ...inputStyle, flex: 1 }}
-              placeholder="Değer"
-              aria-label={`Özel alan ${i + 1} değeri`}
+              placeholder="Value"
+              aria-label={`Custom field ${i + 1} value`}
               value={f.value}
               onChange={(e) => setCustomField(i, { value: e.target.value })}
             />
             <input
               style={{ ...inputStyle, flex: 1 }}
-              placeholder="URL (opsiyonel)"
-              aria-label={`Özel alan ${i + 1} bağlantısı`}
+              placeholder="URL (optional)"
+              aria-label={`Custom field ${i + 1} link`}
               value={f.url ?? ''}
               onChange={(e) => setCustomField(i, { url: e.target.value || undefined })}
             />
             <button
               type="button"
-              aria-label={`Özel alan ${i + 1} sil`}
+              aria-label={`Delete custom field ${i + 1}`}
               onClick={() =>
                 dispatch({
                   type: 'patchExtras',
@@ -137,7 +137,7 @@ export function InfoStep({
                 })
               }
             >
-              Sil
+              Delete
             </button>
           </div>
         ))}
@@ -150,13 +150,13 @@ export function InfoStep({
             })
           }
         >
-          + Alan ekle
+          + Add field
         </button>
       </FieldGroup>
 
-      <FieldGroup title="Yasal Metin">
+      <FieldGroup title="Legal text">
         <label style={{ display: 'block' }}>
-          <span style={labelStyle}>Feragatname / gizlilik notu</span>
+          <span style={labelStyle}>Disclaimer / confidentiality note</span>
           <textarea
             style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
             value={locked.has('disclaimer') ? (appliedExtras.disclaimer ?? '') : (extras.disclaimer ?? '')}
@@ -166,7 +166,7 @@ export function InfoStep({
             }
           />
           {locked.has('disclaimer') && (
-            <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>
+            <span className={styles.lockHint}>🔒 Managed in brand settings</span>
           )}
         </label>
       </FieldGroup>

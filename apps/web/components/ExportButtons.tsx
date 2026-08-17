@@ -40,9 +40,9 @@ export function ExportButtons({
           'text/html': new Blob([html], { type: 'text/html' }),
         }),
       ]);
-      alert('Kopyalandı (text/html)');
+      alert('Copied as formatted HTML.');
     } catch (e) {
-      alert(`Kopyalama başarısız: ${(e as Error).message}`);
+      alert(`Copy failed: ${(e as Error).message}`);
     }
   }
 
@@ -66,10 +66,10 @@ export function ExportButtons({
   return (
     <div style={{ marginTop: 12, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
       <button type="button" onClick={copyHtml} disabled={blocked}>
-        HTML olarak kopyala
+        Copy signature
       </button>
       <button type="button" onClick={downloadHtm} disabled={blocked}>
-        .htm indir
+        Download .htm
       </button>
       {blocked && note ? (
         <span style={{ fontSize: 13, color: '#a05a2c' }}>{note}</span>

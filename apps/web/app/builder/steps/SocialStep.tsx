@@ -41,7 +41,7 @@ export function SocialStep({
         <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8, alignItems: 'center' }}>
           <select
             style={{ ...inputStyle, width: 140 }}
-            aria-label={`Sosyal platform ${i + 1}`}
+            aria-label={`Social platform ${i + 1}`}
             value={s.platform}
             onChange={(e) =>
               update(social.map((x, j) => (j === i ? { ...x, platform: e.target.value as typeof s.platform } : x)))
@@ -56,14 +56,14 @@ export function SocialStep({
           <input
             style={{ ...inputStyle, flex: 1 }}
             placeholder="https://..."
-            aria-label={`Sosyal bağlantı ${i + 1} adresi`}
+            aria-label={`Social link ${i + 1} URL`}
             value={s.url}
             onChange={(e) => update(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
           />
-          <button type="button" onClick={() => move(i, -1)} aria-label="Yukarı">↑</button>
-          <button type="button" onClick={() => move(i, 1)} aria-label="Aşağı">↓</button>
-          <button type="button" aria-label={`Sosyal bağlantı ${i + 1} sil`} onClick={() => update(social.filter((_, j) => j !== i))}>
-            Sil
+          <button type="button" onClick={() => move(i, -1)} aria-label="Move up">↑</button>
+          <button type="button" onClick={() => move(i, 1)} aria-label="Move down">↓</button>
+          <button type="button" aria-label={`Delete social link ${i + 1}`} onClick={() => update(social.filter((_, j) => j !== i))}>
+            Delete
           </button>
         </div>
       ))}
@@ -71,7 +71,7 @@ export function SocialStep({
         type="button"
         onClick={() => update([...social, { platform: 'linkedin', url: '' }])}
       >
-        + Sosyal bağlantı ekle
+        + Add social link
       </button>
     </div>
   );

@@ -8,7 +8,7 @@ import { primaryOrgId } from '../../lib/repo/senders';
 import { getSignature } from '../../lib/repo/signatures';
 import { BuilderClient } from './BuilderClient';
 
-export const metadata = { title: 'İmza Oluşturucu — Mailmyra' };
+export const metadata = { title: 'Signature builder — Mailmyra' };
 // isExportGated() build zamanında değil, HER İSTEKTE değerlendirilmeli:
 // `next build` bu sayfayı statik olarak öndeğerlendirirse, build makinesinin
 // ortam değişkeni (EXPORT_REQUIRES_AUTH) build çıktısına gömülür ve sunucu

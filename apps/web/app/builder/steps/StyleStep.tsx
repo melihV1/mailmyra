@@ -24,15 +24,15 @@ const NEAR_BLACK_MAX_RATIO = 1.2;
 export function contrastWarnings(visuals: SignatureData['visuals']): string[] {
   const warnings: string[] = [];
   const checks: Array<{ color: string; min: number; name: string }> = [
-    { color: visuals.textColor, min: 4.5, name: 'Metin rengi' },
-    { color: visuals.mutedColor, min: 3, name: 'İkincil metin rengi' },
+    { color: visuals.textColor, min: 4.5, name: 'Text color' },
+    { color: visuals.mutedColor, min: 3, name: 'Secondary text color' },
   ];
   for (const c of checks) {
     try {
       if (contrastRatio(c.color, LIGHT_BG) < c.min)
-        warnings.push(`${c.name} beyaz zeminde zor okunur.`);
+        warnings.push(`${c.name} is hard to read on a white background.`);
       if (contrastRatio(c.color, PURE_BLACK) < NEAR_BLACK_MAX_RATIO)
-        warnings.push(`${c.name} saf siyaha çok yakın; koyu modda sorun çıkarabilir.`);
+        warnings.push(`${c.name} is very close to pure black and can disappear in dark mode.`);
     } catch {
       // geçersiz hex — renk seçici geçerli hex üretir, elle bozuk girişte sessiz kal
     }
@@ -56,7 +56,7 @@ function ColorField({
       <span style={labelStyle}>{label}</span>
       <input type="color" value={value} disabled={locked} onChange={(e) => onChange(e.target.value)} />
       <code style={{ marginLeft: 8, fontSize: 13 }}>{value}</code>
-      {locked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}
+      {locked && <span className={styles.lockHint}>🔒 Managed in brand settings</span>}
     </label>
   );
 }
@@ -103,33 +103,33 @@ export function StyleStep({
         </div>
       )}
 
-      <FieldGroup title="Renkler">
+      <FieldGroup title="Colors">
         <ColorField
-          label="Marka rengi"
+          label="Brand color"
           value={locked.has('brandColor') ? applied.visuals.brandColor : data.visuals.brandColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { brandColor: v } })}
           locked={locked.has('brandColor')}
         />
         <ColorField
-          label="Metin rengi"
+          label="Text color"
           value={locked.has('textColor') ? applied.visuals.textColor : data.visuals.textColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { textColor: v } })}
           locked={locked.has('textColor')}
         />
         <ColorField
-          label="İkincil metin rengi"
+          label="Secondary text color"
           value={locked.has('mutedColor') ? applied.visuals.mutedColor : data.visuals.mutedColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { mutedColor: v } })}
           locked={locked.has('mutedColor')}
         />
         <ColorField
-          label="İkon rengi"
+          label="Icon color"
           value={data.visuals.iconColor}
           onChange={(v) => dispatch({ type: 'patchVisuals', value: { iconColor: v } })}
         />
       </FieldGroup>
 
-      <FieldGroup title="Tipografi ve Düzen">
+      <FieldGroup title="Typography and layout">
         <label style={{ display: 'block', marginBottom: 12 }}>
           <span style={labelStyle}>Font</span>
           <select
@@ -147,11 +147,11 @@ export function StyleStep({
             ))}
           </select>
           {locked.has('fontFamily') && (
-            <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>
+            <span className={styles.lockHint}>🔒 Managed in brand settings</span>
           )}
         </label>
 
-        <span style={labelStyle}>Boyut</span>
+        <span style={labelStyle}>Size</span>
         <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
           {(['small', 'medium', 'large'] as const).map((s) => (
             <label key={s}>
@@ -161,7 +161,7 @@ export function StyleStep({
                 checked={data.layout.size === s}
                 onChange={() => dispatch({ type: 'patchLayout', value: { size: s } })}
               />{' '}
-              {s === 'small' ? 'Küçük' : s === 'medium' ? 'Orta' : 'Büyük'}
+              {s === 'small' ? 'Small' : s === 'medium' ? 'Medium' : 'Large'}
             </label>
           ))}
         </div>
@@ -172,11 +172,11 @@ export function StyleStep({
             checked={data.layout.showDividers}
             onChange={(e) => dispatch({ type: 'patchLayout', value: { showDividers: e.target.checked } })}
           />{' '}
-          Ayraç çizgisi göster
+          Show divider lines
         </label>
 
         <label style={{ display: 'block' }}>
-          <span style={labelStyle}>İkon stili</span>
+          <span style={labelStyle}>Icon style</span>
           <select
             style={inputStyle}
             value={data.layout.iconStyle}
@@ -187,22 +187,22 @@ export function StyleStep({
               })
             }
           >
-            <option value="filled">Dolu</option>
-            <option value="outline">Kontur</option>
-            <option value="mono">Tek renk</option>
+            <option value="filled">Filled</option>
+            <option value="outline">Outline</option>
+            <option value="mono">Monochrome</option>
           </select>
         </label>
         {data.layout.iconStyle === 'filled' && (
           <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
-            Dolu stilde ikonlar platformların kendi renkleriyle basılır — İkon
-            rengi bu stilde kullanılmaz.
+            Filled icons use each platform’s own colors — the icon color is not used in
+            this style.
           </p>
         )}
 
         {(data.layout.iconStyle === 'outline' || data.layout.iconStyle === 'mono') &&
           iconLowContrast && (
             <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
-              ℹ️ İkon rengin açık tonda — beyaz zeminde ikonlar soluk görünebilir.
+              ℹ️ Your icon color is light — icons may look faint on a white background.
             </p>
           )}
       </FieldGroup>

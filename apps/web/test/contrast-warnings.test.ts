@@ -35,28 +35,28 @@ describe('contrastWarnings — susması gerekenler', () => {
 describe('contrastWarnings — uyarması gerekenler', () => {
   it('warns near-pure-black for #000000 text color, without a white-bg warning', () => {
     expect(contrastWarnings(visuals({ textColor: '#000000' }))).toEqual([
-      'Metin rengi saf siyaha çok yakın; koyu modda sorun çıkarabilir.',
+      'Text color is very close to pure black and can disappear in dark mode.',
     ]);
   });
   it('warns white-bg for #ffffff text color, without a near-black warning', () => {
     expect(contrastWarnings(visuals({ textColor: '#ffffff' }))).toEqual([
-      'Metin rengi beyaz zeminde zor okunur.',
+      'Text color is hard to read on a white background.',
     ]);
   });
   it('warns white-bg for a light gray (#cccccc) text color', () => {
     expect(contrastWarnings(visuals({ textColor: '#cccccc' }))).toEqual([
-      'Metin rengi beyaz zeminde zor okunur.',
+      'Text color is hard to read on a white background.',
     ]);
   });
   it('warns near-pure-black for #000000 muted color with the muted label', () => {
     expect(contrastWarnings(visuals({ mutedColor: '#000000' }))).toEqual([
-      'İkincil metin rengi saf siyaha çok yakın; koyu modda sorun çıkarabilir.',
+      'Secondary text color is very close to pure black and can disappear in dark mode.',
     ]);
   });
   it('applies the looser muted threshold: #888888 passes as muted (≈3.5 ≥ 3) but a lighter #cccccc fails', () => {
     expect(contrastWarnings(visuals({ mutedColor: '#888888' }))).toEqual([]);
     expect(contrastWarnings(visuals({ mutedColor: '#cccccc' }))).toEqual([
-      'İkincil metin rengi beyaz zeminde zor okunur.',
+      'Secondary text color is hard to read on a white background.',
     ]);
   });
 });

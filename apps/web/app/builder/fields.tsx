@@ -56,7 +56,7 @@ export function TextField({
         disabled={locked || disabled}
         onChange={(e) => onChange(e.target.value)}
       />
-      {locked && <span className={styles.lockHint}>🔒 Marka ayarlarından yönetiliyor</span>}
+      {locked && <span className={styles.lockHint}>🔒 Managed in brand settings</span>}
     </label>
   );
 }
