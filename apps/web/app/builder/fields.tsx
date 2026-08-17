@@ -1,24 +1,14 @@
 'use client';
 
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
-import styles from './builder.module.css';
-
-export const labelStyle: CSSProperties = {
-  display: 'block',
-  fontSize: 13,
-  color: '#6d6e71',
-  marginBottom: 4,
-};
-
-export const inputStyle: CSSProperties = {
-  width: '100%',
-  padding: '8px 10px',
-  border: '1px solid #d5d5d5',
-  borderRadius: 6,
-  fontSize: 14,
-  boxSizing: 'border-box',
-};
+/**
+ * Builder form primitifleri — Vuexy dili (2026-08-17). Eskiden satır içi
+ * stil objeleriydi (`labelStyle`/`inputStyle`); artık temanın `form-label` /
+ * `form-control` sınıfları. Alanlar ızgaraya oturur: `FieldGroup` bir
+ * `row`, her alan varsayılan olarak yarım genişlik — temanın Edit User
+ * modal'ındaki iki kolonlu form düzeni.
+ */
 
 export function TextField({
   label,
@@ -28,6 +18,8 @@ export function TextField({
   required,
   locked,
   disabled,
+  wide = false,
+  type = 'text',
 }: {
   label: string;
   value: string;
@@ -40,15 +32,19 @@ export function TextField({
    *  bir paylaşılan ipucu altında toplandığı durumlar için (ör. CTA çifti:
    *  iki alan aynı `cta` kilidine bağlı, ipucu grupta bir kez gösterilir). */
   disabled?: boolean;
+  /** Tam satır kaplasın (adres, uzun metinler). */
+  wide?: boolean;
+  type?: 'text' | 'email' | 'url' | 'tel';
 }) {
   return (
-    <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={labelStyle}>
+    <div className={wide ? 'col-12' : 'col-12 col-md-6'}>
+      <label className="form-label">
         {label}
         {required ? ' *' : ''}
-      </span>
+      </label>
       <input
-        style={inputStyle}
+        type={type}
+        className="form-control"
         value={value}
         placeholder={placeholder}
         required={required}
@@ -56,16 +52,45 @@ export function TextField({
         disabled={locked || disabled}
         onChange={(e) => onChange(e.target.value)}
       />
-      {locked && <span className={styles.lockHint}>🔒 Managed in brand settings</span>}
-    </label>
+      {locked && <LockHint />}
+    </div>
   );
 }
 
-export function FieldGroup({ title, children }: { title: string; children: ReactNode }) {
+/** Marka kilidi ipucu — tek yerden, bütün adımlarda aynı görünür. */
+export function LockHint() {
   return (
-    <fieldset style={{ border: '1px solid #eee', borderRadius: 8, padding: 16, marginBottom: 16 }}>
-      <legend style={{ fontSize: 13, fontWeight: 600, padding: '0 6px' }}>{title}</legend>
-      {children}
-    </fieldset>
+    <div className="form-text d-flex align-items-center gap-1">
+      <i className="icon-base ti tabler-lock icon-14px" aria-hidden="true" />
+      Managed in brand settings
+    </div>
+  );
+}
+
+/**
+ * Alan kümesi. Başlık + ızgara; kart İÇİNDE yaşadığı için kendi kartını
+ * açmaz (iç içe kart temada ağır durur), bölümler `hr` ile ayrılır.
+ */
+export function FieldGroup({
+  title,
+  icon,
+  children,
+  first = false,
+}: {
+  title: string;
+  icon?: string;
+  children: ReactNode;
+  /** İlk grup üstünde ayraç olmasın. */
+  first?: boolean;
+}) {
+  return (
+    <>
+      {!first && <hr className="my-6" />}
+      <h6 className="d-flex align-items-center gap-2 text-body mb-4">
+        {icon && <i className={`icon-base ti ${icon} icon-18px text-primary`} aria-hidden="true" />}
+        {title}
+      </h6>
+      <div className="row g-4">{children}</div>
+    </>
   );
 }

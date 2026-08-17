@@ -3,16 +3,21 @@
 import { useState } from 'react';
 import type { SignatureData } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
-import { FieldGroup, labelStyle } from '../fields';
+import { FieldGroup, LockHint } from '../fields';
 import type { BrandFieldName } from '../../../lib/brand-apply';
-import styles from '../builder.module.css';
 
 type VisualKey = 'avatarUrl' | 'logoUrl' | 'handSignatureUrl';
 
-const SLOTS: Array<{ key: VisualKey; kind: string; title: string; hint: string }> = [
-  { key: 'avatarUrl', kind: 'avatar', title: 'Profile photo', hint: '180px, target under 40KB' },
-  { key: 'logoUrl', kind: 'logo', title: 'Company logo', hint: '360px, target under 60KB' },
-  { key: 'handSignatureUrl', kind: 'handSignature', title: 'Handwritten signature', hint: '300px, target under 50KB' },
+const SLOTS: Array<{
+  key: VisualKey;
+  kind: string;
+  icon: string;
+  title: string;
+  hint: string;
+}> = [
+  { key: 'avatarUrl', kind: 'avatar', icon: 'tabler-user-circle', title: 'Profile photo', hint: '180px, target under 40KB' },
+  { key: 'logoUrl', kind: 'logo', icon: 'tabler-building', title: 'Company logo', hint: '360px, target under 60KB' },
+  { key: 'handSignatureUrl', kind: 'handSignature', icon: 'tabler-signature', title: 'Handwritten signature', hint: '300px, target under 50KB' },
 ];
 
 export function VisualsStep({
@@ -65,43 +70,68 @@ export function VisualsStep({
         // göstermeye devam eder (önizleme/export ise yeni logoyu gösterir).
         const url = isLocked ? applied.visuals[slot.key] : data.visuals[slot.key];
         return (
-          <FieldGroup key={slot.key} title={slot.title}>
-            <span style={labelStyle}>
-              PNG, JPG or SVG · max 5MB · {slot.hint}
-            </span>
-            {url ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt={slot.title} style={{ maxWidth: 90, maxHeight: 90, borderRadius: 4 }} />
-                <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{url}</code>
-                <button
-                  type="button"
-                  disabled={isLocked}
-                  onClick={() => {
-                    dispatch({ type: 'patchVisuals', value: { [slot.key]: undefined } });
-                    setMessages((m) => ({ ...m, [slot.key]: undefined }));
+          <FieldGroup
+            key={slot.key}
+            title={slot.title}
+            icon={slot.icon}
+            first={slot.key === 'avatarUrl'}
+          >
+            <div className="col-12">
+              <p className="text-body-secondary small mb-3">
+                PNG, JPG or SVG · max 5MB · {slot.hint}
+              </p>
+              {url ? (
+                <div className="d-flex flex-wrap align-items-center gap-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={slot.title}
+                    className="rounded border"
+                    style={{ maxWidth: 90, maxHeight: 90 }}
+                  />
+                  <code className="small text-truncate" style={{ maxWidth: 260 }}>
+                    {url}
+                  </code>
+                  <button
+                    type="button"
+                    className="btn btn-label-danger btn-sm"
+                    disabled={isLocked}
+                    onClick={() => {
+                      dispatch({ type: 'patchVisuals', value: { [slot.key]: undefined } });
+                      setMessages((m) => ({ ...m, [slot.key]: undefined }));
+                    }}
+                  >
+                    <i className="icon-base ti tabler-trash me-1" aria-hidden="true" />
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  className="form-control"
+                  accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
+                  disabled={busy !== null || isLocked}
+                  aria-label={`Upload ${slot.title}`}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void upload(slot, f);
+                    e.target.value = '';
                   }}
-                >
-                  Remove
-                </button>
-              </div>
-            ) : (
-              <input
-                type="file"
-                accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
-                disabled={busy !== null || isLocked}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void upload(slot, f);
-                  e.target.value = '';
-                }}
-              />
-            )}
-            {isLocked && <span className={styles.lockHint}>🔒 Managed in brand settings</span>}
-            {busy === slot.key && <p style={{ fontSize: 13 }}>Uploading…</p>}
-            {messages[slot.key] && (
-              <p style={{ fontSize: 13, color: '#a05a2c' }}>{messages[slot.key]}</p>
-            )}
+                />
+              )}
+              {isLocked && <LockHint />}
+              {busy === slot.key && (
+                <div className="d-flex align-items-center gap-2 mt-2 text-body-secondary small">
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                  Uploading…
+                </div>
+              )}
+              {messages[slot.key] && (
+                <div className="alert alert-danger mt-3 mb-0 py-2 small" role="alert">
+                  {messages[slot.key]}
+                </div>
+              )}
+            </div>
           </FieldGroup>
         );
       })}

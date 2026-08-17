@@ -15,12 +15,16 @@ export function ExportButtons({
   gated,
   disabled = false,
   disabledNote,
+  chrome = 'plain',
 }: {
   html: string;
   filename: string;
   gated: false | 'login' | 'verify';
   disabled?: boolean;
   disabledNote?: string;
+  /** 'theme': Vuexy düğmeleri (builder). 'plain': /dev/render'ın çıplak
+   *  hâli — o sayfaya tema CSS'i yüklenmiyor, sınıflar boşa düşerdi. */
+  chrome?: 'plain' | 'theme';
 }) {
   const router = useRouter();
   const blocked = disabled || gated === 'verify';
@@ -61,6 +65,31 @@ export function ExportButtons({
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
+
+  if (chrome === 'theme') {
+    return (
+      <div className="d-grid gap-2">
+        <button type="button" className="btn btn-primary" onClick={copyHtml} disabled={blocked}>
+          <i className="icon-base ti tabler-copy me-2" aria-hidden="true" />
+          Copy signature
+        </button>
+        <button
+          type="button"
+          className="btn btn-label-primary"
+          onClick={downloadHtm}
+          disabled={blocked}
+        >
+          <i className="icon-base ti tabler-download me-2" aria-hidden="true" />
+          Download .htm
+        </button>
+        {blocked && note ? (
+          <div className="alert alert-warning mb-0 py-2 small" role="note">
+            {note}
+          </div>
+        ) : null}
+      </div>
+    );
   }
 
   return (

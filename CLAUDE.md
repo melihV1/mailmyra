@@ -74,8 +74,13 @@ kararı koda gömülmez.
   zayıflatıp iki paralel sistem yaratacaktı. Bkz. `docs/step1-manifesto.md`
   Karar A1. (2026-08-13 revizyonu: PANEL Vuexy temasına geçti — aşağıdaki
   "PANEL TEMASI" maddesine bak. 2026-08-14 eki: AUTH ekranları da Vuexy'ye
-  geçti — panelin kapısıdır. CSS Modules kuralı pazarlama sitesi ve
-  builder için geçerliliğini korur.)
+  geçti — panelin kapısıdır. **2026-08-17 eki: BUILDER da Vuexy'ye geçti**
+  (Hüseyin onayı): builder halka açık ama "uygulama"dır, kullanıcı panelden
+  `Open builder` ile gelir ve iki tasarım dili arasında zıplamamalıdır;
+  ayrıca çıplak form ürünün ön kapısıydı. `builder.module.css` silindi.
+  **CSS Modules kuralı artık YALNIZ pazarlama sitesi için geçerlidir.**
+  İmza önizlemesi bundan etkilenmez: iframe'in içindedir, tema kuralları
+  oraya sızmaz — renderer çıktısı hiçbir zaman Bootstrap görmez.)
 - **MariaDB 11.8.3** (kendi sunucularında, ek maliyet yok) — karar: 2026-08-08,
   Hüseyin. **PostgreSQL DEĞİL** (Plesk Windows desteklemiyor), **MySQL 8 de
   değil** (Plesk'te tek seçenek MariaDB). Prisma provider `mysql`.

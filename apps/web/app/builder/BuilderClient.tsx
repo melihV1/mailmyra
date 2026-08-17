@@ -13,13 +13,12 @@ import { SocialStep } from './steps/SocialStep';
 import { StyleStep } from './steps/StyleStep';
 import { Preview } from './Preview';
 import { ExportButtons } from '../../components/ExportButtons';
-import styles from './builder.module.css';
 
 const STEPS = [
-  { id: 'info', title: 'Details' },
-  { id: 'visuals', title: 'Images' },
-  { id: 'social', title: 'Social' },
-  { id: 'style', title: 'Style' },
+  { id: 'info', title: 'Details', icon: 'tabler-user' },
+  { id: 'visuals', title: 'Images', icon: 'tabler-photo' },
+  { id: 'social', title: 'Social', icon: 'tabler-share' },
+  { id: 'style', title: 'Style', icon: 'tabler-palette' },
 ] as const;
 
 type StepId = (typeof STEPS)[number]['id'];
@@ -193,102 +192,155 @@ export function BuilderClient({
   }
 
   const editPane = (
-    <div>
-      <nav className={styles.stepTabs}>
-        {STEPS.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className={`${styles.stepTab} ${step === s.id ? styles.stepTabActive : ''}`}
-            onClick={() => setStep(s.id)}
-          >
-            {s.title}
-          </button>
-        ))}
-      </nav>
-      {step === 'info' && (
-        <InfoStep data={data} applied={applied} dispatch={dispatch} locked={locked} />
-      )}
-      {step === 'visuals' && (
-        <VisualsStep data={data} applied={applied} dispatch={dispatch} locked={locked} />
-      )}
-      {step === 'social' && <SocialStep data={data} dispatch={dispatch} />}
-      {step === 'style' && (
-        <StyleStep
-          data={data}
-          applied={applied}
-          dispatch={dispatch}
-          iconLowContrast={iconLowContrast}
-          locked={locked}
-        />
-      )}
-      <div style={{ marginTop: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
-        <button type="button" onClick={resetAll}>
+    <div className="card">
+      {/* Adım seçici — temanın nav-pills'i (Brand ekranındaki segmented
+          kontrolün kardeşi); eski elle boyanmış sekmeler gitti. */}
+      <div className="card-header pb-0">
+        <ul className="nav nav-pills flex-wrap gap-1 mb-3" role="tablist">
+          {STEPS.map((s) => (
+            <li className="nav-item" key={s.id}>
+              <button
+                type="button"
+                className={`nav-link${step === s.id ? ' active' : ''}`}
+                aria-current={step === s.id ? 'page' : undefined}
+                onClick={() => setStep(s.id)}
+              >
+                <i className={`icon-base ti ${s.icon} icon-18px me-2`} aria-hidden="true" />
+                {s.title}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="card-body">
+        {step === 'info' && (
+          <InfoStep data={data} applied={applied} dispatch={dispatch} locked={locked} />
+        )}
+        {step === 'visuals' && (
+          <VisualsStep data={data} applied={applied} dispatch={dispatch} locked={locked} />
+        )}
+        {step === 'social' && <SocialStep data={data} dispatch={dispatch} />}
+        {step === 'style' && (
+          <StyleStep
+            data={data}
+            applied={applied}
+            dispatch={dispatch}
+            iconLowContrast={iconLowContrast}
+            locked={locked}
+          />
+        )}
+      </div>
+
+      <div className="card-footer d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <button type="button" className="btn btn-label-secondary btn-sm" onClick={resetAll}>
+          <i className="icon-base ti tabler-refresh me-1" aria-hidden="true" />
           Clear and start over
         </button>
+        {/* Kayıt durumu: kayıtlı imzada gerçek zaman damgası, anonim
+            taslakta yalnız "kaydedildi" — eski davranış AYNEN. */}
         <span
+          className={`badge ${saveFailed ? 'bg-label-danger' : 'bg-label-success'}`}
           style={{
-            fontSize: 13,
-            color: '#2e7d32',
             opacity: signatureId ? (savedAt || saveFailed ? 1 : 0) : savedVisible ? 1 : 0,
             transition: 'opacity 0.3s',
           }}
         >
           {signatureId
             ? saveFailed
-              ? 'Could not save — check your connection. Your edits are still here.'
+              ? 'Could not save — check your connection'
               : `Saved · ${savedAt ?? ''}`
-            : 'Draft saved ✓'}
+            : 'Draft saved'}
         </span>
       </div>
     </div>
   );
 
   const previewPane = (
-    <div className={styles.previewPane}>
-      <Preview html={html} textColor={applied.visuals.textColor} />
-      <ExportButtons
-        html={html}
-        filename="mailmyra-signature"
-        gated={gated}
-        disabled={exportDisabled}
-        disabledNote={
-          exportDisabled
-            ? iconsFailed
-              ? 'Could not build the icons — try again'
-              : 'Preparing icons…'
-            : undefined
-        }
-      />
-      {iconsNeeded && iconsFailed && exportDisabled && (
-        <button type="button" onClick={() => setRetryTick((n) => n + 1)}>
-          Try again
-        </button>
-      )}
+    <div className="card" style={{ position: 'sticky', top: '1.5rem' }}>
+      <div className="card-header pb-2">
+        <div className="card-title mb-0">
+          <h5 className="mb-1">Live preview</h5>
+          <p className="card-subtitle mb-0">Exactly what recipients get.</p>
+        </div>
+      </div>
+      <div className="card-body">
+        <Preview html={html} textColor={applied.visuals.textColor} chrome="theme" />
+      </div>
+      <div className="card-footer">
+        <ExportButtons
+          html={html}
+          filename="mailmyra-signature"
+          gated={gated}
+          disabled={exportDisabled}
+          chrome="theme"
+          disabledNote={
+            exportDisabled
+              ? iconsFailed
+                ? 'Could not build the icons — try again'
+                : 'Preparing icons…'
+              : undefined
+          }
+        />
+        {iconsNeeded && iconsFailed && exportDisabled && (
+          <button
+            type="button"
+            className="btn btn-label-warning btn-sm w-100 mt-2"
+            onClick={() => setRetryTick((n) => n + 1)}
+          >
+            Try again
+          </button>
+        )}
+      </div>
     </div>
   );
 
   return (
-    <main className={styles.shell}>
-      <h1 style={{ fontSize: 22 }}>Signature builder</h1>
-
-      <div className={styles.mobileTabs}>
-        <button type="button" disabled={mobilePane === 'edit'} onClick={() => setMobilePane('edit')}>
-          Edit
-        </button>
-        <button
-          type="button"
-          disabled={mobilePane === 'preview'}
-          onClick={() => setMobilePane('preview')}
-        >
-          Preview
-        </button>
+    <div className="container-xxl flex-grow-1 container-p-y">
+      <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+          <h4 className="mb-1">Signature builder</h4>
+          <p className="text-body-secondary mb-0">
+            Fill in the details on the left — the preview updates as you type.
+          </p>
+        </div>
+        <a href="/app/signatures" className="btn btn-label-secondary">
+          <i className="icon-base ti tabler-arrow-left me-1" aria-hidden="true" />
+          Back to panel
+        </a>
       </div>
 
-      <div className={styles.columns}>
-        <div className={mobilePane === 'preview' ? styles.mobileHidden : ''}>{editPane}</div>
-        <div className={mobilePane === 'edit' ? styles.mobileHidden : ''}>{previewPane}</div>
+      {/* Mobilde iki panel yan yana sığmaz: eski düzenle/önizle geçişi
+          korundu, yalnız tema diline çevrildi (lg altında görünür). */}
+      <ul className="nav nav-pills mb-4 d-lg-none" role="tablist">
+        <li className="nav-item">
+          <button
+            type="button"
+            className={`nav-link${mobilePane === 'edit' ? ' active' : ''}`}
+            onClick={() => setMobilePane('edit')}
+          >
+            Edit
+          </button>
+        </li>
+        <li className="nav-item">
+          <button
+            type="button"
+            className={`nav-link${mobilePane === 'preview' ? ' active' : ''}`}
+            onClick={() => setMobilePane('preview')}
+          >
+            Preview
+          </button>
+        </li>
+      </ul>
+
+      <div className="row g-4">
+        <div className={`col-lg-7 col-xl-8${mobilePane === 'preview' ? ' d-none d-lg-block' : ''}`}>
+          {editPane}
+        </div>
+        <div className={`col-lg-5 col-xl-4${mobilePane === 'edit' ? ' d-none d-lg-block' : ''}`}>
+          {previewPane}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

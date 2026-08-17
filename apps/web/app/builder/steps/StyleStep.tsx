@@ -3,10 +3,9 @@
 import type { SignatureData, WebSafeFont } from '@mailmyra/renderer';
 import { contrastRatio } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
-import { FieldGroup, labelStyle, inputStyle } from '../fields';
+import { FieldGroup, LockHint } from '../fields';
 import { WEB_SAFE_FONTS } from '../../../lib/brand-doc';
 import type { BrandFieldName } from '../../../lib/brand-apply';
-import styles from '../builder.module.css';
 
 const FONTS: readonly WebSafeFont[] = WEB_SAFE_FONTS;
 
@@ -52,12 +51,28 @@ function ColorField({
   locked?: boolean;
 }) {
   return (
-    <label style={{ display: 'block', marginBottom: 12 }}>
-      <span style={labelStyle}>{label}</span>
-      <input type="color" value={value} disabled={locked} onChange={(e) => onChange(e.target.value)} />
-      <code style={{ marginLeft: 8, fontSize: 13 }}>{value}</code>
-      {locked && <span className={styles.lockHint}>🔒 Managed in brand settings</span>}
-    </label>
+    <div className="col-12 col-md-6">
+      <label className="form-label">{label}</label>
+      <div className="input-group">
+        <input
+          type="color"
+          className="form-control form-control-color"
+          value={value}
+          disabled={locked}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={`${label} picker`}
+        />
+        <input
+          type="text"
+          className="form-control font-monospace"
+          value={value}
+          disabled={locked}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={`${label} hex value`}
+        />
+      </div>
+      {locked && <LockHint />}
+    </div>
   );
 }
 
@@ -86,24 +101,20 @@ export function StyleStep({
   return (
     <div>
       {warnings.length > 0 && (
-        <div
-          role="alert"
-          style={{
-            background: '#fff7e6',
-            border: '1px solid #dca16f',
-            borderRadius: 8,
-            padding: '10px 14px',
-            marginBottom: 16,
-            fontSize: 14,
-          }}
-        >
+        <div className="alert alert-warning" role="alert">
+          <h6 className="alert-heading mb-1 d-flex align-items-center gap-2">
+            <i className="icon-base ti tabler-alert-triangle icon-18px" aria-hidden="true" />
+            Contrast
+          </h6>
           {warnings.map((w) => (
-            <div key={w}>⚠️ {w}</div>
+            <div key={w} className="small">
+              {w}
+            </div>
           ))}
         </div>
       )}
 
-      <FieldGroup title="Colors">
+      <FieldGroup title="Colors" icon="tabler-palette" first>
         <ColorField
           label="Brand color"
           value={locked.has('brandColor') ? applied.visuals.brandColor : data.visuals.brandColor}
@@ -129,11 +140,11 @@ export function StyleStep({
         />
       </FieldGroup>
 
-      <FieldGroup title="Typography and layout">
-        <label style={{ display: 'block', marginBottom: 12 }}>
-          <span style={labelStyle}>Font</span>
+      <FieldGroup title="Typography and layout" icon="tabler-typography">
+        <div className="col-12 col-md-6">
+          <label className="form-label">Font</label>
           <select
-            style={inputStyle}
+            className="form-select"
             value={locked.has('fontFamily') ? applied.visuals.fontFamily : data.visuals.fontFamily}
             disabled={locked.has('fontFamily')}
             onChange={(e) =>
@@ -146,39 +157,45 @@ export function StyleStep({
               </option>
             ))}
           </select>
-          {locked.has('fontFamily') && (
-            <span className={styles.lockHint}>🔒 Managed in brand settings</span>
-          )}
-        </label>
+          {locked.has('fontFamily') && <LockHint />}
+        </div>
 
-        <span style={labelStyle}>Size</span>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+        <div className="col-12 col-md-6">
+        <label className="form-label d-block">Size</label>
+        <div className="d-flex flex-wrap gap-3">
           {(['small', 'medium', 'large'] as const).map((s) => (
-            <label key={s}>
+            <label key={s} className="form-check">
               <input
+                className="form-check-input"
                 type="radio"
                 name="size"
                 checked={data.layout.size === s}
                 onChange={() => dispatch({ type: 'patchLayout', value: { size: s } })}
               />{' '}
-              {s === 'small' ? 'Small' : s === 'medium' ? 'Medium' : 'Large'}
+              <span className="form-check-label">
+                {s === 'small' ? 'Small' : s === 'medium' ? 'Medium' : 'Large'}
+              </span>
             </label>
           ))}
         </div>
+        </div>
 
-        <label style={{ display: 'block', marginBottom: 12 }}>
+        <div className="col-12 col-md-6 d-flex align-items-end">
+        <label className="form-check mb-2">
           <input
+            className="form-check-input"
             type="checkbox"
             checked={data.layout.showDividers}
             onChange={(e) => dispatch({ type: 'patchLayout', value: { showDividers: e.target.checked } })}
           />{' '}
-          Show divider lines
+          <span className="form-check-label">Show divider lines</span>
         </label>
+        </div>
 
-        <label style={{ display: 'block' }}>
-          <span style={labelStyle}>Icon style</span>
+        <div className="col-12 col-md-6">
+          <label className="form-label">Icon style</label>
           <select
-            style={inputStyle}
+            className="form-select"
             value={data.layout.iconStyle}
             onChange={(e) =>
               dispatch({
@@ -191,19 +208,23 @@ export function StyleStep({
             <option value="outline">Outline</option>
             <option value="mono">Monochrome</option>
           </select>
-        </label>
+        </div>
         {data.layout.iconStyle === 'filled' && (
-          <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
-            Filled icons use each platform’s own colors — the icon color is not used in
-            this style.
-          </p>
+          <div className="col-12">
+            <div className="alert alert-secondary mb-0 py-2 small" role="note">
+              Filled icons use each platform’s own colors — the icon color is not used in this
+              style.
+            </div>
+          </div>
         )}
 
         {(data.layout.iconStyle === 'outline' || data.layout.iconStyle === 'mono') &&
           iconLowContrast && (
-            <p style={{ fontSize: 13, color: '#666666', marginTop: 8 }}>
-              ℹ️ Your icon color is light — icons may look faint on a white background.
-            </p>
+            <div className="col-12">
+              <div className="alert alert-secondary mb-0 py-2 small" role="note">
+                Your icon color is light — icons may look faint on a white background.
+              </div>
+            </div>
           )}
       </FieldGroup>
     </div>

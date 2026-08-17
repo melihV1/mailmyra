@@ -2,9 +2,8 @@
 
 import type { SignatureData } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
-import { TextField, FieldGroup, labelStyle, inputStyle } from '../fields';
+import { TextField, FieldGroup, LockHint } from '../fields';
 import type { BrandFieldName } from '../../../lib/brand-apply';
-import styles from '../builder.module.css';
 
 export function InfoStep({
   data,
@@ -31,7 +30,7 @@ export function InfoStep({
 
   return (
     <div>
-      <FieldGroup title="Identity">
+      <FieldGroup title="Identity" icon="tabler-user" first>
         <TextField
           label="Full name"
           required
@@ -55,9 +54,9 @@ export function InfoStep({
         />
       </FieldGroup>
 
-      <FieldGroup title="Contact">
+      <FieldGroup title="Contact" icon="tabler-address-book">
         <TextField
-          label="E-mail"
+          label="E-mail" type="email"
           value={data.contact.email ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { email: v || undefined } })}
         />
@@ -72,18 +71,18 @@ export function InfoStep({
           onChange={(v) => dispatch({ type: 'patchContact', value: { mobile: v || undefined } })}
         />
         <TextField
-          label="Website"
+          label="Website" type="url"
           value={data.contact.website ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { website: v || undefined } })}
         />
         <TextField
-          label="Address"
+          label="Address" wide
           value={data.contact.address ?? ''}
           onChange={(v) => dispatch({ type: 'patchContact', value: { address: v || undefined } })}
         />
       </FieldGroup>
 
-      <FieldGroup title="Call to action">
+      <FieldGroup title="Call to action" icon="tabler-hand-click">
         <TextField
           label="Button label"
           placeholder="Book a meeting"
@@ -99,29 +98,34 @@ export function InfoStep({
           disabled={locked.has('cta')}
         />
         {locked.has('cta') && (
-          <span className={styles.lockHint}>🔒 Managed in brand settings</span>
+          <div className="col-12">
+            <LockHint />
+          </div>
         )}
       </FieldGroup>
 
-      <FieldGroup title="Custom fields">
+      <FieldGroup title="Custom fields" icon="tabler-list-details">
         {customFields.map((f, i) => (
-          <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <div key={i} className="col-12 d-flex flex-wrap align-items-center gap-2">
             <input
-              style={{ ...inputStyle, flex: 1 }}
+              className="form-control flex-grow-1"
+              style={{ minWidth: 140 }}
               placeholder="Label"
               aria-label={`Custom field ${i + 1} label`}
               value={f.label}
               onChange={(e) => setCustomField(i, { label: e.target.value })}
             />
             <input
-              style={{ ...inputStyle, flex: 1 }}
+              className="form-control flex-grow-1"
+              style={{ minWidth: 140 }}
               placeholder="Value"
               aria-label={`Custom field ${i + 1} value`}
               value={f.value}
               onChange={(e) => setCustomField(i, { value: e.target.value })}
             />
             <input
-              style={{ ...inputStyle, flex: 1 }}
+              className="form-control flex-grow-1"
+              style={{ minWidth: 140 }}
               placeholder="URL (optional)"
               aria-label={`Custom field ${i + 1} link`}
               value={f.url ?? ''}
@@ -129,6 +133,7 @@ export function InfoStep({
             />
             <button
               type="button"
+              className="btn btn-icon btn-label-danger flex-shrink-0"
               aria-label={`Delete custom field ${i + 1}`}
               onClick={() =>
                 dispatch({
@@ -137,12 +142,14 @@ export function InfoStep({
                 })
               }
             >
-              Delete
+              <i className="icon-base ti tabler-trash" aria-hidden="true" />
             </button>
           </div>
         ))}
+        <div className="col-12">
         <button
           type="button"
+          className="btn btn-label-primary btn-sm"
           onClick={() =>
             dispatch({
               type: 'patchExtras',
@@ -150,25 +157,26 @@ export function InfoStep({
             })
           }
         >
-          + Add field
+          <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
+          Add field
         </button>
+        </div>
       </FieldGroup>
 
-      <FieldGroup title="Legal text">
-        <label style={{ display: 'block' }}>
-          <span style={labelStyle}>Disclaimer / confidentiality note</span>
+      <FieldGroup title="Legal text" icon="tabler-scale">
+        <div className="col-12">
+          <label className="form-label">Disclaimer / confidentiality note</label>
           <textarea
-            style={{ ...inputStyle, minHeight: 70, resize: 'vertical' }}
+            className="form-control"
+            rows={3}
             value={locked.has('disclaimer') ? (appliedExtras.disclaimer ?? '') : (extras.disclaimer ?? '')}
             disabled={locked.has('disclaimer')}
             onChange={(e) =>
               dispatch({ type: 'patchExtras', value: { disclaimer: e.target.value || undefined } })
             }
           />
-          {locked.has('disclaimer') && (
-            <span className={styles.lockHint}>🔒 Managed in brand settings</span>
-          )}
-        </label>
+          {locked.has('disclaimer') && <LockHint />}
+        </div>
       </FieldGroup>
     </div>
   );
