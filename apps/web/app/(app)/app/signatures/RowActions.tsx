@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import { useBsPresence } from '../../../../components/ui/useBsPresence';
 import { useToast } from '../../ToastProvider';
 import { useDropdown } from '../../navbar/useDropdown';
+import { PreviewDialog } from './PreviewDialog';
 
 /**
  * Satır aksiyonları — temanın üç-nokta menüsü (2026-08-14 tema turu:
@@ -159,6 +160,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [renaming, setRenaming] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   const duplicate = async () => {
     setOpen(false);
@@ -199,6 +201,21 @@ export function RowActions({ id, name }: { id: string; name: string }) {
           className={`dropdown-menu dropdown-menu-end${open ? ' show' : ''}`}
           style={open ? { position: 'absolute', right: 0 } : undefined}
         >
+          {/* Önizleme en üstte: menünün tek okuma-amaçlı öğesi, hiçbir şeyi
+              değiştirmiyor — "önce bak, sonra karar ver" sırası. */}
+          <li>
+            <button
+              type="button"
+              className="dropdown-item"
+              onClick={() => {
+                setOpen(false);
+                setPreviewing(true);
+              }}
+            >
+              <i className="icon-base ti tabler-eye me-2" aria-hidden="true" />
+              Preview
+            </button>
+          </li>
           <li>
             <Link href={`/builder?sig=${id}`} className="dropdown-item">
               <i className="icon-base ti tabler-edit me-2" aria-hidden="true" />
@@ -225,6 +242,14 @@ export function RowActions({ id, name }: { id: string; name: string }) {
             </button>
           </li>
           <li>
+            {/* Kurulum rehberi imzanın yanında dursun — kopyaladıktan sonraki
+                adım (dış denetim: rehber ilgili imzadan açılabilmeli). */}
+            <Link href="/app/guides" className="dropdown-item">
+              <i className="icon-base ti tabler-book me-2" aria-hidden="true" />
+              How to install
+            </Link>
+          </li>
+          <li>
             <hr className="dropdown-divider" />
           </li>
           <li>
@@ -243,6 +268,9 @@ export function RowActions({ id, name }: { id: string; name: string }) {
         </ul>
       </div>
 
+      {previewing && (
+        <PreviewDialog id={id} name={name} onClose={() => setPreviewing(false)} />
+      )}
       {renaming && (
         <RenameDialog id={id} currentName={name} onClose={() => setRenaming(false)} />
       )}

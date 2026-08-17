@@ -2,9 +2,8 @@ import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
 import { seedBrandDefaults } from '../../../../lib/brand-apply';
-import { AssignSelect } from './AssignSelect';
 import { NewSignatureButton } from './NewSignatureButton';
-import { RowActions } from './RowActions';
+import { SignatureTable } from './SignatureTable';
 import { getBrand } from '../../../../lib/repo/brand';
 import { listSenders, primaryOrgId } from '../../../../lib/repo/senders';
 import { listSignatures } from '../../../../lib/repo/signatures';
@@ -35,11 +34,6 @@ export default async function SignaturesPage() {
   // alanlar baştan doludur — kullanıcı boş formdan başlamaz.
   const brand = orgId ? await getBrand(orgId) : null;
   const seedData = seedBrandDefaults(mergeWithEmpty({}), brand);
-  const SENDER_BADGE: Record<string, { label: string; cls: string }> = {
-    draft: { label: 'Draft', cls: 'bg-label-secondary' },
-    active: { label: 'Live', cls: 'bg-label-success' },
-    inactive: { label: 'Inactive', cls: 'bg-label-warning' },
-  };
 
   return (
     <section>
@@ -62,59 +56,9 @@ export default async function SignaturesPage() {
           </div>
         </div>
       ) : (
-        <div className="card">
-          <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <h5 className="card-title mb-0">
-              All signatures{' '}
-              <span className="badge bg-label-primary ms-1">{signatures.length}</span>
-            </h5>
-            <NewSignatureButton seedData={seedData} />
-          </div>
-          <div className="table-responsive">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>Signature</th>
-                  <th>Assigned to</th>
-                  <th>Status</th>
-                  <th>Updated</th>
-                  <th style={{ width: '1%' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody className="table-border-bottom-0">
-                {signatures.map((s) => {
-                  const badge = s.senderStatus ? SENDER_BADGE[s.senderStatus] : null;
-                  return (
-                    <tr key={s.id}>
-                      <td>
-                        <span className="d-block fw-medium text-heading mb-1">{s.name}</span>
-                        <span className="badge bg-label-info">{s.templateId}</span>
-                      </td>
-                      <td>
-                        <AssignSelect signatureId={s.id} current={s.senderId} senders={options} />
-                      </td>
-                      <td>
-                        {badge ? (
-                          <span className={`badge ${badge.cls}`}>{badge.label}</span>
-                        ) : (
-                          <span className="badge bg-label-secondary">Unassigned</span>
-                        )}
-                      </td>
-                      <td>
-                        <time dateTime={s.updatedAt.toISOString()}>
-                          {s.updatedAt.toLocaleDateString('en-GB')}
-                        </time>
-                      </td>
-                      <td>
-                        <RowActions id={s.id} name={s.name} />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        // Tablo istemci bileşeninde: süzme/sıralama/toplu seçim ekranda
+        // yaşıyor, sunucu yalnız veriyi veriyor.
+        <SignatureTable rows={signatures} senders={options} seedData={seedData} />
       )}
     </section>
   );
