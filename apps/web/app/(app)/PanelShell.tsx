@@ -42,6 +42,7 @@ const MENU: ReadonlyArray<
   { type: 'item', href: '/app/senders', label: 'Senders', icon: 'tabler-users' },
   { type: 'item', href: '/app/members', label: 'Members', icon: 'tabler-user-cog' },
   { type: 'item', href: '/app/brand', label: 'Brand', icon: 'tabler-palette' },
+  { type: 'item', href: '/app/activity', label: 'Activity', icon: 'tabler-history' },
   { type: 'header', label: 'Account' },
   /* Temanın Authentications grubundaki açılır menü dili (Hüseyin,
      2026-08-14): Account artık chevron'lu grup, alt sayfaları içinde. */
@@ -58,6 +59,7 @@ const MENU: ReadonlyArray<
     ],
   },
   { type: 'header', label: 'Tools' },
+  { type: 'item', href: '/app/guides', label: 'Setup guides', icon: 'tabler-book' },
   /* Builder BİLEREK tam sayfa (<a>): panel rotasından çıkınca Vuexy
      <link>'leri DOM'dan düşsün, builder'ın CSS dünyası temiz kalsın. */
   { type: 'item', href: '/builder', label: 'Open builder', icon: 'tabler-edit', external: true },

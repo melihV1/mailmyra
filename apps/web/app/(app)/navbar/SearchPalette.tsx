@@ -53,6 +53,18 @@ const PAGES: ReadonlyArray<{
     keywords: 'color logo font lock default template',
   },
   {
+    label: 'Activity',
+    href: '/app/activity',
+    icon: 'tabler-history',
+    keywords: 'audit log history who changed events',
+  },
+  {
+    label: 'Setup guides',
+    href: '/app/guides',
+    icon: 'tabler-book',
+    keywords: 'install outlook gmail apple mail ios how to',
+  },
+  {
     label: 'Account',
     href: '/app/account',
     icon: 'tabler-user-circle',
