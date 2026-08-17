@@ -35,13 +35,23 @@ pay var), en geniş tablo **600px** (kural ~600px). `calc()`, CSS değişkeni,
 
 ## 1. Malzemeyi üret
 
+**İki mod var.** Postayı script'in yollaması SMTP ayarı ister; bu ayarlar
+CANLI SUNUCUDA yaşıyor, geliştirme makinesinde yok. O yüzden pratikte
+kullanılan mod dosya üretmek:
+
 ```bash
-npx tsx scripts/send-test-signatures.mts --to <gelen-kutun> \
-  --icons https://cdn.mailmyra.com \
-  --assets https://cdn.mailmyra.com/brand-fixture
+# Dosya modu (kimlik bilgisi gerektirmez — normal yol)
+npx tsx scripts/send-test-signatures.mts --to <adres> --out ~/Desktop/mailmyra-6client-test \
+  --icons https://cdn.mailmyra.com --assets https://cdn.mailmyra.com/brand-fixture
+
+# Posta modu (yalnız MAIL_* ortamda tanımlıysa; değilse HATA verir, sessizce geçmez)
+npx tsx scripts/send-test-signatures.mts --to <adres> \
+  --icons https://cdn.mailmyra.com --assets https://cdn.mailmyra.com/brand-fixture
 ```
 
-Üç şablon, üç ayrı e-posta olarak gider; konu satırı şablon adını taşır.
+Dosya modu şablon başına bir `.htm` üretir. Bunlar hem Outlook'un
+Signatures klasörüne doğrudan konulabilir hem de içerikleri bir postaya
+yapıştırılıp kendine yollanabilir.
 
 > ⚠️ **Görsel tuzağı.** Fixture'ların avatar/logo/el-imzası yolları
 > GÖRECELİ (`/brand-fixture/...`). Panelin önizlemesinde çalışır çünkü aynı

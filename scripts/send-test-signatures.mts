@@ -18,11 +18,12 @@
  *
  * SMTP ayarları apps/web/.env.local'den okunur.
  */
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { fixtures, renderSignature, TEMPLATE_IDS } from '../packages/renderer/src/index';
+import { readSmtpConfig } from '../apps/web/lib/mail/config';
 import type { SignatureData } from '../packages/renderer/src/types';
 import { wrapExportDoc } from '../apps/web/lib/export-htm';
 
@@ -102,6 +103,34 @@ async function main(): Promise<void> {
     for (const m of mails) console.log(`${m.subject} — ${Math.round(m.html.length / 102.4) / 10}KB`);
     console.log('\n--dry: hiçbir posta gönderilmedi.');
     return;
+  }
+
+  /* Postasız yol: dosyaları yaz, kullanıcı kendi istemcisinden yollasın.
+     Outlook Classic için zaten .htm gerekiyor (Signatures klasörü). */
+  const out = arg('out');
+  if (out) {
+    mkdirSync(out, { recursive: true });
+    for (const [i, m] of mails.entries()) {
+      const file = path.join(out, `${TEMPLATE_IDS[i]}--${only}.htm`);
+      writeFileSync(file, m.html, 'utf8');
+      console.log(`yazıldı → ${file}`);
+    }
+    console.log(`\n${mails.length} dosya hazır. Outlook için Signatures klasörüne kopyala;` +
+      ' diğer istemciler için içeriği bir postaya yapıştırıp kendine yolla.');
+    return;
+  }
+
+  /* SMTP YOKSA DUR. `getMailer()` geliştirme ortamında sessizce konsola
+     yazan bir mailer'a düşüyor; script bunu "gönderildi" diye raporlarsa
+     kullanıcı olmayan postaları bekler — bir kez yaşandı, bir daha olmasın. */
+  const smtp = readSmtpConfig(process.env);
+  if (!smtp.ok) {
+    throw new Error(
+      `SMTP yapılandırılmamış (eksik: ${smtp.missing.join(', ')}), posta GÖNDERİLMEDİ.\n` +
+        'Ayarlar canlı sunucuda; bu makinede yok. Seçenekler:\n' +
+        '  · --out <klasör> ile .htm dosyalarını üret, postayı kendi istemcinden yolla\n' +
+        '  · MAIL_HOST/PORT/USER/PASS/FROM değerlerini ortamdan ver',
+    );
   }
 
   const { getMailer } = await import('../apps/web/lib/mail/index');
