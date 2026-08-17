@@ -53,6 +53,12 @@ const PAGES: ReadonlyArray<{
     keywords: 'color logo font lock default template',
   },
   {
+    label: 'Notifications',
+    href: '/app/notifications',
+    icon: 'tabler-bell',
+    keywords: 'inbox alerts unread mark read delete',
+  },
+  {
     label: 'Activity',
     href: '/app/activity',
     icon: 'tabler-history',

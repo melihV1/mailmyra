@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../../lib/auth/current';
@@ -44,8 +45,12 @@ export default async function NotificationsPage() {
       <div className="row g-4">
         <div className="col-xl-8">
           <div className="card h-100">
-            <div className="card-header pb-2">
+            <div className="card-header pb-2 d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">Recent notifications</h5>
+              {/* Tam kutu ayrı sayfada: okundu/silme orada (2026-08-15). */}
+              <Link href="/app/notifications" className="btn btn-sm btn-label-primary">
+                View all
+              </Link>
             </div>
             <div className="card-body">
               {notifications.length === 0 ? (

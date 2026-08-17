@@ -42,6 +42,63 @@ export async function unreadCount(userId: string): Promise<number> {
   return prisma.notification.count({ where: { userId, readAt: null } });
 }
 
+const INBOX_LIMIT = 200;
+
+/**
+ * Bildirim sayfasının listesi (2026-08-15, Hüseyin: "gelen bütün bildirimleri
+ * göstersin"). Zilin kısa listesinden farkı: tavanı yüksek ve okunmuşa göre
+ * süzülebilir.
+ */
+export async function listInbox(
+  userId: string,
+  opts?: { unreadOnly?: boolean },
+): Promise<NotificationRow[]> {
+  const rows = await prisma.notification.findMany({
+    where: { userId, ...(opts?.unreadOnly ? { readAt: null } : {}) },
+    orderBy: { createdAt: 'desc' },
+    take: INBOX_LIMIT,
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    type: r.type as NotificationType,
+    payload: (r.payload ?? {}) as Record<string, unknown>,
+    readAt: r.readAt,
+    createdAt: r.createdAt,
+  }));
+}
+
+/**
+ * Okundu/okunmadı işaretleme. Sahiplik `where`in İÇİNDE: başkasının
+ * bildirimini taşıyan bir id 0 satır günceller — varlık sızmaz, hata da
+ * vermez (kullanıcı zaten kendi listesinden id gönderir).
+ */
+export async function setRead(userId: string, ids: string[], read: boolean): Promise<number> {
+  if (ids.length === 0) return 0;
+  const { count } = await prisma.notification.updateMany({
+    where: { userId, id: { in: ids } },
+    data: { readAt: read ? new Date() : null },
+  });
+  return count;
+}
+
+/** Silme — aynı sahiplik kuralı. Bildirim kaydı kişiseldir, günlük DEĞİL: */
+/* denetim izi ActivityEvent'te durur ve oradan silinemez (activity.ts). */
+export async function removeNotifications(userId: string, ids: string[]): Promise<number> {
+  if (ids.length === 0) return 0;
+  const { count } = await prisma.notification.deleteMany({
+    where: { userId, id: { in: ids } },
+  });
+  return count;
+}
+
+/** "Okunmuşları temizle" — tek tek seçmeden listeyi toparlamanın yolu. */
+export async function removeReadNotifications(userId: string): Promise<number> {
+  const { count } = await prisma.notification.deleteMany({
+    where: { userId, readAt: { not: null } },
+  });
+  return count;
+}
+
 export async function markAllRead(userId: string): Promise<void> {
   await prisma.notification.updateMany({
     where: { userId, readAt: null },

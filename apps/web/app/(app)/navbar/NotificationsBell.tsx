@@ -1,10 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { NOTIFICATION_LOOKS, timeAgo } from '../notification-looks';
 import { useToast } from '../ToastProvider';
-import { NotificationCenter } from './NotificationCenter';
 import { useDropdown } from './useDropdown';
 
 /**
@@ -27,7 +27,6 @@ export function NotificationsBell() {
   const toast = useToast();
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState<NotificationItem[] | null>(null);
-  const [centerOpen, setCenterOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -149,21 +148,19 @@ export function NotificationsBell() {
             })
           )}
           <li className="border-top p-3">
-            <button
-              type="button"
+            {/* Eskiden offcanvas açıyordu; panel 0 genişlikte doğduğu için
+                hiç görünmüyordu (Hüseyin, 2026-08-15). Artık gerçek sayfa:
+                okundu/okunmadı ve silme orada. */}
+            <Link
+              href="/app/notifications"
               className="btn btn-primary btn-sm w-100"
-              onClick={() => {
-                setOpen(false);
-                setCenterOpen(true);
-              }}
+              onClick={() => setOpen(false)}
             >
               View all notifications
-            </button>
+            </Link>
           </li>
         </ul>
       </div>
-
-      <NotificationCenter open={centerOpen} onClose={() => setCenterOpen(false)} />
     </li>
   );
 }
