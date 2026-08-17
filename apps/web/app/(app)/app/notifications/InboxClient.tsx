@@ -220,98 +220,119 @@ export function InboxClient({
             </p>
           </div>
         ) : (
-          <>
-            <div className="d-flex align-items-center gap-2 px-4 py-2 border-top border-bottom">
-              <input
-                type="checkbox"
-                className="form-check-input mt-0"
-                aria-label="Select all"
-                checked={rows.length > 0 && selected.length === rows.length}
-                onChange={toggleAll}
-              />
-              <span className="text-body-secondary small">Select all on this page</span>
-            </div>
-
-            <ul className="list-group list-group-flush">
-              {rows.map((n) => {
-                const look = NOTIFICATION_LOOKS[n.type];
-                const isPicked = picked.has(n.id);
-                return (
-                  <li
-                    key={n.id}
-                    className={`list-group-item d-flex align-items-start gap-3 py-3${
-                      n.readAt ? '' : ' bg-lighter'
-                    }`}
-                  >
+          /* Panelin diğer ekranlarıyla AYNI tablo dili (Hüseyin, 2026-08-15:
+             "temadaki tabloları kullan") — seyrek list-group yerine yoğun
+             `table-hover`; seçim kutusu başlıkta, aksiyonlar son sütunda. */
+          <div className="table-responsive text-nowrap">
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th style={{ width: '1%' }}>
                     <input
                       type="checkbox"
-                      className="form-check-input mt-2 flex-shrink-0"
-                      aria-label={`Select ${look?.title ?? n.type}`}
-                      checked={isPicked}
-                      onChange={() => toggle(n.id)}
+                      className="form-check-input"
+                      aria-label="Select all"
+                      checked={rows.length > 0 && selected.length === rows.length}
+                      onChange={toggleAll}
                     />
-                    <div className="avatar avatar-sm flex-shrink-0">
-                      <span
-                        className={`avatar-initial rounded-circle bg-label-${look?.tone ?? 'secondary'}`}
-                      >
-                        <i
-                          className={`icon-base ti ${look?.icon ?? 'tabler-bell'} icon-18px`}
-                          aria-hidden="true"
+                  </th>
+                  <th>Notification</th>
+                  <th>Details</th>
+                  <th>Received</th>
+                  <th style={{ width: '1%' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody className="table-border-bottom-0">
+                {rows.map((n) => {
+                  const look = NOTIFICATION_LOOKS[n.type];
+                  return (
+                    <tr key={n.id} className={n.readAt ? undefined : 'bg-lighter'}>
+                      <td>
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          aria-label={`Select ${look?.title ?? n.type}`}
+                          checked={picked.has(n.id)}
+                          onChange={() => toggle(n.id)}
                         />
-                      </span>
-                    </div>
-                    <div className="flex-grow-1">
-                      <span className="d-block fw-medium text-heading">
-                        {look?.title ?? n.type}
-                        {!n.readAt && (
-                          <span className="badge badge-dot bg-primary ms-2" aria-label="Unread" />
-                        )}
-                      </span>
-                      <small className="text-body-secondary d-block">
+                      </td>
+                      <td>
+                        <span className="d-flex align-items-center gap-2">
+                          <span className="avatar avatar-sm flex-shrink-0">
+                            <span
+                              className={`avatar-initial rounded-circle bg-label-${look?.tone ?? 'secondary'}`}
+                            >
+                              <i
+                                className={`icon-base ti ${look?.icon ?? 'tabler-bell'} icon-18px`}
+                                aria-hidden="true"
+                              />
+                            </span>
+                          </span>
+                          <span className="fw-medium text-heading">{look?.title ?? n.type}</span>
+                          {!n.readAt && (
+                            <span
+                              className="badge badge-dot bg-primary"
+                              aria-label="Unread"
+                              data-mm-tip="Unread"
+                            />
+                          )}
+                        </span>
+                      </td>
+                      <td className="text-body-secondary text-wrap">
                         {look ? look.body(n.payload) : ''}
-                      </small>
-                      <small className="text-body-secondary">{timeAgo(n.createdAt)}</small>
-                    </div>
-                    <div className="d-flex align-items-center gap-1 flex-shrink-0">
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
-                        aria-label={n.readAt ? 'Mark as unread' : 'Mark as read'}
-                        data-mm-tip={n.readAt ? 'Mark as unread' : 'Mark as read'}
-                        disabled={busy}
-                        onClick={() =>
-                          void call(
-                            '/api/notifications/mark',
-                            { ids: [n.id], read: !n.readAt },
-                            () => (n.readAt ? 'Marked as unread.' : 'Marked as read.'),
-                          )
-                        }
-                      >
-                        <i
-                          className={`icon-base ti ${n.readAt ? 'tabler-mail' : 'tabler-mail-opened'} icon-md`}
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
-                        aria-label="Delete notification"
-                        data-mm-tip="Delete"
-                        disabled={busy}
-                        onClick={() =>
-                          void call('/api/notifications/delete', { ids: [n.id] }, () =>
-                            'Notification deleted.',
-                          )
-                        }
-                      >
-                        <i className="icon-base ti tabler-trash icon-md" aria-hidden="true" />
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
+                      </td>
+                      <td>
+                        <time
+                          dateTime={n.createdAt}
+                          title={new Date(n.createdAt).toLocaleString('en-GB')}
+                          className="text-body-secondary"
+                        >
+                          {timeAgo(n.createdAt)}
+                        </time>
+                      </td>
+                      <td>
+                        <span className="d-inline-flex align-items-center gap-1">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
+                            aria-label={n.readAt ? 'Mark as unread' : 'Mark as read'}
+                            data-mm-tip={n.readAt ? 'Mark as unread' : 'Mark as read'}
+                            disabled={busy}
+                            onClick={() =>
+                              void call(
+                                '/api/notifications/mark',
+                                { ids: [n.id], read: !n.readAt },
+                                () => (n.readAt ? 'Marked as unread.' : 'Marked as read.'),
+                              )
+                            }
+                          >
+                            <i
+                              className={`icon-base ti ${n.readAt ? 'tabler-mail' : 'tabler-mail-opened'} icon-md`}
+                              aria-hidden="true"
+                            />
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
+                            aria-label="Delete notification"
+                            data-mm-tip="Delete"
+                            disabled={busy}
+                            onClick={() =>
+                              void call('/api/notifications/delete', { ids: [n.id] }, () =>
+                                'Notification deleted.',
+                              )
+                            }
+                          >
+                            <i className="icon-base ti tabler-trash icon-md" aria-hidden="true" />
+                          </button>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
