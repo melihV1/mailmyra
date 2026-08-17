@@ -84,7 +84,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           ref={overlayRef}
           role="dialog"
           aria-modal="true"
-          aria-label="Mobil menü"
+          aria-label="Mobile menu"
           className={styles.overlay}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -92,17 +92,15 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
           transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
         >
           <div className={styles.topRow}>
-            <img src="/logo.svg" alt="Mailmyra" className={styles.logo} width={150} height={29} />
-            <button type="button" className={styles.closeButton} aria-label="Menüyü kapat" onClick={onClose}>
-              <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
-                <path
-                  d="M3 3l14 14M17 3L3 17"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              </svg>
+            <img
+              src="/brand/mailmyra-logo.png"
+              alt="Mailmyra"
+              className={styles.logo}
+              width={202}
+              height={40}
+            />
+            <button type="button" className={styles.closeButton} aria-label="Close menu" onClick={onClose}>
+              <span className={styles.closeIcon} aria-hidden="true" />
             </button>
           </div>
 
@@ -131,15 +129,7 @@ export function MobileNav({ open, onClose }: MobileNavProps) {
                     onClick={() => toggleSection(item.id)}
                   >
                     {item.label}
-                    <svg
-                      className={styles.accordionIcon}
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      aria-hidden="true"
-                    >
-                      <path d="M7 1v12M1 7h12" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
+                    <span className={styles.accordionIcon} aria-hidden="true" />
                   </button>
                   {expanded && (
                     <div id={panelId} className={styles.accordionPanel}>

@@ -46,74 +46,77 @@ export interface PlainNavLink {
 
 export type NavItem = MegaMenuItem | PlainNavLink;
 
+/* Etiketler ve HEDEFLER İngilizce (karar 2026-08-17, Hüseyin): ürün dili EN
+   ve bu URL'lerin hiçbirinde henüz sayfa YOK — slug'ları şimdi çevirmenin
+   maliyeti sıfır, sayfalar yazıldıktan sonra taşıma + yönlendirme demekti. */
 export const primaryNav: NavItem[] = [
   {
-    id: 'urun',
-    label: 'Ürün',
+    id: 'product',
+    label: 'Product',
     type: 'menu',
     sections: [
       {
-        heading: 'Ürün',
+        heading: 'Product',
         links: [
           {
-            label: 'Nasıl çalışır',
-            href: '/nasil-calisir',
-            description: 'Tasarla, önizle, dağıt — üç adımda.',
+            label: 'How it works',
+            href: '/how-it-works',
+            description: 'Design, preview, roll out — in three steps.',
           },
           {
-            label: 'Özellikler',
-            href: '/urun',
-            description: 'Alan zenginliği, Outlook uyumu, export mekanizması.',
+            label: 'Features',
+            href: '/features',
+            description: 'Rich fields, Outlook compatibility, a real export path.',
           },
           {
-            label: 'Şablon galerisi',
-            href: '/sablonlar',
-            description: 'Gerçek render, ekran görüntüsü değil.',
+            label: 'Template gallery',
+            href: '/templates',
+            description: 'Real renders, not screenshots.',
           },
         ],
       },
     ],
     featured: {
-      title: 'Canlı builder',
-      description: 'Kaydolmadan dene — imzanı gerçek zamanlı önizle.',
+      title: 'Live builder',
+      description: 'Try it without signing up — preview your signature as you type.',
       href: '/builder',
-      ctaLabel: "Builder'ı aç",
+      ctaLabel: 'Open the builder',
     },
   },
   {
-    id: 'cozumler',
-    label: 'Çözümler',
+    id: 'solutions',
+    label: 'Solutions',
     type: 'menu',
     sections: [
       {
-        heading: 'Çözümler',
+        heading: 'Solutions',
         links: [
           {
-            label: 'Ajanslar için',
-            href: '/ajanslar',
-            description: 'Havuzlanmış koltuk + white-label yönetimi.',
+            label: 'For agencies',
+            href: '/for-agencies',
+            description: 'Pooled seats and white-label management.',
           },
           {
-            label: 'Kurumsal için',
-            href: '/kurumsal',
-            description: 'Koltuk bazlı şeffaf fiyat, 6 istemci test matrisi.',
+            label: 'For companies',
+            href: '/for-companies',
+            description: 'Transparent per-seat pricing, tested in 6 mail clients.',
           },
         ],
       },
     ],
     featured: {
-      title: 'Fiyatlandırmayı gör',
-      description: 'Koltuk başına şeffaf fiyat, saklama yok.',
-      href: '/fiyatlandirma',
-      ctaLabel: 'Fiyatları incele',
+      title: 'See the pricing',
+      description: 'One price per active sender. Nothing hidden.',
+      href: '/pricing',
+      ctaLabel: 'View pricing',
     },
   },
-  { id: 'fiyatlandirma', label: 'Fiyatlandırma', type: 'link', href: '/fiyatlandirma' },
-  { id: 'kurulum', label: 'Kurulum Rehberleri', type: 'link', href: '/kurulum' },
-  { id: 'sss', label: 'SSS', type: 'link', href: '/sss' },
+  { id: 'pricing', label: 'Pricing', type: 'link', href: '/pricing' },
+  { id: 'setup-guides', label: 'Setup guides', type: 'link', href: '/setup-guides' },
+  { id: 'faq', label: 'FAQ', type: 'link', href: '/faq' },
 ];
 
 export const utilityNav = {
-  login: { label: 'Giriş yap', href: '/login' },
-  cta: { label: "Builder'ı Dene", href: '/builder' },
+  login: { label: 'Log in', href: '/login' },
+  cta: { label: 'Try the builder', href: '/builder' },
 };

@@ -111,10 +111,19 @@ export function Header() {
     <header ref={headerRef} className={[styles.header, scrolled ? styles.scrolled : ''].join(' ')}>
       <div className={styles.inner}>
         <Link href="/" className={styles.logoLink}>
-          <img src="/logo.svg" alt="Mailmyra" className={styles.logo} width={160} height={31} />
+          <span className={styles.logoMark} aria-hidden="true">
+            M
+          </span>
+          <img
+            src="/brand/mailmyra-logo.png"
+            alt="Mailmyra"
+            className={styles.logo}
+            width={202}
+            height={40}
+          />
         </Link>
 
-        <nav aria-label="Ana menü" className={styles.nav}>
+        <nav aria-label="Main menu" className={styles.nav}>
           <ul className={styles.list}>
             {primaryNav.map((item) => {
               if (item.type === 'link') {
@@ -160,9 +169,7 @@ export function Header() {
                     onFocus={() => openNow(item.id)}
                   >
                     {item.label}
-                    <svg className={styles.chevron} viewBox="0 0 10 10" aria-hidden="true">
-                      <path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                    </svg>
+                    <span className={styles.chevron} aria-hidden="true" />
                   </button>
                   <AnimatePresence>
                     {isOpen && (
@@ -181,6 +188,10 @@ export function Header() {
         </nav>
 
         <div className={styles.actions}>
+          <Link href="/dev/render" className={styles.statusChip}>
+            <span className={styles.statusDot} aria-hidden="true" />
+            Outlook-ready HTML
+          </Link>
           <Link href={utilityNav.login.href} className={styles.loginLink}>
             {utilityNav.login.label}
           </Link>
@@ -192,28 +203,10 @@ export function Header() {
             className={styles.hamburger}
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav-overlay"
-            aria-label={mobileOpen ? 'Menüyü kapat' : 'Menüyü aç'}
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             onClick={() => setMobileOpen((v) => !v)}
           >
-            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true">
-              {mobileOpen ? (
-                <path
-                  d="M4 4l14 14M18 4L4 18"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              ) : (
-                <path
-                  d="M3 6h16M3 11h16M3 16h16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                />
-              )}
-            </svg>
+            <span className={mobileOpen ? styles.hamburgerIconOpen : styles.hamburgerIcon} />
           </button>
         </div>
       </div>
