@@ -18,19 +18,24 @@ const baseVisuals = {
   'brandColor' | 'iconColor' | 'textColor' | 'mutedColor' | 'fontFamily'
 >;
 
+/* Örnek içerik İNGİLİZCE (karar 2026-08-15, Hüseyin): ürün dili EN ve bu
+   fixture yalnız dev sayfasında değil, pazarlama vitrininde ve panelin marka
+   önizlemesinde de görünüyor. Kişiler kurgusal; şirket ve alan adı gerçek
+   (vitrin Voldi Creative'in kendi ürünü). Türkçe karakter kapsaması
+   fixture'a bağlı DEĞİL — `test/escape.test.ts` onu kendi diziyle sınar. */
 const full: SignatureData = {
   identity: {
-    fullName: 'Hüseyin Yıldız',
-    jobTitle: 'Kurucu & Kreatif Direktör',
-    department: 'Tasarım',
+    fullName: 'Ellen Mercer',
+    jobTitle: 'Founder & Creative Director',
+    department: 'Design',
     company: 'Voldi Creative',
   },
   contact: {
-    email: 'huseyin@voldi.net',
+    email: 'ellen@voldi.net',
     phone: '+90 332 000 00 00',
     mobile: '+90 555 000 00 00',
     website: 'https://voldi.net',
-    address: 'Selçuklu, Konya, Türkiye',
+    address: 'Selçuklu, Konya, Turkey',
   },
   visuals: {
     ...baseVisuals,
@@ -47,12 +52,12 @@ const full: SignatureData = {
     { platform: 'behance', url: 'https://behance.net/voldi' },
   ],
   extras: {
-    ctaLabel: 'Görüşme Ayarla',
-    ctaUrl: 'https://voldi.net/randevu',
+    ctaLabel: 'Book a meeting',
+    ctaUrl: 'https://voldi.net/meeting',
     disclaimer:
-      'Bu e-posta ve ekleri gizlidir. Yanlışlıkla ulaştıysa lütfen siliniz.',
+      'This e-mail and any attachments are confidential. If it reached you by mistake, please delete it.',
     customFields: [
-      { label: 'Portföy', value: 'voldi.net/isler', url: 'https://voldi.net/isler' },
+      { label: 'Portfolio', value: 'voldi.net/work', url: 'https://voldi.net/work' },
     ],
   },
   layout: {
@@ -64,8 +69,8 @@ const full: SignatureData = {
 };
 
 const minimal: SignatureData = {
-  identity: { fullName: 'Ayşe Demir' },
-  contact: { email: 'ayse@voldi.net' },
+  identity: { fullName: 'Nora Bennett' },
+  contact: { email: 'nora@voldi.net' },
   visuals: { ...baseVisuals },
   social: [],
   layout: {
@@ -83,22 +88,24 @@ const noLogo: SignatureData = {
 
 const longContent: SignatureData = {
   ...full,
+  /* Taşma testi: adların, ünvanların ve feragatnamenin UZUN kalması işin
+     kendisi — çeviride karakter sayısı bilerek korundu. */
   identity: {
-    fullName: 'Mehmet Abdullah Karahanoğlu-Süleymanoğlu',
-    jobTitle: 'Kıdemli Marka Stratejisti ve Yaratıcı İçerik Yönetmeni',
-    department: 'Pazarlama & Kurumsal İletişim',
-    company: 'Voldi Creative Reklam ve Tanıtım Hizmetleri A.Ş.',
+    fullName: 'Alexandra Katherine Fitzgerald-Whitmore',
+    jobTitle: 'Senior Brand Strategist and Creative Content Director',
+    department: 'Marketing & Corporate Communications',
+    company: 'Voldi Creative Advertising & Promotion Services Inc.',
   },
   extras: {
     ...full.extras,
     disclaimer:
-      'Bu elektronik posta mesajı ve ekleri yalnızca gönderildiği kişi veya kuruluşa özeldir ve gizli bilgiler içerebilir. Mesajın gönderildiği kişi değilseniz lütfen göndericiyi bilgilendirip mesajı sisteminizden siliniz.',
+      'This electronic mail message and any attachments are intended solely for the person or organisation it was addressed to and may contain confidential information. If you are not the intended recipient, please notify the sender and delete the message from your system.',
   },
 };
 
 export const fixtures: Fixture[] = [
-  { id: 'full', title: 'Dolu (tüm alanlar)', data: full },
-  { id: 'minimal', title: 'Minimal (ad + e-posta)', data: minimal },
-  { id: 'noLogo', title: 'Logosuz / avatarsız', data: noLogo },
-  { id: 'longContent', title: 'Uzun içerik (taşma testi)', data: longContent },
+  { id: 'full', title: 'Full (every field)', data: full },
+  { id: 'minimal', title: 'Minimal (name + e-mail)', data: minimal },
+  { id: 'noLogo', title: 'No logo, no avatar', data: noLogo },
+  { id: 'longContent', title: 'Long content (overflow test)', data: longContent },
 ];

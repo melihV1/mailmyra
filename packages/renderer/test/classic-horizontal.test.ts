@@ -6,10 +6,10 @@ const full = fixtures.find((f) => f.id === 'full')!.data;
 
 describe('classicHorizontal', () => {
   it('renders the full name', () => {
-    expect(classicHorizontal(full)).toContain('Hüseyin Yıldız');
+    expect(classicHorizontal(full)).toContain('Ellen Mercer');
   });
   it('renders the email as a mailto link', () => {
-    expect(classicHorizontal(full)).toContain('href="mailto:huseyin@voldi.net"');
+    expect(classicHorizontal(full)).toContain('href="mailto:ellen@voldi.net"');
   });
   it('renders the website as an https link', () => {
     expect(classicHorizontal(full)).toContain('href="https://voldi.net"');
@@ -107,7 +107,7 @@ describe('classicHorizontal', () => {
     const sigImg = html.match(/<img[^>]*sig\.png[^>]*>/i)![0];
     expect(sigImg).toContain('width="150"');
     // Disclaimer da aynı çıktıda var (full fixture disclaimer içerir)
-    expect(html).toContain('Bu e-posta ve ekleri gizlidir');
+    expect(html).toContain('This e-mail and any attachments are confidential');
   });
   it('renders the hand signature row even without a disclaimer', () => {
     const noDisc = {
@@ -123,7 +123,7 @@ describe('classicHorizontal', () => {
       visuals: { ...full.visuals, handSignatureUrl: undefined },
     };
     const html = classicHorizontal(noSig);
-    expect(html).toContain('Bu e-posta ve ekleri gizlidir');
+    expect(html).toContain('This e-mail and any attachments are confidential');
     expect(html).not.toContain('sig.png');
   });
   it('renders text links (no /icons/ img) when iconBaseUrl is absent', () => {
