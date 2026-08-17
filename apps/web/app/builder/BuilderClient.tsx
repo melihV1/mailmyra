@@ -291,7 +291,24 @@ export function BuilderClient({
         </div>
       </div>
       <div className="card-body">
-        <Preview html={html} textColor={applied.visuals.textColor} chrome="theme" />
+        {/* Boş formda iframe bomboş bir kutu olarak duruyordu — "bozuk mu?"
+            sorusunu doğuruyor. Ad girilene kadar ne olacağını anlatan bir
+            durum gösteriyoruz (ad zaten zorunlu alan). */}
+        {applied.identity.fullName.trim() ? (
+          <Preview html={html} textColor={applied.visuals.textColor} chrome="theme" />
+        ) : (
+          <div className="text-center py-5">
+            <div className="avatar avatar-lg mx-auto mb-3">
+              <span className="avatar-initial rounded-circle bg-label-primary">
+                <i className="icon-base ti tabler-signature icon-26px" aria-hidden="true" />
+              </span>
+            </div>
+            <h6 className="mb-1">Your signature appears here</h6>
+            <p className="text-body-secondary mb-0 small">
+              Start with a name on the Details step — everything updates as you type.
+            </p>
+          </div>
+        )}
       </div>
       <div className="card-footer">
         <ExportButtons

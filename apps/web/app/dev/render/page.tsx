@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { fixtures, renderSignature } from '@mailmyra/renderer';
+import { fixtures, renderSignature, TEMPLATE_IDS } from '@mailmyra/renderer';
 import { ExportButtons } from '../../../components/ExportButtons';
 import { wrapPreviewDoc } from '../../../components/preview-doc';
 
@@ -21,27 +21,34 @@ export default function DevRenderPage() {
         margin: '0 auto',
       }}
     >
-      <h1>/dev/render — classic-horizontal</h1>
+      <h1>/dev/render — {TEMPLATE_IDS.length} şablon × {fixtures.length} fixture</h1>
       <p style={{ color: '#666' }}>
         Her fixture açık ve koyu zeminde önizlenir. Kopyala / .htm indir ile 6
-        istemcide test et.
+        istemcide test et. Şablon eklendiğinde bu sayfa kendiliğinden büyür —
+        liste `TEMPLATE_IDS`ten gelir.
       </p>
-      {fixtures.map((fx) => {
+      {/* Şablon dışta, fixture içte: 6-istemci turunda tek şablonun bütün
+          fixture'ları bir arada görülsün. */}
+      {TEMPLATE_IDS.flatMap((templateId) =>
+      fixtures.map((fx) => {
         const html = renderSignature(
           fx.data,
-          'classic-horizontal',
+          templateId,
           iconBaseUrl ? { iconBaseUrl } : undefined,
         );
         return (
           <section
-            key={fx.id}
+            key={`${templateId}:${fx.id}`}
             style={{
               marginBottom: 40,
               borderBottom: '1px solid #eee',
               paddingBottom: 24,
             }}
           >
-            <h2>{fx.title}</h2>
+            <h2 style={{ marginBottom: 4 }}>{fx.title}</h2>
+            <p style={{ margin: '0 0 12px', color: '#666', fontSize: 13 }}>
+              <code>{templateId}</code>
+            </p>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
               {/* allow-same-origin: opak origin + Chrome PNA localhost
                   görsellerini kesiyordu (builder Preview ile aynı karar). */}
@@ -49,23 +56,24 @@ export default function DevRenderPage() {
                 title={`${fx.id}-light`}
                 sandbox="allow-same-origin"
                 srcDoc={wrapPreviewDoc(html, '#ffffff')}
-                style={{ width: 620, height: 280, border: '1px solid #ddd' }}
+                style={{ width: 620, height: 560, border: '1px solid #ddd' }}
               />
               <iframe
                 title={`${fx.id}-dark`}
                 sandbox="allow-same-origin"
                 srcDoc={wrapPreviewDoc(html, '#1a1a1a')}
-                style={{ width: 620, height: 280, border: '1px solid #ddd' }}
+                style={{ width: 620, height: 560, border: '1px solid #ddd' }}
               />
             </div>
             <ExportButtons
               html={html}
-              filename={`classic-horizontal--${fx.id}`}
+              filename={`${templateId}--${fx.id}`}
               gated={false}
             />
           </section>
         );
-      })}
+      }),
+      )}
     </main>
   );
 }

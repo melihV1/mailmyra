@@ -1,13 +1,36 @@
 'use client';
 
 import type { SignatureData, WebSafeFont } from '@mailmyra/renderer';
-import { contrastRatio } from '@mailmyra/renderer';
+import { contrastRatio, TEMPLATE_IDS } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, LockHint } from '../fields';
 import { WEB_SAFE_FONTS } from '../../../lib/brand-doc';
 import type { BrandFieldName } from '../../../lib/brand-apply';
 
 const FONTS: readonly WebSafeFont[] = WEB_SAFE_FONTS;
+
+/**
+ * Şablon vitrini. Kaynak listesi renderer'ın `TEMPLATE_IDS`i — buraya
+ * yalnız ETİKET yazılır; yeni şablon eklendiğinde etiketi yoksa ham id
+ * gösterilir, seçenek listeden DÜŞMEZ (sessizce erişilemez şablon olmaz).
+ */
+const TEMPLATE_LOOKS: Record<string, { name: string; blurb: string; icon: string }> = {
+  'classic-horizontal': {
+    name: 'Classic',
+    blurb: 'Photo on the left, details on the right.',
+    icon: 'tabler-layout-columns',
+  },
+  'stacked-minimal': {
+    name: 'Stacked',
+    blurb: 'One narrow column — images on top.',
+    icon: 'tabler-layout-rows',
+  },
+  'card-bordered': {
+    name: 'Card',
+    blurb: 'Bordered card with a brand accent bar.',
+    icon: 'tabler-layout-board-split',
+  },
+};
 
 const LIGHT_BG = '#ffffff';
 const PURE_BLACK = '#000000';
@@ -97,6 +120,7 @@ export function StyleStep({
   // renk uyarı versin, marka geçersiz kılan kişisel bir renk YANLIŞ uyarmasın
   // — kontrol `applyBrand` çıktısına göre yapılır, ham `data`'ya göre değil.
   const warnings = contrastWarnings(applied.visuals);
+  const templateLocked = locked.has('templateId');
 
   return (
     <div>
@@ -114,7 +138,46 @@ export function StyleStep({
         </div>
       )}
 
-      <FieldGroup title="Colors" icon="tabler-palette" first>
+      <FieldGroup title="Template" icon="tabler-layout-grid" first>
+        <div className="col-12">
+          <div className="row g-3">
+            {TEMPLATE_IDS.map((id) => {
+              const look = TEMPLATE_LOOKS[id];
+              // Kilitliyken GÖSTERİLEN şablon bindirilmiş veriden gelir —
+              // diğer kontrollerdeki desenin aynısı.
+              const current = templateLocked ? applied.layout.templateId : data.layout.templateId;
+              const active = current === id;
+              return (
+                <div className="col-12 col-sm-4" key={id}>
+                  <button
+                    type="button"
+                    /* d-flex flex-column ŞART: temanın `.btn`i inline-flex,
+                       aksi halde ad ve açıklama yan yana yapışıyor. */
+                    className={`btn w-100 h-100 text-start p-3 d-flex flex-column align-items-start ${
+                      active ? 'btn-primary' : 'btn-label-secondary'
+                    }`}
+                    aria-pressed={active}
+                    disabled={templateLocked}
+                    onClick={() => dispatch({ type: 'patchLayout', value: { templateId: id } })}
+                  >
+                    <span className="d-flex align-items-center gap-2 mb-1 fw-medium">
+                      <i
+                        className={`icon-base ti ${look?.icon ?? 'tabler-template'} icon-20px`}
+                        aria-hidden="true"
+                      />
+                      {look?.name ?? id}
+                    </span>
+                    <span className="d-block small opacity-75 text-wrap">{look?.blurb ?? id}</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+          {templateLocked && <LockHint />}
+        </div>
+      </FieldGroup>
+
+      <FieldGroup title="Colors" icon="tabler-palette">
         <ColorField
           label="Brand color"
           value={locked.has('brandColor') ? applied.visuals.brandColor : data.visuals.brandColor}
