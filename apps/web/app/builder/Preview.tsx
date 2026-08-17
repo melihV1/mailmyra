@@ -85,18 +85,29 @@ export function Preview({
           origin'dir ve Chrome PNA opak→localhost görsel isteklerini keser —
           dev'de fixture/ikon görselleri sessizce kırılıyordu. Script'ler
           yine yasak (allow-scripts YOK); CSS yalıtımı iframe'in doğası. */}
-      <iframe
-        title="signature-preview"
-        sandbox="allow-same-origin"
-        srcDoc={wrapPreviewDoc(html, dark ? '#1a1a1a' : '#ffffff')}
-        style={{
-          width: '100%',
-          minHeight: 360,
-          border: '1px solid #ddd',
-          borderRadius: 8,
-          background: dark ? '#1a1a1a' : '#fff',
-        }}
-      />
+      {/* Tema kipinde iframe kendi "kağıt" yüzeyinde durur (builder-theme.css):
+          noktalı zemin + gölge. Plain kip /dev/render'ın hâli, DEĞİŞMEDİ. */}
+      <div
+        className={chrome === 'theme' ? 'mm-preview-surface' : undefined}
+        data-dark={chrome === 'theme' ? String(dark) : undefined}
+      >
+        <iframe
+          title="signature-preview"
+          sandbox="allow-same-origin"
+          srcDoc={wrapPreviewDoc(html, dark ? '#1a1a1a' : '#ffffff')}
+          style={
+            chrome === 'theme'
+              ? { width: '100%', minHeight: 420 }
+              : {
+                  width: '100%',
+                  minHeight: 360,
+                  border: '1px solid #ddd',
+                  borderRadius: 8,
+                  background: dark ? '#1a1a1a' : '#fff',
+                }
+          }
+        />
+      </div>
     </div>
   );
 }

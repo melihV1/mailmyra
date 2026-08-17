@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { renderSignature, contrastRatio } from '@mailmyra/renderer';
 import { builderReducer, createEmptyData, mergeWithEmpty } from './reducer';
 import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
@@ -13,6 +14,8 @@ import { SocialStep } from './steps/SocialStep';
 import { StyleStep } from './steps/StyleStep';
 import { Preview } from './Preview';
 import { ExportButtons } from '../../components/ExportButtons';
+import { SaveDialog } from './SaveDialog';
+import './builder-theme.css';
 
 const STEPS = [
   { id: 'info', title: 'Details', icon: 'tabler-user' },
@@ -26,6 +29,7 @@ type StepId = (typeof STEPS)[number]['id'];
 export function BuilderClient({
   gated,
   iconBaseUrl,
+  signedIn = false,
   signatureId,
   initialData,
   initialName,
@@ -33,6 +37,8 @@ export function BuilderClient({
 }: {
   gated: false | 'login' | 'verify';
   iconBaseUrl: string;
+  /** Oturum var mı — "Save to my signatures" düğmesinin hedefini belirler. */
+  signedIn?: boolean;
   /** Doluysa builder kayıtlı bir imzayı düzenliyor: kaynak sunucu, taslak değil. */
   signatureId?: string;
   initialData?: unknown;
@@ -49,6 +55,13 @@ export function BuilderClient({
   // çelişir. Adımlar yalnız `locked.has(alan) ? applied... : data...` sorar.
   const locked = useMemo(() => lockedBrandFields(brand), [brand]);
   const applied = useMemo(() => applyBrand(data, brand), [data, brand]);
+  const router = useRouter();
+  /* Kaydedilmiş imzanın kimliği. Prop'tan başlar; anonim oturumda
+     "Save" başarılı olunca DOLAR ve o andan itibaren otomatik kayıt
+     devreye girer — kullanıcı ikinci kez kaydete basmak zorunda kalmaz. */
+  const [savedId, setSavedId] = useState<string | undefined>(signatureId);
+  const [savedName, setSavedName] = useState<string | undefined>(initialName);
+  const [saveOpen, setSaveOpen] = useState(false);
   const [step, setStep] = useState<StepId>('info');
   const [mobilePane, setMobilePane] = useState<'edit' | 'preview'>('edit');
   const [savedVisible, setSavedVisible] = useState(false);
@@ -81,13 +94,13 @@ export function BuilderClient({
     if (JSON.stringify(data) === JSON.stringify(createEmptyData())) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      if (signatureId) {
+      if (savedId) {
         // Otomatik kayıt sunucuya. Hata düzenlemeyi KİLİTLEMEZ (panel-brief
         // §2.5): şerit çıkar, veri elde durur, sonraki değişiklik yeniden dener.
         void fetch('/api/signatures', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: signatureId, name: initialName ?? '', data }),
+          body: JSON.stringify({ id: savedId, name: savedName ?? '', data }),
         }).then(
           (res) => {
             setSaveFailed(!res.ok);
@@ -106,7 +119,10 @@ export function BuilderClient({
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [data]);
+    // `savedId`/`savedName` bilerek bağımlılıkta: kayıt sonrası ilk
+    // değişiklikte taslak yerine sunucuya yazılsın.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, savedId, savedName]);
 
   // Bindirilmiş verinin şablonu kullanılır: templateId kilitliyse önizleme/
   // export de markanın şablonunu gösterir, kişinin ham seçimini değil.
@@ -191,6 +207,16 @@ export function BuilderClient({
     dispatch({ type: 'reset' });
   }
 
+  const saveAction = () => {
+    // Oturumsuzken kaydedilecek yer yok: taslak localStorage'da duruyor,
+    // kullanıcıyı girişe gönderiyoruz ve dönüşte builder'a düşüyor.
+    if (!signedIn) {
+      router.push('/login?next=/builder');
+      return;
+    }
+    setSaveOpen(true);
+  };
+
   const editPane = (
     <div className="card">
       {/* Adım seçici — temanın nav-pills'i (Brand ekranındaki segmented
@@ -242,22 +268,22 @@ export function BuilderClient({
         <span
           className={`badge ${saveFailed ? 'bg-label-danger' : 'bg-label-success'}`}
           style={{
-            opacity: signatureId ? (savedAt || saveFailed ? 1 : 0) : savedVisible ? 1 : 0,
+            opacity: savedId ? (savedAt || saveFailed ? 1 : 0) : savedVisible ? 1 : 0,
             transition: 'opacity 0.3s',
           }}
         >
-          {signatureId
+          {savedId
             ? saveFailed
               ? 'Could not save — check your connection'
               : `Saved · ${savedAt ?? ''}`
-            : 'Draft saved'}
+            : 'Draft saved locally'}
         </span>
       </div>
     </div>
   );
 
   const previewPane = (
-    <div className="card" style={{ position: 'sticky', top: '1.5rem' }}>
+    <div className="card mm-preview-card">
       <div className="card-header pb-2">
         <div className="card-title mb-0">
           <h5 className="mb-1">Live preview</h5>
@@ -296,7 +322,7 @@ export function BuilderClient({
   );
 
   return (
-    <div className="container-xxl flex-grow-1 container-p-y">
+    <div className="container-fluid flex-grow-1 container-p-y mm-builder">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
           <h4 className="mb-1">Signature builder</h4>
@@ -304,10 +330,25 @@ export function BuilderClient({
             Fill in the details on the left — the preview updates as you type.
           </p>
         </div>
-        <a href="/app/signatures" className="btn btn-label-secondary">
-          <i className="icon-base ti tabler-arrow-left me-1" aria-hidden="true" />
-          Back to panel
-        </a>
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          {savedId ? (
+            /* Kayıtlı imza: otomatik kayıt zaten çalışıyor, düğme yerine
+               nereye kaydedildiğini söyleyen bir bağlantı. */
+            <a href="/app/signatures" className="btn btn-label-success">
+              <i className="icon-base ti tabler-check me-1" aria-hidden="true" />
+              Saved to your signatures
+            </a>
+          ) : (
+            <button type="button" className="btn btn-primary" onClick={saveAction}>
+              <i className="icon-base ti tabler-device-floppy me-1" aria-hidden="true" />
+              {signedIn ? 'Save to my signatures' : 'Sign in to save'}
+            </button>
+          )}
+          <a href="/app/signatures" className="btn btn-label-secondary">
+            <i className="icon-base ti tabler-arrow-left me-1" aria-hidden="true" />
+            Back to panel
+          </a>
+        </div>
       </div>
 
       {/* Mobilde iki panel yan yana sığmaz: eski düzenle/önizle geçişi
@@ -334,13 +375,30 @@ export function BuilderClient({
       </ul>
 
       <div className="row g-4">
-        <div className={`col-lg-7 col-xl-8${mobilePane === 'preview' ? ' d-none d-lg-block' : ''}`}>
+        <div className={`col-lg-6${mobilePane === 'preview' ? ' d-none d-lg-block' : ''}`}>
           {editPane}
         </div>
-        <div className={`col-lg-5 col-xl-4${mobilePane === 'edit' ? ' d-none d-lg-block' : ''}`}>
+        <div className={`col-lg-6${mobilePane === 'edit' ? ' d-none d-lg-block' : ''}`}>
           {previewPane}
         </div>
       </div>
+
+      {saveOpen && (
+        <SaveDialog
+          data={data}
+          onCancel={() => setSaveOpen(false)}
+          onSaved={(id, name) => {
+            setSaveOpen(false);
+            setSavedId(id);
+            setSavedName(name);
+            setSavedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+            // Sayfa yenilenirse kayıtlı imza yüklensin; taslak da temizlenir
+            // ki aynı içerik iki yerde iki ayrı gerçek olarak yaşamasın.
+            clearDraft(window.localStorage);
+            router.replace(`/builder?sig=${id}`);
+          }}
+        />
+      )}
     </div>
   );
 }

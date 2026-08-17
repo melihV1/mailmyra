@@ -25,8 +25,11 @@ export default async function BuilderPage({
   // adresle export açılmaz (panel-brief §2.2).
   const params = await searchParams;
   const sig = typeof params.sig === 'string' ? params.sig : undefined;
-  // Düzenleme kipi oturum ister; kapı bayrağından bağımsız.
-  const session = sig || isExportGated() ? await currentSession() : null;
+  // Oturum HER İSTEKTE çözülür (2026-08-17): yalnız export kapısı ve
+  // düzenleme kipi değil, "Save to my signatures" düğmesi de giriş durumunu
+  // bilmek zorunda — oturumsuz kullanıcıya kaydet dedirtip 401 yemek yerine
+  // girişe yönlendiriyoruz.
+  const session = await currentSession();
 
   // ?sig= ile gelen kayıtlı imza: sahibi değilse ya da yoksa sessizce
   // listeye dön — 404 sayfası imzanın varlığını doğrulamış olurdu.
@@ -62,6 +65,7 @@ export default async function BuilderPage({
     <BuilderClient
       gated={gated}
       iconBaseUrl={process.env.CDN_PUBLIC_URL ?? ''}
+      signedIn={Boolean(session)}
       signatureId={editing?.id}
       initialData={editing?.data}
       initialName={editing?.name}

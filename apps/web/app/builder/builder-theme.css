@@ -1,0 +1,85 @@
+/**
+ * Builder'a özel cila (2026-08-17, Hüseyin: "basic gözükmesin").
+ *
+ * Hepsi `.mm-builder` altında: builder dışına, panele veya pazarlamaya
+ * sızmaz. Tema değişkenlerini (--bs-*) kullanır — koyu mod açılırsa ya da
+ * marka rengi değişirse burası kendiliğinden uyar, sabit renk gömülmez.
+ *
+ * ⚠️ Bu dosya imza ÇIKTISINI etkilemez: önizleme iframe'in içinde yaşıyor,
+ * buradaki hiçbir kural oraya geçmez (e-posta HTML'i inline CSS kuralı).
+ */
+
+/* ── Önizleme kartı ────────────────────────────────────────────────── */
+
+/* İmza 600px genişliğinde doğar; kart bunu yatay kaydırmadan taşıyabilsin
+   diye builder container-fluid'e alındı. Yine de dar ekranda taşarsa
+   kaydırma kartın İÇİNDE kalsın, sayfa yana kaymasın. */
+.mm-builder .mm-preview-surface {
+  border-radius: var(--bs-border-radius-lg);
+  background-color: var(--bs-body-bg);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(var(--bs-emphasis-color-rgb), 0.08) 1px, transparent 0);
+  background-size: 16px 16px;
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+
+/* İmzanın kendisi zeminden ayrılsın — "kağıt" hissi. */
+.mm-builder .mm-preview-surface iframe {
+  display: block;
+  border: 0;
+  border-radius: var(--bs-border-radius);
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(var(--bs-emphasis-color-rgb), 0.12);
+}
+
+/* Koyu önizlemede kağıt da koyu olmalı, beyaz çerçeve kalmamalı. */
+.mm-builder .mm-preview-surface[data-dark='true'] iframe {
+  background: #1a1a1a;
+}
+
+/* ── Adım sekmeleri ───────────────────────────────────────────────── */
+
+/* Temanın nav-pills'i builder'da biraz daha nefes alsın; ikon + metin
+   dikey ortalansın (buton olarak render ediliyor, <a> değil). */
+.mm-builder .nav-pills .nav-link {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* ── Form ─────────────────────────────────────────────────────────── */
+
+/* Renk yuvası + hex kutusu: yuva kare kalsın, hex ile aynı yükseklikte. */
+.mm-builder .form-control-color {
+  max-width: 3rem;
+  padding: 0.25rem;
+}
+
+/* Grup başlıklarının altındaki ayraç fazla baskın durmasın. */
+.mm-builder hr {
+  opacity: 0.5;
+}
+
+/* Yüklenen görselin önizlemesi kartın içinde sabit bir kutuda dursun —
+   farklı en-boy oranları satırı zıplatmasın. */
+.mm-builder .mm-asset-thumb {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  background-color: var(--bs-secondary-bg);
+  padding: 0.25rem;
+}
+
+/* ── Sticky önizleme ──────────────────────────────────────────────── */
+
+/* Uzun formda önizleme ekranda kalır; çok uzun imzada kart kendi içinde
+   kayar, sayfayı kilitlemez. */
+@media (min-width: 992px) {
+  .mm-builder .mm-preview-card {
+    position: sticky;
+    top: 1.5rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+  }
+}

@@ -86,8 +86,7 @@ export function VisualsStep({
                   <img
                     src={url}
                     alt={slot.title}
-                    className="rounded border"
-                    style={{ maxWidth: 90, maxHeight: 90 }}
+                    className="rounded border mm-asset-thumb"
                   />
                   <code className="small text-truncate" style={{ maxWidth: 260 }}>
                     {url}
