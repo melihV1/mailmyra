@@ -89,6 +89,14 @@ export default async function SenderDetailPage({
                     </span>
                   </li>
                 )}
+                {/* GERÇEK export olayı yoksa satır hiç görünmez — "aktarıldı"
+                    iddiası ancak kaydı varsa kurulur (dış denetim kuralı). */}
+                <li>
+                  <span className="fw-medium text-heading me-1">Last exported:</span>
+                  <span className="text-body-secondary">
+                    {sender.lastExportedAt ? longDate.format(sender.lastExportedAt) : 'Never'}
+                  </span>
+                </li>
               </ul>
             </div>
           </div>

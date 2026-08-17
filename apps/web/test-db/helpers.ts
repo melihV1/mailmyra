@@ -4,6 +4,8 @@ import { prisma } from '../lib/db';
 export async function truncateAll() {
   await prisma.$transaction([
     prisma.invoice.deleteMany(),
+    prisma.activityEvent.deleteMany(),
+    prisma.notificationPreference.deleteMany(),
     prisma.notification.deleteMany(),
     prisma.legalAcceptance.deleteMany(),
     prisma.signature.deleteMany(),

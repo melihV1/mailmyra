@@ -11,6 +11,8 @@ import type { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
 import { seatWarningEmail, type Mailer } from '../mail';
+import { recordActivity } from './activity';
+import { filterByPreference } from './notification-prefs';
 import { notifyOrgManagers } from './notifications';
 
 /**
@@ -87,10 +89,21 @@ async function sendSeatWarning(
 ): Promise<void> {
   const owners = await prisma.membership.findMany({
     where: { orgId: billingOrgId, role: 'owner' },
-    include: { user: { select: { email: true } } },
+    include: { user: { select: { id: true, email: true } } },
   });
+  // E-posta kanalını kapatmış owner'a mail GİTMEZ (tercih ekranı,
+  // 2026-08-15). Panel bildirimi ayrı bir anahtar — biri kapalıyken
+  // diğeri çalışmaya devam eder.
+  const allowed = new Set(
+    await filterByPreference(
+      owners.map((o) => o.user.id),
+      'seat_warning',
+      'email',
+    ),
+  );
   const body = seatWarningEmail({ actionUrl: `${appUrl()}/app/senders`, ...usage });
   for (const owner of owners) {
+    if (!allowed.has(owner.user.id)) continue;
     try {
       await mailer.send({ to: owner.user.email, ...body });
     } catch (error) {
@@ -165,6 +178,14 @@ export async function publishSender(
       payload: { senderName: published.senderName },
       excludeUserId: actorUserId,
     });
+    await recordActivity({
+      orgId: known.orgId,
+      actorUserId,
+      type: 'sender.published',
+      targetType: 'sender',
+      targetId: senderId,
+      payload: { senderName: published.senderName },
+    });
   }
   if (crossed) {
     await notifyOrgManagers({
@@ -229,6 +250,14 @@ export async function createSender(
         jobTitle: input.jobTitle?.trim() || null,
       },
     });
+    await recordActivity({
+      orgId,
+      actorUserId: userId,
+      type: 'sender.created',
+      targetType: 'sender',
+      targetId: sender.id,
+      payload: { senderName: sender.displayName, email: sender.email },
+    });
     return { ok: true, id: sender.id };
   } catch (error) {
     // UNIQUE(orgId, email) — aynı adres ikinci kez eklenmez; pasifse
@@ -269,6 +298,14 @@ export async function deactivateSenderAs(
   if (!role) return { ok: false, reason: 'not_found' };
   if (!can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
   await deactivateSender(senderId);
+  await recordActivity({
+    orgId: sender.orgId,
+    actorUserId: userId,
+    type: 'sender.deactivated',
+    targetType: 'sender',
+    targetId: senderId,
+    payload: { senderName: sender.displayName },
+  });
   return { ok: true };
 }
 
@@ -296,6 +333,15 @@ export async function deleteSenderAs(
   if (!can(role, 'sender:manage')) return { ok: false, reason: 'forbidden' };
   if (seatStatus(sender) === 'active') return { ok: false, reason: 'is_live' };
   await prisma.senderIdentity.delete({ where: { id: senderId } });
+  // Hedef artık yok — adı payload'a KOPYALANIR ki günlük satırı okunabilsin.
+  await recordActivity({
+    orgId: sender.orgId,
+    actorUserId: userId,
+    type: 'sender.deleted',
+    targetType: 'sender',
+    targetId: senderId,
+    payload: { senderName: sender.displayName, email: sender.email },
+  });
   return { ok: true };
 }
 
@@ -335,6 +381,14 @@ export async function updateSenderAs(
         jobTitle: input.jobTitle?.trim() || null,
       },
     });
+    await recordActivity({
+      orgId: sender.orgId,
+      actorUserId: userId,
+      type: 'sender.updated',
+      targetType: 'sender',
+      targetId: senderId,
+      payload: { senderName: input.displayName.trim(), previousName: sender.displayName },
+    });
     return { ok: true };
   } catch (error) {
     // UNIQUE(orgId, email) — org içinde başka göndericinin adresi alınamaz.
@@ -354,6 +408,8 @@ export interface SenderDetail {
   createdAt: Date;
   publishedAt: Date | null;
   deactivatedAt: Date | null;
+  /** Gerçek bir export olduysa dolu — "hazır" ile "aktarıldı" ayrımı. */
+  lastExportedAt: Date | null;
   signatures: Array<{ id: string; name: string; templateId: string; updatedAt: Date }>;
 }
 
@@ -380,6 +436,7 @@ export async function getSenderAs(userId: string, senderId: string): Promise<Sen
     createdAt: sender.createdAt,
     publishedAt: sender.publishedAt,
     deactivatedAt: sender.deactivatedAt,
+    lastExportedAt: sender.lastExportedAt,
     signatures: sender.signatures,
   };
 }
@@ -464,5 +521,14 @@ export async function bulkCreateSenders(
     });
   }
 
+  if (fresh.length > 0) {
+    await recordActivity({
+      orgId,
+      actorUserId: userId,
+      type: 'senders.imported',
+      targetType: 'sender',
+      payload: { count: fresh.length, skipped: skippedSet.size },
+    });
+  }
   return { ok: true, created: fresh.length, skipped: [...skippedSet] };
 }

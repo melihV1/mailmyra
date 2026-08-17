@@ -2,6 +2,7 @@ import { can, seatStatus, type Role, type SeatStatus } from '@mailmyra/core';
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
+import { recordActivity } from './activity';
 
 /**
  * İmza deposu.
@@ -75,6 +76,15 @@ export async function deleteSignature(userId: string, signatureId: string): Prom
   if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
 
   await prisma.signature.delete({ where: { id: signatureId } });
+  // Ad payload'a kopyalanır: kayıt gitti, günlük satırı tek başına okunmalı.
+  await recordActivity({
+    orgId: signature.orgId,
+    actorUserId: userId,
+    type: 'signature.deleted',
+    targetType: 'signature',
+    targetId: signatureId,
+    payload: { name: signature.name },
+  });
   return { ok: true };
 }
 
@@ -92,6 +102,14 @@ export async function renameSignature(
   if (!can(role, 'signature:edit')) return { ok: false, reason: 'forbidden' };
 
   await prisma.signature.update({ where: { id: signatureId }, data: { name } });
+  await recordActivity({
+    orgId: signature.orgId,
+    actorUserId: userId,
+    type: 'signature.renamed',
+    targetType: 'signature',
+    targetId: signatureId,
+    payload: { name, previousName: signature.name },
+  });
   return { ok: true };
 }
 

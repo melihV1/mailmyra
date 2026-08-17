@@ -3,6 +3,7 @@ import type { Prisma } from '@prisma/client';
 
 import { parseBrandDocument, type BrandDocument } from '../brand-doc';
 import { prisma } from '../db';
+import { recordActivity } from './activity';
 import { primaryOrgId, roleFor } from './senders';
 
 /**
@@ -30,6 +31,19 @@ export async function saveBrandAs(userId: string, doc: BrandDocument): Promise<S
     where: { orgId },
     create: { orgId, data },
     update: { data },
+  });
+  // Kilitli alan sayısı günlükte dursun: marka kuralı değişince hangi
+  // alanların zorlandığı sonradan tartışılıyor (destek soruları).
+  await recordActivity({
+    orgId,
+    actorUserId: userId,
+    type: 'brand.saved',
+    targetType: 'brand',
+    payload: {
+      lockedFields: Object.values(doc).filter(
+        (f) => (f as { mode?: string } | null)?.mode === 'locked',
+      ).length,
+    },
   });
   return { ok: true };
 }

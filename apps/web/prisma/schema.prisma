@@ -32,11 +32,13 @@ model User {
   createdAt       DateTime  @default(now())
   lastLoginAt     DateTime?
 
-  sessions         Session[]
-  emailTokens      EmailToken[]
-  memberships      Membership[]
-  legalAcceptances LegalAcceptance[]
-  notifications    Notification[]
+  sessions            Session[]
+  emailTokens         EmailToken[]
+  memberships         Membership[]
+  legalAcceptances    LegalAcceptance[]
+  notifications       Notification[]
+  notificationPrefs   NotificationPreference[]
+  activityEvents      ActivityEvent[]
 }
 
 model Session {
@@ -125,6 +127,7 @@ model Organization {
   brandSetting     BrandSetting?
   notifications    Notification[]
   invoices         Invoice[]
+  activityEvents   ActivityEvent[]
 
   @@index([parentOrgId])
 }
@@ -167,6 +170,14 @@ model SenderIdentity {
   deactivatedAt DateTime?
 
   createdAt DateTime @default(now())
+
+  /// Bu göndericinin imzası en son ne zaman dışa aktarıldı (karar 2026-08-15,
+  /// dış denetim: "Exported durumu ancak GERÇEK bir export olayı
+  /// kaydediliyorsa kullanılmalı"). Denormalize tek alan: aynı bilgiyi
+  /// günlükten türetmek gönderici başına satır yazmayı gerektirir ve 50
+  /// kişilik bir zip'te günlüğü okunmaz hale getirirdi. Günlükte export
+  /// yine bir olay olarak (`export.zip`) duruyor — bu yalnız "en son".
+  lastExportedAt DateTime?
 
   org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   signatures Signature[]
@@ -326,6 +337,61 @@ model Notification {
   @@index([userId, readAt])
   /// Liste: kullanıcının son bildirimleri.
   @@index([userId, createdAt])
+}
+
+/// Bildirim tercihi — kullanıcı × olay tipi (karar 2026-08-15, dış denetim
+/// bulgusu: Notifications sekmesi yalnız geçmişi açıklıyordu).
+/// SATIR YOKSA VARSAYILAN AÇIK (opt-out): yeni olay tipi eklendiğinde eski
+/// kullanıcılar sessizce sağır kalmasın. Tabloya yalnız kullanıcı bir şeyi
+/// kapattığında (ya da geri açtığında) satır düşer.
+model NotificationPreference {
+  id     String  @id @default(cuid())
+  userId String
+  /// `NotificationType` ile aynı birlik — kolonda enum değil varchar,
+  /// yeni tip migration istemesin diye (Notification.type emsali).
+  type   String  @db.VarChar(40)
+  /// Zil ve bildirim merkezi.
+  inApp  Boolean @default(true)
+  /// E-posta kanalı. Bugün yalnız `seat_warning` gerçekten mail üretiyor;
+  /// diğer tiplerde ayar ileriye dönük durur (arayüz bunu açıkça söyler).
+  email  Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+}
+
+/// Denetim günlüğü — "kim neyi ne zaman yaptı" (karar 2026-08-15, dış
+/// denetim P2). Bildirimden AYRI tablo: bildirim KİŞİYE gider, okunur ve
+/// tercihle susturulabilir; günlük ORG'a aittir, susturulamaz ve kalıcıdır.
+/// Yazıcı hata YUTAR — günlük yazılamadı diye publish/export devrilmez.
+model ActivityEvent {
+  id          String  @id @default(cuid())
+  orgId       String
+  /// Eylemi yapan. Kullanıcı hesabını silerse satır kalır, aktör düşer
+  /// (`SetNull`) — denetim izi kişinin gidişiyle kaybolmaz.
+  actorUserId String?
+  /// 'sender.published' | 'export.zip' | 'brand.saved' … — kod tarafında
+  /// `ActivityType` birliği; kolonda varchar (Notification.type emsali).
+  type        String  @db.VarChar(48)
+  /// Olayın öznesi. FK YOK ve olmayacak: hedef silindiğinde günlük satırı
+  /// da silinseydi "X silindi" kaydı silinmenin kendisiyle kaybolurdu.
+  targetType  String? @db.VarChar(24)
+  targetId    String? @db.VarChar(64)
+  /// Ekrana basılan insan-okur ayrıntı (ad, sayı, dosya adedi). Hedef
+  /// silinse bile satır anlamlı kalsın diye değerler KOPYALANIR.
+  payload     Json
+  createdAt   DateTime @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  actor User?        @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  /// Günlük listesi (yeni → eski).
+  @@index([orgId, createdAt])
+  /// Tip filtresi aynı listede.
+  @@index([orgId, type, createdAt])
+  /// "Bu göndericinin son export'u" — sender detayındaki satır.
+  @@index([targetId, createdAt])
 }
 
 /// Manuel kesilen fatura KAYDI (karar 2026-08-15, Hüseyin: fatura

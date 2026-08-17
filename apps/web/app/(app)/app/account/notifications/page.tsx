@@ -1,27 +1,45 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { EMAIL_CAPABLE_TYPES, getPreferences } from '../../../../../lib/repo/notification-prefs';
 import { listNotifications } from '../../../../../lib/repo/notifications';
 import { NOTIFICATION_LOOKS, timeAgo } from '../../../notification-looks';
 import { AccountTabs } from '../AccountTabs';
+import { PreferencesForm } from './PreferencesForm';
 
 export const metadata = { title: 'Notifications — Mailmyra' };
 
 /**
- * Notifications sekmesi: zilin uzun listesi + hangi olayların bildirim
- * ürettiğinin dökümü. Tercih anahtarları (kapat/aç) BİLEREK yok — üç olay
- * tipiyle tercih matrisi kurmak erken; olay çeşidi artınca gelir.
+ * Notifications sekmesi: tercih tablosu (2026-08-15, dış denetim bulgusu —
+ * sayfa yalnız geçmişi açıklıyordu) + zilin uzun listesi + hangi olayların
+ * bildirim ürettiğinin dökümü.
  */
 export default async function NotificationsPage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/account/notifications');
 
-  const notifications = await listNotifications(session.user.id);
+  const [notifications, preferences] = await Promise.all([
+    listNotifications(session.user.id),
+    getPreferences(session.user.id),
+  ]);
 
   return (
     <section>
       <AccountTabs />
+
+      <div className="card mb-4">
+        <div className="card-header pb-2">
+          <div className="card-title mb-0">
+            <h5 className="mb-1">Notification preferences</h5>
+            <p className="card-subtitle mb-0">
+              Choose how each event reaches you. This only affects your own account — teammates
+              keep their own settings.
+            </p>
+          </div>
+        </div>
+        <PreferencesForm initial={preferences} emailCapable={EMAIL_CAPABLE_TYPES} />
+      </div>
 
       <div className="row g-4">
         <div className="col-xl-8">

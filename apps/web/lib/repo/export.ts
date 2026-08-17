@@ -8,6 +8,7 @@ import { nameExportFiles, type ExportNameInput } from '../export-filename';
 import { wrapExportDoc } from '../export-htm';
 import { getBrand } from './brand';
 import { primaryOrgId, resolveBillingOrgId, roleFor } from './senders';
+import { getSignature } from './signatures';
 
 /**
  * Toplu zip'in veri ucu (spec §5). Süzgeç sırası: üyelik + izin → kapsam
@@ -22,6 +23,9 @@ export type ExportBundleResult =
       ok: true;
       files: Array<{ filename: string; html: string }>;
       skipped: { unassigned: number; unpublished: number };
+      /** Günlük + `lastExportedAt` için: zip'e GERÇEKTEN giren göndericiler. */
+      orgId: string;
+      exportedSenderIds: string[];
     }
   | { ok: false; reason: 'forbidden' | 'not_found' | 'no_exportable' | 'too_many' };
 
@@ -73,6 +77,7 @@ export async function collectExportBundle(
 
   const names: ExportNameInput[] = [];
   const htmls: string[] = [];
+  const exportedSenderIds: string[] = [];
   let unassigned = 0;
   for (const s of exportable) {
     const sigs = bySender.get(s.id) ?? [];
@@ -80,6 +85,7 @@ export async function collectExportBundle(
       unassigned += 1;
       continue;
     }
+    exportedSenderIds.push(s.id);
     for (const sig of sigs) {
       // Kayıt gevşek doğrulanır; render öncesi builder'la aynı savunma.
       // Json kolonunda şema-doğrulaması yok; okuma sınırında tip iddiası bizde.
@@ -106,5 +112,53 @@ export async function collectExportBundle(
     ok: true,
     files: htmls.map((html, i) => ({ filename: filenames[i]!, html })),
     skipped: { unassigned, unpublished },
+    orgId,
+    exportedSenderIds,
   };
+}
+
+export type RenderSavedResult =
+  | { ok: true; html: string }
+  | { ok: false; reason: 'forbidden' | 'not_found' | 'render_failed' };
+
+/**
+ * Tek kaydın önizleme fragment'i — panel tablosundaki "Preview" bunu okur.
+ *
+ * Zincir yukarıdaki toplu export'la BİREBİR aynı: gevşek kaydı `mergeWithEmpty`
+ * toparlar, marka yalnız ÇIKIŞTA `applyBrand` ile bindirilir, sonra saf
+ * renderer. Ayrı bir önizleme yolu yazılsaydı kullanıcı ekranda gördüğüyle
+ * dosyada aldığı arasında sessiz bir fark bulurdu — önizlemenin tek işi bu
+ * farkın olmadığına söz vermek. Kayıt asla yeniden yazılmaz.
+ *
+ * Kapı `getSignature`: yabancının imzası mevcut bile değildir (404).
+ */
+export async function renderSavedSignature(
+  userId: string,
+  signatureId: string,
+  iconBaseUrl?: string,
+): Promise<RenderSavedResult> {
+  const found = await getSignature(userId, signatureId);
+  if (!found.ok) return { ok: false, reason: found.reason };
+
+  const brand = await getBrand(found.signature.orgId);
+  const data = applyBrand(
+    mergeWithEmpty(found.signature.data as Partial<SignatureData>),
+    brand,
+  );
+
+  // Toplu zip'te render arızası fırlatır (dağıtılan pakette sessiz eksik
+  // olmasın); tek kayıtlık önizlemede ise kimseye dosya gitmiyor — bilinmeyen
+  // templateId yüzünden 500 stack'i yerine modalda okunur bir hata daha iyi.
+  try {
+    return {
+      ok: true,
+      html: renderSignature(
+        data,
+        data.layout.templateId,
+        iconBaseUrl ? { iconBaseUrl } : undefined,
+      ),
+    };
+  } catch {
+    return { ok: false, reason: 'render_failed' };
+  }
 }

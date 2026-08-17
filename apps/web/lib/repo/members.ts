@@ -3,6 +3,7 @@ import { can, canChangeRole, canRemoveMember, type Role } from '@mailmyra/core';
 import { prisma } from '../db';
 import { hashToken, newSessionToken } from '../auth/token';
 import { inviteEmail, type Mailer } from '../mail';
+import { recordActivity } from './activity';
 import { notifyOrgManagers } from './notifications';
 
 /**
@@ -81,6 +82,13 @@ export async function inviteMember(
   await mailer.send({
     to: email,
     ...inviteEmail({ actionUrl: `${appUrl()}/invite?token=${token}`, orgName: org.name }),
+  });
+  await recordActivity({
+    orgId,
+    actorUserId: userId,
+    type: 'member.invited',
+    targetType: 'invitation',
+    payload: { email, role },
   });
   return { ok: true };
 }
@@ -213,6 +221,14 @@ export async function acceptInvitation(token: string, userId: string): Promise<A
     payload: { email: acceptor?.email ?? '', role: invitation.role },
     excludeUserId: userId,
   });
+  await recordActivity({
+    orgId: invitation.orgId,
+    actorUserId: userId,
+    type: 'member.joined',
+    targetType: 'member',
+    targetId: userId,
+    payload: { email: acceptor?.email ?? '', role: invitation.role },
+  });
 
   return { ok: true, orgId: invitation.orgId };
 }
@@ -312,6 +328,22 @@ export async function changeMemberRole(
     where: { userId_orgId: { userId: targetUserId, orgId } },
     data: { role: nextRole as Role },
   });
+  const target = await prisma.user.findUnique({
+    where: { id: targetUserId },
+    select: { email: true },
+  });
+  await recordActivity({
+    orgId,
+    actorUserId: userId,
+    type: 'member.role_changed',
+    targetType: 'member',
+    targetId: targetUserId,
+    payload: {
+      email: target?.email ?? '',
+      role: nextRole,
+      previousRole: members.find((m) => m.userId === targetUserId)?.role ?? '',
+    },
+  });
   return { ok: true };
 }
 
@@ -326,8 +358,22 @@ export async function removeMember(
   if (!members.some((m) => m.userId === targetUserId)) return { ok: false, reason: 'not_found' };
   if (!canRemoveMember(members, targetUserId)) return { ok: false, reason: 'last_owner' };
 
+  const target = await prisma.user.findUnique({
+    where: { id: targetUserId },
+    select: { email: true },
+  });
   await prisma.membership.delete({
     where: { userId_orgId: { userId: targetUserId, orgId } },
+  });
+  await recordActivity({
+    orgId,
+    actorUserId: userId,
+    type: 'member.removed',
+    targetType: 'member',
+    targetId: targetUserId,
+    // Ayrılan kişinin adresi payload'a kopyalanır: üyelik silindi, satır
+    // "kim çıkarıldı" sorusunu tek başına cevaplayabilmeli.
+    payload: { email: target?.email ?? '', self: targetUserId === userId },
   });
   return { ok: true };
 }

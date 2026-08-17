@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
@@ -155,6 +156,13 @@ export function SenderDetailActions({
             Download signature
           </button>
         </span>
+
+        {/* Kurulum rehberi export'un DEVAMI: dosya indi, sırada istemciye
+            kurmak var (dış denetim: rehber ilgili detaydan açılabilmeli). */}
+        <Link href="/app/guides?client=outlook-classic" className="btn btn-label-secondary">
+          <i className="icon-base ti tabler-book me-1" aria-hidden="true" />
+          Setup guides
+        </Link>
 
         <span
           data-mm-tip={

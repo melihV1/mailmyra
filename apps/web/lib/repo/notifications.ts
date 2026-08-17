@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 
 import { prisma } from '../db';
+import { filterByPreference } from './notification-prefs';
 
 /**
  * Panel bildirimleri (karar 2026-08-13: kalıcı tablo, türetilmiş besleme
@@ -65,9 +66,12 @@ export async function notifyOrgManagers(input: {
       where: { orgId: input.orgId, role: { in: ['owner', 'admin'] } },
       select: { userId: true },
     });
-    const targets = managers
+    const candidates = managers
       .map((m) => m.userId)
       .filter((id) => id !== input.excludeUserId);
+    // Kullanıcı bu tipte zili kapattıysa satır hiç YAZILMAZ (tercih ekranı,
+    // 2026-08-15) — sonradan gizlemek okunmamış rozetini yine şişirirdi.
+    const targets = await filterByPreference(candidates, input.type, 'inApp');
     if (targets.length === 0) return;
     await prisma.notification.createMany({
       data: targets.map((userId) => ({
