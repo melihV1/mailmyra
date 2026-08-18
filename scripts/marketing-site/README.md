@@ -56,6 +56,20 @@ görünsün — SEO ve erişilebilirlik için şart) ve sayfa sonundaki `MM_PRIC
 objesine (hesaplayıcı oradan okur). `LAUNCH_OFFER["active"] = True` yapınca
 kampanya kutusu HTML'e eklenir; `False` iken hiç yazılmaz.
 
+## ⚠️ KAYNAK KLASÖR DEĞİŞTİ — `~/Desktop/mailmyra edit`
+
+Yayına girecek site artık `~/Desktop/mailmyra ham` DEĞİL, **`~/Desktop/mailmyra
+edit`** (Hüseyin temizledi, 2026-08-14). Fark büyük: ham klasörde 191 HTML'in
+153'ü Agntix demo sayfasıydı ve `index.html` temanın kendi anasayfasıydı;
+edit klasöründe 30 gerçek sayfa var ve `index.html` Mailmyra'nın anasayfası.
+251MB → 41MB.
+
+**Bu dizindeki snapshot'lar artık `edit` klasörünü izliyor.** Bir düzeltme
+yaparken önce hangi klasörde olduğunu doğrula — 2026-08-18'de metin turu
+yanlışlıkla `ham`a yapıldı ve `edit`e taşınması gerekti.
+
+`edit` klasörü de git altında DEĞİL. Tek geri dönüş noktası bu snapshot'lar.
+
 ## Kurulum rehberleri — `setup*.html`
 
 Jeneratör YOK; altı sayfayı (hub + 5 istemci) Hüseyin elle kurdu. Bu dizinde
@@ -65,6 +79,19 @@ iki şey duruyor:
   ÖNCE alındı. Ham klasör git altında olmadığı için tek geri dönüş noktası bu.
 - `setup-screenshots.md` — 30 ekran görüntüsünün çekim listesi (hangi ekran,
   ne görünmeli, hangi imzayla).
+- `shoot-builder.mjs` — rehberlerin "adım 01" karesini (builder, demo imzayla
+  dolu, `Copy signature` görünür) çeker. **Bağımlılık kurmaz**: projede
+  playwright/puppeteer yok ve 30 kare için 150MB tarayıcı indirmesi eklemek
+  doğru değildi; sistem Chrome'u CDP üzerinden sürülüyor (Node 24'ün global
+  `WebSocket`i yetiyor). `node shoot-builder.mjs <klasör>`.
+  ⚠️ Çıkış yapmış builder'da düğme "Sign in to save" diyor; giriş yapılmış
+  hâlini çekmek için tarayıcıda oturum açıp tekrar koştur.
+- `place-shots.mjs` — `assets/img/setup/` klasörüne düşen kareleri sayfalara
+  yerleştirir: `<figure data-shot="X.png">` → gerçek `<img>`. Eşleştirme
+  tahmin değil, `data-shot` dosyayı zaten adlandırıyor. Olmayan kareyi
+  ATLAR, o figure'a dokunmaz — kareler parça parça gelebilir, script tekrar
+  koşulur. `width`/`height` PNG başlığından okunuyor (yoksa yüklenirken
+  sayfa zıplar). `--dry` ile kuru koşu.
 
 **2026-08-18 metin turu** (6 istemci testi geçtikten sonra, ürünle
 karşılaştırarak): "Copy as HTML" → **"Copy signature"** (üründeki gerçek
@@ -74,6 +101,17 @@ idi → `GMAIL` · iOS adım 01 "builder'dan gönder" diyordu, **Mailmyra posta
 göndermiyor** → bilgisayardan kopyala-yapıştır-yolla · Apple Mail koyu mod
 tavsiyesi olmayan bir "guarded export" özelliğine işaret ediyordu → logonun
 kendi dolgusunu taşıması önerisiyle değiştirildi.
+
+**2026-08-18 ikinci tur** (`edit` klasöründe): ① metin turu `ham`dan taşındı
+② `templates.html` başlığı `Mailmyra | Şablonlar` → `Templates` ③ kayıt
+formu "8+ characters" diyordu, sunucu politikası **10** (`password.ts:137`)
+— ikisi de 10'a çekildi ④ **206 HTML + 6 jeneratör linki** ölü
+`builder.html`'den `https://app.mailmyra.com/builder`'a çevrildi
+⑤ giriş/kayıt formları uygulamanın uçlarına post ediyor, hata şeridi eklendi
+(`mm-auth__error`), "Forgot password?" gerçek sayfaya gidiyor, `name` →
+`orgName`, gizli `termsVersion` ⑥ SSO düğmeleri ve "Keep me signed in"
+kutusu **yorum içine alındı** (ürün karşılıkları yok — bkz. `docs/backlog.md`
+§SSO) ⑦ builder'ın 4 karesi çekilip yerleştirildi, 26 kare bekliyor.
 
 **Rapor edildi, DOKUNULMADI** (bölüm kararı Hüseyin'in): beş rehberin
 kahraman görseli hâlâ tema demosu (`assets/img/about-me/about-me-thumb-1.png`)

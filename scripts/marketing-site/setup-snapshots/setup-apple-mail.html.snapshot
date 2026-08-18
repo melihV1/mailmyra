@@ -18,7 +18,7 @@
     <!-- mm: TEK STIL DOSYASI. Onceki 9 ayri dosya + bundle
              (index-it-solution-dark[.subset].min.css) main.css'te birlestirildi;
              artik duzenlenecek tek yer orasi. Bundle dosyalari SILINDI. -->
-    <link rel="stylesheet" href="assets/css/main.css?v=mailmyra-0806-40">
+    <link rel="stylesheet" href="assets/css/main.css?v=mailmyra-0818-setup-shots-1">
     <!-- mm: acilis ekrani (GLOW) — lab sayfasiyla paylasildigi icin ayri durdu -->
     <link rel="stylesheet" href="assets/css/mailmyra-preloader-glow.css?v=mailmyra-0803-1">
     <!-- mm: sayfa ilerleme dugmesi (eski go-to-top) -->
@@ -121,7 +121,7 @@
                             <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
                         </span>
                     </a>
-                    <a class="mm-btn-solid" href="builder.html">
+                    <a class="mm-btn-solid" href="https://app.mailmyra.com/builder">
                         <span class="mm-btn__face">
                             <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -154,7 +154,7 @@
                                                             <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
                                                             <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
                                                         </div>
-                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="builder.html">
+                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="https://app.mailmyra.com/builder">
                                                             <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
                                                             <span class="mm-mega__featnote">Build your signature live — free, no sign-up.</span>
                                                             <span class="mm-mega__featcta">Open the builder
@@ -268,7 +268,7 @@
                          (.mm-btn-solid / .mm-btn-outline, mm-btn__face + label
                          takasi). Yeniden yazilmiyor, main.css'ten geliyor. -->
                 <div class="mmnav__item mmnav__actions" style="--i:7">
-                    <a class="mm-btn-solid" href="builder.html">
+                    <a class="mm-btn-solid" href="https://app.mailmyra.com/builder">
                         <span class="mm-btn__face">
                             <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -374,7 +374,7 @@
                                                             <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
                                                             <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
                                                         </div>
-                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="builder.html">
+                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="https://app.mailmyra.com/builder">
                                                             <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
                                                             <span class="mm-mega__featnote">Build your signature live — free, no sign-up.</span>
                                                             <span class="mm-mega__featcta">Open the builder
@@ -464,7 +464,7 @@
                                         </a>
                                     </div>
                                     <div class="d-none d-md-block ml-10">
-                                        <a class="mm-btn-solid" href="builder.html">
+                                        <a class="mm-btn-solid" href="https://app.mailmyra.com/builder">
                                             <span class="mm-btn__face">
                                                 <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
                                                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -501,7 +501,7 @@
                 <!-- ================================================================
                      mm: SAYFA ICERIGI — su an temanin ORIJINAL bolumleri duruyor.
                      Kabuk (preloader / header / mobil nav / ilerleme dugmesi /
-                     footer) index-it-solution-dark.html'den birebir turetildi.
+                     footer) index.html'den birebir turetildi.
                      ================================================================ -->
 
                 <div class="pp-top-wrap">
@@ -686,10 +686,7 @@
                                     </div>
                                 </div>
                                 <div class="col-xl-7 col-lg-6">
-                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-01.png">
-                                        <span class="mm-sg-shot__label">Screenshot</span>
-                                        <span class="mm-sg-shot__file">apple-mail-step-01.png</span>
-                                    </figure>
+                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-01.png"><img src="assets/img/setup/apple-mail-step-01.png" alt="The Mailmyra builder with a finished signature and the Copy signature button" width="2880" height="1800" loading="lazy" decoding="async"></figure>
                                 </div>
                             </div>
                         </div>
@@ -955,7 +952,7 @@
                             <div class="mm-footer__accordion-panel" id="mm-footer-product-panel">
                                 <div class="mm-footer__accordion-inner">
                                     <ul>
-                                        <li class="mb-2"><a href="builder.html">Signature Builder</a></li>
+                                        <li class="mb-2"><a href="https://app.mailmyra.com/builder">Signature Builder</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
                                         <li class="mb-2"><a href="templates.html">Templates</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>

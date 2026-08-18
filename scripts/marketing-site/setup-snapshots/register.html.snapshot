@@ -1,12 +1,12 @@
 <!doctype html>
-<html class="no-js agntix-dark" lang="zxx">
+<html class="no-js agntix-dark" lang="en">
 
 <head>
 
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>Mailmyra | Gmail setup</title>
-    <meta name="description" content="How Mailmyra builds email signatures that render the same in every mail client.">
+    <title>Create your account | Mailmyra</title>
+    <meta name="description" content="Create your Mailmyra workspace and start building consistent, inbox-ready email signatures.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Place favicon.ico in the root directory -->
@@ -18,7 +18,7 @@
     <!-- mm: TEK STIL DOSYASI. Onceki 9 ayri dosya + bundle
              (index-it-solution-dark[.subset].min.css) main.css'te birlestirildi;
              artik duzenlenecek tek yer orasi. Bundle dosyalari SILINDI. -->
-    <link rel="stylesheet" href="assets/css/main.css?v=mailmyra-0818-setup-shots-1">
+    <link rel="stylesheet" href="assets/css/main.css?v=mailmyra-0818-register-2">
     <!-- mm: acilis ekrani (GLOW) — lab sayfasiyla paylasildigi icin ayri durdu -->
     <link rel="stylesheet" href="assets/css/mailmyra-preloader-glow.css?v=mailmyra-0803-1">
     <!-- mm: sayfa ilerleme dugmesi (eski go-to-top) -->
@@ -30,7 +30,7 @@
 
 </head>
 
-<body class="tp-magic-cursor">
+<body class="tp-magic-cursor mm-auth-page mm-register-page">
 
     <!-- mm: acilis ekrani (GLOW) — start ==================================
          Markup burada DURUYOR, JS ile uretilmiyor: ilk boyamada aninda
@@ -496,389 +496,170 @@
     <div id="smooth-wrapper">
         <div id="smooth-content">
 
-            <main>
-
-                <!-- ================================================================
-                     mm: SAYFA ICERIGI — su an temanin ORIJINAL bolumleri duruyor.
-                     Kabuk (preloader / header / mobil nav / ilerleme dugmesi /
-                     footer) index.html'den birebir turetildi.
-                     ================================================================ -->
-
-                <div class="pp-top-wrap">
-
-                    <!-- hero area start -->
-
-                    <div class="pp-about-me-area pp-about-me-ptb z-index-1 mm-hiw-hero" data-bg-color="#00102b">
-
-                        <div class="mmE-bgfx mm-hiw-bgfx" aria-hidden="true">
-                            <span class="mmE-aur" style="left:-8%;  top:-22%;    width:780px; height:560px; --ac:rgba(90,140,226,.40);  --ad:30s;"></span>
-                            <span class="mmE-aur" style="right:-6%; top:-10%;    width:620px; height:480px; --ac:rgba(137,180,239,.24); --ad:26s; --adl:-9s;"></span>
-                            <span class="mmE-aur" style="left:26%;  bottom:-30%; width:560px; height:420px; --ac:rgba(90,140,226,.22);  --ad:34s; --adl:-15s;"></span>
-                            <span class="mmE-aur" style="right:22%; bottom:-18%; width:420px; height:320px; --ac:rgba(242,165,115,.14); --ad:38s; --adl:-6s;"></span>
-
-                            <div class="mm-hiw-track">
-                                <span class="mm-hiw-cell" style="--i:0"></span>
-                                <span class="mm-hiw-cell" style="--i:1"></span>
-                                <span class="mm-hiw-cell" style="--i:2"></span>
-                                <span class="mm-hiw-cell" style="--i:3"></span>
-                            </div>
-
-                            <span class="mm-hiw-gridlit"></span>
-                            <span class="mm-hiw-spot"></span>
-                        </div>
-
-                        <div class="container-fluid">
-                            <div class="pp-about-me-heading text-center z-index-1 d-none d-md-block">
-                               
-                                <h4 class="pp-about-me-title mm-hiw-title">GMAIL</h4>
-                            </div>
-                            <div class="pp-about-me-heading-slider text-center z-index-1 d-block d-md-none">
-                                <div class="swiper-container tp-brand-active">
-                                    <div class="swiper-wrapper slide-transtion">
-                                        <div class="swiper-slide">
-                                            <h4 class="pp-about-me-title">GMAIL</h4>
-                                        </div>
-                                        <div class="swiper-slide">
-                                            <h4 class="pp-about-me-title">GMAIL</h4>
-                                        </div>
-                                        <div class="swiper-slide">
-                                            <h4 class="pp-about-me-title">GMAIL</h4>
-                                        </div>
-                                        <div class="swiper-slide">
-                                            <h4 class="pp-about-me-title">GMAIL</h4>
-                                        </div>
-                                        <div class="swiper-slide">
-                                            <h4 class="pp-about-me-title">GMAIL</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="container container-1350">
-                            <div class="row align-items-center">
-                                <div class="col-xl-4 col-lg-4 col-md-12">
-                                    <div class="pp-hero-left z-index-1">
-                                        <div class="pp-about-me-hero-left pt-90 pb-100 z-index-1">
-                                            <!-- mm: kucuk baslik -->
-                                            <h6 class="mm-hiw-kicker">SETUP GUIDE &middot; WEB AND MOBILE</h6>
-
-                                            <p class="mm-hiw-lead">
-                                                Gmail keeps the signature on the account. Set it once on the web and every message you send from the web carries it.
-                                            </p>
-
-                                            <!-- mm: CTA — sayfayi ilk bolume (#how-start) kaydirir -->
-                                            <a class="mm-btn-solid mm-hiw-cta" href="#how-start" data-mm-scrollto>
-                                                <span class="mm-btn__face">
-                                                    <span class="mm-btn__label">
-                                                        <span>Go to the steps</span>
-                                                        <span aria-hidden="true">Go to the steps</span>
-                                                    </span>
-                                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M7 2.5v9M3.5 8L7 11.5L10.5 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                                                    </svg>
-                                                </span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-xl-7 col-lg-7 order-lg-2 order-3">
-                                    <div class="pp-about-me-thumb z-index-1 text-center">
-                                        <img src="assets/img/about-me/about-me-thumb-1.png" alt="">
-                                    </div>
-                                </div>
-                                <div class="col-xl-1 col-lg-1 col-md-12 order-lg-3 order-2">
-
-                                    <ol class="mm-hiw-rail z-index-2">
-                                        <li class="mm-hiw-rail__step" style="--i:0">
-                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
-                                            <b>01</b>
-                                            <span>Connect</span>
-                                        </li>
-                                        <li class="mm-hiw-rail__step" style="--i:1">
-                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
-                                            <b>02</b>
-                                            <span>Design</span>
-                                        </li>
-                                        <li class="mm-hiw-rail__step" style="--i:2">
-                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
-                                            <b>03</b>
-                                            <span>Roll&nbsp;out</span>
-                                        </li>
-                                        <li class="mm-hiw-rail__step" style="--i:3">
-                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
-                                            <b>04</b>
-                                            <span>Send</span>
-                                        </li>
-                                    </ol>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- hero area end -->
-
-
+            <main class="mm-auth mm-auth--embedded mm-auth--focused mm-auth--register" data-auth-shell>
+                <span class="mm-auth__grid" aria-hidden="true"></span>
+                <span class="mm-auth__glow mm-auth__glow--blue" aria-hidden="true"></span>
+                <span class="mm-auth__glow mm-auth__glow--orange" aria-hidden="true"></span>
+                <div class="mm-auth__main">
+            <section class="mm-auth__panel" aria-labelledby="mm-register-title">
+                <div class="mm-auth__register-form">
+                <div class="mm-auth__panel-head">
+                    <span class="mm-auth__step"><i></i>Start your workspace</span>
+                    <h2 id="mm-register-title">Create your account.</h2>
+                    <p>Build, preview and export your first signature before you commit.</p>
                 </div>
 
+                <!-- mm: SSO DÜĞMELERİ GEÇİCİ OLARAK KAPALI (2026-08-18).
+                     Üründe Google/Microsoft ile giriş henüz YOK; açık
+                     bırakılırsa giriş sayfasının en görünür iki düğmesi
+                     hiçbir şey yapmaz. Geri açmak için aşağıdaki iki bloğun
+                     yorumunu kaldır — başka değişiklik gerekmez.
+                     Yapılacaklar: docs/backlog.md §SSO
+                <div class="mm-auth__providers">
+                    <a href="#" aria-label="Continue with Google"><img src="assets/img/login/google.svg" alt="">Continue with Google</a>
+                    <a href="#" aria-label="Continue with Microsoft"><i class="fa-brands fa-microsoft" aria-hidden="true"></i>Microsoft</a>
+                </div>
 
+                <div class="mm-auth__divider"><span>or sign up with email</span></div>
+                -->
 
-
-                <!-- before you start start -->
-                <div class="mm-sg-before p-relative z-index-2" id="how-start">
-                    <div class="container container-1430">
-                        <div class="row justify-content-center">
-                            <div class="col-xl-9">
-                                <div class="mm-sg-head text-center">
-                                    <span class="mm-section-kicker">BEFORE YOU START</span>
-                                    <h2 class="mm-sg-title">Three things<br><em>and you are ready.</em></h2>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".3">
-                                <div class="mm-sg-req">
-                                    <span class="mm-sg-req__num">01</span>
-                                    <h3>Your signature is built</h3>
-                                    <p>Finish it in the builder before you start here.</p>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".5">
-                                <div class="mm-sg-req">
-                                    <span class="mm-sg-req__num">02</span>
-                                    <h3>Copied as rich HTML</h3>
-                                    <p>Use “Copy signature”, not plain text copy.</p>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".7">
-                                <div class="mm-sg-req">
-                                    <span class="mm-sg-req__num">03</span>
-                                    <h3>Use a desktop browser</h3>
-                                    <p>The signature editor is only available on the web version.</p>
-                                </div>
-                            </div>
+                <form class="mm-auth__form" action="https://app.mailmyra.com/api/auth/register" method="post">
+                            <p class="mm-auth__error" data-auth-error hidden role="alert" aria-live="polite"></p>
+                            <input type="hidden" name="termsVersion" value="2026-08-13">
+                    <div class="mm-auth__field">
+                        <label for="register-name">Full name</label>
+                        <div class="mm-auth__input">
+                            <i class="fa-light fa-user" aria-hidden="true"></i>
+                            <input id="register-name" name="orgName" type="text" autocomplete="name" placeholder="Alex Carter" required>
                         </div>
                     </div>
-                </div>
-                <!-- before you start end -->
 
-                <!-- steps start -->
-                <!-- mm: ADIMLAR. Iskelet service-details'in process bileseni.
-                     Gorsel kutulari YER TUTUCU — `data-shot` beklenen dosya
-                     adini soyluyor, gercek ekran goruntuleri gelince
-                     <figure> icerigi <img> ile degistirilecek. -->
-                <div class="mm-sg-steps p-relative z-index-2" data-bg-color="#04122b">
-                    <div class="container container-1430">
-                        <div class="mm-template-showcase__intro mm-sg-steps__head">
-                            <div>
-                                <span class="mm-section-kicker tp-split-text tp-split-right">Step by step</span>
-                                <h2 class="mm-template-showcase__title tp-split-text tp-split-right">Five steps.<br><em>Once per person.</em></h2>
-                            </div>
-                            <div class="mm-template-showcase__intro-copy tp_fade_anim" data-delay=".4">
-                                <p>Nothing is installed and nothing runs in the background. You copy a signature and paste it where Gmail keeps it.</p>
-                            </div>
-                        </div>
-                        <div class="mm-sg-step">
-                            <div class="row align-items-center">
-                                <div class="col-xl-5 col-lg-6">
-                                    <div class="mm-sg-step__copy">
-                                        <span class="mm-sg-step__num">Step 01</span>
-                                        <h3>Copy the signature</h3>
-                                        <p>In Mailmyra, open the signature in the builder (<b>Signatures → Edit in builder</b>) and press <b>Copy signature</b>.</p>
-                                    </div>
-                                </div>
-                                <div class="col-xl-7 col-lg-6">
-                                    <figure class="mm-sg-shot" data-shot="gmail-step-01.png"><img src="assets/img/setup/gmail-step-01.png" alt="The Mailmyra builder with a finished signature and the Copy signature button" width="2880" height="1800" loading="lazy" decoding="async"></figure>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mm-sg-step">
-                            <div class="row align-items-center">
-                                <div class="col-xl-5 col-lg-6">
-                                    <div class="mm-sg-step__copy">
-                                        <span class="mm-sg-step__num">Step 02</span>
-                                        <h3>Open Gmail settings</h3>
-                                        <p>Click the <b>gear icon</b>, then <b>See all settings</b> and stay on the <b>General</b> tab.</p>
-                                    </div>
-                                </div>
-                                <div class="col-xl-7 col-lg-6">
-                                    <figure class="mm-sg-shot" data-shot="gmail-step-02.png">
-                                        <span class="mm-sg-shot__label">Screenshot</span>
-                                        <span class="mm-sg-shot__file">gmail-step-02.png</span>
-                                    </figure>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mm-sg-step">
-                            <div class="row align-items-center">
-                                <div class="col-xl-5 col-lg-6">
-                                    <div class="mm-sg-step__copy">
-                                        <span class="mm-sg-step__num">Step 03</span>
-                                        <h3>Find the signature block</h3>
-                                        <p>Scroll down to <b>Signature</b> and press <b>Create new</b>. Give it a name.</p>
-                                    </div>
-                                </div>
-                                <div class="col-xl-7 col-lg-6">
-                                    <figure class="mm-sg-shot" data-shot="gmail-step-03.png">
-                                        <span class="mm-sg-shot__label">Screenshot</span>
-                                        <span class="mm-sg-shot__file">gmail-step-03.png</span>
-                                    </figure>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mm-sg-step">
-                            <div class="row align-items-center">
-                                <div class="col-xl-5 col-lg-6">
-                                    <div class="mm-sg-step__copy">
-                                        <span class="mm-sg-step__num">Step 04</span>
-                                        <h3>Paste and set defaults</h3>
-                                        <p>Paste with <b>Ctrl + V</b>, then choose the signature under <b>Signature defaults</b>.</p>
-                                    </div>
-                                </div>
-                                <div class="col-xl-7 col-lg-6">
-                                    <figure class="mm-sg-shot" data-shot="gmail-step-04.png">
-                                        <span class="mm-sg-shot__label">Screenshot</span>
-                                        <span class="mm-sg-shot__file">gmail-step-04.png</span>
-                                    </figure>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mm-sg-step">
-                            <div class="row align-items-center">
-                                <div class="col-xl-5 col-lg-6">
-                                    <div class="mm-sg-step__copy">
-                                        <span class="mm-sg-step__num">Step 05</span>
-                                        <h3>Save changes</h3>
-                                        <p>Scroll to the bottom and press <b>Save Changes</b>. Gmail discards edits without it.</p>
-                                    </div>
-                                </div>
-                                <div class="col-xl-7 col-lg-6">
-                                    <figure class="mm-sg-shot" data-shot="gmail-step-05.png">
-                                        <span class="mm-sg-shot__label">Screenshot</span>
-                                        <span class="mm-sg-shot__file">gmail-step-05.png</span>
-                                    </figure>
-                                </div>
-                            </div>
+                    <div class="mm-auth__field">
+                        <label for="register-email">Work email</label>
+                        <div class="mm-auth__input">
+                            <i class="fa-light fa-envelope" aria-hidden="true"></i>
+                            <input id="register-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
                         </div>
                     </div>
-                </div>
-                <!-- steps end -->
 
-                <!-- verify start -->
-                <div class="mm-sg-verify p-relative z-index-2">
-                    <div class="container container-1430">
-                        <div class="row align-items-start">
-                            <div class="col-lg-5">
-                                <div class="mm-sg-verify__copy">
-                                    <span class="mm-section-kicker">DID IT WORK?</span>
-                                    <h2 class="mm-sg-title">What it should<br><em>look like.</em></h2>
-                                    <p>The signature sits below your message, images load, and the block stays under the width of the reading pane.</p>
-                                    <figure class="mm-sg-shot mm-sg-shot--wide" data-shot="gmail-result.png">
-                                        <span class="mm-sg-shot__label">Screenshot</span>
-                                        <span class="mm-sg-shot__file">gmail-result.png</span>
-                                    </figure>
-                                </div>
-                            </div>
-                            <div class="col-lg-7">
-                                <ul class="mm-sg-trouble">
-                                <li>
-                                    <b>The message shows “…” at the bottom</b>
-                                    <span>Gmail clipped the mail. Total size passed its budget — keep images light and the signature small.</span>
-                                </li>
-                                <li>
-                                    <b>Save button did nothing</b>
-                                    <span>You left the page before pressing Save Changes at the bottom of the settings screen.</span>
-                                </li>
-                                <li>
-                                    <b>Signature is missing on the phone</b>
-                                    <span>The Gmail app keeps a separate plain-text signature. That is Gmail behaviour, not an export problem.</span>
-                                </li>
-                                </ul>
-                            </div>
+                    <div class="mm-auth__field">
+                        <div class="mm-auth__label-row">
+                            <label for="register-password">Password</label>
+                            <span class="mm-auth__password-hint">10+ characters</span>
+                        </div>
+                        <div class="mm-auth__input">
+                            <i class="fa-light fa-lock-keyhole" aria-hidden="true"></i>
+                            <input id="register-password" name="password" type="password" autocomplete="new-password" placeholder="Create a password" minlength="10" required>
+                            <button class="mm-auth__password-toggle" type="button" aria-label="Show password" aria-pressed="false" data-password-toggle="register-password">
+                                <svg class="mm-auth__eye mm-auth__eye--show" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                                    <path d="M1.75 9s2.55-4.25 7.25-4.25S16.25 9 16.25 9 13.7 13.25 9 13.25 1.75 9 1.75 9Z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/>
+                                    <circle cx="9" cy="9" r="2.15" stroke="currentColor" stroke-width="1.45"/>
+                                </svg>
+                                <svg class="mm-auth__eye mm-auth__eye--hide" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                                    <path d="M2 2l14 14M7.25 4.98A7.9 7.9 0 0 1 9 4.75c4.7 0 7.25 4.25 7.25 4.25a12.2 12.2 0 0 1-2.04 2.47M10.75 12.98A7.9 7.9 0 0 1 9 13.25C4.3 13.25 1.75 9 1.75 9a12.2 12.2 0 0 1 2.04-2.47" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                </div>
-                <!-- verify end -->
 
-                <!-- quirks start -->
-                <div class="mm-sg-quirks p-relative z-index-2" data-bg-color="#04122b">
-                    <div class="container container-1430">
-                        <div class="row justify-content-center">
-                            <div class="col-xl-9">
-                                <div class="mm-sg-head text-center">
-                                    <span class="mm-section-kicker">CLIENT BEHAVIOUR</span>
-                                    <h2 class="mm-sg-title">Size is the constraint here</h2>
-                                </div>
-                            </div>
+                    <div class="mm-auth__field">
+                        <div class="mm-auth__label-row">
+                            <label for="register-password-confirm">Confirm password</label>
+                            <span class="mm-auth__password-hint" id="register-password-match" data-password-match>Must match</span>
                         </div>
-                        <div class="row">
-                                <div class="col-lg-6">
-                                    <div class="mm-sg-quirk">
-                                        <span class="mm-sg-quirk__icon"><i class="fa-light fa-code" aria-hidden="true"></i></span>
-                                        <h3>The engine</h3>
-                                        <p>Gmail renders fine, but it clips the whole message once it grows past its size budget and hides everything after that point.</p>
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="mm-sg-quirk">
-                                        <span class="mm-sg-quirk__icon"><i class="fa-light fa-shield-check" aria-hidden="true"></i></span>
-                                        <h3>What we do</h3>
-                                        <p>The markup stays lean and images are served at 2x but compressed, so the signature costs as little as possible.</p>
-                                    </div>
-                                </div>
+                        <div class="mm-auth__input">
+                            <i class="fa-light fa-shield-check" aria-hidden="true"></i>
+                            <input id="register-password-confirm" name="password_confirmation" type="password" autocomplete="new-password" placeholder="Repeat your password" minlength="10" aria-describedby="register-password-match" required>
+                            <button class="mm-auth__password-toggle" type="button" aria-label="Show confirmed password" aria-pressed="false" data-password-toggle="register-password-confirm">
+                                <svg class="mm-auth__eye mm-auth__eye--show" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                                    <path d="M1.75 9s2.55-4.25 7.25-4.25S16.25 9 16.25 9 13.7 13.25 9 13.25 1.75 9 1.75 9Z" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"/>
+                                    <circle cx="9" cy="9" r="2.15" stroke="currentColor" stroke-width="1.45"/>
+                                </svg>
+                                <svg class="mm-auth__eye mm-auth__eye--hide" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+                                    <path d="M2 2l14 14M7.25 4.98A7.9 7.9 0 0 1 9 4.75c4.7 0 7.25 4.25 7.25 4.25a12.2 12.2 0 0 1-2.04 2.47M10.75 12.98A7.9 7.9 0 0 1 9 13.25C4.3 13.25 1.75 9 1.75 9a12.2 12.2 0 0 1 2.04-2.47" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                </div>
-                <!-- quirks end -->
 
-                <!-- faq start -->
-                <div class="mm-sg-faq p-relative z-index-2">
-                    <div class="container container-1430">
-                        <div class="row">
-                            <div class="col-lg-4">
-                                <div class="mm-sg-head">
-                                    <span class="mm-section-kicker">QUESTIONS</span>
-                                    <h2 class="mm-sg-title">Asked about<br><em>Gmail.</em></h2>
-                                </div>
+                    <label class="mm-auth__remember mm-auth__terms">
+                        <input type="checkbox" name="terms" required>
+                        <span><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                        <em>I agree to the <a href="terms.html">Terms</a> and <a href="privacy.html">Privacy Policy</a>.</em>
+                    </label>
+
+                    <button class="mm-btn-solid mm-auth__submit" type="submit">
+                        <span class="mm-btn__face">
+                            <span class="mm-btn__label"><span>Start 7-day trial</span><span aria-hidden="true">Start 7-day trial</span></span>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </span>
+                    </button>
+                </form>
+
+                <div class="mm-auth__panel-foot">
+                    <div class="mm-auth__assurance">
+                        <i class="fa-light fa-credit-card" aria-hidden="true"></i>
+                        <span><b>No card required</b>Full access for seven days.</span>
+                    </div>
+                    <p class="mm-auth__mobile-register"><span>Already registered?</span><a class="mm-auth__login-link" href="login.html"><span>Log in</span><svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a></p>
+                </div>
+                </div>
+
+                <aside class="mm-auth__register-side" aria-label="Your first Mailmyra workflow">
+                    <div class="mm-auth__register-side-head">
+                        <span>Workspace preview</span>
+                        <em><i></i>Rendering live</em>
+                    </div>
+                    <h3>Your first signature.<br>Already taking shape.</h3>
+                    <p>Start with your identity, preview the result in a real inbox and export when every detail feels right.</p>
+
+                    <div class="mm-auth__register-preview" aria-hidden="true">
+                        <div class="mm-auth__register-preview-bar">
+                            <span><i></i>New message</span>
+                            <em>Outlook</em>
+                        </div>
+                        <div class="mm-auth__register-preview-mail">
+                            <div class="mm-auth__register-preview-from">
+                                <strong>AC</strong>
+                                <span><b>Alex Carter</b><small>alex@northwind.com</small></span>
+                                <time>Just now</time>
                             </div>
-                            <div class="col-lg-8">
-                                <div class="mm-sg-faq__list">
-                                <div class="mm-sg-faq__item">
-                                    <h3>Does this work on Google Workspace accounts?</h3>
-                                    <p>Yes. The settings screen is identical for personal and business accounts.</p>
-                                </div>
-                                <div class="mm-sg-faq__item">
-                                    <h3>Can I set it for the whole company?</h3>
-                                    <p>Not from Gmail itself. Each person adds it, or you share the export with the team.</p>
-                                </div>
-                                <div class="mm-sg-faq__item">
-                                    <h3>Why does my phone show a different signature?</h3>
-                                    <p>The Gmail app uses its own mobile signature, which only supports plain text.</p>
-                                </div>
-                                </div>
+                            <p>Best regards,</p>
+                            <div class="mm-auth__register-signature">
+                                <strong>AC</strong>
+                                <span>
+                                    <b>Alex Carter</b>
+                                    <em>Marketing Lead · Northwind</em>
+                                    <small>alex@northwind.com · +1 555 0134</small>
+                                </span>
+                                <i>NW</i>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <!-- faq end -->
-
-                <!-- prev next start -->
-                <div class="mm-sg-nav p-relative z-index-2">
-                    <div class="container container-1430">
-                        <div class="mm-sg-nav__row">
-                            <a class="mm-sg-nav__item mm-sg-nav__item--prev" href="setup-new-outlook.html">
-                                <span>Previous client</span>
-                                <b>New Outlook</b>
-                            </a>
-                            <a class="mm-sg-nav__all" href="works-with.html">All clients</a>
-                            <a class="mm-sg-nav__item mm-sg-nav__item--next" href="setup-apple-mail.html">
-                                <span>Next client</span>
-                                <b>Apple Mail</b>
-                            </a>
+                        <div class="mm-auth__register-preview-checks">
+                            <span><i></i>Outlook</span>
+                            <span><i></i>Gmail</span>
+                            <span><i></i>Apple Mail</span>
                         </div>
                     </div>
-                </div>
-                <!-- prev next end -->
 
+                    <ol class="mm-auth__register-steps">
+                        <li class="is-active"><b>01</b><span>Build<small>Identity and style</small></span></li>
+                        <li><b>02</b><span>Preview<small>Six email clients</small></span></li>
+                        <li><b>03</b><span>Export<small>Rich HTML or .htm</small></span></li>
+                    </ol>
+                </aside>
+            </section>
+
+            <div class="mm-auth__status" aria-label="Mailmyra trial benefits">
+                <span><i></i>7 days free</span>
+                <span>No credit card</span>
+                <span>Build before you pay</span>
+            </div>
+        
+                </div>
             </main>
+
+
 
 
             <footer class="mm-footer" id="mailmyra-footer">
@@ -1314,7 +1095,7 @@
     })();
     </script>
 
-    <!-- mm: sayfa ici yumusak kaydirma (hero CTA → #how-start).
+    <!-- mm: sayfa ici yumusak kaydirma (hero CTA → #solutions-start).
              Native anchor atlayisi ScrollSmoother'in transform'uyla yanlis
              yere dusuyor; smoother varsa onun API'siyle, yoksa (mobilde GSAP
              hic yuklenmiyor) native smooth ile kaydiriyoruz. -->
@@ -1492,29 +1273,233 @@
 })();
 </script>
 
+<script>
+/* Mailmyra solutions accordion: clickable by default and advanced by scroll. */
+(function(){
+  var section = document.querySelector('.mm-solutions-accordion');
+  if (!section) return;
+
+  var items = Array.prototype.slice.call(section.querySelectorAll('.mm-solutions-accordion__item'));
+  var counter = section.querySelector('[data-solution-current]');
+  var progress = section.querySelector('[data-solution-progress]');
+
+  function openItem(next){
+    items.forEach(function(item){
+      var open = item === next;
+      var button = item.querySelector('button');
+      var panel = item.querySelector('.mm-solutions-accordion__panel');
+      item.classList.toggle('is-open', open);
+      button.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.inert = !open;
+    });
+
+    var number = next.getAttribute('data-solution-number');
+    if (counter) counter.textContent = number;
+    if (progress) progress.style.transform = 'scaleX(' + (parseInt(number, 10) / items.length) + ')';
+  }
+
+  items.forEach(function(item){
+    item.querySelector('button').addEventListener('click', function(){ openItem(item); });
+  });
+
+  if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) openItem(entry.target);
+      });
+    }, { threshold: .55, rootMargin: '-22% 0px -30% 0px' });
+    items.forEach(function(item){ observer.observe(item); });
+  }
+
+  openItem(items[0]);
+})();
+</script>
+
+<script>
+/* Mailmyra rollout board: pointer/focus on desktop, scroll progression on mobile. */
+(function(){
+  var board = document.querySelector('[data-rollout-board]');
+  if (!board) return;
+
+  var section = board.closest('.mm-rollout');
+  var steps = Array.prototype.slice.call(board.querySelectorAll('[data-rollout-step]'));
+  var nodes = Array.prototype.slice.call(section.querySelectorAll('[data-rollout-node]'));
+  var progress = section.querySelector('[data-rollout-progress]');
+
+  function activate(step){
+    var number = parseInt(step.getAttribute('data-rollout-step'), 10);
+    steps.forEach(function(item){ item.classList.toggle('is-active', item === step); });
+    nodes.forEach(function(node){ node.classList.toggle('is-active', parseInt(node.getAttribute('data-rollout-node'), 10) === number); });
+    if (progress) progress.style.transform = 'scaleX(' + (number / steps.length) + ')';
+  }
+
+  steps.forEach(function(step){
+    step.addEventListener('mouseenter', function(){ activate(step); });
+    step.addEventListener('focus', function(){ activate(step); });
+  });
+
+  if ('IntersectionObserver' in window && window.matchMedia('(max-width: 767px)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){ if (entry.isIntersecting) activate(entry.target); });
+    }, { threshold: .58, rootMargin: '-18% 0px -28% 0px' });
+    steps.forEach(function(step){ observer.observe(step); });
+  }
+
+  activate(steps[0]);
+})();
+</script>
+
+<script>
+/* Department signal wall: one source of truth for pointer, keyboard and touch. */
+(function(){
+  var wall = document.querySelector('[data-department-wall]');
+  if (!wall) return;
+
+  var items = Array.prototype.slice.call(wall.querySelectorAll('[data-department]'));
+  var images = Array.prototype.slice.call(wall.querySelectorAll('[data-department-image]'));
+  var index = wall.querySelector('[data-department-index]');
+  var status = wall.querySelector('[data-department-status]');
+  var outcome = wall.querySelector('[data-department-outcome]');
+  var content = {
+    marketing: { status: 'Campaign live', outcome: 'Launch every campaign on-brand.' },
+    admin: { status: 'Controls synced', outcome: 'Update once. Deploy everywhere.' },
+    sales: { status: 'CTA ready', outcome: 'Put the next step in every reply.' },
+    legal: { status: 'Policy current', outcome: 'Keep every required detail accurate.' }
+  };
+
+  function activate(item, moveFocus){
+    var key = item.getAttribute('data-department');
+    var position = items.indexOf(item);
+
+    items.forEach(function(candidate){
+      var active = candidate === item;
+      candidate.classList.toggle('is-active', active);
+      candidate.setAttribute('aria-selected', active ? 'true' : 'false');
+      candidate.tabIndex = active ? 0 : -1;
+    });
+    images.forEach(function(image){
+      image.classList.toggle('is-active', image.getAttribute('data-department-image') === key);
+    });
+
+    if (index) index.textContent = String(position + 1).padStart(2, '0');
+    if (status) status.textContent = content[key].status;
+    if (outcome) outcome.textContent = content[key].outcome;
+    if (moveFocus) item.focus();
+  }
+
+  items.forEach(function(item){
+    item.addEventListener('mouseenter', function(){ activate(item, false); });
+    item.addEventListener('focus', function(){ activate(item, false); });
+    item.addEventListener('click', function(){ activate(item, false); });
+    item.addEventListener('keydown', function(event){
+      if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+      event.preventDefault();
+      var direction = event.key === 'ArrowDown' ? 1 : -1;
+      var next = (items.indexOf(item) + direction + items.length) % items.length;
+      activate(items[next], true);
+    });
+  });
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    wall.addEventListener('pointermove', function(event){
+      var rect = wall.getBoundingClientRect();
+      wall.style.setProperty('--mm-department-x', (((event.clientX - rect.left) / rect.width) * 100).toFixed(1) + '%');
+      wall.style.setProperty('--mm-department-y', (((event.clientY - rect.top) / rect.height) * 100).toFixed(1) + '%');
+    }, { passive: true });
+  }
+
+  activate(items[0], false);
+})();
+</script>
+
 
     <!-- JS here -->
     <!-- JS here -->
 
-    <!-- mm: ozellik kartlari — Atropos ile 3B egilme. atropos.js zaten
-         temanin kosullu yukleyicisinde var; burada yalniz hazir olunca
-         baglaniyor. Kutuphane gelmezse kartlar duz kalir, icerik bozulmaz.
-         `pointer: fine` yoksa (dokunmatik) hic kurulmuyor. -->
-    <script>
-      (function () {
-        if (!window.matchMedia('(pointer: fine)').matches) return;
-        var tries = 0;
-        (function boot() {
-          if (typeof Atropos === 'undefined') {
-            if (++tries > 40) return;
-            return setTimeout(boot, 150);
-          }
-          document.querySelectorAll('.mm-cap__tilt').forEach(function (el) {
-            Atropos({ el: el, activeOffset: 20, shadow: false, highlight: false, rotateXMax: 6, rotateYMax: 6 });
-          });
-        })();
-      })();
-    </script>
+<script>
+(function(){
+        var shell = document.querySelector('[data-auth-shell]');
+        var password = document.getElementById('register-password');
+        var confirmation = document.getElementById('register-password-confirm');
+        var matchHint = document.querySelector('[data-password-match]');
+
+        document.querySelectorAll('[data-password-toggle]').forEach(function(toggle){
+            var field = document.getElementById(toggle.getAttribute('data-password-toggle'));
+            if (!field) return;
+            toggle.addEventListener('click', function(){
+                var show = field.type === 'password';
+                field.type = show ? 'text' : 'password';
+                toggle.setAttribute('aria-pressed', show ? 'true' : 'false');
+                toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+            });
+        });
+
+        function syncPasswordMatch(){
+            if (!password || !confirmation || !matchHint) return;
+            var hasValue = confirmation.value.length > 0;
+            var matches = hasValue && password.value === confirmation.value;
+            confirmation.setCustomValidity(hasValue && !matches ? 'Passwords do not match.' : '');
+            matchHint.textContent = !hasValue ? 'Must match' : (matches ? 'Passwords match' : 'Does not match');
+            matchHint.classList.toggle('is-valid', matches);
+            matchHint.classList.toggle('is-invalid', hasValue && !matches);
+        }
+
+        if (password && confirmation) {
+            password.addEventListener('input', syncPasswordMatch);
+            confirmation.addEventListener('input', syncPasswordMatch);
+        }
+
+        if (shell && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            shell.addEventListener('pointermove', function(event){
+                shell.style.setProperty('--mm-auth-x', ((event.clientX / window.innerWidth) * 100).toFixed(1) + '%');
+                shell.style.setProperty('--mm-auth-y', ((event.clientY / window.innerHeight) * 100).toFixed(1) + '%');
+            }, { passive: true });
+        }
+    })();
+</script>
+
+<script>
+    /* Uygulama uçları form gönderimini 303 ile buraya geri yollar; hata kodu
+       query'de gelir, metni burada seçilir (kod makine tarafı, dil sitenin
+       tarafı). Sunucu tarafı kontrolleri bunun yerine geçmez — bu yalnız
+       gösterim. */
+    (function () {
+        var box = document.querySelector('[data-auth-error]');
+        if (!box) return;
+
+        var MESSAGES = {
+            invalid_credentials: 'Email or password is incorrect.',
+            rate_limited: 'Too many attempts. Please wait a few minutes and try again.',
+            email_taken: 'This address already has an account. Try signing in instead.',
+            weak_password: 'Password needs at least 10 characters, and not a common one.',
+            invalid_email: 'That email address does not look right.',
+            password_mismatch: 'The two passwords do not match.'
+        };
+
+        var code = new URLSearchParams(window.location.search).get('error');
+        if (code) {
+            /* textContent: kod kullanıcıdan gelen bir query değeri, asla
+               innerHTML'e verilmez. */
+            box.textContent = MESSAGES[code] || 'Something went wrong. Please try again.';
+            box.hidden = false;
+        }
+
+        /* Şifre tekrarı: sunucu da bakıyor, ama kullanıcıya sayfayı terk
+           ettirmeden söylemek daha iyi. */
+        var form = document.querySelector('.mm-auth__form');
+        var pass = form && form.querySelector('[name="password"]');
+        var again = form && form.querySelector('[name="password_confirmation"]');
+        if (form && pass && again) {
+            form.addEventListener('submit', function (event) {
+                if (pass.value === again.value) return;
+                event.preventDefault();
+                box.textContent = MESSAGES.password_mismatch;
+                box.hidden = false;
+                again.focus();
+            });
+        }
+    })();
+</script>
 
 </body>
 
