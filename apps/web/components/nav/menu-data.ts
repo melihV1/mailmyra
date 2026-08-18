@@ -11,6 +11,19 @@
  * 3'te sayfalar geldikçe bu URL'ler dolacak.
  */
 
+/**
+ * Pazarlama sitesi AYRI BİR ALAN ADINDA yaşıyor (statik site, `mailmyra.com`);
+ * panel `app.mailmyra.com`'da. Bu yüzden pazarlama linkleri MUTLAK olmak
+ * zorunda — göreli yazılırsa `app.mailmyra.com/pricing`'e gider ve 404 olur.
+ *
+ * Adresler uzantısız: dosyalar diskte `pricing.html` ama site kökündeki
+ * `web.config` temiz adresi ona çeviriyor. Üç ad dosyayla birebir aynı
+ * DEĞİL, karşılıkları yorumlarda yazılı (ör. "Setup guides" -> `setup.html`).
+ *
+ * `/builder` ve `/login` uygulamanın kendi sayfaları — göreli kalır.
+ */
+const SITE = 'https://mailmyra.com';
+
 export interface MegaMenuLink {
   label: string;
   href: string;
@@ -60,17 +73,17 @@ export const primaryNav: NavItem[] = [
         links: [
           {
             label: 'How it works',
-            href: '/how-it-works',
+            href: `${SITE}/how-it-works`,
             description: 'Design, preview, roll out — in three steps.',
           },
           {
             label: 'Features',
-            href: '/features',
+            href: `${SITE}/features`,
             description: 'Rich fields, Outlook compatibility, a real export path.',
           },
           {
             label: 'Template gallery',
-            href: '/templates',
+            href: `${SITE}/templates`,
             description: 'Real renders, not screenshots.',
           },
         ],
@@ -93,12 +106,12 @@ export const primaryNav: NavItem[] = [
         links: [
           {
             label: 'For agencies',
-            href: '/for-agencies',
+            href: `${SITE}/solutions-agencies`,
             description: 'Pooled seats and white-label management.',
           },
           {
             label: 'For companies',
-            href: '/for-companies',
+            href: `${SITE}/solutions-teams`,
             description: 'Transparent per-seat pricing, tested in 6 mail clients.',
           },
         ],
@@ -107,13 +120,13 @@ export const primaryNav: NavItem[] = [
     featured: {
       title: 'See the pricing',
       description: 'One price per active sender. Nothing hidden.',
-      href: '/pricing',
+      href: `${SITE}/pricing`,
       ctaLabel: 'View pricing',
     },
   },
-  { id: 'pricing', label: 'Pricing', type: 'link', href: '/pricing' },
-  { id: 'setup-guides', label: 'Setup guides', type: 'link', href: '/setup-guides' },
-  { id: 'faq', label: 'FAQ', type: 'link', href: '/faq' },
+  { id: 'pricing', label: 'Pricing', type: 'link', href: `${SITE}/pricing` },
+  { id: 'setup-guides', label: 'Setup guides', type: 'link', href: `${SITE}/setup` },
+  { id: 'faq', label: 'FAQ', type: 'link', href: `${SITE}/faq` },
 ];
 
 export const utilityNav = {

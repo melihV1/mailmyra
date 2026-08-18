@@ -70,6 +70,43 @@ yanlışlıkla `ham`a yapıldı ve `edit`e taşınması gerekti.
 
 `edit` klasörü de git altında DEĞİL. Tek geri dönüş noktası bu snapshot'lar.
 
+## Yayına alma sırası (2026-08-18'de kuruldu, henüz KOŞULMADI)
+
+`mailmyra.com` hiç yayına alınmadı; şu an 404. Adresler **uzantısız**
+olacak (`/pricing`), dosyalar diskte `.html` kalacak — çeviriyi site
+kökündeki `web.config` yapıyor.
+
+⚠️ **Sıra keyfi değil.** Plesk'te `system.webServer` altındaki bazı bölümler
+kilitli; yanlış bir web.config sitenin tamamını 0 baytlık 500'e düşürür ve
+**2026-07-27'de tam olarak bu sitede yaşandı**. Bu yüzden config İÇERİKTEN
+ÖNCE ve TEK BAŞINA denenir. Site zaten 404 olduğu için başarısız denemenin
+maliyeti yok — 404'ten 500'e döner, müşteri etkilenmez.
+
+1. **Yalnız `web.config`i yükle.** Sonra `https://mailmyra.com/` iste:
+   - `404` geliyorsa config yüklendi, devam et (içerik henüz yok).
+   - `500` (gövdesi 0 bayt) geliyorsa **bölüm kilitli** — config'i geri al,
+     temiz adresten vazgeç ve `.html` şemasıyla yayına gir
+     (`menu-data.ts`teki adresleri `.html`e çevirmen gerekir).
+2. **İçeriği yükle** (30 sayfa + `assets/`). `scripts/` ve `.DS_Store`
+   GİRMEZ — jeneratörler ve macOS çöpü sunucuda işe yaramaz.
+3. **`/pricing` 200 mü, `/pricing.html` 301 mi** kontrol et. İkisi de
+   doğruysa şema çalışıyor demektir.
+4. **`clean-urls.mjs`i koştur** — sayfa içi 2386 linki temiz adrese çevirir.
+   **3. adımdan önce koşturma**: `.html` linkler her iki senaryoda da
+   çalışır, temiz adres yalnız config yüklüyse çalışır.
+5. İçeriği tekrar yükle (linkler değişti).
+
+**Panel tarafı ayrı deploy ister.** `apps/web/components/nav/menu-data.ts`
+artık pazarlama sayfalarına **mutlak** adres veriyor (`https://mailmyra.com/…`)
+— önceden göreliydi ve `app.mailmyra.com/pricing`'e gidip 404 oluyordu.
+Üç ad dosyayla birebir değil: **For agencies → `solutions-agencies`**,
+**For companies → `solutions-teams`**, **Setup guides → `setup`**.
+
+**Kurulum rehberleri hakkında karar:** 30 karenin 26'sı hâlâ yer tutucu.
+Rehberler yayına bu hâlde girerse arama motoru onları boş kutularla
+indeksler. Seçenek: 5 istemci rehberine `noindex` koyup kareler gelince
+kaldırmak (tek satır, lansmanı geciktirmez).
+
 ## Kurulum rehberleri — `setup*.html`
 
 Jeneratör YOK; altı sayfayı (hub + 5 istemci) Hüseyin elle kurdu. Bu dizinde
@@ -86,6 +123,9 @@ iki şey duruyor:
   `WebSocket`i yetiyor). `node shoot-builder.mjs <klasör>`.
   ⚠️ Çıkış yapmış builder'da düğme "Sign in to save" diyor; giriş yapılmış
   hâlini çekmek için tarayıcıda oturum açıp tekrar koştur.
+- `clean-urls.mjs` — sayfa içi linkleri `pricing.html` → `/pricing` yapar
+  (`--dry` kuru koşu, `--revert` geri alır). **web.config canlıda
+  doğrulanmadan koşturma** — gerekçesi dosyanın başında.
 - `place-shots.mjs` — `assets/img/setup/` klasörüne düşen kareleri sayfalara
   yerleştirir: `<figure data-shot="X.png">` → gerçek `<img>`. Eşleştirme
   tahmin değil, `data-shot` dosyayı zaten adlandırıyor. Olmayan kareyi
