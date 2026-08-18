@@ -111,6 +111,49 @@ tek turda doğrulamak en ucuzu.
 
 ---
 
+## SSO (Google + Microsoft ile giriş) — lansman SONRASI
+
+Karar: 2026-08-18, Hüseyin. **Yapılacak, ama lansmanı bloklamayacak.**
+Pazarlama sitesinin giriş/kayıt sayfalarında düğmeler zaten tasarlanmıştı;
+ürün karşılığı olmadığı için yayına girmeden **yorum içine alındı**
+(`~/Desktop/mailmyra edit/{login,register}.html`, `mm-auth__providers` bloğu
+ve hemen ardındaki `mm-auth__divider`). Geri açmak: yorumu kaldır, başka
+değişiklik gerekmez.
+
+Sıra önerisi: **önce Microsoft**. Konumlandırma ajans/kurumsal ve o alıcı
+Entra ile girişi bekliyor; Google ikinci.
+
+Gereken işler:
+
+- [ ] **Şema.** `User.passwordHash` şu an NOT NULL (`schema.prisma:27`).
+  Sağlayıcıyla gelen kullanıcının şifresi yok → ya nullable ya da ayrı bir
+  bağlı-hesap tablosu. Prod migration Plesk panelinden.
+- [ ] **Sağlayıcı kayıtları.** Google Cloud Console (OAuth onay ekranı +
+  istemci) ve Entra ID uygulama kaydı (çok kiracılı). İkisinde de
+  `app.mailmyra.com` yönlendirme adresi; iki gizli anahtar env'e.
+  Temel kapsam (email+profile) hassas değil, uzun doğrulama yok.
+- [ ] **OIDC akışı.** Projede bugün hiçbir auth bağımlılığı YOK. Yetkilendirme
+  yönlendirmesi, `state`/PKCE, geri dönüş ucu, token değişimi, `id_token`
+  doğrulaması. CLAUDE.md Clerk/Auth0'ı yasaklıyor — düz bir OIDC kütüphanesi
+  eklenecekse ayrıca onay al.
+- [ ] **⚠️ Hesap birleştirme politikası.** Şifreyle kayıtlı `x@y.com` sonra
+  aynı adresle Google'dan gelirse ne olacak? Sağlayıcının `email_verified`
+  bayrağı doğrulanmadan birleştirme yapılırsa **hesap ele geçirme açığı**
+  doğar. Politika baştan yazılıp teste bağlanacak.
+- [ ] **⚠️ Sözleşme onayı.** Her kayıt `LegalAcceptance` satırı yazıyor
+  (`flows.ts:96`), sürümüyle birlikte. Sağlayıcı ekranında şartları kabul
+  ettiren kutu yok → SSO akışına araya giren bir "şartları kabul et" adımı
+  gerekiyor. Hukuki kayıt tutulduğu için atlanamaz.
+- [ ] **Yan akışlar.** Şifresiz kullanıcı için şifre sıfırlama, e-posta
+  değişimi, SSO ile açılmış hesaba şifreyle giriş — her biri karar ister.
+
+**Ayrıca yorum içine alındı:** login sayfasındaki "Keep me signed in on this
+device" kutusu (2026-08-18). Oturum çerezi her hâlükârda 30 gün
+(`SESSION_TTL_SECONDS`); kutu hiçbir şey yapmıyordu. Anlamlı olması için uçta
+kısa/uzun oturum ayrımı gerekir.
+
+---
+
 ## Deploy Kayıtları
 
 ### Prod yayına alındı — 2026-07-27
