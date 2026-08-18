@@ -92,19 +92,49 @@ gerçekte ne alıyor" sorusu için kendi imzan.
 
 ---
 
-## 3. Sonuç tablosu (her turda kopyala-doldur)
+## 3. Sonuç tablosu
+
+### Tur 3 — DEVAM EDİYOR
+
+Tur tarihi: 2026-08-18 ·  Test eden: Hüseyin ·  Commit: `2668d5b` (canlı derleme)
+Malzeme: canlı panelde kayıtlı üç imza (bkz. §1 "daha gerçekçi alternatif"),
+**kopyala** yoluyla alındı.
+
+| Şablon | Outlook Classic | Yeni Outlook | Gmail web | Gmail mobil | Apple Mail | iOS Mail |
+|---|---|---|---|---|---|---|
+| classic-horizontal | — | geçti | geçti | geçti | geçti | geçti |
+| stacked-minimal | — | geçti | geçti | geçti | geçti | geçti |
+| card-bordered | — | geçti | geçti | geçti | geçti | geçti |
+
+`—` = henüz denenmedi.
+
+**5/6 geçti — kalan tek istemci turun bütün riskini taşıyor.** Geçen beşinin
+render motoru Blink/WebKit (Gmail web/mobil, Apple Mail, iOS Mail) ya da
+modern web görünümü (Yeni Outlook); table-based imzayı zaten sorunsuz
+çizerler. CLAUDE.md'nin bu turu pazarlıksız yapmasının sebebi **Outlook
+Classic**'in Word render motorudur ve o daha hiç açılmadı — `max-width`
+tanımaz, tablo kenarlığı sızdırır (2512 bug'ı), sütun kaydırır.
+**Kapı henüz geçilmedi; "6 istemci testi geçti" denemez.**
+
+Ayrıca **`.htm` indirme yolu hiç denenmedi.** HTML gövdesi kopyalananla
+aynı (`wrapExportDoc` yalnız `<!doctype>` + `<meta charset="utf-8">` sarar),
+bu yüzden şablon render'ını yeniden sınamaz; sınadığı şey Outlook Classic'in
+`%APPDATA%\Microsoft\Signatures` kurulum yoludur — kurulum rehberlerinde
+anlatacağımız adım ve toplu zip çıktısının da kullandığı sarmalayıcı.
+⚠️ Builder indirme adını sabit veriyor (`mailmyra-signature`); Outlook imza
+adını dosya adından okuduğu için test sırasında dosyaları elle adlandır.
+
+### Boş şablon (sonraki turlar için kopyala)
 
 Tur tarihi: ……  ·  Test eden: ……  ·  Commit: ……
 
 | Şablon | Outlook Classic | Yeni Outlook | Gmail web | Gmail mobil | Apple Mail | iOS Mail |
 |---|---|---|---|---|---|---|
-| classic-horizontal | | | | | |
-| stacked-minimal | | | | | |
-| card-bordered | | | | | |
+| classic-horizontal | | | | | | |
+| stacked-minimal | | | | | | |
+| card-bordered | | | | | | |
 
 Kusur bulunursa: istemci + şablon + ekran görüntüsü + hangi alanın bozulduğu.
-
----
 
 ## 4. Bilinen riskler (2026-08-17 itibarıyla, henüz doğrulanmadı)
 
@@ -123,5 +153,6 @@ Kusur bulunursa: istemci + şablon + ekran görüntüsü + hangi alanın bozuldu
 - **Tur 1 — 2026-07-24:** `classic-horizontal`, Hafta 1 çıktıları (bkz.
   `docs/backlog.md` §Test Kayıtları).
 - **Tur 2 — 2026-07-25:** logo + el imzası + mono ikonlar, gerçek CDN.
-- **Tur 3 — beklemede:** 3 şablon, marka bindirmesi ve İngilizce fixture
-  sonrası ilk tur.
+- **Tur 3 — 2026-08-18, 5/6:** 3 şablon. Gmail web + Gmail mobil + Apple
+  Mail + Yeni Outlook + iOS Mail kopyala yoluyla GEÇTİ. **Yalnız Outlook
+  Classic bekliyor** (+ `.htm` indirme yolu). Bkz. §3.
