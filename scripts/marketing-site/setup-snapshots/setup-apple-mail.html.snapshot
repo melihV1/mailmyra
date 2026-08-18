@@ -1,0 +1,1524 @@
+<!doctype html>
+<html class="no-js agntix-dark" lang="zxx">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>Mailmyra | Apple Mail setup</title>
+    <meta name="description" content="How Mailmyra builds email signatures that render the same in every mail client.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="shortcut icon" type="image/x-icon" href="assets/img/favicon/favicon.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&amp;family=Phudu:wght@300..900&amp;display=swap">
+    <!-- mm: TEK STIL DOSYASI. Onceki 9 ayri dosya + bundle
+             (index-it-solution-dark[.subset].min.css) main.css'te birlestirildi;
+             artik duzenlenecek tek yer orasi. Bundle dosyalari SILINDI. -->
+    <link rel="stylesheet" href="assets/css/main.css?v=mailmyra-0806-40">
+    <!-- mm: acilis ekrani (GLOW) — lab sayfasiyla paylasildigi icin ayri durdu -->
+    <link rel="stylesheet" href="assets/css/mailmyra-preloader-glow.css?v=mailmyra-0803-1">
+    <!-- mm: sayfa ilerleme dugmesi (eski go-to-top) -->
+    <link rel="stylesheet" href="assets/css/mailmyra-scrollprogress.css?v=mailmyra-0803-1">
+    <!-- mm: buyuyen mobil navigasyon -->
+    <link rel="stylesheet" href="assets/css/mailmyra-nav.css?v=mailmyra-0803-6">
+    <!-- mm: index'in mobil content-visibility <style> blogu BILEREK alinmadi —
+             icindeki bolum yukseklikleri index'in kendi bolumlerine ait. -->
+
+</head>
+
+<body class="tp-magic-cursor">
+
+    <!-- mm: acilis ekrani (GLOW) — start ==================================
+         Markup burada DURUYOR, JS ile uretilmiyor: ilk boyamada aninda
+         gorunsun, arada beyaz flash olmasin. #smooth-wrapper'in DISINDA
+         (satir 360+) — ScrollSmoother'in transform'undan etkilenmesin.
+         Surucu: assets/js/mailmyra-preloader.js
+         ==================================================================== -->
+    <div class="mml mml--glow" id="mm-preloader">
+        <span class="mml-glow__orb mml-glow__orb--a"></span>
+        <span class="mml-glow__orb mml-glow__orb--b"></span>
+
+        <span class="mml-bar"><i></i><b></b></span>
+        <div class="mml-tag"><s></s><span>LOADING</span></div>
+
+        <div class="mml-glow">
+            <p class="mml-glow__top">EMAIL SIGNATURES</p>
+
+            <!-- mm: logo 8 dikey serit; her serit ayni SVG'nin kendi
+                     dilimini gosteriyor, sirayla asagidan suzuluyor -->
+            <h1 class="mml-glow__title" aria-label="Mailmyra">
+                <span class="mml-glow__s" style="--n:0"><u></u></span>
+                <span class="mml-glow__s" style="--n:1"><u></u></span>
+                <span class="mml-glow__s" style="--n:2"><u></u></span>
+                <span class="mml-glow__s" style="--n:3"><u></u></span>
+                <span class="mml-glow__s" style="--n:4"><u></u></span>
+                <span class="mml-glow__s" style="--n:5"><u></u></span>
+                <span class="mml-glow__s" style="--n:6"><u></u></span>
+                <span class="mml-glow__s" style="--n:7"><u></u></span>
+            </h1>
+
+            <p class="mml-glow__sub">BUILT ONCE · RENDERED EVERYWHERE</p>
+        </div>
+    </div>
+    <script src="assets/js/mailmyra-preloader.js?v=mailmyra-0803-2"></script>
+    <!-- mm: acilis ekrani (GLOW) — end -->
+
+    <!-- Begin magic cursor -->
+    <div id="magic-cursor">
+        <div id="ball"></div>
+    </div>
+    <!-- End magic cursor -->
+
+    <!-- mm: back to top → SAYFA ILERLEME dugmesi ========================
+         Halka kaydirma ilerlemesini gosterir, ortadaki yuzde %100'de
+         (ve hover'da) yukari oka doner. Temanin kabugu (id/class) KORUNDU:
+         gorunme/gizlenme ve tiklama hala main.js → back_to_top() tarafindan
+         yonetiliyor. Stil: assets/css/mailmyra-scrollprogress.css
+         Surucu:  assets/js/mailmyra-scrollprogress.js
+         ==================================================================== -->
+    <div class="back-to-top-wrapper">
+        <button id="back_to_top" type="button" class="back-to-top-btn" aria-label="Sayfa ilerlemesi — basa don">
+            <svg class="mm-sp__ring" viewBox="0 0 54 54" aria-hidden="true">
+                <!-- mm: r=24 → cevre 2πr = 150.796 (CSS'te elle yazili).
+                         Kalin stroke viewBox disina tasmasin diye r kucultuldu. -->
+                <circle class="mm-sp__track" cx="27" cy="27" r="24" />
+                <circle class="mm-sp__shadow" cx="27" cy="27" r="24" />
+                <circle class="mm-sp__bar" cx="27" cy="27" r="24" />
+            </svg>
+            <span class="mm-sp__face">
+                <span class="mm-sp__num"><b>0</b><i>%</i></span>
+                <svg class="mm-sp__arrow" width="18" height="11" viewBox="0 0 12 7" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M11 6L6 1L1 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </span>
+        </button>
+    </div>
+    <!-- mm: back to top end -->
+    <script src="assets/js/mailmyra-scrollprogress.js?v=mailmyra-0803-1" defer></script>
+
+    <!-- mm: BUYUYEN MOBIL NAVIGASYON — temanin yandan kayan
+         offcanvas'inin yerine gecti (eski blok 9432 bayt).
+         Desen: growing-navigation.framer.website
+         Stil: assets/css/mailmyra-nav.css · Surucu: assets/js/mailmyra-nav.js
+         Icerik header'in mega-menusunden birebir kopyalandi. -->
+    <div class="mmnav-veil" id="navVeil"></div>
+
+    <nav class="mmnav" id="mmnav" aria-label="Mobil menu">
+        <div class="mmnav__shell">
+
+            <div class="mmnav__bar">
+                <a class="mm-header-logo" href="index.html" aria-label="Mailmyra">
+                    <img src="assets/img/logo/logo-ikonsuz.svg" alt="Mailmyra">
+                </a>
+                <!-- mm: md ve ustunde cubukta gorunen eylemler -->
+                <div class="mmnav__baractions">
+                    <a class="mm-btn-outline" href="login.html">
+                        <span class="mm-btn__face">
+                            <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
+                        </span>
+                    </a>
+                    <a class="mm-btn-solid" href="builder.html">
+                        <span class="mm-btn__face">
+                            <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                </div>
+                <button class="tp-offcanvas-open-btn mmnav__toggle" id="navToggle" type="button"
+                        aria-expanded="false" aria-controls="navPanel" aria-label="Menu">
+                    <i></i><i></i><i></i>
+                </button>
+            </div>
+
+            <div class="mmnav__rule"></div>
+
+            <div class="mmnav__panel" id="navPanel">
+
+                <!-- mm: acilir menuler -->
+                <div class="mmnav__item" style="--i:0">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Product <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mm-mega--duo mmnav__mega">
+                                <span class="mm-mega__head">PRODUCT</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links">
+                                                            <a href="how-it-works.html"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
+                                                            <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
+                                                            <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
+                                                        </div>
+                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="builder.html">
+                                                            <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
+                                                            <span class="mm-mega__featnote">Build your signature live — free, no sign-up.</span>
+                                                            <span class="mm-mega__featcta">Open the builder
+                                                                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                            </span>
+                                                        </a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:1">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Works with <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mm-mega--wide mmnav__mega">
+                                <span class="mm-mega__head">EMAIL CLIENTS</span>
+                                <div class="mm-mega__body"><div class="mm-mega__grid">
+                                                            <a href="setup-outlook-classic.html"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
+                                                            <a href="setup-new-outlook.html"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
+                                                            <a href="setup-gmail.html"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
+                                                            <a href="setup-apple-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
+                                                            <a href="setup-ios-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
+                                                        </div>
+                                                        <aside class="mm-mega__feature" aria-hidden="true">
+                                                            <span class="mm-sigcard">
+                                                                <span class="mm-sigcard__row">
+                                                                    <span class="mm-sigcard__avatar">HY</span>
+                                                                    <span><strong>Hüseyin Yıldız</strong><em>Creative Director · Voldi</em></span>
+                                                                </span>
+                                                                <span class="mm-sigcard__rule"></span>
+                                                                <span class="mm-sigcard__line w1"></span>
+                                                                <span class="mm-sigcard__line w2"></span>
+                                                                <span class="mm-sigcard__links"><i></i><i></i><i></i></span>
+                                                            </span>
+                                                            <span class="mm-mega__featnote">One signature, identical in every client — real render, not a screenshot.</span>
+                                                            <span class="mm-mega__tags"><span>table-based</span><span>inline CSS</span></span>
+                                                        </aside></div>
+                                <span class="mm-mega__foot"><a href="setup.html">All setup guides
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:2">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Solutions <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mmnav__mega">
+                                <span class="mm-mega__head">WHO IT&RSQUO;S FOR</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="solutions-agencies.html"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a><a href="solutions-teams.html"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a><a href="solutions-professionals.html"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:3">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Templates <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mmnav__mega">
+                                <span class="mm-mega__head">TEMPLATE GALLERY</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="templates-professionals.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a><a href="templates-teams.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a><a href="templates-agencies.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></div></div>
+                                <span class="mm-mega__foot"><a href="templates.html">Browse all templates
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:4">
+                    <div class="mmnav__row" data-acc>
+                        <button class="mmnav__link" type="button" aria-expanded="false">
+                            Pricing <span class="mmnav__plus" aria-hidden="true"></span>
+                        </button>
+                        <div class="mmnav__sub">
+                            <div class="mm-mega mmnav__mega">
+                                <span class="mm-mega__head">PLANS</span>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="pricing.html#pro"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>Pro</strong><span>$1 per sender/year — one person, one brand.</span></span></a><a href="pricing.html#team"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>Team</strong><span>Same $1 — many senders, one brand.</span></span></a><a href="pricing.html#agency"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M2 22h20"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></i><span class="mm-mega__txt"><strong>Agency</strong><span>Same $1 — isolated client orgs, white-label.</span></span></a></div></div>
+                                <span class="mm-mega__foot"><a href="contact.html">Agency plans — pooled seats, talk to us
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- mm: tek seviyeli linkler -->
+                <div class="mmnav__item" style="--i:5">
+                    <div class="mmnav__row">
+                        <a class="mmnav__link" href="#faq">FAQ</a>
+                    </div>
+                </div>
+
+                <div class="mmnav__item" style="--i:6">
+                    <div class="mmnav__row">
+                        <a class="mmnav__link" href="#contact">Contact</a>
+                    </div>
+                </div>
+
+                <!-- mm: eylemler — index'in KENDI buton bilesenleri
+                         (.mm-btn-solid / .mm-btn-outline, mm-btn__face + label
+                         takasi). Yeniden yazilmiyor, main.css'ten geliyor. -->
+                <div class="mmnav__item mmnav__actions" style="--i:7">
+                    <a class="mm-btn-solid" href="builder.html">
+                        <span class="mm-btn__face">
+                            <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </a>
+                    <a class="mm-btn-outline" href="login.html">
+                        <span class="mm-btn__face">
+                            <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
+                        </span>
+                    </a>
+                </div>
+
+                <!-- mm: alt blok — kisa cumle + ikonlu baglantilar -->
+                <div class="mmnav__item mmnav__foot" style="--i:8">
+                    <p class="mmnav__foot-note">Same email.<br><em>Stronger identity.</em></p>
+
+                    <div class="mmnav__foot-links">
+                        <a href="mailto:hello@mailmyra.com">
+                            <i class="mm-chip"><i class="fa-light fa-envelope"></i></i>
+                            <span>hello@mailmyra.com</span>
+                            <i class="fa-light fa-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://facebook.com/mailmyra" target="_blank" rel="noopener">
+                            <i class="mm-chip"><i class="fa-brands fa-facebook-f"></i></i>
+                            <span>Facebook</span>
+                            <i class="fa-light fa-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                        <a href="https://instagram.com/mailmyra" target="_blank" rel="noopener">
+                            <i class="mm-chip"><i class="fa-brands fa-instagram"></i></i>
+                            <span>Instagram</span>
+                            <i class="fa-light fa-arrow-up-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+
+                    <p class="mmnav__foot-meta">Konya, Türkiye · <span>Voldi Creative</span></p>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- search area start -->
+    <div class="tp-search-area search-black p-relative">
+        <div class="tp-search-close">
+            <button class="tp-search-close-btn">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="path-1" d="M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path class="path-2" d="M1 1L11 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+        </div>
+        <div class="container container-1230">
+            <div class="row">
+                <div class="tp-search-wrapper">
+                    <div class="col-lg-8">
+                        <div class="tp-search-content">
+                            <div class="search p-relative">
+                                <input type="text" class="search-input" placeholder="Search">
+                                <button class="tp-search-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M18.0508 18.05L23.0009 23" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M20.8004 10.9C20.8004 5.43237 16.3679 1 10.9002 1C5.43246 1 1 5.43237 1 10.9C1 16.3676 5.43246 20.7999 10.9002 20.7999C16.3679 20.7999 20.8004 16.3676 20.8004 10.9Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="body-overlay"></div>
+    <!-- search area end -->
+
+    <header>
+
+        <!-- header area start -->
+        <div id="header-sticky" class="tp-header-10-area tp-header-11-style tp-header-blur sticky-black-bg header-11-dark-style header-transparent">
+            <div class="container container-1630">
+                <div class="tp-header-10-wrapper mt-30">
+                    <div class="row align-items-center">
+                        <div class="col-xl-2 col-lg-4 col-md-6 col-7">
+                            <div class="tp-header-10-logo">
+                                <a class="mm-header-logo" href="index.html">
+                                    <img data-width="100%" src="assets/img/logo/logo-ikonsuz.svg" alt="Mailmyra">
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-xl-10 col-lg-8 col-md-6 col-5">
+                            <div class="tp-header-10-box d-flex align-items-center justify-content-end justify-content-xl-between">
+                                <div class="tp-header-menu tp-header-10-menu tp-header-dropdown dropdown-black-bg d-none d-xl-block">
+                                    <nav class="tp-mobile-menu-active">
+                                        <ul>
+                                            <li class="has-dropdown">
+                                                <a href="product.html">Product</a>
+                                                <ul class="tp-submenu submenu mm-mega mm-mega--duo">
+                                                    <li class="mm-mega__head" aria-hidden="true">Product</li>
+                                                    <li class="mm-mega__body">
+                                                        <div class="mm-mega__links">
+                                                            <a href="how-it-works.html"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
+                                                            <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
+                                                            <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
+                                                        </div>
+                                                        <a class="mm-mega__feature mm-mega__feature--pic" href="builder.html">
+                                                            <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
+                                                            <span class="mm-mega__featnote">Build your signature live — free, no sign-up.</span>
+                                                            <span class="mm-mega__featcta">Open the builder
+                                                                <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                            </span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="compatibility.html">Works with</a>
+                                                <ul class="tp-submenu submenu mm-mega mm-mega--wide">
+                                                    <li class="mm-mega__head" aria-hidden="true">Email clients</li>
+                                                    <li class="mm-mega__body">
+                                                        <div class="mm-mega__grid">
+                                                            <a href="setup-outlook-classic.html"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
+                                                            <a href="setup-new-outlook.html"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
+                                                            <a href="setup-gmail.html"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
+                                                            <a href="setup-apple-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
+                                                            <a href="setup-ios-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
+                                                        </div>
+                                                        <aside class="mm-mega__feature" aria-hidden="true">
+                                                            <span class="mm-sigcard">
+                                                                <span class="mm-sigcard__row">
+                                                                    <span class="mm-sigcard__avatar">HY</span>
+                                                                    <span><strong>Hüseyin Yıldız</strong><em>Creative Director · Voldi</em></span>
+                                                                </span>
+                                                                <span class="mm-sigcard__rule"></span>
+                                                                <span class="mm-sigcard__line w1"></span>
+                                                                <span class="mm-sigcard__line w2"></span>
+                                                                <span class="mm-sigcard__links"><i></i><i></i><i></i></span>
+                                                            </span>
+                                                            <span class="mm-mega__featnote">One signature, identical in every client — real render, not a screenshot.</span>
+                                                            <span class="mm-mega__tags"><span>table-based</span><span>inline CSS</span></span>
+                                                        </aside>
+                                                    </li>
+                                                    <li class="mm-mega__foot"><a href="setup.html">All setup guides
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="solutions.html">Solutions</a>
+                                                <ul class="tp-submenu submenu mm-mega">
+                                                    <li class="mm-mega__head" aria-hidden="true">Who it&rsquo;s for</li>
+                                                    <li><a href="solutions-agencies.html"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a></li>
+                                                    <li><a href="solutions-teams.html"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a></li>
+                                                    <li><a href="solutions-professionals.html"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="templates.html">Templates</a>
+                                                <ul class="tp-submenu submenu mm-mega">
+                                                    <li class="mm-mega__head" aria-hidden="true">Template gallery</li>
+                                                    <li><a href="templates-professionals.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a></li>
+                                                    <li><a href="templates-teams.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a></li>
+                                                    <li><a href="templates-agencies.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></li>
+                                                    <li class="mm-mega__foot"><a href="templates.html">Browse all templates
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></li>
+                                                </ul>
+                                            </li>
+                                            <li class="has-dropdown">
+                                                <a href="pricing.html">Pricing</a>
+                                                <ul class="tp-submenu submenu mm-mega">
+                                                    <li class="mm-mega__head" aria-hidden="true">Plans</li>
+                                                    <li><a href="pricing.html#pro"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>Pro</strong><span>$1 per sender/year — one person, one brand.</span></span></a></li>
+                                                    <li><a href="pricing.html#team"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>Team</strong><span>Same $1 — many senders, one brand.</span></span></a></li>
+                                                    <li><a href="pricing.html#agency"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M2 22h20"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></i><span class="mm-mega__txt"><strong>Agency</strong><span>Same $1 — isolated client orgs, white-label.</span></span></a></li>
+                                                    <li class="mm-mega__foot"><a href="contact.html">Agency plans — pooled seats, talk to us
+                                                        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    </a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="faq.html">FAQ</a></li>
+                                            <li><a href="contact.html">Contact</a></li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                                <div class="tp-header-10-right d-flex align-items-center">
+                                    
+                                    <div class="d-none d-md-block">
+                                        <a class="mm-btn-outline" href="login.html">
+                                            <span class="mm-btn__face">
+                                                <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="d-none d-md-block ml-10">
+                                        <a class="mm-btn-solid" href="builder.html">
+                                            <span class="mm-btn__face">
+                                                <span class="mm-btn__label"><span>Try the Builder</span><span aria-hidden="true">Try the Builder</span></span>
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                                </svg>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="tp-header-10-offcanvas d-xl-none ml-15">
+                                        <div class="tp-header-bar">
+                                            <button class="tp-offcanvas-open-btn" aria-label="Open menu">
+                                                <i></i>
+                                                <i></i>
+                                                <i></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- header area end -->
+
+    </header>
+
+    <div id="smooth-wrapper">
+        <div id="smooth-content">
+
+            <main>
+
+                <!-- ================================================================
+                     mm: SAYFA ICERIGI — su an temanin ORIJINAL bolumleri duruyor.
+                     Kabuk (preloader / header / mobil nav / ilerleme dugmesi /
+                     footer) index-it-solution-dark.html'den birebir turetildi.
+                     ================================================================ -->
+
+                <div class="pp-top-wrap">
+
+                    <!-- hero area start -->
+
+                    <div class="pp-about-me-area pp-about-me-ptb z-index-1 mm-hiw-hero" data-bg-color="#00102b">
+
+                        <div class="mmE-bgfx mm-hiw-bgfx" aria-hidden="true">
+                            <span class="mmE-aur" style="left:-8%;  top:-22%;    width:780px; height:560px; --ac:rgba(90,140,226,.40);  --ad:30s;"></span>
+                            <span class="mmE-aur" style="right:-6%; top:-10%;    width:620px; height:480px; --ac:rgba(137,180,239,.24); --ad:26s; --adl:-9s;"></span>
+                            <span class="mmE-aur" style="left:26%;  bottom:-30%; width:560px; height:420px; --ac:rgba(90,140,226,.22);  --ad:34s; --adl:-15s;"></span>
+                            <span class="mmE-aur" style="right:22%; bottom:-18%; width:420px; height:320px; --ac:rgba(242,165,115,.14); --ad:38s; --adl:-6s;"></span>
+
+                            <div class="mm-hiw-track">
+                                <span class="mm-hiw-cell" style="--i:0"></span>
+                                <span class="mm-hiw-cell" style="--i:1"></span>
+                                <span class="mm-hiw-cell" style="--i:2"></span>
+                                <span class="mm-hiw-cell" style="--i:3"></span>
+                            </div>
+
+                            <span class="mm-hiw-gridlit"></span>
+                            <span class="mm-hiw-spot"></span>
+                        </div>
+
+                        <div class="container-fluid">
+                            <div class="pp-about-me-heading text-center z-index-1 d-none d-md-block">
+                               
+                                <h4 class="pp-about-me-title mm-hiw-title">APPLE MAIL</h4>
+                            </div>
+                            <div class="pp-about-me-heading-slider text-center z-index-1 d-block d-md-none">
+                                <div class="swiper-container tp-brand-active">
+                                    <div class="swiper-wrapper slide-transtion">
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">APPLE MAIL</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">APPLE MAIL</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">APPLE MAIL</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">APPLE MAIL</h4>
+                                        </div>
+                                        <div class="swiper-slide">
+                                            <h4 class="pp-about-me-title">APPLE MAIL</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="container container-1350">
+                            <div class="row align-items-center">
+                                <div class="col-xl-4 col-lg-4 col-md-12">
+                                    <div class="pp-hero-left z-index-1">
+                                        <div class="pp-about-me-hero-left pt-90 pb-100 z-index-1">
+                                            <!-- mm: kucuk baslik -->
+                                            <h6 class="mm-hiw-kicker">SETUP GUIDE &middot; MACOS</h6>
+
+                                            <p class="mm-hiw-lead">
+                                                Apple Mail follows web standards closely. The one thing to watch is how it treats fonts and dark mode.
+                                            </p>
+
+                                            <!-- mm: CTA — sayfayi ilk bolume (#how-start) kaydirir -->
+                                            <a class="mm-btn-solid mm-hiw-cta" href="#how-start" data-mm-scrollto>
+                                                <span class="mm-btn__face">
+                                                    <span class="mm-btn__label">
+                                                        <span>Go to the steps</span>
+                                                        <span aria-hidden="true">Go to the steps</span>
+                                                    </span>
+                                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M7 2.5v9M3.5 8L7 11.5L10.5 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-7 order-lg-2 order-3">
+                                    <div class="pp-about-me-thumb z-index-1 text-center">
+                                        <img src="assets/img/about-me/about-me-thumb-1.png" alt="">
+                                    </div>
+                                </div>
+                                <div class="col-xl-1 col-lg-1 col-md-12 order-lg-3 order-2">
+
+                                    <ol class="mm-hiw-rail z-index-2">
+                                        <li class="mm-hiw-rail__step" style="--i:0">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>01</b>
+                                            <span>Connect</span>
+                                        </li>
+                                        <li class="mm-hiw-rail__step" style="--i:1">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>02</b>
+                                            <span>Design</span>
+                                        </li>
+                                        <li class="mm-hiw-rail__step" style="--i:2">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>03</b>
+                                            <span>Roll&nbsp;out</span>
+                                        </li>
+                                        <li class="mm-hiw-rail__step" style="--i:3">
+                                            <span class="mm-hiw-rail__dot" aria-hidden="true"></span>
+                                            <b>04</b>
+                                            <span>Send</span>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- hero area end -->
+
+
+                </div>
+
+
+
+
+                <!-- before you start start -->
+                <div class="mm-sg-before p-relative z-index-2" id="how-start">
+                    <div class="container container-1430">
+                        <div class="row justify-content-center">
+                            <div class="col-xl-9">
+                                <div class="mm-sg-head text-center">
+                                    <span class="mm-section-kicker">BEFORE YOU START</span>
+                                    <h2 class="mm-sg-title">Three things<br><em>and you are ready.</em></h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".3">
+                                <div class="mm-sg-req">
+                                    <span class="mm-sg-req__num">01</span>
+                                    <h3>Your signature is built</h3>
+                                    <p>Finish it in the builder before you start here.</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".5">
+                                <div class="mm-sg-req">
+                                    <span class="mm-sg-req__num">02</span>
+                                    <h3>Copied as rich HTML</h3>
+                                    <p>Use “Copy as HTML”, not plain text copy.</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".7">
+                                <div class="mm-sg-req">
+                                    <span class="mm-sg-req__num">03</span>
+                                    <h3>Know which account</h3>
+                                    <p>Signatures are assigned per account in Apple Mail.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- before you start end -->
+
+                <!-- steps start -->
+                <!-- mm: ADIMLAR. Iskelet service-details'in process bileseni.
+                     Gorsel kutulari YER TUTUCU — `data-shot` beklenen dosya
+                     adini soyluyor, gercek ekran goruntuleri gelince
+                     <figure> icerigi <img> ile degistirilecek. -->
+                <div class="mm-sg-steps p-relative z-index-2" data-bg-color="#04122b">
+                    <div class="container container-1430">
+                        <div class="mm-template-showcase__intro mm-sg-steps__head">
+                            <div>
+                                <span class="mm-section-kicker tp-split-text tp-split-right">Step by step</span>
+                                <h2 class="mm-template-showcase__title tp-split-text tp-split-right">Five steps.<br><em>Once per person.</em></h2>
+                            </div>
+                            <div class="mm-template-showcase__intro-copy tp_fade_anim" data-delay=".4">
+                                <p>Nothing is installed and nothing runs in the background. You copy a signature and paste it where Apple Mail keeps it.</p>
+                            </div>
+                        </div>
+                        <div class="mm-sg-step">
+                            <div class="row align-items-center">
+                                <div class="col-xl-5 col-lg-6">
+                                    <div class="mm-sg-step__copy">
+                                        <span class="mm-sg-step__num">Step 01</span>
+                                        <h3>Copy the signature</h3>
+                                        <p>In Mailmyra, open your signature and press <b>Copy as HTML</b>.</p>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-6">
+                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-01.png">
+                                        <span class="mm-sg-shot__label">Screenshot</span>
+                                        <span class="mm-sg-shot__file">apple-mail-step-01.png</span>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mm-sg-step">
+                            <div class="row align-items-center">
+                                <div class="col-xl-5 col-lg-6">
+                                    <div class="mm-sg-step__copy">
+                                        <span class="mm-sg-step__num">Step 02</span>
+                                        <h3>Open the signature settings</h3>
+                                        <p>In the menu bar: <b>Mail → Settings → Signatures</b>.</p>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-6">
+                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-02.png">
+                                        <span class="mm-sg-shot__label">Screenshot</span>
+                                        <span class="mm-sg-shot__file">apple-mail-step-02.png</span>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mm-sg-step">
+                            <div class="row align-items-center">
+                                <div class="col-xl-5 col-lg-6">
+                                    <div class="mm-sg-step__copy">
+                                        <span class="mm-sg-step__num">Step 03</span>
+                                        <h3>Pick the account and add one</h3>
+                                        <p>Select your account on the left, then press <b>+</b> to create a signature.</p>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-6">
+                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-03.png">
+                                        <span class="mm-sg-shot__label">Screenshot</span>
+                                        <span class="mm-sg-shot__file">apple-mail-step-03.png</span>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mm-sg-step">
+                            <div class="row align-items-center">
+                                <div class="col-xl-5 col-lg-6">
+                                    <div class="mm-sg-step__copy">
+                                        <span class="mm-sg-step__num">Step 04</span>
+                                        <h3>Paste it in</h3>
+                                        <p>Clear the placeholder text, then paste with <b>Cmd + V</b>. Untick <b>Always match my default message font</b>.</p>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-6">
+                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-04.png">
+                                        <span class="mm-sg-shot__label">Screenshot</span>
+                                        <span class="mm-sg-shot__file">apple-mail-step-04.png</span>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mm-sg-step">
+                            <div class="row align-items-center">
+                                <div class="col-xl-5 col-lg-6">
+                                    <div class="mm-sg-step__copy">
+                                        <span class="mm-sg-step__num">Step 05</span>
+                                        <h3>Assign and test</h3>
+                                        <p>Choose the signature under <b>Choose Signature</b> for that account, then send yourself a message.</p>
+                                    </div>
+                                </div>
+                                <div class="col-xl-7 col-lg-6">
+                                    <figure class="mm-sg-shot" data-shot="apple-mail-step-05.png">
+                                        <span class="mm-sg-shot__label">Screenshot</span>
+                                        <span class="mm-sg-shot__file">apple-mail-step-05.png</span>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- steps end -->
+
+                <!-- verify start -->
+                <div class="mm-sg-verify p-relative z-index-2">
+                    <div class="container container-1430">
+                        <div class="row align-items-start">
+                            <div class="col-lg-5">
+                                <div class="mm-sg-verify__copy">
+                                    <span class="mm-section-kicker">DID IT WORK?</span>
+                                    <h2 class="mm-sg-title">What it should<br><em>look like.</em></h2>
+                                    <p>Type stays at the sizes you set, the logo keeps its shape and the layout holds on a Retina screen.</p>
+                                    <figure class="mm-sg-shot mm-sg-shot--wide" data-shot="apple-mail-result.png">
+                                        <span class="mm-sg-shot__label">Screenshot</span>
+                                        <span class="mm-sg-shot__file">apple-mail-result.png</span>
+                                    </figure>
+                                </div>
+                            </div>
+                            <div class="col-lg-7">
+                                <ul class="mm-sg-trouble">
+                                <li>
+                                    <b>Fonts all look the same</b>
+                                    <span>“Always match my default message font” is still ticked. Untick it and paste again.</span>
+                                </li>
+                                <li>
+                                    <b>The logo disappears in dark mode</b>
+                                    <span>A fully transparent PNG blends into the dark background. Export with the guarded version that keeps padding and contrast.</span>
+                                </li>
+                                <li>
+                                    <b>Images did not come through</b>
+                                    <span>Paste directly from Mailmyra. Passing the signature through another editor first strips remote images.</span>
+                                </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- verify end -->
+
+                <!-- quirks start -->
+                <div class="mm-sg-quirks p-relative z-index-2" data-bg-color="#04122b">
+                    <div class="container container-1430">
+                        <div class="row justify-content-center">
+                            <div class="col-xl-9">
+                                <div class="mm-sg-head text-center">
+                                    <span class="mm-section-kicker">CLIENT BEHAVIOUR</span>
+                                    <h2 class="mm-sg-title">The friendliest engine, with two catches</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="mm-sg-quirk">
+                                        <span class="mm-sg-quirk__icon"><i class="fa-light fa-code" aria-hidden="true"></i></span>
+                                        <h3>The engine</h3>
+                                        <p>Apple Mail uses WebKit, so it renders close to what you see in a browser.</p>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="mm-sg-quirk">
+                                        <span class="mm-sg-quirk__icon"><i class="fa-light fa-shield-check" aria-hidden="true"></i></span>
+                                        <h3>What we do</h3>
+                                        <p>We keep image assets at 2x for Retina and treat dark mode as a design case, not an accident.</p>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- quirks end -->
+
+                <!-- faq start -->
+                <div class="mm-sg-faq p-relative z-index-2">
+                    <div class="container container-1430">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="mm-sg-head">
+                                    <span class="mm-section-kicker">QUESTIONS</span>
+                                    <h2 class="mm-sg-title">Asked about<br><em>Apple Mail.</em></h2>
+                                </div>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="mm-sg-faq__list">
+                                <div class="mm-sg-faq__item">
+                                    <h3>Does this cover iPhone too?</h3>
+                                    <p>No. iOS Mail keeps its own signature. There is a separate guide for it.</p>
+                                </div>
+                                <div class="mm-sg-faq__item">
+                                    <h3>Can I have one per account?</h3>
+                                    <p>Yes, that is exactly how Apple Mail stores them.</p>
+                                </div>
+                                <div class="mm-sg-faq__item">
+                                    <h3>What about older macOS versions?</h3>
+                                    <p>The steps are the same; only the menu name changed from Preferences to Settings.</p>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- faq end -->
+
+                <!-- prev next start -->
+                <div class="mm-sg-nav p-relative z-index-2">
+                    <div class="container container-1430">
+                        <div class="mm-sg-nav__row">
+                            <a class="mm-sg-nav__item mm-sg-nav__item--prev" href="setup-gmail.html">
+                                <span>Previous client</span>
+                                <b>Gmail</b>
+                            </a>
+                            <a class="mm-sg-nav__all" href="works-with.html">All clients</a>
+                            <a class="mm-sg-nav__item mm-sg-nav__item--next" href="setup-ios-mail.html">
+                                <span>Next client</span>
+                                <b>iOS Mail</b>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- prev next end -->
+
+            </main>
+
+
+            <footer class="mm-footer" id="mailmyra-footer">
+                <div class="mm-footer__grid" aria-hidden="true"></div>
+
+                <div class="container-fluid mm-footer__inner">
+                    <div class="row">
+                            <div class="colx-l-12">
+                                <div class="crp-footer-big-text-wrap tp_fade_anim" data-delay=".3">
+                                    <a class="crp-footer-big-text text-center" href="contact.html">
+                                        <span>
+                                            <span class="text-1">TRY THE BUILDER</span>
+                                            <span class="text-2">TRY THE BUILDER</span>
+                                        </span>
+                                        <i>
+                                            <svg
+                                                width="81"
+                                                height="81"
+                                                viewBox="0 0 81 81"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                aria-hidden="true"
+                                            >
+                                                <path
+                                                    d="M2 67.5L13.5 79L61 31.5V77H79V2H4V20H49.5L2 67.5Z"
+                                                    fill="currentColor"
+                                                />
+                                            </svg>
+
+                                            <svg
+                                                width="81"
+                                                height="81"
+                                                viewBox="0 0 81 81"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                aria-hidden="true"
+                                            >
+                                                <path
+                                                    d="M2 67.5L13.5 79L61 31.5V77H79V2H4V20H49.5L2 67.5Z"
+                                                    fill="currentColor"
+                                                />
+                                            </svg>
+                                        </i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="mm-footer__ledger tp_fade_anim" data-delay=".25">
+                        <section class="mm-footer__brand" aria-labelledby="mm-footer-brand">
+                            <div class="mm-footer__section-head">
+
+                                <h2 id="mm-footer-brand">Brand</h2>
+                            </div>
+                            <a class="mm-footer__logo" href="index.html" aria-label="Mailmyra home">
+                                <img src="assets/img/logo/mailmyra-white.svg" alt="Mailmyra">
+                            </a>
+                            <p>Signal Ledger by Mailmyra. Standardized signatures. Trusted conversations. Every time.</p>
+                            <span class="mm-footer__brand-rule" aria-hidden="true"></span>
+                            <div class="mm-footer__contact">
+                                <a href="mailto:hello@mailmyra.com"><i class="fa-light fa-envelope"></i> hello@mailmyra.com</a>
+                            </div>
+                        </section>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-product">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-product-panel" aria-label="Toggle Product links">
+
+                                <h2 id="mm-footer-product">Product</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-product-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="builder.html">Signature Builder</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="templates.html">Templates</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="how-it-works.html">How It Works</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="pricing.html">Pricing</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-solutions">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-solutions-panel" aria-label="Toggle Solutions links">
+                                <h2 id="mm-footer-solutions">Solutions</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-solutions-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="solutions.html#professionals">Professionals</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="solutions.html#teams">Teams</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="solutions.html#agencies">Agencies</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="solutions.html#campaigns">Campaigns</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-resources">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-resources-panel" aria-label="Toggle Resources links">
+                                <h2 id="mm-footer-resources">Resources</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-resources-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="compatibility.html">Compatibility</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="how-it-works.html">Install Guides</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="templates.html">Signature Examples</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <nav class="mm-footer__nav mm-footer__accordion-item" aria-labelledby="mm-footer-company">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-company-panel" aria-label="Toggle Company links">
+
+                                <h2 id="mm-footer-company">Company</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-company-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <ul>
+                                        <li class="mb-2"><a href="index.html">About</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="#mailmyra-demo-form">Schedule a Demo</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                        <li class="mb-2"><a href="login.html">Log In</a></li>
+                                        <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    </ul>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <section class="mm-footer__connect mm-footer__accordion-item" aria-labelledby="mm-footer-connect">
+                            <div class="mm-footer__section-head" role="button" tabindex="-1" aria-expanded="false" aria-controls="mm-footer-connect-panel" aria-label="Toggle Contact and Language">
+
+                                <h2 id="mm-footer-connect">Contact &amp; Language</h2>
+                                <span class="mm-footer__accordion-toggle" aria-hidden="true"><i class="fa-light fa-plus"></i></span>
+                            </div>
+                            <div class="mm-footer__accordion-panel" id="mm-footer-connect-panel">
+                                <div class="mm-footer__accordion-inner">
+                                    <div class="mm-footer__socials" aria-label="Follow Mailmyra">
+                                        <div class="mm-footer__social-list">
+                                            <a href="https://facebook.com/mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on Facebook" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                                            <a href="https://youtube.com/@mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on YouTube" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                                            <a href="https://linkedin.com/company/mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on LinkedIn" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                                            <a href="https://instagram.com/mailmyra" target="_blank" rel="noopener noreferrer" aria-label="Mailmyra on Instagram" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="mm-footer__connect-links">
+                                        <a href="mailto:hello@mailmyra.com"><i class="fa-light fa-envelope"></i> hello@mailmyra.com</a>
+                                    </div>
+                                    <span class="mm-footer__connect-rule" aria-hidden="true"></span>
+                                    <div class="mm-footer__language">
+                                        <i class="fa-light fa-globe" aria-hidden="true"></i>
+                                        <div class="mm-footer__language-control">
+                                            <label for="mm-footer-language">Language</label>
+                                            <select id="mm-footer-language" name="language" aria-label="Select language">
+                                                <option value="en" selected>English</option>
+                                                <option value="tr">Turkce</option>
+                                                <option value="de">Deutsch</option>
+                                                <option value="fr">Francais</option>
+                                                <option value="es">Espanol</option>
+                                                <option value="it">Italiano</option>
+                                                <option value="pt">Portugues</option>
+                                                <option value="nl">Nederlands</option>
+                                                <option value="pl">Polski</option>
+                                                <option value="ar">Arabic</option>
+                                                <option value="ja">Japanese</option>
+                                            </select>
+                                        </div>
+                                        <i class="fa-light fa-chevron-down mm-footer__language-chevron" aria-hidden="true"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <div class="mm-footer__compat tp_fade_anim" data-delay=".35" aria-label="Supported email clients">
+                        <div class="mm-footer__rail-title">
+
+                            <span>Compatibility</span>
+                        </div>
+                        <div class="mm-footer__compat-marquee">
+                            <div class="mm-footer__compat-track">
+                                <div class="mm-footer__compat-list">
+                                    <a href="compatibility.html"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
+                                    <a href="compatibility.html"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
+                                    <a href="compatibility.html"><i class="fa-brands fa-google"></i> Gmail</a>
+                                    <a href="compatibility.html"><i class="fa-brands fa-apple"></i> Apple Mail</a>
+                                    <a href="compatibility.html"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
+                                    <a href="compatibility.html"><i class="fa-light fa-code"></i> HTML Export</a>
+                                </div>
+                                <div class="mm-footer__compat-list" aria-hidden="true">
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-google"></i> Gmail</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-apple"></i> Apple Mail</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
+                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-code"></i> HTML Export</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mm-footer__bottom">
+                        <div class="mm-footer__legal">
+                            <a href="security.html">Security &amp; Compliance</a>
+                            <a href="terms.html">Terms of Service</a>
+                            <a href="privacy.html">Privacy Policy</a>
+                            <a href="privacy.html#ccpa">CCPA</a>
+                            <a href="cookies.html">Manage Cookies</a>
+                        </div>
+                        <p>&copy; 2026 Mailmyra. All rights reserved.</p>
+                    </div>
+                </div>
+            </footer>
+
+        </div>
+    </div>
+
+
+
+    <!-- JS here -->
+
+    <!-- JS here -->
+
+
+    <script>
+      (function () {
+        var compact = window.matchMedia('(max-width: 767px)').matches;
+        if (!compact) {
+          document.write('<script src="assets/js/vendor/jquery.min.js"><\/script>');
+          document.write('<script src="assets/js/bootstrap-bundle.min.js"><\/script>');
+          document.write('<script src="assets/js/plugin.min.js"><\/script>');
+          document.write('<script src="assets/js/atropos.js"><\/script>');
+          return;
+        }
+
+        function loadScript(src) {
+          return new Promise(function (resolve, reject) {
+            var script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+
+        window.requestAnimationFrame(function () {
+          window.requestAnimationFrame(function () {
+            var jqueryReady = loadScript('assets/js/vendor/jquery.min.js');
+            var gsapReady = loadScript('assets/js/plugin-mobile.min.js?v=mailmyra-0803-1');
+            loadScript('assets/js/bootstrap-bundle.min.js');
+            Promise.all([jqueryReady, gsapReady]).then(function () {
+              return loadScript('assets/js/mailmyra-mobile.min.js?v=mailmyra-0803-4');
+            });
+          });
+        });
+      })();
+    </script>
+    <script>
+      (function () {
+        var loaded = false;
+        function loadMailmyraSliders() {
+          if (loaded) return;
+          loaded = true;
+          function loadSliderSetup() {
+            var setup = document.createElement('script');
+            setup.src = 'assets/js/mailmyra-sliders.min.js?v=mailmyra-0803-3';
+            document.head.appendChild(setup);
+          }
+          if (window.Swiper) {
+            loadSliderSetup();
+            return;
+          }
+          var swiper = document.createElement('script');
+          swiper.src = 'assets/js/swiper-bundle.min.js';
+          swiper.onload = loadSliderSetup;
+          document.head.appendChild(swiper);
+        }
+        ['scroll', 'wheel', 'touchstart', 'keydown'].forEach(function (eventName) {
+          window.addEventListener(eventName, loadMailmyraSliders, { passive: true, once: true });
+        });
+      })();
+    </script>
+    <script>
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        document.write('<script src="assets/js/main.min.js?v=mailmyra-0803-perf-7"><\/script>');
+        document.write('<script src="assets/js/tp-cursor.js"><\/script>');
+        document.write('<script src="assets/js/mailmyra.min.js?v=mailmyra-0803-perf-4"><\/script>');
+      }
+    </script>
+
+    <!-- mm: bolum temasi gecisi (koyu ↔ acik).
+             GSAP'e BAGLI DEGIL — tema onu yalniz min-width:768px'te
+             yukluyordu ve gecis mobilde hic calismiyordu. Bu script
+             kosulsuz yuklenir, hesabi kendi yapar. -->
+    <script src="assets/js/mailmyra-lightzone.js?v=mailmyra-0803-5"></script>
+    <!-- mm: buyuyen mobil navigasyon (GSAP'e bagli degil, kosulsuz yuklenir) -->
+    <script src="assets/js/mailmyra-nav.js?v=mailmyra-0803-5"></script>
+
+    <!-- mm: ADVANCED CONTROL — tiklanan karta gore sol resmi degistir. -->
+    <script>
+    (function () {
+        var adv = document.querySelector('.mm-adv');
+        if (!adv) return;
+        var shots = [].slice.call(adv.querySelectorAll('.mm-adv__shot'));
+        adv.addEventListener('click', function (event) {
+            var item = event.target.closest('.accordion-items[data-mm-visual]');
+            if (!item) return;
+            var key = item.getAttribute('data-mm-visual');
+            shots.forEach(function (img) {
+                img.classList.toggle('is-on', img.getAttribute('data-mm-visual') === key);
+            });
+        });
+    })();
+    </script>
+
+    <!-- mm: SUREC PERDESI surucusu — mm-lightzone ile ayni desen:
+             rAF + tek olcum, GSAP yok, mobilde de calisir. Bolumun ustu
+             ekranin %88'inden %20'sine inerken ortu 1 → 0 erir. -->
+    <script>
+    (function () {
+        var section = document.querySelector('.mm-steps');
+        var veil = document.querySelector('.mm-steps__veil');
+        if (!section || !veil) return;
+
+        var queued = false;
+        var last = -1;
+
+        function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+        function measure() {
+            queued = false;
+            var vh = window.innerHeight || document.documentElement.clientHeight;
+            var top = section.getBoundingClientRect().top;
+            var op = clamp01((top - vh * 0.20) / (vh * 0.68));
+            if (Math.abs(op - last) < 0.003) return;
+            last = op;
+            veil.style.opacity = op.toFixed(3);
+        }
+
+        function queue() {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(measure);
+        }
+
+        window.addEventListener('scroll', queue, { passive: true });
+        window.addEventListener('resize', queue, { passive: true });
+        measure();
+    })();
+    </script>
+
+    <!-- mm: HERO BASLIGI — harf harf bolme.
+             Sadece isaretleme yapar, animasyon CSS'te (html.mm-ready).
+             Her harf kendi --c sirasini tasir; bosluklar span'a girmez ki
+             kelime araligi ve nowrap bozulmasin. Ekran okuyucu icin
+             aria-label ile tam metin korunur. -->
+    <script>
+    (function () {
+        var title = document.querySelector('.mm-hiw-title');
+        if (!title || title.querySelector('span')) return;
+
+        var text = title.textContent.trim();
+        var out = '';
+        var order = 0;
+
+        for (var i = 0; i < text.length; i++) {
+            var ch = text.charAt(i);
+            if (ch === ' ') { out += ' '; continue; }
+            out += '<span aria-hidden="true" style="--c:' + order + '">' + ch + '</span>';
+            order++;
+        }
+
+        title.setAttribute('aria-label', text);
+        title.innerHTML = out;
+    })();
+    </script>
+
+    <!-- mm: HERO FARE ISIGI — imlecin yuzdelik konumunu hero'ya --mx/--my
+             olarak yazar; boyama tamamen CSS'te. Yumusatma (lerp .14) sayesinde
+             isik imleci gecikmeli takip eder, sertlik olmaz. rAF yalniz hareket
+             varken doner, duruncan kendini kapatir. Dokunmatik/kalem cihazlarda
+             hic kurulmaz (pointer: fine). -->
+    <script>
+    (function () {
+        var hero = document.querySelector('.mm-hiw-hero');
+        if (!hero) return;
+        if (!window.matchMedia('(pointer: fine)').matches) return;
+
+        var toX = 50, toY = 38, atX = 50, atY = 38, ticking = 0;
+
+        function frame() {
+            atX += (toX - atX) * 0.14;
+            atY += (toY - atY) * 0.14;
+            hero.style.setProperty('--mx', atX.toFixed(2) + '%');
+            hero.style.setProperty('--my', atY.toFixed(2) + '%');
+            ticking = (Math.abs(toX - atX) > 0.05 || Math.abs(toY - atY) > 0.05)
+                ? requestAnimationFrame(frame)
+                : 0;
+        }
+
+        hero.addEventListener('mousemove', function (event) {
+            var box = hero.getBoundingClientRect();
+            toX = ((event.clientX - box.left) / box.width) * 100;
+            toY = ((event.clientY - box.top) / box.height) * 100;
+            hero.classList.add('is-lit');
+            if (!ticking) ticking = requestAnimationFrame(frame);
+        }, { passive: true });
+
+        hero.addEventListener('mouseleave', function () {
+            hero.classList.remove('is-lit');
+        });
+    })();
+    </script>
+
+    <!-- mm: sayfa ici yumusak kaydirma (hero CTA → #how-start).
+             Native anchor atlayisi ScrollSmoother'in transform'uyla yanlis
+             yere dusuyor; smoother varsa onun API'siyle, yoksa (mobilde GSAP
+             hic yuklenmiyor) native smooth ile kaydiriyoruz. -->
+    <script>
+    (function () {
+        var HEADER_GAP = 92; /* sabit header kapsulunun altina birak */
+        document.querySelectorAll('[data-mm-scrollto]').forEach(function (link) {
+            link.addEventListener('click', function (event) {
+                var hash = link.getAttribute('href') || '';
+                if (hash.charAt(0) !== '#') return;
+                var target = document.querySelector(hash);
+                if (!target) return;
+                event.preventDefault();
+                var smoother = (window.ScrollSmoother && ScrollSmoother.get) ? ScrollSmoother.get() : null;
+                if (smoother) {
+                    smoother.scrollTo(target, true, 'top ' + HEADER_GAP + 'px');
+                } else {
+                    window.scrollTo({
+                        top: target.getBoundingClientRect().top + window.pageYOffset - HEADER_GAP,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    })();
+    </script>
+
+    <!-- mm: index'in hero (E) scriptleri ve canli-baglama binder'i
+             BILEREK alinmadi — onlar anasayfaya ozel. -->
+
+<script>
+/* ===== sayfa geneli: katman savunmaları + özel imleç ================= */
+(function(){
+  /* SAVUNMA: tema katmanları tıklamayı asla yutmasın.
+     .body-overlay tam ekran + pointer-events:auto — görünür değilken bile
+     yanlış durumda kalırsa içerikteki HER tıklamayı yutar (header ve alt
+     çubuk daha yüksek katmanda olduğundan çalışmaya devam eder). */
+  var mc = document.getElementById('magic-cursor');
+  if (mc) mc.style.display = 'none';
+  var pre = document.getElementById('preloader');
+  if (pre) pre.style.pointerEvents = 'none';
+  function guardOverlays(){
+    document.querySelectorAll('.body-overlay').forEach(function(o){
+      o.style.pointerEvents = o.classList.contains('opened') ? '' : 'none';
+    });
+  }
+  guardOverlays();
+  var mo = new MutationObserver(guardOverlays);
+  document.querySelectorAll('.body-overlay').forEach(function(o){
+    mo.observe(o, { attributes: true, attributeFilter: ['class', 'style'] });
+  });
+  document.addEventListener('click', function(){ setTimeout(guardOverlays, 60); }, true);
+
+  /* OTOMATİK İYİLEŞTİRİCİ: builder'ın üstünde yabancı katman varsa yakala,
+     etkisizleştir ve adını kaydet (mmdebug'da görünür) */
+  var healed = [];
+  function mmHeal(){
+    var E = document.getElementById('hv-E');
+    if (!E || !E.classList.contains('on')) return;
+    ['[data-f="name"]', '.mmE-canvas .paper', '.mmE-rail button', '.mmE-tpl button', '.mmE-colors button']
+      .forEach(function(sel){
+        var el = E.querySelector(sel);
+        if (!el) return;
+        var r = el.getBoundingClientRect();
+        if (!r.width) return;
+        var top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        if (top && !top.closest('#smooth-content') && !top.closest('.hlab-switch')
+            && !top.closest('.mmCur') && !top.closest('.mmnav') && !top.closest('.mmnav-veil')) {
+          top.style.pointerEvents = 'none';
+          var tag = top.tagName + (typeof top.className === 'string' && top.className ? '.' + top.className.split(' ')[0] : '');
+          if (healed.indexOf(tag) < 0) healed.push(tag);
+        }
+      });
+  }
+  setInterval(mmHeal, 2000);
+
+  /* ?mmdebug — imlecin/tıklamanın hangi elemana indiğini sol altta göster */
+  if (location.search.indexOf('mmdebug') > -1) {
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;left:12px;bottom:70px;z-index:2147483647;padding:8px 12px;' +
+      'border-radius:8px;background:#00102b;color:#89b4ef;font:11px ui-monospace,Menlo,monospace;' +
+      'box-shadow:0 0 0 1px rgba(137,180,239,.4);pointer-events:none;max-width:70vw;';
+    toast.textContent = 'mmdebug: fareyi gezdir / tıkla';
+    document.body.appendChild(toast);
+    function label(t){
+      return t.tagName + ((typeof t.className === 'string' && t.className) ? '.' + t.className.split(' ').slice(0, 2).join('.') : '');
+    }
+    var lockUntil = 0;
+    document.addEventListener('mousemove', function(e){
+      if (Date.now() < lockUntil) return;
+      toast.textContent = '~ ' + label(e.target) + (healed.length ? ' | temizlenen: ' + healed.join(',') : '');
+    }, { passive: true });
+    document.addEventListener('pointerdown', function(e){
+      lockUntil = Date.now() + 2000;
+      toast.textContent = '↓ TIK: ' + label(e.target) + ' @' + Math.round(e.clientX) + ',' + Math.round(e.clientY);
+    }, true);
+  }
+
+  /* ÖZEL İMLEÇ: glow'lu turuncu OK (yalnız mouse'lu cihazlar) */
+  if (!window.matchMedia('(pointer: fine)').matches) return;
+  document.documentElement.classList.add('mm-cur');
+  var cur = document.createElement('span');
+  cur.className = 'mmCur hide';
+  cur.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none">' +
+    '<path d="M5 2.5 19.4 10.7 12.9 12.3 9.3 19.2 5 2.5Z" fill="#f2a573" stroke="#00102b" stroke-width="1.3" stroke-linejoin="round"/></svg>' +
+    '<i class="car"></i>';
+  document.body.appendChild(cur);
+  var seen = false;
+  document.addEventListener('mousemove', function(e){
+    if (!seen) { seen = true; cur.classList.remove('hide'); }
+    cur.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+    var t = e.target;
+    var inter = t.closest && t.closest('a,button,select,[role="button"]');
+    var isText = t.closest && t.closest('input,textarea,label');
+    cur.classList.toggle('hov', !!inter);
+    cur.classList.toggle('txt', !!isText && !inter);
+  }, { passive: true });
+  document.addEventListener('mousedown', function(){ cur.classList.add('down'); }, true);
+  document.addEventListener('mouseup', function(){ cur.classList.remove('down'); }, true);
+  document.addEventListener('mouseleave', function(){ cur.classList.add('hide'); seen = false; });
+})();
+</script>
+
+<script>
+/* Mobile and tablet footer accordion */
+(function(){
+  var footer = document.getElementById('mailmyra-footer');
+  if (!footer) return;
+
+  var media = window.matchMedia('(max-width: 991px)');
+  var items = Array.prototype.slice.call(footer.querySelectorAll('.mm-footer__accordion-item'));
+  var compact = null;
+
+  function setItem(item, open){
+    var trigger = item.querySelector('.mm-footer__section-head');
+    var panel = item.querySelector('.mm-footer__accordion-panel');
+    if (!trigger || !panel) return;
+    item.classList.toggle('is-open', open);
+    trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+    panel.inert = !open;
+  }
+
+  function syncFooter(){
+    var nextCompact = media.matches;
+    if (compact === nextCompact) return;
+    compact = nextCompact;
+    items.forEach(function(item){
+      var trigger = item.querySelector('.mm-footer__section-head');
+      if (trigger) trigger.tabIndex = compact ? 0 : -1;
+      setItem(item, compact ? false : true);
+    });
+  }
+
+  items.forEach(function(item){
+    var trigger = item.querySelector('.mm-footer__section-head');
+    if (!trigger) return;
+    function toggleItem(){
+      if (!media.matches) return;
+      var willOpen = !item.classList.contains('is-open');
+      items.forEach(function(other){ setItem(other, false); });
+      if (willOpen) setItem(item, true);
+    }
+    trigger.addEventListener('click', toggleItem);
+    trigger.addEventListener('keydown', function(event){
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      toggleItem();
+    });
+  });
+
+  if (media.addEventListener) media.addEventListener('change', syncFooter);
+  else media.addListener(syncFooter);
+  syncFooter();
+})();
+</script>
+
+
+    <!-- JS here -->
+    <!-- JS here -->
+
+    <!-- mm: ozellik kartlari — Atropos ile 3B egilme. atropos.js zaten
+         temanin kosullu yukleyicisinde var; burada yalniz hazir olunca
+         baglaniyor. Kutuphane gelmezse kartlar duz kalir, icerik bozulmaz.
+         `pointer: fine` yoksa (dokunmatik) hic kurulmuyor. -->
+    <script>
+      (function () {
+        if (!window.matchMedia('(pointer: fine)').matches) return;
+        var tries = 0;
+        (function boot() {
+          if (typeof Atropos === 'undefined') {
+            if (++tries > 40) return;
+            return setTimeout(boot, 150);
+          }
+          document.querySelectorAll('.mm-cap__tilt').forEach(function (el) {
+            Atropos({ el: el, activeOffset: 20, shadow: false, highlight: false, rotateXMax: 6, rotateYMax: 6 });
+          });
+        })();
+      })();
+    </script>
+
+</body>
+
+</html>

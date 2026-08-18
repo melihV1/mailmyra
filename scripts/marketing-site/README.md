@@ -56,6 +56,30 @@ görünsün — SEO ve erişilebilirlik için şart) ve sayfa sonundaki `MM_PRIC
 objesine (hesaplayıcı oradan okur). `LAUNCH_OFFER["active"] = True` yapınca
 kampanya kutusu HTML'e eklenir; `False` iken hiç yazılmaz.
 
+## Kurulum rehberleri — `setup*.html`
+
+Jeneratör YOK; altı sayfayı (hub + 5 istemci) Hüseyin elle kurdu. Bu dizinde
+iki şey duruyor:
+
+- `setup-snapshots/*.html.snapshot` — 2026-08-18'deki hâlleri, metin turundan
+  ÖNCE alındı. Ham klasör git altında olmadığı için tek geri dönüş noktası bu.
+- `setup-screenshots.md` — 30 ekran görüntüsünün çekim listesi (hangi ekran,
+  ne görünmeli, hangi imzayla).
+
+**2026-08-18 metin turu** (6 istemci testi geçtikten sonra, ürünle
+karşılaştırarak): "Copy as HTML" → **"Copy signature"** (üründeki gerçek
+düğme adı) · adım 01'e builder yolu eklendi (kopyala düğmeleri önizleme
+diyaloğunda DEĞİL, builder'da) · Gmail sayfasının kahraman başlığı `PASTE`
+idi → `GMAIL` · iOS adım 01 "builder'dan gönder" diyordu, **Mailmyra posta
+göndermiyor** → bilgisayardan kopyala-yapıştır-yolla · Apple Mail koyu mod
+tavsiyesi olmayan bir "guarded export" özelliğine işaret ediyordu → logonun
+kendi dolgusunu taşıması önerisiyle değiştirildi.
+
+**Rapor edildi, DOKUNULMADI** (bölüm kararı Hüseyin'in): beş rehberin
+kahraman görseli hâlâ tema demosu (`assets/img/about-me/about-me-thumb-1.png`)
+· beş rehberde `mm-hiw-rail` var ve "Connect / Design / Roll out / Send"
+diyor — bu how-it-works sayfasının adımları, kurulum akışıyla örtüşmüyor.
+
 ## `patch-mega-menu.py` — 13 sayfadaki menü metni
 
 ```bash
