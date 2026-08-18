@@ -94,7 +94,7 @@ gerçekte ne alıyor" sorusu için kendi imzan.
 
 ## 3. Sonuç tablosu
 
-### Tur 3 — DEVAM EDİYOR
+### Tur 3 — ✅ GEÇTİ (6/6)
 
 Tur tarihi: 2026-08-18 ·  Test eden: Hüseyin ·  Commit: `2668d5b` (canlı derleme)
 Malzeme: canlı panelde kayıtlı üç imza (bkz. §1 "daha gerçekçi alternatif"),
@@ -102,27 +102,25 @@ Malzeme: canlı panelde kayıtlı üç imza (bkz. §1 "daha gerçekçi alternati
 
 | Şablon | Outlook Classic | Yeni Outlook | Gmail web | Gmail mobil | Apple Mail | iOS Mail |
 |---|---|---|---|---|---|---|
-| classic-horizontal | — | geçti | geçti | geçti | geçti | geçti |
-| stacked-minimal | — | geçti | geçti | geçti | geçti | geçti |
-| card-bordered | — | geçti | geçti | geçti | geçti | geçti |
+| classic-horizontal | geçti | geçti | geçti | geçti | geçti | geçti |
+| stacked-minimal | geçti | geçti | geçti | geçti | geçti | geçti |
+| card-bordered | geçti | geçti | geçti | geçti | geçti | geçti |
 
-`—` = henüz denenmedi.
+**CLAUDE.md'nin Hafta 1 kapısı bu turla KAPANDI.** Üç şablonun üçü de altı
+istemcide kusursuz çizildi — Outlook Classic dahil. Word motorunun
+tanımadığı `max-width`, sızan tablo kenarlığı (2512 bug'ı) ve kaydırdığı
+sütunlar için alınan önlemler sahada doğrulandı.
 
-**5/6 geçti — kalan tek istemci turun bütün riskini taşıyor.** Geçen beşinin
-render motoru Blink/WebKit (Gmail web/mobil, Apple Mail, iOS Mail) ya da
-modern web görünümü (Yeni Outlook); table-based imzayı zaten sorunsuz
-çizerler. CLAUDE.md'nin bu turu pazarlıksız yapmasının sebebi **Outlook
-Classic**'in Word render motorudur ve o daha hiç açılmadı — `max-width`
-tanımaz, tablo kenarlığı sızdırır (2512 bug'ı), sütun kaydırır.
-**Kapı henüz geçilmedi; "6 istemci testi geçti" denemez.**
-
-Ayrıca **`.htm` indirme yolu hiç denenmedi.** HTML gövdesi kopyalananla
-aynı (`wrapExportDoc` yalnız `<!doctype>` + `<meta charset="utf-8">` sarar),
-bu yüzden şablon render'ını yeniden sınamaz; sınadığı şey Outlook Classic'in
-`%APPDATA%\Microsoft\Signatures` kurulum yoludur — kurulum rehberlerinde
-anlatacağımız adım ve toplu zip çıktısının da kullandığı sarmalayıcı.
+⚠️ **`.htm` indirme yolu bu turda ayrıca doğrulanmadıysa hâlâ açık.** HTML
+gövdesi kopyalananla aynı (`wrapExportDoc` yalnız `<!doctype>` +
+`<meta charset="utf-8">` sarar), yani şablon render'ı zaten kanıtlandı;
+sınanmamış olan Outlook Classic'in `%APPDATA%\Microsoft\Signatures`
+kurulum yolu — kurulum rehberlerinde anlatacağımız adım ve toplu zip
+çıktısının kullandığı sarmalayıcı.
 ⚠️ Builder indirme adını sabit veriyor (`mailmyra-signature`); Outlook imza
-adını dosya adından okuduğu için test sırasında dosyaları elle adlandır.
+adını dosya adından okuduğu için üç imza da aynı adla görünür. Tek satırlık
+düzeltme (`BuilderClient.tsx`, `savedName` zaten orada), sıradaki derlemeye
+bindirilecek.
 
 ### Boş şablon (sonraki turlar için kopyala)
 
@@ -136,23 +134,26 @@ Tur tarihi: ……  ·  Test eden: ……  ·  Commit: ……
 
 Kusur bulunursa: istemci + şablon + ekran görüntüsü + hangi alanın bozulduğu.
 
-## 4. Bilinen riskler (2026-08-17 itibarıyla, henüz doğrulanmadı)
+## 4. Riskler — Tur 3'te DOĞRULANDI (2026-08-18)
 
-- **`card-bordered` kart kenarlığı ve sol marka şeridi** — Outlook Classic'te
-  `<td>` kenarlığı ve dolgusuyla kuruluyor; Word motorunda şeridin tam
-  yükseklik boyanmaması en olası kusur.
+Tur 3 öncesinde şu üçü açık risk olarak yazılmıştı; **üçü de Outlook
+Classic'te temiz çıktı.** Kayda geçiyorlar ki şablonlara dokunulduğunda
+neye bakılacağı bilinsin:
+
+- **`card-bordered` kart kenarlığı ve sol marka şeridi** — `<td>` kenarlığı
+  ve dolgusuyla kuruluyor. Beklenen kusur şeridin Word motorunda tam
+  yükseklik boyanmamasıydı; boyandı.
 - **Sabit piksel genişlikler** — Outlook `max-width` tanımadığı için
   `card-bordered` (460/520/580) ve `stacked-minimal` (300/340/380) sabit
-  genişlik taşıyor; `classic-horizontal` ise yalnız `max-width:600px`
-  kullanıyor. Üçünü **yan yana** görmekte fayda var: dar istemci
-  bölmesinde davranışları farklı olacak.
-- **Şablon 2 ve 3 hiç test edilmedi** — bu tur onların ilk turu.
+  genişlik taşıyor, `classic-horizontal` ise `max-width:600px`. Üçü de dar
+  okuma bölmesinde taşmadı.
+- **Şablon 2 ve 3'ün ilk turu** — geçti.
 
 ## 5. Geçmiş turlar
 
 - **Tur 1 — 2026-07-24:** `classic-horizontal`, Hafta 1 çıktıları (bkz.
   `docs/backlog.md` §Test Kayıtları).
 - **Tur 2 — 2026-07-25:** logo + el imzası + mono ikonlar, gerçek CDN.
-- **Tur 3 — 2026-08-18, 5/6:** 3 şablon. Gmail web + Gmail mobil + Apple
-  Mail + Yeni Outlook + iOS Mail kopyala yoluyla GEÇTİ. **Yalnız Outlook
-  Classic bekliyor** (+ `.htm` indirme yolu). Bkz. §3.
+- **Tur 3 — 2026-08-18: ✅ 6/6 GEÇTİ.** 3 şablon × 6 istemci, kopyala
+  yoluyla, canlı panelden gerçek veriyle. CLAUDE.md'nin Hafta 1 kapısı
+  kapandı. Bkz. §3.
