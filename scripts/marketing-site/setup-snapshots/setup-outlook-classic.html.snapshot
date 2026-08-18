@@ -645,7 +645,7 @@
                                 <div class="mm-sg-req">
                                     <span class="mm-sg-req__num">02</span>
                                     <h3>Copied as rich HTML</h3>
-                                    <p>Use “Copy as HTML”, not plain text copy.</p>
+                                    <p>Use “Copy signature”, not plain text copy.</p>
                                 </div>
                             </div>
                             <div class="col-lg-4 col-md-6 mb-25 tp_fade_anim" data-delay=".7">
@@ -682,7 +682,7 @@
                                     <div class="mm-sg-step__copy">
                                         <span class="mm-sg-step__num">Step 01</span>
                                         <h3>Copy the signature</h3>
-                                        <p>In Mailmyra, open your signature and press <b>Copy as HTML</b>. The clipboard now holds the formatted signature, not the code.</p>
+                                        <p>In Mailmyra, open the signature in the builder (<b>Signatures → Edit in builder</b>) and press <b>Copy signature</b>. The clipboard now holds the formatted signature, not the code.</p>
                                     </div>
                                 </div>
                                 <div class="col-xl-7 col-lg-6">
@@ -792,7 +792,7 @@
                                 </li>
                                 <li>
                                     <b>Everything is left aligned in one column</b>
-                                    <span>The signature was pasted as plain text. Copy again with Copy as HTML.</span>
+                                    <span>The signature was pasted as plain text. Copy again with Copy signature.</span>
                                 </li>
                                 </ul>
                             </div>
