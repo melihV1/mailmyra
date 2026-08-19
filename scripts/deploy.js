@@ -9,6 +9,11 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const ftp = require('basic-ftp');
 
+// `--skip-build`: elde doğrulanmış bir derleme varken yalnız yükler. Build
+// birkaç dakika sürüyor ve yükleme sırasında uygulama Plesk'te DURDURULMUŞ
+// oluyor — gereksiz yere yeniden derlemek kesintiyi uzatır.
+const SKIP_BUILD = process.argv.includes('--skip-build');
+
 const repoRoot = path.resolve(__dirname, '..');
 const nextDir = path.join(repoRoot, 'apps', 'web', '.next');
 const prismaDir = path.join(repoRoot, 'apps', 'web', 'prisma');
@@ -45,9 +50,17 @@ function run(cmd, args) {
 async function main() {
   const env = loadEnv();
 
-  console.log('1/3  Temiz build...');
-  run('npm', ['run', 'clean']);
-  run('npm', ['run', 'build', '-w', 'apps/web']);
+  if (SKIP_BUILD) {
+    if (!fs.existsSync(nextDir)) {
+      console.error('\n--skip-build verildi ama apps/web/.next yok. Önce derle.\n');
+      process.exit(1);
+    }
+    console.log('1/3  Build ATLANDI (--skip-build), mevcut .next kullanılıyor.');
+  } else {
+    console.log('1/3  Temiz build...');
+    run('npm', ['run', 'clean']);
+    run('npm', ['run', 'build', '-w', 'apps/web']);
+  }
 
   const cacheDir = path.join(nextDir, 'cache');
   if (fs.existsSync(cacheDir)) {

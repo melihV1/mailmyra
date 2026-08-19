@@ -70,7 +70,39 @@ yanlışlıkla `ham`a yapıldı ve `edit`e taşınması gerekti.
 
 `edit` klasörü de git altında DEĞİL. Tek geri dönüş noktası bu snapshot'lar.
 
-## Yayına alma sırası (2026-08-18'de kuruldu, henüz KOŞULMADI)
+## ✅ YAYINDA — 2026-08-18
+
+`mailmyra.com` ilk kez yayına alındı. 30 sayfa, uzantısız adresler, bütün
+sayfalar 200.
+
+**Sunucu düzeni (Plesk):** alan adının belge kökü **`/site`**, Node.js
+**devre dışı**. Monorepo hâlâ `/httpdocs`'ta duruyor ama belge kökünün
+DIŞINDA — `CLAUDE.md` ve `docs/` erişilemiyor (doğrulandı). Eski Next
+derlemesi `/httpdocs/apps/web`'de ölü hâlde duruyor; silinmedi.
+⚠️ **`.env.deploy`'daki `DEPLOY_FTP_REMOTE` bu yüzden değişti** →
+`/app.mailmyra.com/apps/web`. Panel oraya deploy edilir; `/httpdocs/apps/web`
+artık hiçbir şey servis etmiyor.
+
+**`web.config` — kopyası burada: `site-web.config`.** Plesk'in kendi
+ürettiği dosyanın (hata sayfaları + temp dizini) içine rewrite kurallarımız
+eklendi; üstüne YAZILMADI. ⚠️ Plesk bazı panel işlemlerinde bu dosyayı
+yeniden üretir ve blok silinir — site uzantısız adreslerde aniden 404
+vermeye başlarsa ilk bakılacak yer orasıdır.
+
+⚠️ **CANLIDA ÖĞRENİLDİ: `{REQUEST_FILENAME}` uzantısız adreste BOŞ dönüyor.**
+İlk denemede `/pricing.html` 301 veriyor ama `/pricing` 404 kalıyordu —
+yani yönlendirme boşluğa çıkıyordu, hiç kural olmamasından kötü.
+`{DOCUMENT_ROOT}/{R:1}.html` ile çözüldü.
+
+**Kurulum rehberleri `noindex, follow` ile açıldı** — 30 karenin 26'sı hâlâ
+yer tutucu ve boş kutuların indekslenmesi istenmiyor. Kareler yerleşince
+5 rehberdeki `<meta name="robots">` satırı SİLİNECEK; hub (`/setup`)
+indekslenebilir bırakıldı, onda yer tutucu yok.
+
+**Sayfa içi 2386 link temiz adrese çevrildi** (`clean-urls.mjs`), geriye
+`.html` link kalmadı.
+
+## Yayına alma sırası (ilk turda izlendi)
 
 `mailmyra.com` hiç yayına alınmadı; şu an 404. Adresler **uzantısız**
 olacak (`/pricing`), dosyalar diskte `.html` kalacak — çeviriyi site

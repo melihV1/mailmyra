@@ -7,6 +7,12 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <title>Mailmyra | New Outlook setup</title>
     <meta name="description" content="How Mailmyra builds email signatures that render the same in every mail client.">
+    <!-- mm: 30 ekran görüntüsünün 26'sı hâlâ yer tutucu (2026-08-18).
+         Rehber bu hâlde indekslenirse arama motoru boş kutuları
+         kaydeder. Kareler yerleşince BU İKİ SATIRI SİL — sayfalar
+         en çok aranan SEO içeriğimiz, kapalı kalmamalı.
+         Takip: scripts/marketing-site/setup-screenshots.md -->
+    <meta name="robots" content="noindex, follow">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Place favicon.ico in the root directory -->
@@ -111,12 +117,12 @@
         <div class="mmnav__shell">
 
             <div class="mmnav__bar">
-                <a class="mm-header-logo" href="index.html" aria-label="Mailmyra">
+                <a class="mm-header-logo" href="/" aria-label="Mailmyra">
                     <img src="assets/img/logo/logo-ikonsuz.svg" alt="Mailmyra">
                 </a>
                 <!-- mm: md ve ustunde cubukta gorunen eylemler -->
                 <div class="mmnav__baractions">
-                    <a class="mm-btn-outline" href="login.html">
+                    <a class="mm-btn-outline" href="/login">
                         <span class="mm-btn__face">
                             <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
                         </span>
@@ -150,9 +156,9 @@
                             <div class="mm-mega mm-mega--duo mmnav__mega">
                                 <span class="mm-mega__head">PRODUCT</span>
                                 <div class="mm-mega__body"><div class="mm-mega__links">
-                                                            <a href="how-it-works.html"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
-                                                            <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
-                                                            <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
+                                                            <a href="/how-it-works"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
+                                                            <a href="/features"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
+                                                            <a href="/templates"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
                                                         </div>
                                                         <a class="mm-mega__feature mm-mega__feature--pic" href="https://app.mailmyra.com/builder">
                                                             <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
@@ -175,11 +181,11 @@
                             <div class="mm-mega mm-mega--wide mmnav__mega">
                                 <span class="mm-mega__head">EMAIL CLIENTS</span>
                                 <div class="mm-mega__body"><div class="mm-mega__grid">
-                                                            <a href="setup-outlook-classic.html"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
-                                                            <a href="setup-new-outlook.html"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
-                                                            <a href="setup-gmail.html"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
-                                                            <a href="setup-apple-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
-                                                            <a href="setup-ios-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
+                                                            <a href="/setup-outlook-classic"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
+                                                            <a href="/setup-new-outlook"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
+                                                            <a href="/setup-gmail"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
+                                                            <a href="/setup-apple-mail"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
+                                                            <a href="/setup-ios-mail"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
                                                         </div>
                                                         <aside class="mm-mega__feature" aria-hidden="true">
                                                             <span class="mm-sigcard">
@@ -195,7 +201,7 @@
                                                             <span class="mm-mega__featnote">One signature, identical in every client — real render, not a screenshot.</span>
                                                             <span class="mm-mega__tags"><span>table-based</span><span>inline CSS</span></span>
                                                         </aside></div>
-                                <span class="mm-mega__foot"><a href="setup.html">All setup guides
+                                <span class="mm-mega__foot"><a href="/setup">All setup guides
                                                         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     </a></span>
                             </div>
@@ -211,7 +217,7 @@
                         <div class="mmnav__sub">
                             <div class="mm-mega mmnav__mega">
                                 <span class="mm-mega__head">WHO IT&RSQUO;S FOR</span>
-                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="solutions-agencies.html"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a><a href="solutions-teams.html"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a><a href="solutions-professionals.html"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></div></div>
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="/solutions-agencies"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a><a href="/solutions-teams"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a><a href="/solutions-professionals"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></div></div>
                             </div>
                         </div>
                     </div>
@@ -225,8 +231,8 @@
                         <div class="mmnav__sub">
                             <div class="mm-mega mmnav__mega">
                                 <span class="mm-mega__head">TEMPLATE GALLERY</span>
-                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="templates-professionals.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a><a href="templates-teams.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a><a href="templates-agencies.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></div></div>
-                                <span class="mm-mega__foot"><a href="templates.html">Browse all templates
+                                <div class="mm-mega__body"><div class="mm-mega__links"><a href="/templates-professionals"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a><a href="/templates-teams"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a><a href="/templates-agencies"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></div></div>
+                                <span class="mm-mega__foot"><a href="/templates">Browse all templates
                                                         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     </a></span>
                             </div>
@@ -243,7 +249,7 @@
                             <div class="mm-mega mmnav__mega">
                                 <span class="mm-mega__head">PLANS</span>
                                 <div class="mm-mega__body"><div class="mm-mega__links"><a href="pricing.html#pro"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>Pro</strong><span>$1 per sender/year — one person, one brand.</span></span></a><a href="pricing.html#team"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>Team</strong><span>Same $1 — many senders, one brand.</span></span></a><a href="pricing.html#agency"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M2 22h20"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></i><span class="mm-mega__txt"><strong>Agency</strong><span>Same $1 — isolated client orgs, white-label.</span></span></a></div></div>
-                                <span class="mm-mega__foot"><a href="contact.html">Agency plans — pooled seats, talk to us
+                                <span class="mm-mega__foot"><a href="/contact">Agency plans — pooled seats, talk to us
                                                         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     </a></span>
                             </div>
@@ -276,7 +282,7 @@
                             </svg>
                         </span>
                     </a>
-                    <a class="mm-btn-outline" href="login.html">
+                    <a class="mm-btn-outline" href="/login">
                         <span class="mm-btn__face">
                             <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
                         </span>
@@ -354,7 +360,7 @@
                     <div class="row align-items-center">
                         <div class="col-xl-2 col-lg-4 col-md-6 col-7">
                             <div class="tp-header-10-logo">
-                                <a class="mm-header-logo" href="index.html">
+                                <a class="mm-header-logo" href="/">
                                     <img data-width="100%" src="assets/img/logo/logo-ikonsuz.svg" alt="Mailmyra">
                                 </a>
                             </div>
@@ -365,14 +371,14 @@
                                     <nav class="tp-mobile-menu-active">
                                         <ul>
                                             <li class="has-dropdown">
-                                                <a href="product.html">Product</a>
+                                                <a href="/product">Product</a>
                                                 <ul class="tp-submenu submenu mm-mega mm-mega--duo">
                                                     <li class="mm-mega__head" aria-hidden="true">Product</li>
                                                     <li class="mm-mega__body">
                                                         <div class="mm-mega__links">
-                                                            <a href="how-it-works.html"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
-                                                            <a href="features.html"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
-                                                            <a href="templates.html"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
+                                                            <a href="/how-it-works"><span class="mm-mega__txt"><strong>How it works</strong><span>Design, preview, deploy — three steps.</span></span></a>
+                                                            <a href="/features"><span class="mm-mega__txt"><strong>Features</strong><span>Rich fields, Outlook-safe output.</span></span></a>
+                                                            <a href="/templates"><span class="mm-mega__txt"><strong>Template gallery</strong><span>Real renders, not screenshots.</span></span></a>
                                                         </div>
                                                         <a class="mm-mega__feature mm-mega__feature--pic" href="https://app.mailmyra.com/builder">
                                                             <img src="assets/img/mailmyra/builder-preview.svg" alt="" loading="lazy">
@@ -385,16 +391,16 @@
                                                 </ul>
                                             </li>
                                             <li class="has-dropdown">
-                                                <a href="compatibility.html">Works with</a>
+                                                <a href="/compatibility">Works with</a>
                                                 <ul class="tp-submenu submenu mm-mega mm-mega--wide">
                                                     <li class="mm-mega__head" aria-hidden="true">Email clients</li>
                                                     <li class="mm-mega__body">
                                                         <div class="mm-mega__grid">
-                                                            <a href="setup-outlook-classic.html"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
-                                                            <a href="setup-new-outlook.html"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
-                                                            <a href="setup-gmail.html"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
-                                                            <a href="setup-apple-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
-                                                            <a href="setup-ios-mail.html"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
+                                                            <a href="/setup-outlook-classic"><i class="mm-chip"><img src="assets/img/mail/outlook-classic.png"></i><span class="mm-mega__txt"><strong>Outlook Classic</strong><span>Word engine, fully tested.</span></span></a>
+                                                            <a href="/setup-new-outlook"><i class="mm-chip"><img src="assets/img/mail/outlook-new.png"></i><span class="mm-mega__txt"><strong>New Outlook</strong><span>Windows &amp; web.</span></span></a>
+                                                            <a href="/setup-gmail"><i class="mm-chip"><img src="assets/img/mail/gmail.png"></i><span class="mm-mega__txt"><strong>Gmail</strong><span>Web and mobile.</span></span></a>
+                                                            <a href="/setup-apple-mail"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>Apple Mail</strong><span>macOS.</span></span></a>
+                                                            <a href="/setup-ios-mail"><i class="mm-chip"><img src="assets/img/mail/apple-mail.png"></i><span class="mm-mega__txt"><strong>iOS Mail</strong><span>iPhone &amp; iPad.</span></span></a>
                                                         </div>
                                                         <aside class="mm-mega__feature" aria-hidden="true">
                                                             <span class="mm-sigcard">
@@ -411,53 +417,53 @@
                                                             <span class="mm-mega__tags"><span>table-based</span><span>inline CSS</span></span>
                                                         </aside>
                                                     </li>
-                                                    <li class="mm-mega__foot"><a href="setup.html">All setup guides
+                                                    <li class="mm-mega__foot"><a href="/setup">All setup guides
                                                         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     </a></li>
                                                 </ul>
                                             </li>
                                             <li class="has-dropdown">
-                                                <a href="solutions.html">Solutions</a>
+                                                <a href="/solutions">Solutions</a>
                                                 <ul class="tp-submenu submenu mm-mega">
                                                     <li class="mm-mega__head" aria-hidden="true">Who it&rsquo;s for</li>
-                                                    <li><a href="solutions-agencies.html"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a></li>
-                                                    <li><a href="solutions-teams.html"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a></li>
-                                                    <li><a href="solutions-professionals.html"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></li>
+                                                    <li><a href="/solutions-agencies"><span class="mm-mega__txt"><strong>For agencies</strong><span>Pooled seats &amp; white-label.</span></span></a></li>
+                                                    <li><a href="/solutions-teams"><span class="mm-mega__txt"><strong>For enterprise</strong><span>Transparent per-seat pricing.</span></span></a></li>
+                                                    <li><a href="/solutions-professionals"><span class="mm-mega__txt"><strong>Small teams &amp; freelancers</strong><span>From one seat up.</span></span></a></li>
                                                 </ul>
                                             </li>
                                             <li class="has-dropdown">
-                                                <a href="templates.html">Templates</a>
+                                                <a href="/templates">Templates</a>
                                                 <ul class="tp-submenu submenu mm-mega">
                                                     <li class="mm-mega__head" aria-hidden="true">Template gallery</li>
-                                                    <li><a href="templates-professionals.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a></li>
-                                                    <li><a href="templates-teams.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a></li>
-                                                    <li><a href="templates-agencies.html"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></li>
-                                                    <li class="mm-mega__foot"><a href="templates.html">Browse all templates
+                                                    <li><a href="/templates-professionals"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>For Professionals</strong><span>Personal signatures that leave a mark.</span></span></a></li>
+                                                    <li><a href="/templates-teams"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>For Teams</strong><span>One template, everyone consistent.</span></span></a></li>
+                                                    <li><a href="/templates-agencies"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></i><span class="mm-mega__txt"><strong>For Agencies</strong><span>Client-branded, white-label ready.</span></span></a></li>
+                                                    <li class="mm-mega__foot"><a href="/templates">Browse all templates
                                                         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     </a></li>
                                                 </ul>
                                             </li>
                                             <li class="has-dropdown">
-                                                <a href="pricing.html">Pricing</a>
+                                                <a href="/pricing">Pricing</a>
                                                 <ul class="tp-submenu submenu mm-mega">
                                                     <li class="mm-mega__head" aria-hidden="true">Plans</li>
                                                     <li><a href="pricing.html#pro"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i><span class="mm-mega__txt"><strong>Pro</strong><span>$1 per sender/year — one person, one brand.</span></span></a></li>
                                                     <li><a href="pricing.html#team"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></i><span class="mm-mega__txt"><strong>Team</strong><span>Same $1 — many senders, one brand.</span></span></a></li>
                                                     <li><a href="pricing.html#agency"><i class="mm-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M2 22h20"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/></svg></i><span class="mm-mega__txt"><strong>Agency</strong><span>Same $1 — isolated client orgs, white-label.</span></span></a></li>
-                                                    <li class="mm-mega__foot"><a href="contact.html">Agency plans — pooled seats, talk to us
+                                                    <li class="mm-mega__foot"><a href="/contact">Agency plans — pooled seats, talk to us
                                                         <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M2 7h9M7.5 3.5L11 7l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                                     </a></li>
                                                 </ul>
                                             </li>
-                                            <li><a href="faq.html">FAQ</a></li>
-                                            <li><a href="contact.html">Contact</a></li>
+                                            <li><a href="/faq">FAQ</a></li>
+                                            <li><a href="/contact">Contact</a></li>
                                         </ul>
                                     </nav>
                                 </div>
                                 <div class="tp-header-10-right d-flex align-items-center">
                                     
                                     <div class="d-none d-md-block">
-                                        <a class="mm-btn-outline" href="login.html">
+                                        <a class="mm-btn-outline" href="/login">
                                             <span class="mm-btn__face">
                                                 <i class="fa-solid fa-user fa-sm"></i><span class="mm-btn__label"><span>Log in</span><span aria-hidden="true">Log in</span></span>
                                             </span>
@@ -864,12 +870,12 @@
                 <div class="mm-sg-nav p-relative z-index-2">
                     <div class="container container-1430">
                         <div class="mm-sg-nav__row">
-                            <a class="mm-sg-nav__item mm-sg-nav__item--prev" href="setup-outlook-classic.html">
+                            <a class="mm-sg-nav__item mm-sg-nav__item--prev" href="/setup-outlook-classic">
                                 <span>Previous client</span>
                                 <b>Outlook Classic</b>
                             </a>
-                            <a class="mm-sg-nav__all" href="works-with.html">All clients</a>
-                            <a class="mm-sg-nav__item mm-sg-nav__item--next" href="setup-gmail.html">
+                            <a class="mm-sg-nav__all" href="/works-with">All clients</a>
+                            <a class="mm-sg-nav__item mm-sg-nav__item--next" href="/setup-gmail">
                                 <span>Next client</span>
                                 <b>Gmail</b>
                             </a>
@@ -888,7 +894,7 @@
                     <div class="row">
                             <div class="colx-l-12">
                                 <div class="crp-footer-big-text-wrap tp_fade_anim" data-delay=".3">
-                                    <a class="crp-footer-big-text text-center" href="contact.html">
+                                    <a class="crp-footer-big-text text-center" href="/contact">
                                         <span>
                                             <span class="text-1">TRY THE BUILDER</span>
                                             <span class="text-2">TRY THE BUILDER</span>
@@ -933,7 +939,7 @@
 
                                 <h2 id="mm-footer-brand">Brand</h2>
                             </div>
-                            <a class="mm-footer__logo" href="index.html" aria-label="Mailmyra home">
+                            <a class="mm-footer__logo" href="/" aria-label="Mailmyra home">
                                 <img src="assets/img/logo/mailmyra-white.svg" alt="Mailmyra">
                             </a>
                             <p>Signal Ledger by Mailmyra. Standardized signatures. Trusted conversations. Every time.</p>
@@ -954,11 +960,11 @@
                                     <ul>
                                         <li class="mb-2"><a href="https://app.mailmyra.com/builder">Signature Builder</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="templates.html">Templates</a></li>
+                                        <li class="mb-2"><a href="/templates">Templates</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="how-it-works.html">How It Works</a></li>
+                                        <li class="mb-2"><a href="/how-it-works">How It Works</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="pricing.html">Pricing</a></li>
+                                        <li class="mb-2"><a href="/pricing">Pricing</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
                                     </ul>
                                 </div>
@@ -994,13 +1000,13 @@
                             <div class="mm-footer__accordion-panel" id="mm-footer-resources-panel">
                                 <div class="mm-footer__accordion-inner">
                                     <ul>
-                                        <li class="mb-2"><a href="compatibility.html">Compatibility</a></li>
+                                        <li class="mb-2"><a href="/compatibility">Compatibility</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="faq.html">FAQ</a></li>
+                                        <li class="mb-2"><a href="/faq">FAQ</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="how-it-works.html">Install Guides</a></li>
+                                        <li class="mb-2"><a href="/how-it-works">Install Guides</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="templates.html">Signature Examples</a></li>
+                                        <li class="mb-2"><a href="/templates">Signature Examples</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
                                     </ul>
                                 </div>
@@ -1016,13 +1022,13 @@
                             <div class="mm-footer__accordion-panel" id="mm-footer-company-panel">
                                 <div class="mm-footer__accordion-inner">
                                     <ul>
-                                        <li class="mb-2"><a href="index.html">About</a></li>
+                                        <li class="mb-2"><a href="/">About</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="contact.html">Contact</a></li>
+                                        <li class="mb-2"><a href="/contact">Contact</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
                                         <li class="mb-2"><a href="#mailmyra-demo-form">Schedule a Demo</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
-                                        <li class="mb-2"><a href="login.html">Log In</a></li>
+                                        <li class="mb-2"><a href="/login">Log In</a></li>
                                         <span class="mm-footer__connect-rule" aria-hidden="true"></span>
                                     </ul>
                                 </div>
@@ -1082,20 +1088,20 @@
                         <div class="mm-footer__compat-marquee">
                             <div class="mm-footer__compat-track">
                                 <div class="mm-footer__compat-list">
-                                    <a href="compatibility.html"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
-                                    <a href="compatibility.html"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
-                                    <a href="compatibility.html"><i class="fa-brands fa-google"></i> Gmail</a>
-                                    <a href="compatibility.html"><i class="fa-brands fa-apple"></i> Apple Mail</a>
-                                    <a href="compatibility.html"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
-                                    <a href="compatibility.html"><i class="fa-light fa-code"></i> HTML Export</a>
+                                    <a href="/compatibility"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
+                                    <a href="/compatibility"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
+                                    <a href="/compatibility"><i class="fa-brands fa-google"></i> Gmail</a>
+                                    <a href="/compatibility"><i class="fa-brands fa-apple"></i> Apple Mail</a>
+                                    <a href="/compatibility"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
+                                    <a href="/compatibility"><i class="fa-light fa-code"></i> HTML Export</a>
                                 </div>
                                 <div class="mm-footer__compat-list" aria-hidden="true">
-                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
-                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
-                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-google"></i> Gmail</a>
-                                    <a href="compatibility.html" tabindex="-1"><i class="fa-brands fa-apple"></i> Apple Mail</a>
-                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
-                                    <a href="compatibility.html" tabindex="-1"><i class="fa-light fa-code"></i> HTML Export</a>
+                                    <a href="/compatibility" tabindex="-1"><i class="fa-brands fa-microsoft"></i> Outlook Classic</a>
+                                    <a href="/compatibility" tabindex="-1"><i class="fa-light fa-envelope-open-text"></i> New Outlook</a>
+                                    <a href="/compatibility" tabindex="-1"><i class="fa-brands fa-google"></i> Gmail</a>
+                                    <a href="/compatibility" tabindex="-1"><i class="fa-brands fa-apple"></i> Apple Mail</a>
+                                    <a href="/compatibility" tabindex="-1"><i class="fa-light fa-mobile-screen"></i> iOS Mail</a>
+                                    <a href="/compatibility" tabindex="-1"><i class="fa-light fa-code"></i> HTML Export</a>
                                 </div>
                             </div>
                         </div>
@@ -1103,11 +1109,11 @@
 
                     <div class="mm-footer__bottom">
                         <div class="mm-footer__legal">
-                            <a href="security.html">Security &amp; Compliance</a>
-                            <a href="terms.html">Terms of Service</a>
-                            <a href="privacy.html">Privacy Policy</a>
+                            <a href="/security">Security &amp; Compliance</a>
+                            <a href="/terms">Terms of Service</a>
+                            <a href="/privacy">Privacy Policy</a>
                             <a href="privacy.html#ccpa">CCPA</a>
-                            <a href="cookies.html">Manage Cookies</a>
+                            <a href="/cookies">Manage Cookies</a>
                         </div>
                         <p>&copy; 2026 Mailmyra. All rights reserved.</p>
                     </div>
