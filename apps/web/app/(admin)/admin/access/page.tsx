@@ -20,7 +20,7 @@ export default async function AccessLogPage() {
   }
 
   return (
-    <div className="mm-admin">
+    <section>
       <h4 className="mb-1">Staff access log</h4>
       <p className="text-body-secondary mb-4">
         Every sensitive customer read, newest first. Rows outlive both the staff account and the
@@ -28,7 +28,7 @@ export default async function AccessLogPage() {
       </p>
 
       <div className="card">
-        <div className="table-responsive">
+        <div className="table-responsive text-nowrap">
           <table className="table table-hover">
             <thead>
               <tr>
@@ -62,6 +62,6 @@ export default async function AccessLogPage() {
           </table>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

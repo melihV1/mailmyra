@@ -34,7 +34,7 @@ export default async function AdminInvoicesPage({
     .reduce((sum, i) => sum + i.amountCents, 0);
 
   return (
-    <div className="mm-admin">
+    <section>
       <div className="d-flex flex-wrap align-items-center gap-3 mb-4">
         <div>
           <h4 className="mb-1">Invoices</h4>
@@ -56,7 +56,7 @@ export default async function AdminInvoicesPage({
       </div>
 
       <div className="card">
-        <div className="table-responsive">
+        <div className="table-responsive text-nowrap">
           <table className="table table-hover">
             <thead>
               <tr>
@@ -68,7 +68,7 @@ export default async function AdminInvoicesPage({
                 <th>Amount</th>
                 <th>Status</th>
                 <th>Payment</th>
-                <th aria-label="Actions" />
+                <th className="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -97,8 +97,8 @@ export default async function AdminInvoicesPage({
                   <td className="small text-body-secondary">
                     {inv.paidAt ? `${fmtDate(inv.paidAt)} · ${inv.paymentMethod ?? ''}` : '—'}
                   </td>
-                  <td>
-                    <InvoiceRowActions id={inv.id} status={inv.status} />
+                  <td className="text-end">
+                    <InvoiceRowActions id={inv.id} number={inv.number} status={inv.status} />
                   </td>
                 </tr>
               ))}
@@ -106,6 +106,6 @@ export default async function AdminInvoicesPage({
           </table>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

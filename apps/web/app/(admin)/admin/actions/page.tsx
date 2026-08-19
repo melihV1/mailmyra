@@ -20,7 +20,7 @@ export default async function ActionLogPage() {
   }
 
   return (
-    <div className="mm-admin">
+    <section>
       <h4 className="mb-1">Admin action log</h4>
       <p className="text-body-secondary mb-4">
         Immutable record of every staff write. The reason column is why the reason field is
@@ -28,7 +28,7 @@ export default async function ActionLogPage() {
       </p>
 
       <div className="card">
-        <div className="table-responsive">
+        <div className="table-responsive text-nowrap">
           <table className="table table-hover">
             <thead>
               <tr>
@@ -67,6 +67,6 @@ export default async function ActionLogPage() {
           </table>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
