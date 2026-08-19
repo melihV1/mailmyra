@@ -154,6 +154,36 @@ kısa/uzun oturum ayrımı gerekir.
 
 ---
 
+## Süper Admin — Sonraki Fazlar (brief'ten, tetikleyicili) — 2026-08-19
+
+Kaynak: `docs/superpowers/specs/2026-08-19-superadmin-operations-panel-brief.md`
+(Hüseyin'in Codex'e yazdırdığı kapsamlı brief). Phase 0-1 + dört ekleme
+YAPILDI (commit'e bak). Kalanı vizyon olarak değerli, bugün iş listesi
+değil — her faz kendi tetikleyicisini bekler:
+
+- [ ] **Personel rolleri** (`StaffGrant`: support/finance/compliance ayrımı)
+  → tetik: **personel 3 kişi olunca**. Bugün `User.isStaff` yeter; brief
+  bile "entry gate olarak kabul edilebilir" diyor.
+- [ ] **Step-up auth + 2FA** → tetik: personel rolleriyle BİRLİKTE. Üründe
+  2FA altyapısı yok; admin için sıfırdan kurmak başlı başına proje.
+- [ ] **Ödeme geçmişi ayrı tablo** (kısmi ödeme, hatırlatma geçmişi)
+  → tetik: **ilk kısmi ödeme talebi**. Bugünkü paidAt/method/reference tek
+  seferlik manuel fatura için yeterli.
+- [ ] **Support case + iç not + müşteri sahibi** → tetik: **10+ müşteri**.
+- [ ] **Trials/health/cohort/adoption analitiği** → tetik: **20+ müşteri**
+  VE CLAUDE.md YAPILMAYACAKLAR gözden geçirilirse (analitik orada yasak).
+  Metric snapshot katmanı da (brief §15.5) o gün gelir.
+- [ ] **Assets/CDN, mail delivery, data-quality, security ekranları**
+  → tetik: gerçek bir operasyon yükü doğunca; bugün hepsi boş ekran olur.
+- [ ] **KVKK ihracat paketi** → tetik: **ilk KVKK talebi** (veri zaten
+  StaffAccess/AdminAction'da birikiyor; ekran talep gelince yazılır).
+
+Kalıcı YASAKLAR (brief ile mutabık): impersonation · müşteri içeriği
+düzenleme · hard delete · SQL konsolu · panelden migration/secret · fiyat
+kaynağını bypass eden düzenleme.
+
+---
+
 ## Deploy Kayıtları
 
 ### Prod yayına alındı — 2026-07-27

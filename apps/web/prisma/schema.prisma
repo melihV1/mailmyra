@@ -29,16 +29,25 @@ model User {
   /// Kullanıcı avatarı (CDN URL, /api/account/avatar yazar) — imza
   /// görsellerinden bağımsız, panel arayüzü için (profil/navbar/üyeler).
   avatarUrl       String?   @db.VarChar(500)
+  /// Voldi personeli mi. `Membership.role`dan BAĞIMSIZ bir eksen: `Role`
+  /// "bu kişi bir org İÇİNDE ne yapabilir" sorusunu cevaplıyor, bu bayrak
+  /// "bu kişi platform personeli mi" sorusunu. Enum'a beşinci değer eklemek
+  /// üye listelerini ve rol açılırlarını kirletirdi; üstelik personelin
+  /// görünmesi için müşterinin org'una Membership satırı gerekirdi.
+  /// Elle açılır (SQL) — personel yaratma ekranı YOK.
+  isStaff         Boolean   @default(false)
   createdAt       DateTime  @default(now())
   lastLoginAt     DateTime?
 
-  sessions            Session[]
-  emailTokens         EmailToken[]
-  memberships         Membership[]
-  legalAcceptances    LegalAcceptance[]
-  notifications       Notification[]
-  notificationPrefs   NotificationPreference[]
-  activityEvents      ActivityEvent[]
+  sessions          Session[]
+  emailTokens       EmailToken[]
+  memberships       Membership[]
+  legalAcceptances  LegalAcceptance[]
+  notifications     Notification[]
+  notificationPrefs NotificationPreference[]
+  activityEvents    ActivityEvent[]
+  staffAccesses     StaffAccess[]
+  adminActions      AdminAction[]
 }
 
 model Session {
@@ -109,7 +118,7 @@ model Organization {
 
   /// Grandfather için: müşteri hangi fiyat listesinde kaydolduysa o kalır.
   /// Kademe olmadığı için versiyonlanacak ayrı tablo yok, string yetiyor.
-  priceVersion String @db.VarChar(64) @default("2026-08-07-usd-1-year")
+  priceVersion String @default("2026-08-07-usd-1-year") @db.VarChar(64)
 
   entitlementState EntitlementState @default(trial)
   trialEndsAt      DateTime?
@@ -192,14 +201,14 @@ model SenderIdentity {
 /// Kabulde `acceptedAt` dolar; kayıt silinmez — kim, ne zaman, hangi rolle
 /// katıldı sorusunun cevabı burada durur.
 model Invitation {
-  id        String   @id @default(cuid())
-  orgId     String
-  email     String   @db.VarChar(255)
-  role      Role
-  tokenHash String   @unique @db.Char(64)
-  expiresAt DateTime
+  id         String    @id @default(cuid())
+  orgId      String
+  email      String    @db.VarChar(255)
+  role       Role
+  tokenHash  String    @unique @db.Char(64)
+  expiresAt  DateTime
   acceptedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
@@ -218,7 +227,7 @@ model Signature {
   /// `SetNull` — müşterinin emeği göndericiyle birlikte gitmez.
   senderIdentityId String?
 
-  templateId String @db.VarChar(64) @default("classic-horizontal")
+  templateId String @default("classic-horizontal") @db.VarChar(64)
 
   /// renderer'ın `SignatureData` tipi. MariaDB'de LONGTEXT + json_valid()
   /// CHECK olarak iner; bütün belge olarak okunup yazılır, içine indeks
@@ -257,13 +266,13 @@ enum AssetKind {
 /// CDN'deki görselin kaydı. Üretilen URL asla değişmez (2 numaralı mimari
 /// kural), bu tablo yalnız yaşam döngüsü ve KVKK silme talebi için var.
 model Asset {
-  id       String    @id @default(cuid())
-  orgId    String?
-  filename String    @unique @db.VarChar(255)
-  sha256   String    @db.Char(64)
-  kind     AssetKind
-  bytes    Int
-  createdAt DateTime @default(now())
+  id        String    @id @default(cuid())
+  orgId     String?
+  filename  String    @unique @db.VarChar(255)
+  sha256    String    @db.Char(64)
+  kind      AssetKind
+  bytes     Int
+  createdAt DateTime  @default(now())
 
   org Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
 
@@ -317,16 +326,16 @@ model AuthAttempt {
 /// yorumlamak için. Üreticiler hata YUTAR — bildirim yazılamadı diye
 /// publish/davet akışı devrilmez (koltuk uyarı maili emsali).
 model Notification {
-  id      String  @id @default(cuid())
-  userId  String
-  orgId   String?
+  id        String    @id @default(cuid())
+  userId    String
+  orgId     String?
   /// 'sender_published' | 'seat_warning' | 'invitation_accepted' — kod
   /// tarafında NotificationType birliği; kolonda enum değil varchar,
   /// yeni tip migration istemesin diye.
-  type    String  @db.VarChar(40)
+  type      String    @db.VarChar(40)
   /// Tipe özgü küçük yük (adlar, sayılar). MariaDB'de LONGTEXT'tir,
   /// içine indeks atılmaz — sorgular userId/readAt üzerinden.
-  payload Json
+  payload   Json
   readAt    DateTime?
   createdAt DateTime  @default(now())
 
@@ -366,18 +375,18 @@ model NotificationPreference {
 /// tercihle susturulabilir; günlük ORG'a aittir, susturulamaz ve kalıcıdır.
 /// Yazıcı hata YUTAR — günlük yazılamadı diye publish/export devrilmez.
 model ActivityEvent {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   orgId       String
   /// Eylemi yapan. Kullanıcı hesabını silerse satır kalır, aktör düşer
   /// (`SetNull`) — denetim izi kişinin gidişiyle kaybolmaz.
   actorUserId String?
   /// 'sender.published' | 'export.zip' | 'brand.saved' … — kod tarafında
   /// `ActivityType` birliği; kolonda varchar (Notification.type emsali).
-  type        String  @db.VarChar(48)
+  type        String   @db.VarChar(48)
   /// Olayın öznesi. FK YOK ve olmayacak: hedef silindiğinde günlük satırı
   /// da silinseydi "X silindi" kaydı silinmenin kendisiyle kaybolurdu.
-  targetType  String? @db.VarChar(24)
-  targetId    String? @db.VarChar(64)
+  targetType  String?  @db.VarChar(24)
+  targetId    String?  @db.VarChar(64)
   /// Ekrana basılan insan-okur ayrıntı (ad, sayı, dosya adedi). Hedef
   /// silinse bile satır anlamlı kalsın diye değerler KOPYALANIR.
   payload     Json
@@ -423,9 +432,114 @@ model Invoice {
   /// Faturaya basılan serbest not (havale bilgisi, dönem açıklaması).
   note String? @db.VarChar(500)
 
+  /// Ödeme kaydı (2026-08-19). `status='paid'` tek başına muhasebe kaydı
+  /// değil: ne zaman, nasıl, hangi dekontla ödendiği burada durur. Kısmi
+  /// ödeme BİLİNÇLİ kapsam dışı — gerekirse ayrı tablo açılır, bu üç alan
+  /// tek seferde ödenen manuel fatura için yeter.
+  paidAt           DateTime?
+  /// 'bank_transfer' | 'cash' | 'other' — kod tarafında birlik.
+  paymentMethod    String?   @db.VarChar(24)
+  /// Banka dekont/havale referansı.
+  paymentReference String?   @db.VarChar(128)
+
   createdAt DateTime @default(now())
 
   org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId, issuedAt])
+}
+
+// ─── Platform personeli erişim günlüğü ───────────────────────────────────
+
+/**
+ * Voldi personeli bir MÜŞTERİNİN verisine baktığında buraya satır düşer.
+ * Neden `ActivityEvent` değil: o tablo müşterinin kendi aktivite akışı ve
+ * ekranda ona gösteriliyor. Destek için yapılan her bakışı oraya yazmak hem
+ * gürültü olurdu hem müşteriyi tedirgin ederdi. Personelin YAZMA işlemleri
+ * (deneme uzatma, koltuk düzeltme) yine ActivityEvent'e gider — onları
+ * müşteri görmeli.
+ * İki alan bilerek KOPYA tutuluyor (`staffEmail`, `orgName`): satır, işaret
+ * ettiği kayıtlar silinse bile tek başına anlamlı kalmalı.
+ */
+model StaffAccess {
+  id String @id @default(cuid())
+
+  /// Bakan personel. Hesap silinirse satır KALIR, aktör düşer (`SetNull`) —
+  /// ActivityEvent.actorUserId ile aynı gerekçe: erişim kaydı kişinin
+  /// gidişiyle kaybolmaz. Kim olduğu `staffEmail`de kopya duruyor.
+  staffUserId String?
+  /// Erişim anındaki e-posta. Kopyalanır ki hesap silinse de "kim baktı"
+  /// sorusunun cevabı kalsın.
+  staffEmail  String  @db.VarChar(255)
+
+  /// Bakılan müşteri org'u. **FK YOK ve olmayacak**: `Cascade` olsaydı
+  /// müşteri silindiğinde "personel şu tarihte bu müşterinin verisine baktı"
+  /// kaydı da silinirdi — erişim günlüğünün varlık sebebi tam olarak bu
+  /// kaydın kalması. (ActivityEvent.targetId aynı gerekçeyle FK'sız.)
+  orgId   String @db.VarChar(64)
+  orgName String @db.VarChar(255)
+
+  /// 'org' | 'senders' | 'signatures' | 'signature' — ne görüntülendi.
+  /// Kod tarafında birlik, kolonda varchar (Notification.type emsali).
+  scope    String  @db.VarChar(24)
+  /// Tekil bir kayda bakıldıysa onun kimliği.
+  targetId String? @db.VarChar(64)
+
+  /// Erişimin geldiği yer — Session.ip/userAgent ile aynı ölçüler.
+  ip        String? @db.VarChar(45)
+  userAgent String? @db.VarChar(512)
+
+  createdAt DateTime @default(now())
+
+  staff User? @relation(fields: [staffUserId], references: [id], onDelete: SetNull)
+
+  /// "Bu müşteriye kim, ne zaman baktı" — KVKK talebi geldiğinde sorulacak soru.
+  @@index([orgId, createdAt])
+  /// "Bu personel neye baktı" — iç denetim.
+  @@index([staffUserId, createdAt])
+}
+
+/**
+ * Personelin YAZMA işlemlerinin değişmez iç kaydı. `ActivityEvent`ten ayrı:
+ * o müşteriye gösterilen akış, bu Voldi'nin kendi denetim defteri — sebep
+ * metni ve before/after anlık görüntüleri müşteriye sızmamalı.
+ * Satırlar YALNIZ eklenir; güncelleme ve silme yolu bilerek yok. İş
+ * değişikliğiyle AYNI transaction'da yazılır — denetim kaydı yazılamazsa
+ * değişiklik geri alınır (best-effort denetim, denetim değildir).
+ */
+model AdminAction {
+  id String @id @default(cuid())
+
+  /// Yapan personel. Hesap silinirse satır kalır (`SetNull`), kimliği
+  /// `staffEmail` kopyasında yaşar — StaffAccess ile aynı desen.
+  staffUserId String?
+  staffEmail  String  @db.VarChar(255)
+
+  /// Hedef org. FK YOK: müşteri silinse de "ona ne yapılmıştı" kaydı kalır.
+  orgId   String @db.VarChar(64)
+  orgName String @db.VarChar(255)
+
+  /// 'entitlement.set' | 'invoice.created' | 'invoice.status_set' — kod
+  /// tarafında birlik, kolonda varchar (Notification.type emsali).
+  action   String  @db.VarChar(48)
+  targetId String? @db.VarChar(64)
+
+  /// Değişiklik öncesi/sonrası anlık görüntü — "neydi, ne oldu" sorusunun
+  /// tek cevabı. İnsan-okur değerler KOPYALANIR (ActivityEvent sözleşmesi).
+  before Json
+  after  Json
+
+  /// Zorunlu gerekçe — sessiz düğme değişikliği yok. Üç ay sonra "neden 5
+  /// koltuk verdim" sorusunun cevabı.
+  reason String @db.VarChar(500)
+
+  ip        String? @db.VarChar(45)
+  userAgent String? @db.VarChar(512)
+
+  createdAt DateTime @default(now())
+
+  staff User? @relation(fields: [staffUserId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+  @@index([staffUserId, createdAt])
 }

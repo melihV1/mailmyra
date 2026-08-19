@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { currentSession } from '../../lib/auth/current';
+import { isStaff } from '../../lib/repo/admin';
 import { primaryOrgId, roleFor, seatSummary } from '../../lib/repo/senders';
 import { PanelShell } from './PanelShell';
 import './panel-overrides.css';
@@ -32,9 +33,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   // Avatar menüsü kimlik kartı (rol) + Billing rozeti (koltuk doluluğu).
   const orgId = await primaryOrgId(session.user.id);
-  const [role, seats] = await Promise.all([
+  const [role, seats, staff] = await Promise.all([
     orgId ? roleFor(session.user.id, orgId) : null,
     seatSummary(session.user.id),
+    // Yalnız menü bağlantısının görünürlüğü — asıl kapı admin repo'sunda.
+    isStaff(session.user.id),
   ]);
 
   return (
@@ -48,6 +51,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         seatsFull={seats.entitled > 0 && seats.active >= seats.entitled}
         seatsBadge={`${seats.active}/${seats.entitled}`}
         avatarUrl={session.user.avatarUrl}
+        staff={staff}
       >
         {children}
       </PanelShell>

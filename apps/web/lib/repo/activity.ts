@@ -27,7 +27,14 @@ export type ActivityType =
   | 'member.joined'
   | 'member.role_changed'
   | 'member.removed'
-  | 'export.zip';
+  | 'export.zip'
+  /* Voldi personelinin müşteri adına yaptığı düzeltmeler. Müşterinin
+     akışına BİLEREK yazılıyor: hesabında bizim elimizle bir şey değiştiyse
+     bunu görmeli. Personelin yalnız BAKMASI ise buraya yazılmaz — o
+     `StaffAccess` tablosunda durur, müşteriye gürültü olmasın. */
+  | 'support.entitlement_changed'
+  | 'support.invoice_issued'
+  | 'support.invoice_status_changed';
 
 export interface ActivityRow {
   id: string;
@@ -84,7 +91,15 @@ export async function listActivityAs(
     where: {
       orgId,
       // Boş/bilinmeyen filtre tümünü getirir — sorgu dizesi kullanıcıdan gelir.
-      ...(filter?.type ? { type: filter.type } : {}),
+      // NOKTA İLE BİTEN değer bir GRUPtur (`support.` → bütün destek
+      // olayları). Menüde tek tek tip yerine anlamlı kümeler duruyor ve
+      // birden çok tipi kapsayan bir küme ancak ön ekle ifade edilebilir;
+      // tam eşleşmede o filtre sessizce sıfır satır döndürürdü.
+      ...(filter?.type
+        ? filter.type.endsWith('.')
+          ? { type: { startsWith: filter.type } }
+          : { type: filter.type }
+        : {}),
     },
     orderBy: { createdAt: 'desc' },
     take: LIST_LIMIT,

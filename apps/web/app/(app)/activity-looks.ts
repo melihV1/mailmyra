@@ -108,6 +108,38 @@ export const ACTIVITY_LOOKS: Record<
     body: (p) =>
       `${num(p.fileCount)} signature file${num(p.fileCount) === 1 ? '' : 's'} downloaded for ${num(p.senderCount)} sender${num(p.senderCount) === 1 ? '' : 's'}.`,
   },
+
+  /* Destek tarafından yapılan düzeltmeler. Metinler "Mailmyra support" diyor,
+     "Voldi" ya da personelin adı değil: müşteri satın aldığı ürünü tanıyor,
+     arkasındaki şirketi ya da kimin tıkladığını değil. Kim olduğu iç
+     denetimde `ActivityEvent.actorUserId`da zaten duruyor. */
+  'support.entitlement_changed': {
+    icon: 'tabler-lifebuoy',
+    tone: 'info',
+    title: 'Plan updated by support',
+    body: (p) => {
+      const parts: string[] = [];
+      if (num(p.entitledSeats)) parts.push(`${num(p.entitledSeats)} seats`);
+      if (str(p.entitlementState)) parts.push(str(p.entitlementState));
+      if (str(p.trialEndsAt)) parts.push(`trial until ${str(p.trialEndsAt)}`);
+      return parts.length
+        ? `Mailmyra support set ${parts.join(' · ')}.`
+        : 'Mailmyra support updated this workspace plan.';
+    },
+  },
+  'support.invoice_issued': {
+    icon: 'tabler-file-invoice',
+    tone: 'primary',
+    title: 'Invoice issued',
+    body: (p) =>
+      `Invoice ${str(p.number, 'a new invoice')} was issued for ${num(p.seats)} seat${num(p.seats) === 1 ? '' : 's'}.`,
+  },
+  'support.invoice_status_changed': {
+    icon: 'tabler-receipt',
+    tone: 'success',
+    title: 'Invoice updated',
+    body: (p) => `Invoice ${str(p.number, '')} was marked ${str(p.status, 'updated')}.`.replace('  ', ' '),
+  },
 };
 
 /** Filtre menüsündeki gruplar — tek tek 14 tip yerine anlamlı kümeler. */
@@ -120,4 +152,5 @@ export const ACTIVITY_FILTERS: ReadonlyArray<{ label: string; value: string }> =
   { label: 'Brand changes', value: 'brand.saved' },
   { label: 'Invitations', value: 'member.invited' },
   { label: 'Role changes', value: 'member.role_changed' },
+  { label: 'Support actions', value: 'support.' },
 ];

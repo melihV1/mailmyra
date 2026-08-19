@@ -74,6 +74,7 @@ export function PanelShell({
   seatsFull,
   seatsBadge,
   avatarUrl,
+  staff = false,
   children,
 }: {
   email: string;
@@ -82,6 +83,8 @@ export function PanelShell({
   /** Sidebar'daki Senders rozeti, ör. "2/3" — temanın menü rozeti dili. */
   seatsBadge?: string;
   avatarUrl?: string | null;
+  /** Voldi personeli — yalnız Staff panel bağlantısının görünürlüğü. */
+  staff?: boolean;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -360,6 +363,21 @@ export function PanelShell({
                   </li>
                 );
               })}
+              {staff && (
+                <>
+                  <li className="menu-header small">
+                    <span className="menu-header-text">Voldi</span>
+                  </li>
+                  <li className="menu-item">
+                    {/* Tam sayfa <a>: personel kabuğu kendi temasıyla baştan kurulur. */}
+                    <a href="/admin" className="menu-link">
+                      <i className="menu-icon icon-base ti tabler-shield-lock" aria-hidden="true" />
+                      <div>Staff panel</div>
+                      <div className="badge bg-label-danger rounded-pill ms-auto">STAFF</div>
+                    </a>
+                  </li>
+                </>
+              )}
             </ul>
           </aside>
 
