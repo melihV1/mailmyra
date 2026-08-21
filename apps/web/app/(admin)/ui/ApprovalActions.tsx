@@ -258,6 +258,8 @@ export function NewApprovalButton() {
     toast('success', 'Approval request created.');
     setOpen(false);
     setTitle('');
+    setDomain('entitlement');
+    setRiskLevel('medium');
     setOrgId('');
     setRequiredApprovals('1');
     setReason('');

@@ -12,7 +12,13 @@ export async function POST(req: Request): Promise<Response> {
     return json(400, { error: 'Talep türü gerekli.' });
   }
   const receivedAtRaw = field(body, 'receivedAt');
-  const receivedAt = new Date(receivedAtRaw || Date.now());
+  // Sessizce Date.now()'a düşmek YASAK: bu alan yasal (statutory) süre
+  // hesabının başlangıcı — sunucunun "şimdi"si gerçek geliş tarihini
+  // sessizce ezerdi. UI zaten her zaman gönderiyor; eksikse gövde bozuk.
+  if (!receivedAtRaw) {
+    return json(400, { error: 'Geliş tarihi gerekli.' });
+  }
+  const receivedAt = new Date(receivedAtRaw);
   if (Number.isNaN(receivedAt.getTime())) {
     return json(400, { error: 'Geliş tarihi geçersiz.' });
   }

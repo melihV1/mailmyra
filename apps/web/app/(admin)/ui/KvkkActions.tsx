@@ -21,23 +21,35 @@ import { StaffDialog } from './StaffDialog';
  * panel kimliği yalnız `intake`/`identity_check`ten doğrulatabilir,
  * geriye dönük onarım yolu yok.
  *
- * `KVKK_STATUS_TARGETS`: `setKvkkStatus`'un izinli geçiş haritasının
+ * `kvkkStatusTargets`: `setKvkkStatus`'un izinli geçiş haritasının
  * (KVKK_TRANSITIONS, hedef → izinli kaynaklar) mevcut duruma göre TERSİ —
  * "bu durumdan nereye gidilebilir". `completed` bir uç noktadır.
+ *
+ * `identity_check` satırında hedef sabit değil, `row.identityVerified`e
+ * bağlı: sunucu (`setKvkkStatus`) identity_check → in_progress geçişini
+ * kimlik doğrulanmadan zaten reddediyor. Hedefi koşulsuz sunmak "Move
+ * status" düğmesini ölü uca çıkarırdı — doğru yol "Verify identity".
  */
-const KVKK_STATUS_TARGETS: Record<DataRequestRow['status'], Array<DataRequestRow['status']>> = {
-  intake: ['identity_check'],
-  identity_check: ['in_progress'],
-  in_progress: ['legal_review'],
-  legal_review: ['in_progress'],
-  completed: [],
-};
+function kvkkStatusTargets(row: DataRequestRow): Array<DataRequestRow['status']> {
+  switch (row.status) {
+    case 'intake':
+      return ['identity_check'];
+    case 'identity_check':
+      return row.identityVerified ? ['in_progress'] : [];
+    case 'in_progress':
+      return ['legal_review'];
+    case 'legal_review':
+      return ['in_progress'];
+    case 'completed':
+      return [];
+  }
+}
 
 export function KvkkRowActions({ row, onDone }: { row: DataRequestRow; onDone?: () => void }) {
   const [dialog, setDialog] = useState<'identity' | 'owner' | 'evidence' | 'status' | 'complete' | null>(null);
   if (row.status === 'completed') return null;
 
-  const statusTargets = KVKK_STATUS_TARGETS[row.status];
+  const statusTargets = kvkkStatusTargets(row);
   const canVerifyIdentity = !row.identityVerified && (row.status === 'intake' || row.status === 'identity_check');
   const canComplete = row.identityVerified && (row.status === 'in_progress' || row.status === 'legal_review');
 
@@ -590,7 +602,9 @@ export function NewKvkkButton() {
     setOpen(false);
     setReference('');
     setSubjectEmail('');
+    setType('access');
     setOrgId('');
+    setReceivedAt(new Date().toLocaleDateString('en-CA'));
     setReceivedVia('');
     setReason('');
     router.refresh();

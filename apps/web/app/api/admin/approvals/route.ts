@@ -20,7 +20,10 @@ export async function POST(req: Request): Promise<Response> {
   if (!['medium', 'high', 'critical'].includes(riskLevel)) {
     return json(400, { error: 'Risk seviyesi gerekli.' });
   }
-  const requiredRaw = field(body, 'requiredApprovals');
+  // `field()` yalnız string döner; panel bunu JSON SAYI olarak yolluyor —
+  // `field()` ile okunsaydı her istek sessizce eşik 1'e düşerdi. invoices
+  // route'undaki seats deseniyle aynı: ham gövdeden tipini kontrol ederek oku.
+  const requiredApprovals = typeof body.requiredApprovals === 'number' ? body.requiredApprovals : undefined;
 
   try {
     const res = await createApprovalRequest(
@@ -32,7 +35,7 @@ export async function POST(req: Request): Promise<Response> {
         orgId: field(body, 'orgId') || undefined,
         targetType: field(body, 'targetType') || undefined,
         targetId: field(body, 'targetId') || undefined,
-        requiredApprovals: requiredRaw ? Number(requiredRaw) : undefined,
+        requiredApprovals,
       },
       field(body, 'reason'),
       staffCtx(req),
