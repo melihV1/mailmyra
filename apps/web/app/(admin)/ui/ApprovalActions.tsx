@@ -13,8 +13,13 @@ import { StaffDialog } from './StaffDialog';
  * router.refresh(). Yalnız `pending` satırda görünür; bu bileşen kendi
  * içinde de kontrol eder ki çağıran taraf unutsa bile karar butonları
  * kapanmış bir talep için sahaya çıkmasın.
+ *
+ * `onDone`: çağıran taraf tıklama anındaki satırı (`selected`) bir kopya
+ * olarak tutuyorsa, başarılı eylemden sonra o kopyayı temizlemek için.
+ * Aksi halde detay paneli eski durumu göstermeye devam eder ve ikinci
+ * tıklama sunucudan "artık kararda değil" hatası alır.
  */
-export function ApprovalRowActions({ row }: { row: ApprovalQueueRow }) {
+export function ApprovalRowActions({ row, onDone }: { row: ApprovalQueueRow; onDone?: () => void }) {
   const [dialog, setDialog] = useState<'approve' | 'reject' | 'cancel' | null>(null);
   if (row.status !== 'pending') return null;
 
@@ -31,9 +36,9 @@ export function ApprovalRowActions({ row }: { row: ApprovalQueueRow }) {
       </button>
 
       {(dialog === 'approve' || dialog === 'reject') && (
-        <DecisionDialog row={row} decision={dialog} onClose={() => setDialog(null)} />
+        <DecisionDialog row={row} decision={dialog} onClose={() => setDialog(null)} onDone={onDone} />
       )}
-      {dialog === 'cancel' && <CancelDialog row={row} onClose={() => setDialog(null)} />}
+      {dialog === 'cancel' && <CancelDialog row={row} onClose={() => setDialog(null)} onDone={onDone} />}
     </>
   );
 }
@@ -42,10 +47,12 @@ function DecisionDialog({
   row,
   decision,
   onClose,
+  onDone,
 }: {
   row: ApprovalQueueRow;
   decision: 'approve' | 'reject';
   onClose: () => void;
+  onDone?: () => void;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -79,6 +86,7 @@ function DecisionDialog({
           : 'Request rejected.',
     );
     onClose();
+    onDone?.();
     router.refresh();
   };
 
@@ -130,7 +138,15 @@ function DecisionDialog({
   );
 }
 
-function CancelDialog({ row, onClose }: { row: ApprovalQueueRow; onClose: () => void }) {
+function CancelDialog({
+  row,
+  onClose,
+  onDone,
+}: {
+  row: ApprovalQueueRow;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
   const router = useRouter();
   const toast = useToast();
   const [reason, setReason] = useState('');
@@ -154,6 +170,7 @@ function CancelDialog({ row, onClose }: { row: ApprovalQueueRow; onClose: () => 
     }
     toast('success', 'Request cancelled.');
     onClose();
+    onDone?.();
     router.refresh();
   };
 
@@ -232,9 +249,9 @@ export function NewApprovalButton() {
         reason,
       }),
     });
-    const body = (await res.json().catch(() => ({}))) as { error?: string };
     setBusy(false);
     if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
       setError(body.error ?? 'Failed — try again.');
       return;
     }
@@ -249,7 +266,7 @@ export function NewApprovalButton() {
 
   return (
     <>
-      <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
+      <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
         New approval request
       </button>
