@@ -1363,7 +1363,9 @@ git add apps/web/app/api/admin/approvals apps/web/app/api/admin/kvkk
 git commit -m "feat(api): governance write endpoints — approvals and KVKK lifecycle"
 ```
 
----### Task 4: Approvals UI — row actions + create dialog
+---
+
+### Task 4: Approvals UI — row actions + create dialog
 
 **Files:**
 - Create: `apps/web/app/(admin)/ui/ApprovalActions.tsx`
