@@ -26,7 +26,21 @@ async function main(): Promise<void> {
   }
 }
 
-withJobRun('cleanup-orphans', 'manual', main).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+/** run-reports.ts ile aynı sebep: MariaDB havuzu süreci canlı tutar. */
+async function finish(code: number): Promise<void> {
+  try {
+    const { prisma } = await import('../lib/db');
+    await prisma.$disconnect();
+  } catch {
+    /* db hiç açılmadıysa kapatılacak bir şey yok */
+  }
+  process.exitCode = code;
+  setTimeout(() => process.exit(code), 2000).unref();
+}
+
+withJobRun('cleanup-orphans', 'manual', main)
+  .then(() => finish(0))
+  .catch((e) => {
+    console.error(e);
+    return finish(1);
+  });

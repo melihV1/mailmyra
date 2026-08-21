@@ -35,7 +35,28 @@ async function main(): Promise<void> {
   if (summary.failed > 0) throw new Error(`${summary.failed} schedule(s) failed`);
 }
 
-withJobRun('run-reports', 'scheduled', main).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+/**
+ * Süreç KENDİLİĞİNDEN bitmez: prisma'nın MariaDB havuzu event loop'u açık
+ * tutar (yaşandı, canlı 2026-08-21: iş saniyede bitti, Plesk penceresi
+ * süreci sonsuza dek bekledi). Bağlantıyı kapat, sonra açıkça çık.
+ */
+async function finish(code: number): Promise<void> {
+  try {
+    const { prisma } = await import('../lib/db');
+    await prisma.$disconnect();
+  } catch {
+    /* db hiç açılmadıysa kapatılacak bir şey yok */
+  }
+  process.exitCode = code;
+  // Emniyet: havuz dışında loop'u tutan bir şey kalırsa 2sn sonra zorla çık.
+  // `unref` — zamanlayıcının kendisi süreci canlı tutmaz; stdout bu sürede
+  // boşalır (process.exit'i doğrudan çağırmak çıktıyı kesebilirdi).
+  setTimeout(() => process.exit(code), 2000).unref();
+}
+
+withJobRun('run-reports', 'scheduled', main)
+  .then(() => finish(0))
+  .catch((e) => {
+    console.error(e);
+    return finish(1);
+  });
