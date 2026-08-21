@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "cleanup": "tsx scripts/cleanup-orphans.ts",
+    "reports": "tsx scripts/run-reports.ts",
     "icons": "tsx scripts/generate-icons.ts",
     "test:db": "vitest run --config vitest.db.config.ts",
     "db:migrate": "prisma migrate dev",
