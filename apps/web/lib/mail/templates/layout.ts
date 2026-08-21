@@ -30,15 +30,6 @@ const MUTED = '#5b6472';
 const LINE = '#e4ddd2';
 const PAPER = '#f4efe8';
 
-/** Rapor digest'i gibi diğer e-posta üreticileri aynı evi kullansın diye. */
-export const EMAIL_PALETTE = {
-  font: FONT,
-  ink: INK,
-  muted: MUTED,
-  line: LINE,
-  paper: PAPER,
-} as const;
-
 export interface LayoutInput {
   heading: string;
   /** Zaten kaçırılmış HTML parçacıkları. */
