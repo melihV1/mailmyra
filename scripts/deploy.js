@@ -124,6 +124,35 @@ async function main() {
     await client.ensureDir(remotePrisma);
     await client.clearWorkingDir();
     await client.uploadFromDir(prismaDir, remotePrisma);
+
+    // Ops script'leri sunucuda KAYNAKTAN koşar: `npm run reports` ve
+    // `npm run cleanup` tsx ile lib/ + scripts/ TS dosyalarını okur, .next'i
+    // değil. Yalnız .next taşınsaydı çalıştırıcı sunucuda eski (veya hiç
+    // olmayan) kaynakla açılırdı — rapor çalıştırıcısı tam bu tuzağa
+    // düşecekti (2026-08-21). package.json da gider: "reports" script'i ve
+    // tsx'in production bağımlılığı sunucuya ancak onunla ulaşır.
+    for (const dir of ['lib', 'scripts']) {
+      const localDir = path.join(repoRoot, 'apps', 'web', dir);
+      const remoteDir = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/${dir}`;
+      console.log(`     ${dir} -> ${remoteDir}`);
+      // Bayat/silinmiş modül kalmasın diye önce temizle (.next gerekçesi).
+      try {
+        await client.removeDir(remoteDir);
+      } catch (err) {
+        const code = err && err.code;
+        const notFound =
+          code === 550 || /no such file|not found|cannot find/i.test(String(err && err.message));
+        if (!notFound) throw err;
+      }
+      await client.ensureDir(remoteDir);
+      await client.clearWorkingDir();
+      await client.uploadFromDir(localDir, remoteDir);
+    }
+    await client.uploadFrom(
+      path.join(repoRoot, 'apps', 'web', 'package.json'),
+      `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/package.json`,
+    );
+    console.log('     package.json yüklendi');
     console.log('\nYükleme tamam.');
   } catch (err) {
     console.error(`\nFTP hatası: ${err && err.message ? err.message : err}`);
@@ -138,6 +167,9 @@ async function main() {
       '',
       'Sunucuda yapılacak (elle). Plesk kutusu komutun başına npm ekler,',
       'o yüzden komutlar "exec --" ile yazılıyor:',
+      '  0) (package.json değiştiyse) Plesk > Node.js > NPM install —',
+      '     tsx artık production bağımlılığı; kurulmadan `npm run reports`',
+      '     ve `npm run cleanup` sunucuda açılmaz.',
       '  1) (şema değiştiyse) Komut dosyası çalıştır:  exec -- prisma migrate deploy',
       '  2) (şema değiştiyse) Komut dosyası çalıştır:  exec -- prisma generate',
       '     ⚠️ ATLANIRSA GİRİŞLİ HER SAYFA 500 VERİR (yaşandı, 2026-08-19):',
