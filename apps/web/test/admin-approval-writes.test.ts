@@ -58,7 +58,6 @@ describe('createApprovalRequest', () => {
     expect(tx.approvalRequest.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          status: undefined, // status şemadaki default'a bırakılır ('pending')
           policyVersion: admin.APPROVAL_POLICY_VERSION,
           requestedByEmail: 'staff@voldi.net',
           requiredApprovals: 1,

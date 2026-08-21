@@ -1091,7 +1091,6 @@ export async function createApprovalRequest(
         title,
         domain: input.domain,
         riskLevel: input.riskLevel,
-        status: undefined, // şemadaki default'a bırakılır ('pending')
         policyVersion: APPROVAL_POLICY_VERSION,
         orgId: input.orgId ?? null,
         orgName: input.orgId ? org.name : null,
@@ -1201,7 +1200,9 @@ export async function decideApproval(
       return { status };
     });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+    // Duck-typing, instanceof değil (createInvoice emsali): sarmalayıcı
+    // sınıf kimliği garanti değil, `code` alanı sabit.
+    if ((err as { code?: string })?.code === 'P2002') {
       throw new Error('Bu talebe zaten karar yazdın.');
     }
     throw err;
