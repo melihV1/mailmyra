@@ -183,8 +183,10 @@ karıştırılmaz (guardrail: `billed-revenue`).
 - **Migration YOK** — şema değişmiyor; normal deploy yeter
   (`node scripts/deploy.js --skip-build` ritüeli aynen).
 - `apps/web/package.json`'a script: `"reports": "tsx scripts/run-reports.ts"`.
-- **Plesk Scheduled Task (kurulum Hüseyin'de):** her gün 07:15
-  Europe/Istanbul, uygulama kökünde `npm run reports -w apps/web`
+- **Plesk Scheduled Task (kurulum Hüseyin'de):** her gün **10:15
+  Europe/Istanbul** (`nextPlannedRun` 07:00 UTC = 10:00 İstanbul'a planlar;
+  daha erken görev vadesi gelmemiş bulur, rapor bir gün gecikir),
+  uygulama kökünde `npm run reports -w apps/web`
   (yol tuzağı: Plesk kutusu komut başına `npm` ekler; Node PATH hatası
   çıkarsa app kökünde `.npmrc` + `scripts-prepend-node-path=true` —
   deploy dokümanındaki bilinen tuzak). Script `DATABASE_URL` ve
