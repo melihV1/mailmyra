@@ -30,6 +30,10 @@ const tx = {
   approvalRequest: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   approvalDecision: { create: vi.fn(), count: vi.fn() },
   approvalEvent: { create: vi.fn() },
+  user: { findFirst: vi.fn() },
+  kvkkRequest: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  kvkkEvidence: { create: vi.fn() },
+  kvkkEvent: { create: vi.fn() },
   adminAction: { create: vi.fn() },
   activityEvent: { create: vi.fn() },
 };
@@ -95,6 +99,16 @@ const CALLS: Record<string, unknown[]> = {
   createApprovalRequest: ['u1', { title: 'T', domain: 'billing', riskLevel: 'medium' }, 'sebep'],
   decideApproval: ['u1', 'req1', 'approve', 'sebep'],
   cancelApprovalRequest: ['u1', 'req1', 'sebep'],
+  createKvkkRequest: [
+    'u1',
+    { reference: 'KVKK-2026-0001', subjectEmail: 'x@example.com', type: 'access', receivedAt: new Date(0) },
+    'sebep',
+  ],
+  verifyKvkkIdentity: ['u1', 'kv1', 'e-imza', 'sebep'],
+  assignKvkkOwner: ['u1', 'kv1', 'staff@voldi.net', 'sebep'],
+  addKvkkEvidence: ['u1', 'kv1', { label: 'L', location: '/x' }, 'sebep'],
+  setKvkkStatus: ['u1', 'kv1', 'legal_review', 'sebep'],
+  completeKvkkRequest: ['u1', 'kv1', 'özet', 'sebep'],
   listAdminQueues: ['u1'],
   searchAdmin: ['u1', 'acme'],
   listInvoicesAdmin: ['u1'],
@@ -292,6 +306,20 @@ describe('yazmalar — sebep zorunlu, denetim transaction içinde', () => {
     ],
     ['decideApproval', () => admin.decideApproval('u1', 'req1', 'approve', '')],
     ['cancelApprovalRequest', () => admin.cancelApprovalRequest('u1', 'req1', '')],
+    [
+      'createKvkkRequest',
+      () =>
+        admin.createKvkkRequest(
+          'u1',
+          { reference: 'KVKK-2026-0001', subjectEmail: 'x@example.com', type: 'access', receivedAt: new Date(0) },
+          '',
+        ),
+    ],
+    ['verifyKvkkIdentity', () => admin.verifyKvkkIdentity('u1', 'kv1', 'e-imza', '')],
+    ['assignKvkkOwner', () => admin.assignKvkkOwner('u1', 'kv1', 'staff@voldi.net', '')],
+    ['addKvkkEvidence', () => admin.addKvkkEvidence('u1', 'kv1', { label: 'L', location: '/x' }, '')],
+    ['setKvkkStatus', () => admin.setKvkkStatus('u1', 'kv1', 'legal_review', '')],
+    ['completeKvkkRequest', () => admin.completeKvkkRequest('u1', 'kv1', 'özet', '')],
   ] as const) {
     it(`${label}: boş sebeple çalışmaz ve transaction açılmaz`, async () => {
       asStaff();

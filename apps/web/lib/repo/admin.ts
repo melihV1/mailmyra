@@ -5,6 +5,7 @@ import { mergeWithEmpty } from '../../app/builder/reducer';
 import { applyBrand } from '../brand-apply';
 import { prisma } from '../db';
 import { probeCdn, probeSmtp } from '../health-probes';
+import { statutoryDueDate } from '../kvkk';
 import { nextPlannedRun } from '../report-schedule';
 import type { ActivityType } from './activity';
 import { getBrand } from './brand';
@@ -1240,6 +1241,323 @@ export async function cancelApprovalRequest(
       targetId: requestId,
       before: { status: 'pending' },
       after: { status: 'cancelled' },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+// ─── Yönetişim yazmaları: KVKK yaşam döngüsü ─────────────────────────────
+
+export type KvkkType = 'access' | 'erasure' | 'correction' | 'portability';
+
+/**
+ * İzinli durum geçişleri (hedef → izinli kaynaklar). `completed` bu haritada
+ * YOK — oraya tek yol `completeKvkkRequest`. Kimlik şartları fonksiyonlarda.
+ */
+const KVKK_TRANSITIONS: Record<'identity_check' | 'in_progress' | 'legal_review', string[]> = {
+  identity_check: ['intake'],
+  in_progress: ['identity_check', 'legal_review'],
+  legal_review: ['in_progress'],
+};
+
+/** Talep + audit org'unu tek yerden yükler; kapatılmış talebe yazmayı keser. */
+async function loadKvkkForWrite(
+  tx: Prisma.TransactionClient,
+  requestId: string,
+  opts: { allowCompleted?: boolean } = {},
+): Promise<{
+  status: string;
+  identityVerifiedAt: Date | null;
+  reference: string;
+  auditOrg: { id: string; name: string };
+}> {
+  const request = await tx.kvkkRequest.findUnique({
+    where: { id: requestId },
+    select: { status: true, identityVerifiedAt: true, reference: true, orgId: true, orgName: true },
+  });
+  if (!request) throw new Error(`KVKK talebi ${requestId} bulunamadı.`);
+  if (!opts.allowCompleted && request.status === 'completed') {
+    throw new Error('Bu talep kapatılmış — üzerine yazılamaz.');
+  }
+  return {
+    status: request.status,
+    identityVerifiedAt: request.identityVerifiedAt,
+    reference: request.reference,
+    auditOrg: request.orgId ? { id: request.orgId, name: request.orgName } : PLATFORM_ORG,
+  };
+}
+
+/**
+ * KVKK talebi açar. `statutoryDueAt`ı KOD hesaplar (kanuni 30 gün —
+ * lib/kvkk.ts). Denetim payload'ında subjectEmail YOKTUR: denetim kaydı
+ * referans taşır, kişisel veriyi değil. Müşteri aktivitesi bilerek yok.
+ */
+export async function createKvkkRequest(
+  staffUserId: string,
+  input: {
+    reference: string;
+    subjectEmail: string;
+    type: KvkkType;
+    orgId?: string;
+    receivedAt: Date;
+    receivedVia?: string;
+  },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<{ id: string }> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  const reference = input.reference.trim().slice(0, 32);
+  if (!reference) throw new Error('Referans zorunlu.');
+  const subjectEmail = input.subjectEmail.trim().toLowerCase().slice(0, 255);
+  if (!subjectEmail.includes('@')) throw new Error('Talep sahibi e-postası geçersiz.');
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const org = await resolveGovernanceOrg(tx, input.orgId);
+      const request = await tx.kvkkRequest.create({
+        data: {
+          reference,
+          subjectEmail,
+          orgId: input.orgId ?? null,
+          orgName: input.orgId ? org.name : '',
+          type: input.type,
+          receivedAt: input.receivedAt,
+          receivedVia: input.receivedVia?.slice(0, 32) ?? null,
+          statutoryDueAt: statutoryDueDate(input.receivedAt),
+        },
+        select: { id: true },
+      });
+      await tx.kvkkEvent.create({
+        data: {
+          requestId: request.id,
+          type: 'received',
+          actorEmail: staff.email,
+          payload: { reference, type: input.type },
+        },
+      });
+      await audit(tx, staff, {
+        org,
+        action: 'kvkk.created',
+        targetId: request.id,
+        before: {},
+        after: { reference, type: input.type, status: 'intake' },
+        reason: cleanReason,
+        ctx,
+      });
+      return { id: request.id };
+    });
+  } catch (err) {
+    // Duck-typing, instanceof değil (createInvoice emsali): sarmalayıcı
+    // sınıf kimliği garanti değil, `code` alanı sabit.
+    if ((err as { code?: string })?.code === 'P2002') {
+      throw new Error('Bu referans zaten kullanılmış.');
+    }
+    throw err;
+  }
+}
+
+export async function verifyKvkkIdentity(
+  staffUserId: string,
+  requestId: string,
+  method: string,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+  const cleanMethod = method.trim().slice(0, 48);
+  if (!cleanMethod) throw new Error('Doğrulama yöntemi zorunlu.');
+
+  await prisma.$transaction(async (tx) => {
+    const request = await loadKvkkForWrite(tx, requestId);
+    if (request.identityVerifiedAt) throw new Error('Kimlik zaten doğrulanmış.');
+    if (request.status !== 'intake' && request.status !== 'identity_check') {
+      throw new Error(`'${request.status}' durumunda kimlik doğrulanamaz.`);
+    }
+
+    await tx.kvkkRequest.update({
+      where: { id: requestId },
+      data: { identityVerifiedAt: new Date(), identityMethod: cleanMethod, status: 'in_progress' },
+    });
+    await tx.kvkkEvent.create({
+      data: {
+        requestId,
+        type: 'identity_verified',
+        actorEmail: staff.email,
+        payload: { method: cleanMethod },
+      },
+    });
+    await audit(tx, staff, {
+      org: request.auditOrg,
+      action: 'kvkk.identity_verified',
+      targetId: requestId,
+      before: { status: request.status },
+      after: { status: 'in_progress', method: cleanMethod },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+export async function assignKvkkOwner(
+  staffUserId: string,
+  requestId: string,
+  ownerEmail: string,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+  const email = ownerEmail.trim().toLowerCase();
+
+  await prisma.$transaction(async (tx) => {
+    const request = await loadKvkkForWrite(tx, requestId);
+    const owner = await tx.user.findFirst({
+      where: { email, isStaff: true },
+      select: { id: true, email: true },
+    });
+    if (!owner) throw new Error('Sahip personel olmalı.');
+
+    await tx.kvkkRequest.update({
+      where: { id: requestId },
+      data: { ownerId: owner.id, ownerEmail: owner.email },
+    });
+    await tx.kvkkEvent.create({
+      data: {
+        requestId,
+        type: 'owner_assigned',
+        actorEmail: staff.email,
+        payload: { owner: owner.email },
+      },
+    });
+    await audit(tx, staff, {
+      org: request.auditOrg,
+      action: 'kvkk.owner_assigned',
+      targetId: requestId,
+      before: {},
+      after: { owner: owner.email },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+export async function addKvkkEvidence(
+  staffUserId: string,
+  requestId: string,
+  input: { label: string; location: string },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+  const label = input.label.trim().slice(0, 160);
+  const location = input.location.trim().slice(0, 500);
+  if (!label || !location) throw new Error('Kanıt etiketi ve konumu zorunlu.');
+
+  await prisma.$transaction(async (tx) => {
+    const request = await loadKvkkForWrite(tx, requestId);
+
+    await tx.kvkkEvidence.create({
+      data: { requestId, label, location, addedByEmail: staff.email },
+    });
+    // Olay payload'ında konum YOK: dosya yolu olay akışına sızmasın.
+    await tx.kvkkEvent.create({
+      data: { requestId, type: 'evidence_added', actorEmail: staff.email, payload: { label } },
+    });
+    await audit(tx, staff, {
+      org: request.auditOrg,
+      action: 'kvkk.evidence_added',
+      targetId: requestId,
+      before: {},
+      after: { label },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+export async function setKvkkStatus(
+  staffUserId: string,
+  requestId: string,
+  status: 'identity_check' | 'in_progress' | 'legal_review',
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  await prisma.$transaction(async (tx) => {
+    const request = await loadKvkkForWrite(tx, requestId);
+    const allowedFrom = KVKK_TRANSITIONS[status];
+    if (!allowedFrom.includes(request.status)) {
+      throw new Error(`'${request.status}' durumundan '${status}' durumuna geçilemez.`);
+    }
+    if (status === 'in_progress' && request.status === 'identity_check' && !request.identityVerifiedAt) {
+      throw new Error('Kimlik doğrulanmadan işleme alınamaz.');
+    }
+
+    await tx.kvkkRequest.update({ where: { id: requestId }, data: { status } });
+    await tx.kvkkEvent.create({
+      data: {
+        requestId,
+        type: 'status_changed',
+        actorEmail: staff.email,
+        payload: { from: request.status, to: status },
+      },
+    });
+    await audit(tx, staff, {
+      org: request.auditOrg,
+      action: 'kvkk.status_changed',
+      targetId: requestId,
+      before: { status: request.status },
+      after: { status },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+export async function completeKvkkRequest(
+  staffUserId: string,
+  requestId: string,
+  responseSummary: string,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+  const summary = responseSummary.trim().slice(0, 1000);
+  if (!summary) throw new Error('Yanıt özeti zorunlu.');
+
+  await prisma.$transaction(async (tx) => {
+    const request = await loadKvkkForWrite(tx, requestId);
+    if (!request.identityVerifiedAt) {
+      throw new Error('Kimlik doğrulanmadan talep kapatılamaz.');
+    }
+    if (request.status !== 'in_progress' && request.status !== 'legal_review') {
+      throw new Error(`'${request.status}' durumundan kapatılamaz.`);
+    }
+
+    await tx.kvkkRequest.update({
+      where: { id: requestId },
+      data: { status: 'completed', respondedAt: new Date(), responseSummary: summary },
+    });
+    await tx.kvkkEvent.create({
+      data: { requestId, type: 'responded', actorEmail: staff.email, payload: {} },
+    });
+    await tx.kvkkEvent.create({
+      data: { requestId, type: 'completed', actorEmail: staff.email, payload: {} },
+    });
+    await audit(tx, staff, {
+      org: request.auditOrg,
+      action: 'kvkk.completed',
+      targetId: requestId,
+      before: { status: request.status },
+      after: { status: 'completed' },
       reason: cleanReason,
       ctx,
     });
