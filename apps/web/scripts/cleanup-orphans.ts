@@ -1,5 +1,6 @@
 import { cleanupOrphans } from '../lib/cleanup';
 import { envInt } from '../lib/env';
+import { withJobRun } from '../lib/job-run';
 
 async function main(): Promise<void> {
   const dir = process.env.CDN_WRITE_PATH;
@@ -20,53 +21,7 @@ async function main(): Promise<void> {
   }
 }
 
-/**
- * Koşu defteri (JobRun) — panelin Jobs ekranının tek kaynağı. En-iyi-çaba:
- * defter yazılamıyorsa (DB'siz makine) temizlik YİNE koşar; iş gözlemden
- * önemlidir. `--dry-run` da kaydedilir — o da gerçek bir koşudur.
- */
-async function withJobRun(fn: () => Promise<void>): Promise<void> {
-  const startedAt = new Date();
-  let runId: string | null = null;
-  try {
-    const { prisma } = await import('../lib/db');
-    const run = await prisma.jobRun.create({
-      data: { name: 'cleanup-orphans', queue: 'manual', state: 'running', startedAt },
-      select: { id: true },
-    });
-    runId = run.id;
-  } catch {
-    /* defter yok — devam */
-  }
-
-  const finish = async (state: 'complete' | 'failed', error?: string) => {
-    if (!runId) return;
-    try {
-      const { prisma } = await import('../lib/db');
-      await prisma.jobRun.update({
-        where: { id: runId },
-        data: {
-          state,
-          finishedAt: new Date(),
-          durationMs: Date.now() - startedAt.getTime(),
-          error: error?.slice(0, 300) ?? null,
-        },
-      });
-    } catch {
-      /* gözlem katmanı işi düşüremez */
-    }
-  };
-
-  try {
-    await fn();
-    await finish('complete');
-  } catch (e) {
-    await finish('failed', e instanceof Error ? e.message : String(e));
-    throw e;
-  }
-}
-
-withJobRun(main).catch((e) => {
+withJobRun('cleanup-orphans', 'manual', main).catch((e) => {
   console.error(e);
   process.exit(1);
 });
