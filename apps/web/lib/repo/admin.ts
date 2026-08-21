@@ -4,6 +4,7 @@ import { renderSignature, type SignatureData } from '@mailmyra/renderer';
 import { mergeWithEmpty } from '../../app/builder/reducer';
 import { applyBrand } from '../brand-apply';
 import { prisma } from '../db';
+import { probeCdn, probeSmtp } from '../health-probes';
 import { nextPlannedRun } from '../report-schedule';
 import type { ActivityType } from './activity';
 import { getBrand } from './brand';
@@ -1726,8 +1727,9 @@ export interface AdminTelemetry {
 /**
  * Platform telemetrisi — yedi defterin TAMAMI gerçek kaynaktan:
  *
- *   · services: DB ping ÖLÇÜLÜR (SELECT 1 süresi); SMTP/CDN sağlık probu
- *     henüz yok → dürüstçe `unknown`, uydurma uptime yok.
+ *   · services: DB ping ÖLÇÜLÜR (SELECT 1 süresi); SMTP verify + CDN GET
+ *     canlı problanır (lib/health-probes.ts, 3sn tavan). Uptime yine null —
+ *     tarihçe defteri olmadan yüzde uydurulmaz.
  *   · mail: `MailDelivery` (getMailer her gönderimde yazıyor; "delivered" =
  *     röle kabul etti, uç teslim garantisi DEĞİL).
  *   · exports: `ActivityEvent type='export.zip'` — zaten var olan gerçek olay.
@@ -1749,10 +1751,15 @@ export async function getPlatformTelemetry(staffUserId: string): Promise<AdminTe
 
   const nowIso = new Date().toISOString();
 
-  // DB sağlığı: gerçek ölçüm.
+  // DB sağlığı: gerçek ölçüm. SMTP/CDN probları paralel koşar ama her
+  // metrik KENDİ süresini ölçer; sayfa en fazla prob zaman aşımı (3sn)
+  // kadar bekler (health-probes.ts sözleşmesi).
   const dbStart = Date.now();
-  await prisma.$queryRaw`SELECT 1`;
-  const dbLatency = Date.now() - dbStart;
+  const [dbLatency, smtpProbe, cdnProbe] = await Promise.all([
+    prisma.$queryRaw`SELECT 1`.then(() => Date.now() - dbStart),
+    probeSmtp(),
+    probeCdn(),
+  ]);
 
   const [mailRows, exportRows, jobRows, errorGroups, errorCounts, migrations] = await Promise.all([
     prisma.mailDelivery.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
@@ -1799,19 +1806,19 @@ export async function getPlatformTelemetry(staffUserId: string): Promise<AdminTe
         id: 'smtp',
         name: smtpConfigured ? 'SMTP relay (configured)' : 'SMTP relay (not configured)',
         group: 'Mail',
-        state: 'unknown',
-        latencyMs: null,
-        uptime: null,
-        checkedAt: null,
+        state: smtpProbe.state,
+        latencyMs: smtpProbe.latencyMs,
+        uptime: null, // tarihçe defteri yok — yüzde uydurulmaz
+        checkedAt: smtpProbe.state === 'unknown' ? null : nowIso,
       },
       {
         id: 'cdn',
         name: 'cdn.mailmyra.com',
         group: 'Assets',
-        state: 'unknown',
-        latencyMs: null,
+        state: cdnProbe.state,
+        latencyMs: cdnProbe.latencyMs,
         uptime: null,
-        checkedAt: null,
+        checkedAt: cdnProbe.state === 'unknown' ? null : nowIso,
       },
     ],
     mail: mailRows.map((r) => ({

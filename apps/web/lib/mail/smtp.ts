@@ -12,6 +12,19 @@ export interface SmtpMailer extends Mailer {
   sendForTest(mail: OutgoingMail): Promise<SentMessageInfo>;
 }
 
+/** Taşıyıcı seçenekleri TEK kaynaktan — createSmtpMailer ve sağlık probu. */
+export function smtpTransportOptions(config: SmtpConfig) {
+  return {
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: config.auth,
+    // Yalnız MAIL_TLS_SELF_SIGNED=true iken: localhost rölesinin
+    // kendinden imzalı sertifikası kabul edilir (bkz. config.ts).
+    tls: config.allowSelfSigned ? { rejectUnauthorized: false } : undefined,
+  };
+}
+
 /**
  * Standart SMTP. Sağlayıcıya özel hiçbir şey yok — Plesk'in yerel rölesi de,
  * Google Workspace de, başka bir sağlayıcı da aynı koddan geçer.
@@ -22,15 +35,7 @@ export function createSmtpMailer(
 ): SmtpMailer {
   const transporter: Transporter = options.jsonTransport
     ? nodemailer.createTransport({ jsonTransport: true })
-    : nodemailer.createTransport({
-        host: config.host,
-        port: config.port,
-        secure: config.secure,
-        auth: config.auth,
-        // Yalnız MAIL_TLS_SELF_SIGNED=true iken: localhost rölesinin
-        // kendinden imzalı sertifikası kabul edilir (bkz. config.ts).
-        tls: config.allowSelfSigned ? { rejectUnauthorized: false } : undefined,
-      });
+    : nodemailer.createTransport(smtpTransportOptions(config));
 
   const build = (mail: OutgoingMail) => ({
     from: config.from,
