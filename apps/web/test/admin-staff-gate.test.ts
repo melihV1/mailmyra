@@ -27,6 +27,9 @@ const transaction = vi.fn();
 const tx = {
   organization: { findUnique: vi.fn(), update: vi.fn() },
   invoice: { create: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
+  approvalRequest: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  approvalDecision: { create: vi.fn(), count: vi.fn() },
+  approvalEvent: { create: vi.fn() },
   adminAction: { create: vi.fn() },
   activityEvent: { create: vi.fn() },
 };
@@ -89,6 +92,9 @@ const CALLS: Record<string, unknown[]> = {
   ],
   listOrgSignatures: ['u1', 'org1'],
   getSignaturePreview: ['u1', 'sig1'],
+  createApprovalRequest: ['u1', { title: 'T', domain: 'billing', riskLevel: 'medium' }, 'sebep'],
+  decideApproval: ['u1', 'req1', 'approve', 'sebep'],
+  cancelApprovalRequest: ['u1', 'req1', 'sebep'],
   listAdminQueues: ['u1'],
   searchAdmin: ['u1', 'acme'],
   listInvoicesAdmin: ['u1'],
@@ -275,6 +281,17 @@ describe('yazmalar — sebep zorunlu, denetim transaction içinde', () => {
           '',
         ),
     ],
+    [
+      'createApprovalRequest',
+      () =>
+        admin.createApprovalRequest(
+          'u1',
+          { title: 'T', domain: 'billing', riskLevel: 'medium' },
+          '',
+        ),
+    ],
+    ['decideApproval', () => admin.decideApproval('u1', 'req1', 'approve', '')],
+    ['cancelApprovalRequest', () => admin.cancelApprovalRequest('u1', 'req1', '')],
   ] as const) {
     it(`${label}: boş sebeple çalışmaz ve transaction açılmaz`, async () => {
       asStaff();

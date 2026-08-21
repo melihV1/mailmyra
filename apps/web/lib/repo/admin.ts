@@ -161,7 +161,19 @@ async function audit(
   staff: StaffUser,
   entry: {
     org: { id: string; name: string };
-    action: 'entitlement.set' | 'invoice.created' | 'invoice.status_set';
+    action:
+      | 'entitlement.set'
+      | 'invoice.created'
+      | 'invoice.status_set'
+      | 'approval.created'
+      | 'approval.decided'
+      | 'approval.cancelled'
+      | 'kvkk.created'
+      | 'kvkk.identity_verified'
+      | 'kvkk.owner_assigned'
+      | 'kvkk.evidence_added'
+      | 'kvkk.status_changed'
+      | 'kvkk.completed';
     targetId?: string;
     before: Record<string, unknown>;
     after: Record<string, unknown>;
@@ -1013,6 +1025,222 @@ export async function markInvoicePaid(
       type: 'support.invoice_status_changed',
       targetId: invoiceId,
       payload: { number: inv.number, status: 'paid' },
+    });
+  });
+}
+
+// ─── Yönetişim yazmaları: onay talepleri ─────────────────────────────────
+
+/** Karar anındaki politika sürümü — talep satırına damgalanır. */
+export const APPROVAL_POLICY_VERSION = '2026-08-21';
+
+export type ApprovalDomain = 'entitlement' | 'billing' | 'security' | 'platform';
+export type ApprovalRisk = 'medium' | 'high' | 'critical';
+
+/** Org'suz yönetişim kaydının denetimdeki nöbetçi kimliği. */
+const PLATFORM_ORG = { id: 'platform', name: 'Mailmyra platform' } as const;
+
+/** Org verilmişse GERÇEKTEN var olmalı (adı kopyalanır); yoksa nöbetçi. */
+async function resolveGovernanceOrg(
+  tx: Prisma.TransactionClient,
+  orgId: string | undefined,
+): Promise<{ id: string; name: string }> {
+  if (!orgId) return PLATFORM_ORG;
+  const org = await tx.organization.findUnique({
+    where: { id: orgId },
+    select: { id: true, name: true },
+  });
+  if (!org) throw new Error(`Organizasyon ${orgId} bulunamadı.`);
+  return org;
+}
+
+/**
+ * Onay talebi açar. Not: onaylanan talep HİÇBİR ŞEYİ otomatik uygulamaz —
+ * bu bir karar defteridir; riskli değişikliğin kendisi mevcut yazma
+ * fonksiyonlarıyla yapılır. Müşteri aktivitesi BİLEREK yazılmaz: iç
+ * yönetişim müşteri akışına sızdırılmaz (tasarım 2026-08-21).
+ */
+export async function createApprovalRequest(
+  staffUserId: string,
+  input: {
+    title: string;
+    domain: ApprovalDomain;
+    riskLevel: ApprovalRisk;
+    orgId?: string;
+    targetType?: string;
+    targetId?: string;
+    requiredApprovals?: number;
+  },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<{ id: string }> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  const title = input.title.trim().slice(0, 160);
+  if (!title) throw new Error('Başlık zorunlu.');
+  const required = input.requiredApprovals ?? 1;
+  if (!Number.isInteger(required) || required < 1 || required > 3) {
+    throw new Error('Gereken onay sayısı 1-3 arası olmalı.');
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const org = await resolveGovernanceOrg(tx, input.orgId);
+    const request = await tx.approvalRequest.create({
+      data: {
+        title,
+        domain: input.domain,
+        riskLevel: input.riskLevel,
+        status: undefined, // şemadaki default'a bırakılır ('pending')
+        policyVersion: APPROVAL_POLICY_VERSION,
+        orgId: input.orgId ?? null,
+        orgName: input.orgId ? org.name : null,
+        targetType: input.targetType?.slice(0, 24) ?? null,
+        targetId: input.targetId?.slice(0, 64) ?? null,
+        requestedById: staff.id,
+        requestedByEmail: staff.email,
+        reason: cleanReason,
+        requiredApprovals: required,
+      },
+      select: { id: true },
+    });
+    await tx.approvalEvent.create({
+      data: {
+        requestId: request.id,
+        type: 'created',
+        actorEmail: staff.email,
+        payload: { title, domain: input.domain, riskLevel: input.riskLevel },
+      },
+    });
+    await audit(tx, staff, {
+      org,
+      action: 'approval.created',
+      targetId: request.id,
+      before: {},
+      after: { title, domain: input.domain, riskLevel: input.riskLevel, requiredApprovals: required },
+      reason: cleanReason,
+      ctx,
+    });
+    return { id: request.id };
+  });
+}
+
+/**
+ * Karar yazar. Tek reject talebi kapatır; approve sayısı (bu karar dahil)
+ * `requiredApprovals`a ulaşınca `approved`. Aynı onaycı ikinci karar
+ * yazamaz — şemadaki @@unique([requestId, decidedByEmail]) P2002 üretir.
+ */
+export async function decideApproval(
+  staffUserId: string,
+  requestId: string,
+  decision: 'approve' | 'reject',
+  reason: string,
+  ctx?: StaffContext,
+): Promise<{ status: 'pending' | 'approved' | 'rejected' }> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const request = await tx.approvalRequest.findUnique({
+        where: { id: requestId },
+        select: { status: true, title: true, requiredApprovals: true, orgId: true, orgName: true },
+      });
+      if (!request) throw new Error(`Onay talebi ${requestId} bulunamadı.`);
+      if (request.status !== 'pending') throw new Error('Bu talep artık kararda değil.');
+
+      await tx.approvalDecision.create({
+        data: {
+          requestId,
+          decision,
+          decidedById: staff.id,
+          decidedByEmail: staff.email,
+          reason: cleanReason,
+        },
+      });
+      const approvals = await tx.approvalDecision.count({
+        where: { requestId, decision: 'approve' },
+      });
+      await tx.approvalEvent.create({
+        data: {
+          requestId,
+          type: 'decision_recorded',
+          actorEmail: staff.email,
+          payload: { decision, approvals, required: request.requiredApprovals },
+        },
+      });
+
+      let status: 'pending' | 'approved' | 'rejected' = 'pending';
+      if (decision === 'reject') status = 'rejected';
+      else if (approvals >= request.requiredApprovals) status = 'approved';
+
+      if (status !== 'pending') {
+        await tx.approvalRequest.update({
+          where: { id: requestId },
+          data: { status, decidedAt: new Date(), decidedByEmail: staff.email },
+        });
+        await tx.approvalEvent.create({
+          data: {
+            requestId,
+            type: status,
+            actorEmail: staff.email,
+            payload: { approvals, required: request.requiredApprovals },
+          },
+        });
+      }
+
+      await audit(tx, staff, {
+        org: request.orgId ? { id: request.orgId, name: request.orgName ?? '' } : PLATFORM_ORG,
+        action: 'approval.decided',
+        targetId: requestId,
+        before: { status: 'pending' },
+        after: { status, decision },
+        reason: cleanReason,
+        ctx,
+      });
+      return { status };
+    });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new Error('Bu talebe zaten karar yazdın.');
+    }
+    throw err;
+  }
+}
+
+/** Bekleyen talebi geri çeker — defterde durur, kuyruğa listelenmez. */
+export async function cancelApprovalRequest(
+  staffUserId: string,
+  requestId: string,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  await prisma.$transaction(async (tx) => {
+    const request = await tx.approvalRequest.findUnique({
+      where: { id: requestId },
+      select: { status: true, orgId: true, orgName: true },
+    });
+    if (!request) throw new Error(`Onay talebi ${requestId} bulunamadı.`);
+    if (request.status !== 'pending') throw new Error('Bu talep artık kararda değil.');
+
+    await tx.approvalRequest.update({
+      where: { id: requestId },
+      data: { status: 'cancelled', decidedAt: new Date(), decidedByEmail: staff.email },
+    });
+    await tx.approvalEvent.create({
+      data: { requestId, type: 'cancelled', actorEmail: staff.email, payload: {} },
+    });
+    await audit(tx, staff, {
+      org: request.orgId ? { id: request.orgId, name: request.orgName ?? '' } : PLATFORM_ORG,
+      action: 'approval.cancelled',
+      targetId: requestId,
+      before: { status: 'pending' },
+      after: { status: 'cancelled' },
+      reason: cleanReason,
+      ctx,
     });
   });
 }
