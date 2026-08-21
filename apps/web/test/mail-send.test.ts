@@ -84,3 +84,27 @@ describe('choosing a mailer', () => {
     expect(() => getMailer({ NODE_ENV: 'production' })).toThrow(/MAIL_HOST/);
   });
 });
+
+describe('attachments', () => {
+  const csv = { filename: 'revenue-2026-08-21.csv', content: 'a,b\r\n1,2\r\n', contentType: 'text/csv' };
+
+  it('passes attachments through the SMTP envelope', async () => {
+    const mailer = createSmtpMailer(config, { jsonTransport: true });
+
+    const sent = await mailer.sendForTest({ ...mail, kind: 'report', attachments: [csv] });
+    const message = JSON.parse(sent.message);
+
+    expect(message.attachments).toHaveLength(1);
+    expect(message.attachments[0].filename).toBe('revenue-2026-08-21.csv');
+    expect(message.attachments[0].contentType).toBe('text/csv');
+  });
+
+  it('keeps attachments visible to the memory mailer', async () => {
+    const mailer = new MemoryMailer();
+    const sentMail = { ...mail, kind: 'report' as const, attachments: [csv] };
+    await mailer.send(sentMail);
+
+    expect(mailer.sent[0]!.kind).toBe('report');
+    expect(mailer.sent[0]!.attachments).toEqual([csv]);
+  });
+});

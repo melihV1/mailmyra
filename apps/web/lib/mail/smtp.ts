@@ -40,6 +40,8 @@ export function createSmtpMailer(
     // metin okuyan istemcide boş görünüyor.
     text: mail.text,
     html: mail.html,
+    // nodemailer'ın Attachment şekli bizimkiyle birebir — geçirilir.
+    attachments: mail.attachments,
   });
 
   return {

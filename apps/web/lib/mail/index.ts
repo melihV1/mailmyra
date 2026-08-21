@@ -2,7 +2,7 @@ import { readSmtpConfig } from './config';
 import { createSmtpMailer } from './smtp';
 import type { Mailer, OutgoingMail } from './types';
 
-export type { MailBody, Mailer, OutgoingMail } from './types';
+export type { MailAttachment, MailBody, Mailer, OutgoingMail } from './types';
 export type { SmtpConfig } from './config';
 export { readSmtpConfig } from './config';
 export { MemoryMailer } from './memory';
@@ -29,6 +29,9 @@ function createLogMailer(): Mailer {
         `[mail] SMTP yapılandırılmadı, gönderilmedi.\n` +
           `  Kime : ${mail.to}\n` +
           `  Konu : ${mail.subject}\n` +
+          (mail.attachments?.length
+            ? `  Ek   : ${mail.attachments.map((a) => a.filename).join(', ')}\n`
+            : '') +
           `${mail.text.replace(/^/gm, '  | ')}`,
       );
     },

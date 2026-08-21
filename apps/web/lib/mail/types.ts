@@ -16,12 +16,20 @@ export interface MailBody {
 }
 
 /** Teslim defterindeki sınıflandırma — içerik değil, tür etiketi. */
-export type MailKind = 'verification' | 'invitation' | 'notification' | 'support';
+export type MailKind = 'verification' | 'invitation' | 'notification' | 'support' | 'report';
+
+/** E-posta eki. `content` metindir (CSV gibi) — binary ek ihtiyacı yok (YAGNI). */
+export interface MailAttachment {
+  filename: string;
+  content: string;
+  contentType: string;
+}
 
 export interface OutgoingMail extends MailBody {
   to: string;
   /** Verilmezse defterde 'notification' sayılır. */
   kind?: MailKind;
+  attachments?: MailAttachment[];
 }
 
 export interface Mailer {
