@@ -1,6 +1,12 @@
+import { loadEnvFiles } from '../lib/env-file';
 import { withJobRun } from '../lib/job-run';
 import { getMailer } from '../lib/mail';
 import { runDueReports } from '../lib/reports/run';
+
+// Plesk'in "Komut dosyası çalıştır" bağlamı Next'in gördüğü .env dosyalarını
+// görmez — DATABASE_URL/MAIL_* oradan gelir. withJobRun'dan da ÖNCE yüklenir
+// (koşu defteri de DB ister). npm run cwd'si apps/web'dir.
+loadEnvFiles();
 
 /**
  * Zamanlanmış rapor koşusu — Plesk Scheduled Task her sabah çağırır

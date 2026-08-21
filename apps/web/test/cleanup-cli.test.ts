@@ -21,9 +21,14 @@ const require = createRequire(import.meta.url);
 const tsxCli = require.resolve('tsx/cli');
 const scriptPath = join(webRoot, 'scripts', 'cleanup-orphans.ts');
 
-/** CLI'yı çalışan Node ile başlat (tsx CLI'sı argüman olarak geçilir). */
-function runCli(args: string[], env: NodeJS.ProcessEnv) {
-  return execFileAsync(process.execPath, [tsxCli, ...args], { env });
+/**
+ * CLI'yı çalışan Node ile başlat (tsx CLI'sı argüman olarak geçilir).
+ * `cwd` boş bir temp dizin OLMALI: script artık cwd'deki .env dosyalarını
+ * kendisi yükler (loadEnvFiles, 2026-08-21) — app kökünden koşturulsa
+ * .env.local eksik-değişken dalını gölgeler.
+ */
+function runCli(args: string[], env: NodeJS.ProcessEnv, cwd: string) {
+  return execFileAsync(process.execPath, [tsxCli, ...args], { env, cwd });
 }
 
 // Base env with CDN_WRITE_PATH stripped, so the CLI's "missing env" branch is
@@ -44,7 +49,7 @@ describe('cleanup-orphans CLI', () => {
     async () => {
       expect.assertions(2);
       try {
-        await runCli([scriptPath, '--dry-run'], envWithoutCdnPath);
+        await runCli([scriptPath, '--dry-run'], envWithoutCdnPath, dir);
       } catch (err) {
         const e = err as { code?: number; stdout?: string; stderr?: string };
         expect(e.code).toBe(1);
@@ -62,10 +67,11 @@ describe('cleanup-orphans CLI', () => {
       const oldMtime = new Date(Date.now() - 10 * DAY);
       utimesSync(oldFile, oldMtime, oldMtime);
 
-      const { stdout } = await runCli([scriptPath, '--dry-run'], {
-        ...envWithoutCdnPath,
-        CDN_WRITE_PATH: dir,
-      });
+      const { stdout } = await runCli(
+        [scriptPath, '--dry-run'],
+        { ...envWithoutCdnPath, CDN_WRITE_PATH: dir },
+        dir,
+      );
 
       expect(stdout).toContain('old.png');
       expect(existsSync(oldFile)).toBe(true);

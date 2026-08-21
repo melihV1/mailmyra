@@ -14,6 +14,12 @@ const ftp = require('basic-ftp');
 // oluyor — gereksiz yere yeniden derlemek kesintiyi uzatır.
 const SKIP_BUILD = process.argv.includes('--skip-build');
 
+// `--sources-only`: yalnız lib/ + scripts/ + package.json yükler; .next ve
+// prisma'ya DOKUNMAZ. Çalışan uygulama kaynak dosyaları kilitlemez (yalnız
+// .next kilitlidir) — CLI/çalıştırıcı düzeltmeleri bu bayrakla uygulamayı
+// DURDURMADAN gider.
+const SOURCES_ONLY = process.argv.includes('--sources-only');
+
 const repoRoot = path.resolve(__dirname, '..');
 const nextDir = path.join(repoRoot, 'apps', 'web', '.next');
 const prismaDir = path.join(repoRoot, 'apps', 'web', 'prisma');
@@ -50,7 +56,9 @@ function run(cmd, args) {
 async function main() {
   const env = loadEnv();
 
-  if (SKIP_BUILD) {
+  if (SOURCES_ONLY) {
+    console.log('1/3  Build ve .next/prisma ATLANDI (--sources-only).');
+  } else if (SKIP_BUILD) {
     if (!fs.existsSync(nextDir)) {
       console.error('\n--skip-build verildi ama apps/web/.next yok. Önce derle.\n');
       process.exit(1);
@@ -63,7 +71,7 @@ async function main() {
   }
 
   const cacheDir = path.join(nextDir, 'cache');
-  if (fs.existsSync(cacheDir)) {
+  if (!SOURCES_ONLY && fs.existsSync(cacheDir)) {
     fs.rmSync(cacheDir, { recursive: true, force: true });
     console.log('     .next/cache ayıklandı');
   }
@@ -80,50 +88,54 @@ async function main() {
       secureOptions: { rejectUnauthorized: false },
     });
 
-    const remoteNext = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/.next`;
-    console.log(`\n3/3  .next -> ${remoteNext}`);
-    // Eski çıktıyı temizle: bayat chunk'lar "module not found" üretir.
-    //
-    // Hata YUTULMAZ. Uzak dizin yoksa (ilk deploy) sorun değil — FTP bunu
-    // 550 ile bildirir. Başka bir hata ise neredeyse her zaman TEK bir şey
-    // demektir: uygulama durdurulmadı ve Windows dosyaları kilitli. O durumda
-    // devam etmek `.next`'i yarı silinmiş bırakır; sunucu eski ve yeni
-    // chunk'ları karıştırıp "module not found" fırtınası verir ve sebep
-    // görünmez olur (bu proje o hatayla saatler kaybetti). Yarım iş bırakmak
-    // yerine hiç dokunmadan duruyoruz.
-    try {
-      await client.removeDir(remoteNext);
-    } catch (err) {
-      const code = err && err.code;
-      const notFound = code === 550 || /no such file|not found|cannot find/i.test(String(err && err.message));
-      if (!notFound) {
-        console.error(`\nUzaktaki .next silinemedi (FTP ${code ?? '?'}): ${err && err.message}`);
-        console.error(
-          [
-            '',
-            'EN OLASI SEBEP: uygulama hâlâ ÇALIŞIYOR ve Windows dosyaları kilitli.',
-            'Plesk > Node.js > uygulamayı DURDUR, sonra bu komutu tekrar çalıştır.',
-            '',
-            'Hiçbir dosya yüklenmedi — sunucudaki mevcut sürüm bozulmadan duruyor.',
-            '',
-          ].join('\n'),
-        );
-        process.exitCode = 1;
-        return;
+    if (!SOURCES_ONLY) {
+      const remoteNext = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/.next`;
+      console.log(`\n3/3  .next -> ${remoteNext}`);
+      // Eski çıktıyı temizle: bayat chunk'lar "module not found" üretir.
+      //
+      // Hata YUTULMAZ. Uzak dizin yoksa (ilk deploy) sorun değil — FTP bunu
+      // 550 ile bildirir. Başka bir hata ise neredeyse her zaman TEK bir şey
+      // demektir: uygulama durdurulmadı ve Windows dosyaları kilitli. O durumda
+      // devam etmek `.next`'i yarı silinmiş bırakır; sunucu eski ve yeni
+      // chunk'ları karıştırıp "module not found" fırtınası verir ve sebep
+      // görünmez olur (bu proje o hatayla saatler kaybetti). Yarım iş bırakmak
+      // yerine hiç dokunmadan duruyoruz.
+      try {
+        await client.removeDir(remoteNext);
+      } catch (err) {
+        const code = err && err.code;
+        const notFound = code === 550 || /no such file|not found|cannot find/i.test(String(err && err.message));
+        if (!notFound) {
+          console.error(`\nUzaktaki .next silinemedi (FTP ${code ?? '?'}): ${err && err.message}`);
+          console.error(
+            [
+              '',
+              'EN OLASI SEBEP: uygulama hâlâ ÇALIŞIYOR ve Windows dosyaları kilitli.',
+              'Plesk > Node.js > uygulamayı DURDUR, sonra bu komutu tekrar çalıştır.',
+              '',
+              'Hiçbir dosya yüklenmedi — sunucudaki mevcut sürüm bozulmadan duruyor.',
+              '',
+            ].join('\n'),
+          );
+          process.exitCode = 1;
+          return;
+        }
       }
-    }
-    await client.ensureDir(remoteNext);
-    await client.clearWorkingDir();
-    await client.uploadFromDir(nextDir, remoteNext);
+      await client.ensureDir(remoteNext);
+      await client.clearWorkingDir();
+      await client.uploadFromDir(nextDir, remoteNext);
 
-    // Migration'lar da her deploy'da gider: panelden koşulan
-    // `prisma migrate deploy` şemanın SON hâlini bu klasörden okur. Yalnız
-    // .next taşınsaydı yeni tablo isteyen kod eski şemayla açılırdı.
-    const remotePrisma = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/prisma`;
-    console.log(`     prisma -> ${remotePrisma}`);
-    await client.ensureDir(remotePrisma);
-    await client.clearWorkingDir();
-    await client.uploadFromDir(prismaDir, remotePrisma);
+      // Migration'lar da her deploy'da gider: panelden koşulan
+      // `prisma migrate deploy` şemanın SON hâlini bu klasörden okur. Yalnız
+      // .next taşınsaydı yeni tablo isteyen kod eski şemayla açılırdı.
+      const remotePrisma = `${env.DEPLOY_FTP_REMOTE.replace(/\/$/, '')}/prisma`;
+      console.log(`     prisma -> ${remotePrisma}`);
+      await client.ensureDir(remotePrisma);
+      await client.clearWorkingDir();
+      await client.uploadFromDir(prismaDir, remotePrisma);
+    } else {
+      console.log('\n3/3  Yalnız kaynaklar (--sources-only):');
+    }
 
     // Ops script'leri sunucuda KAYNAKTAN koşar: `npm run reports` ve
     // `npm run cleanup` tsx ile lib/ + scripts/ TS dosyalarını okur, .next'i

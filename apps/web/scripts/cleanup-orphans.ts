@@ -1,6 +1,11 @@
 import { cleanupOrphans } from '../lib/cleanup';
 import { envInt } from '../lib/env';
+import { loadEnvFiles } from '../lib/env-file';
 import { withJobRun } from '../lib/job-run';
+
+// Plesk'in "Komut dosyası çalıştır" bağlamı Next'in gördüğü .env dosyalarını
+// görmez (CDN_WRITE_PATH ve JobRun defteri için DATABASE_URL oradan gelir).
+loadEnvFiles();
 
 async function main(): Promise<void> {
   const dir = process.env.CDN_WRITE_PATH;
