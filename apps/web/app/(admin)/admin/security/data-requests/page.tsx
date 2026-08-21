@@ -6,6 +6,7 @@ import { listKvkkRequests, NotStaffError } from '../../../../../lib/repo/admin';
 import type { DataRequestRow } from '../../../operations-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
 import { DataRequestsView } from '../../../ui/GovernanceOperationsViews';
+import { NewKvkkButton } from '../../../ui/KvkkActions';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
 export const metadata = { title: 'KVKK requests — Mailmyra staff' };
@@ -14,8 +15,11 @@ export const dynamic = 'force-dynamic';
 /**
  * Yasal KVKK defteri (KvkkRequest). `subjectEmail` kişisel veri: bu sayfayı
  * AÇMAK `StaffAccess`e düşer ve günlük yazılamazsa repo fırlatır — sayfa
- * açılmaz (kapalıya düşme). Kapatma/atama kontrolleri karar altyapısıyla
- * birlikte gelecek; şimdilik kayıtlar SQL ile açılır.
+ * açılmaz (kapalıya düşme). Yaşam döngüsü yazmaları artık VAR: kimlik
+ * doğrulama, sahip atama, kanıt ekleme, durum geçişi ve kapatma —
+ * `KvkkRowActions` (bkz. `ui/KvkkActions.tsx`), her biri yetki + kalıcılık +
+ * denetim + hata yolunu aynı transaction'da taşıyan `lib/repo/admin.ts`
+ * fonksiyonlarına gider.
  */
 export default async function DataRequestsPage() {
   const session = await currentSession();
@@ -60,7 +64,12 @@ export default async function DataRequestsPage() {
         crumb="Security & governance / KVKK requests"
         title="KVKK requests"
         support="Statutory data-subject work with ownership, due dates and evidence. Opening this register is logged."
-        right={<RefreshButton />}
+        right={
+          <>
+            <NewKvkkButton />
+            <RefreshButton />
+          </>
+        }
       />
       <DataRequestsView rows={rows} now={Date.now()} />
     </section>
