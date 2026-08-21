@@ -81,7 +81,7 @@ async function runOne(
   try {
     const report = await buildReport(db, builders, schedule, now);
     rowCount = countRows(report);
-    const digest = renderDigest(report);
+    const digest = renderDigest(report, { csvAttached: schedule.format === 'csv' && !!report.table });
     const attachments =
       schedule.format === 'csv' && report.table
         ? [
@@ -117,9 +117,11 @@ async function runOne(
     error = clip(message(err));
   }
 
+  // startedAt/pencere enjekte edilen `now`dan gelir (test edilebilirlik);
+  // bitiş gerçek saat olmalı — yoksa süre sahte sıfır görünür.
   await db.reportExecution.update({
     where: { id: execution.id },
-    data: { status, error, rowCount, finishedAt: now },
+    data: { status, error, rowCount, finishedAt: new Date() },
   });
   return status === 'success';
 }

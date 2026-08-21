@@ -872,7 +872,7 @@ model SupportCase {
 model MailDelivery {
   id String @id @default(cuid())
 
-  /// 'verification' | 'invitation' | 'notification' | 'support'
+  /// 'verification' | 'invitation' | 'notification' | 'support' | 'report'
   kind            String  @db.VarChar(16)
   provider        String  @db.VarChar(64)
   recipientDomain String  @db.VarChar(255)

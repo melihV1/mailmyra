@@ -54,12 +54,29 @@ describe('renderDigest', () => {
     expect(digest.text).toContain('Billed: 120.00 USD');
   });
 
-  it('caps the inline table and says how much is hidden', () => {
+  it('caps the inline table and says how much is hidden — no CSV attached, honest "omitted"', () => {
     const rows = Array.from({ length: DIGEST_TABLE_MAX_ROWS + 5 }, (_, i) => [`org${i}`, '1.00']);
     const html = renderDigest({ ...report, table: { columns: ['O', 'B'], rows } }).html;
     expect(html).toContain(`org${DIGEST_TABLE_MAX_ROWS - 1}`);
     expect(html).not.toContain(`org${DIGEST_TABLE_MAX_ROWS}<`);
-    expect(html).toContain('+5 more rows');
+    expect(html).toContain('+5 more rows omitted from this digest.');
+  });
+
+  it('caps the inline table and points to the CSV when one is attached', () => {
+    const rows = Array.from({ length: DIGEST_TABLE_MAX_ROWS + 5 }, (_, i) => [`org${i}`, '1.00']);
+    const html = renderDigest(
+      { ...report, table: { columns: ['O', 'B'], rows } },
+      { csvAttached: true },
+    ).html;
+    expect(html).toContain('+5 more rows in the CSV attachment.');
+    expect(html).not.toContain('omitted from this digest');
+  });
+
+  it('uses the singular "row" when exactly one row is hidden', () => {
+    const rows = Array.from({ length: DIGEST_TABLE_MAX_ROWS + 1 }, (_, i) => [`org${i}`, '1.00']);
+    const html = renderDigest({ ...report, table: { columns: ['O', 'B'], rows } }).html;
+    expect(html).toContain('+1 more row omitted from this digest.');
+    expect(html).not.toContain('+1 more rows');
   });
 });
 
@@ -73,6 +90,21 @@ describe('renderCsv', () => {
       ],
     });
     expect(csv).toBe('name,note\r\n"Acme, Inc","said ""hi"""\r\nPlain,"multi\nline"\r\n');
+  });
+
+  it('neutralizes formula-injection leaders (=,+,-,@,TAB,CR) with a leading single quote', () => {
+    const csv = renderCsv({
+      columns: ['a', 'b', 'c', 'd', 'e'],
+      rows: [['=WEBSERVICE("http://evil")', '+SUM(1)', '-2', '@cmd', 'safe']],
+    });
+    expect(csv).toBe(
+      'a,b,c,d,e\r\n' + '"\'=WEBSERVICE(""http://evil"")",\'+SUM(1),\'-2,\'@cmd,safe\r\n',
+    );
+  });
+
+  it('also prefixes a plain negative number — String(v) sees the same leading "-" (documented, acceptable)', () => {
+    const csv = renderCsv({ columns: ['n'], rows: [[-2]] });
+    expect(csv).toBe("n\r\n'-2\r\n");
   });
 });
 

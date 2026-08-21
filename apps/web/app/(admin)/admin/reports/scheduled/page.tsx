@@ -12,10 +12,13 @@ export const dynamic = 'force-dynamic';
 
 /**
  * Gerçek zamanlama defteri (ReportSchedule + koşu/teslim defterleri).
- * Çalıştırıcı YOK: lastRun alanları koşu defteri boşken null kalır ve
- * görünüm "Never" der — sahte teslim başarısı üretilmez. `nextRunAt`
- * kadans matematiğinden gelir (gelecek plan, geçmiş değil). Zamanlama
- * OLUŞTURMA kontrolü karar altyapısıyla birlikte gelecek.
+ * Çalıştırıcı VAR (`npm run reports -w apps/web`, scripts/run-reports.ts,
+ * her sabah Plesk Scheduled Task ile) — koşu ve teslim defterleri gerçek
+ * koşulardan dolar. `lastRun` alanları yalnız o zamanlama HİÇ koşmadıysa
+ * null kalır ve görünüm "Never" der; sahte teslim başarısı üretilmez.
+ * `nextRunAt` boşsa kadans matematiğinden türetilir (gelecek plan, geçmiş
+ * değil). Zamanlama OLUŞTURMA kontrolü hâlâ bilinçli yok — schedule satırı
+ * elle SQL ile açılır.
  */
 export default async function Page() {
   const session = await currentSession();
@@ -61,7 +64,7 @@ export default async function Page() {
       <AdminPageHeader
         crumb="Reports / Scheduled"
         title="Scheduled reports"
-        support="Cadence, recipients and delivery format — execution history stays empty until a real runner exists."
+        support="Cadence, recipients and delivery format — executions and deliveries are written by the scheduled runner (npm run reports, daily Plesk task); schedules are still opened via SQL."
         right={<RefreshButton />}
       />
       <ScheduledReportsView rows={rows} now={Date.now()} />
