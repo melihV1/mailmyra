@@ -88,6 +88,7 @@ export async function register(input: RegisterInput, mailer: Mailer): Promise<Re
           // Deneme 5 koltukla başlar (karar: 2026-08-11) — iş sabiti tek
           // kaynakta: core/pricing. Şemadaki default(1) güvenlik tabanı.
           entitledSeats: PRICING.trialSeats,
+          priceVersion: PRICING.version,
           trialEndsAt: new Date(Date.now() + TRIAL_MS),
         },
       });

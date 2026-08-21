@@ -4,6 +4,10 @@ import type { ReactNode } from 'react';
 import { currentSession } from '../../lib/auth/current';
 import { isStaff } from '../../lib/repo/admin';
 import { AdminShell } from './AdminShell';
+// Temanın fontu (Public Sans), zemin boyası ve logo çökertme kuralları —
+// müşteri kabuğuyla AYNI dosya. İlk sürümde unutulmuştu ve panel sistem
+// fontuyla çizildi: 'CSS bozuk' şikâyetinin kökü buydu.
+import '../(app)/panel-overrides.css';
 
 /**
  * Personel paneli kabuğu.

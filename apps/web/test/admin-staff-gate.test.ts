@@ -41,8 +41,19 @@ vi.mock('../lib/db', () => ({
     senderIdentity: { findMany: vi.fn().mockResolvedValue([]), count: vi.fn() },
     signature: { findUnique: vi.fn(), findMany: vi.fn(), count: vi.fn() },
     invoice: { findMany: vi.fn() },
+    approvalRequest: { findMany: vi.fn().mockResolvedValue([]) },
+    kvkkRequest: { findMany: vi.fn().mockResolvedValue([]) },
+    reportSchedule: { findMany: vi.fn().mockResolvedValue([]) },
+    lead: { findMany: vi.fn().mockResolvedValue([]) },
+    supportCase: { findMany: vi.fn().mockResolvedValue([]) },
+    mailDelivery: { findMany: vi.fn().mockResolvedValue([]) },
+    jobRun: { findMany: vi.fn().mockResolvedValue([]) },
+    errorGroup: { findMany: vi.fn().mockResolvedValue([]) },
+    errorEvent: { groupBy: vi.fn().mockResolvedValue([]) },
+    $queryRaw: vi.fn().mockResolvedValue([]),
     staffAccess: { create: (...a: unknown[]) => accessCreate(...a), findMany: vi.fn() },
     adminAction: { findMany: vi.fn() },
+    activityEvent: { groupBy: vi.fn().mockResolvedValue([]), findFirst: vi.fn().mockResolvedValue(null) },
     $transaction: (...a: unknown[]) => transaction(...a),
   },
 }));
@@ -63,6 +74,8 @@ const OK_INVOICE = {
 const CALLS: Record<string, unknown[]> = {
   requireStaff: ['u1'],
   listOrganizations: ['u1'],
+  listCustomerUsers: ['u1'],
+  listStaffAccounts: ['u1'],
   getOrganization: ['u1', 'org1'],
   listOrgSenders: ['u1', 'org1'],
   setEntitlement: ['u1', 'org1', { entitledSeats: 5 }, 'ilk kurulum'],
@@ -79,8 +92,15 @@ const CALLS: Record<string, unknown[]> = {
   listAdminQueues: ['u1'],
   searchAdmin: ['u1', 'acme'],
   listInvoicesAdmin: ['u1'],
+  listApprovals: ['u1'],
+  listKvkkRequests: ['u1'],
+  listReportSchedules: ['u1'],
+  listLeads: ['u1'],
+  listSupportCases: ['u1'],
+  getPlatformTelemetry: ['u1'],
   listStaffAccess: ['u1'],
   listAdminActions: ['u1'],
+  getProductAnalyticsAdmin: ['u1'],
 };
 
 const asStaff = () =>
@@ -170,6 +190,26 @@ describe('kapalıya düşme — erişim günlüğü yazılamazsa kişisel veri d
     // İlk findUnique kişisel veri içermeyen çözümleme; İKİNCİSİ (üyeler,
     // e-postalar) günlük başarısızsa hiç çalışmamalı.
     expect(orgFindUnique).toHaveBeenCalledTimes(1);
+  });
+
+  it('listKvkkRequests: günlük yazılamazsa KVKK defteri AÇILMAZ', async () => {
+    asStaff();
+    accessCreate.mockRejectedValue(new Error('günlük yazılamadı'));
+    await expect(admin.listKvkkRequests('u1')).rejects.toThrow('günlük yazılamadı');
+  });
+
+  it('listKvkkRequests: günlük satırı sentetik KVKK kimliğini taşır', async () => {
+    asStaff();
+    await admin.listKvkkRequests('u1', { ip: '203.0.113.9' });
+    expect(accessCreate).toHaveBeenCalledWith({
+      data: expect.objectContaining({ orgId: 'kvkk-register', scope: 'kvkk' }),
+    });
+  });
+
+  it('listSupportCases: günlük yazılamazsa vaka defteri AÇILMAZ', async () => {
+    asStaff();
+    accessCreate.mockRejectedValue(new Error('defter kapalı'));
+    await expect(admin.listSupportCases('u1')).rejects.toThrow('defter kapalı');
   });
 
   it('listOrgSenders: günlük hatası okumayı keser', async () => {

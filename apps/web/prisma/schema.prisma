@@ -48,6 +48,10 @@ model User {
   activityEvents    ActivityEvent[]
   staffAccesses     StaffAccess[]
   adminActions      AdminAction[]
+  approvalRequests  ApprovalRequest[]        @relation("ApprovalRequester")
+  approvalDecisions ApprovalDecision[]       @relation("ApprovalDecider")
+  kvkkOwned         KvkkRequest[]            @relation("KvkkOwner")
+  reportSchedules   ReportSchedule[]         @relation("ReportScheduleCreator")
 }
 
 model Session {
@@ -542,4 +546,397 @@ model AdminAction {
 
   @@index([orgId, createdAt])
   @@index([staffUserId, createdAt])
+}
+
+// ─── Onay akışı (governance) ─────────────────────────────────────────────
+
+/**
+ * Yüksek riskli yönetim değişikliği için karar kaydı. UI onay/ret düğmeleri
+ * BİLİNÇLİ olarak kapalı (devir sözleşmesi §7): yetkilendirme + kalıcılık +
+ * denetim + hata yolu birlikte gelene kadar yalnız kayıt ve okuma var.
+ * Hiçbir satır silinmez; yaşam döngüsü `status` ile yürür ve her adım
+ * `ApprovalEvent`e düşer. FK'ler `Restrict`: kayıt zinciri koparılamaz.
+ */
+model ApprovalRequest {
+  id String @id @default(cuid())
+
+  title         String @db.VarChar(160)
+  /// 'entitlement' | 'billing' | 'security' | 'platform' — kod tarafında birlik.
+  domain        String @db.VarChar(32)
+  /// 'medium' | 'high' | 'critical'
+  riskLevel     String @db.VarChar(16)
+  policyVersion String @db.VarChar(32)
+
+  /// Hedef müşteri (varsa). Ad KOPYALANIR — org silinse de kayıt anlamlı.
+  orgId      String? @db.VarChar(64)
+  orgName    String? @db.VarChar(255)
+  targetType String? @db.VarChar(24)
+  targetId   String? @db.VarChar(64)
+
+  requestedById    String?
+  requestedByEmail String  @db.VarChar(255)
+  reason           String  @db.VarChar(500)
+
+  requiredApprovals Int @default(1)
+
+  /// 'pending' | 'approved' | 'rejected' | 'cancelled'
+  status         String    @default("pending") @db.VarChar(16)
+  decidedAt      DateTime?
+  decidedByEmail String?   @db.VarChar(255)
+  decisionReason String?   @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  requestedBy User?              @relation("ApprovalRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+  decisions   ApprovalDecision[]
+  events      ApprovalEvent[]
+
+  @@index([status, createdAt])
+}
+
+/// Tekil onaycı kararı — `requiredApprovals` sayacı bunlardan sayılır.
+model ApprovalDecision {
+  id        String @id @default(cuid())
+  requestId String
+
+  /// 'approve' | 'reject'
+  decision       String  @db.VarChar(16)
+  decidedById    String?
+  decidedByEmail String  @db.VarChar(255)
+  reason         String  @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  request   ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+  decidedBy User?           @relation("ApprovalDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+
+  /// Bir onaycı bir talebe tek karar yazar.
+  @@unique([requestId, decidedByEmail])
+}
+
+/// Değişmez yaşam döngüsü defteri — yalnız eklenir.
+model ApprovalEvent {
+  id        String @id @default(cuid())
+  requestId String
+
+  /// 'created' | 'decision_recorded' | 'approved' | 'rejected' | 'cancelled'
+  type       String @db.VarChar(32)
+  actorEmail String @db.VarChar(255)
+  payload    Json
+
+  createdAt DateTime @default(now())
+
+  request ApprovalRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, createdAt])
+}
+
+// ─── KVKK veri öznesi talepleri ──────────────────────────────────────────
+
+/**
+ * Yasal veri öznesi talebi. `statutoryDueAt` KVKK'nın 30 günlük yasal
+ * süresi — SLA süsü değil, kanuni tarih. Satır silinmez; kapanış
+ * `status='completed'` + `respondedAt` ile olur ve her adım `KvkkEvent`e
+ * düşer. Kanıtlar `KvkkEvidence`te birikir.
+ */
+model KvkkRequest {
+  id String @id @default(cuid())
+
+  /// İnsan-okur referans (KVKK-2026-0001) — elle verilir, benzersiz.
+  reference String @unique @db.VarChar(32)
+
+  /// Talep sahibinin e-postası — işin kendisi bu kişisel veri; bu tabloyu
+  /// LİSTELEMEK bile StaffAccess'e loglanır (repo katmanı yapar).
+  subjectEmail String @db.VarChar(255)
+
+  /// İlgili müşteri (varsa). Ad kopyalanır.
+  orgId   String? @db.VarChar(64)
+  orgName String  @default("") @db.VarChar(255)
+
+  /// 'access' | 'erasure' | 'correction' | 'portability'
+  type   String @db.VarChar(16)
+  /// 'intake' | 'identity_check' | 'in_progress' | 'legal_review' | 'completed'
+  status String @default("intake") @db.VarChar(24)
+
+  receivedAt  DateTime
+  receivedVia String?  @db.VarChar(32)
+
+  statutoryDueAt DateTime
+
+  identityVerifiedAt DateTime?
+  identityMethod     String?   @db.VarChar(48)
+
+  ownerId    String?
+  ownerEmail String? @db.VarChar(255)
+
+  respondedAt     DateTime?
+  responseSummary String?   @db.VarChar(1000)
+
+  createdAt DateTime @default(now())
+
+  owner    User?          @relation("KvkkOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  evidence KvkkEvidence[]
+  events   KvkkEvent[]
+
+  @@index([status, statutoryDueAt])
+}
+
+/// Talep için toplanan kanıt/işlem çıktısı işaretçileri.
+model KvkkEvidence {
+  id        String @id @default(cuid())
+  requestId String
+
+  label        String @db.VarChar(160)
+  /// Dosya yolu / dahili not — kanıtın kendisi değil, işaretçisi.
+  location     String @db.VarChar(500)
+  addedByEmail String @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+
+  request KvkkRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, createdAt])
+}
+
+/// Değişmez yaşam döngüsü defteri — yalnız eklenir.
+model KvkkEvent {
+  id        String @id @default(cuid())
+  requestId String
+
+  /// 'received' | 'identity_verified' | 'owner_assigned' | 'status_changed'
+  /// | 'evidence_added' | 'responded' | 'completed'
+  type       String @db.VarChar(32)
+  actorEmail String @db.VarChar(255)
+  payload    Json
+
+  createdAt DateTime @default(now())
+
+  request KvkkRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@index([requestId, createdAt])
+}
+
+// ─── Zamanlanmış raporlar ────────────────────────────────────────────────
+
+/**
+ * Rapor zamanlaması — `reportId` `reporting-model.ts`teki REPORT_LIBRARY
+ * anahtarına işaret eder (formül/kaynak/tazelik sözleşmesi orada, kod
+ * denetiminde). ÇALIŞTIRICI YOK: `ReportExecution`/`ReportDelivery`
+ * defterleri gerçek bir koşu olana kadar BOŞ kalır — sahte geçmiş
+ * üretilmez (devir sözleşmesi).
+ */
+model ReportSchedule {
+  id String @id @default(cuid())
+
+  reportId String @db.VarChar(48)
+  /// 'daily' | 'weekly' | 'monthly'
+  cadence  String @db.VarChar(16)
+  timezone String @default("Europe/Istanbul") @db.VarChar(64)
+  /// 'csv' | 'pdf' | 'digest'
+  format   String @db.VarChar(16)
+
+  /// 'active' | 'paused'
+  status    String    @default("active") @db.VarChar(16)
+  nextRunAt DateTime?
+
+  ownerEmail     String  @db.VarChar(255)
+  createdById    String?
+  createdByEmail String  @db.VarChar(255)
+
+  createdAt DateTime @default(now())
+
+  createdBy  User?             @relation("ReportScheduleCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  recipients ReportRecipient[]
+  executions ReportExecution[]
+
+  @@index([status, nextRunAt])
+}
+
+/// Alıcı listesi — yapılandırmadır, zamanlama silinirse birlikte gider.
+model ReportRecipient {
+  id         String @id @default(cuid())
+  scheduleId String
+  email      String @db.VarChar(255)
+
+  schedule ReportSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, email])
+}
+
+/// Değişmez koşu defteri — çalıştırıcı yazana kadar boş.
+model ReportExecution {
+  id         String @id @default(cuid())
+  scheduleId String
+
+  startedAt  DateTime
+  finishedAt DateTime?
+  /// 'running' | 'success' | 'failed'
+  status     String    @db.VarChar(16)
+  error      String?   @db.VarChar(500)
+  rowCount   Int?
+
+  schedule   ReportSchedule   @relation(fields: [scheduleId], references: [id], onDelete: Restrict)
+  deliveries ReportDelivery[]
+
+  @@index([scheduleId, startedAt])
+}
+
+/// Değişmez teslim defteri — koşu başına alıcı sonucu.
+model ReportDelivery {
+  id          String @id @default(cuid())
+  executionId String
+
+  recipientEmail String  @db.VarChar(255)
+  /// 'sent' | 'failed'
+  status         String  @db.VarChar(16)
+  detail         String? @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+
+  execution ReportExecution @relation(fields: [executionId], references: [id], onDelete: Restrict)
+
+  @@index([executionId])
+}
+
+// ─── Growth: lead defteri ────────────────────────────────────────────────
+
+/**
+ * Elle yürüyen satış hattı (2026-08-21, Hüseyin'in YAPILMAYACAKLAR
+ * istisnasıyla). Otomatik kaynak YOK — pazarlama sitesinin formu posta
+ * atıyor, DB'ye yazmıyor; satırlar şimdilik SQL/panelle açılır. Rıza
+ * gerektiren izleme eklenmez.
+ */
+model Lead {
+  id String @id @default(cuid())
+
+  company  String @db.VarChar(160)
+  contact  String @db.VarChar(255)
+  /// 'referral' | 'inbound' | 'outreach' | 'event' — serbest ama kısa.
+  source   String @db.VarChar(48)
+  seats    Int    @default(1)
+  /// 'new' | 'qualified' | 'scheduled' | 'won'
+  stage    String @default("new") @db.VarChar(16)
+  nextStep String @default("") @db.VarChar(200)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stage, createdAt])
+}
+
+// ─── Support: vaka defteri ───────────────────────────────────────────────
+
+/**
+ * Destek vakaları. `requesterEmail` müşteri kişisel verisi — bu tabloyu
+ * LİSTELEMEK StaffAccess'e loglanır (KVKK defteri emsali). Satır silinmez;
+ * kapanış `status='resolved'`.
+ */
+model SupportCase {
+  id String @id @default(cuid())
+
+  reference String @unique @db.VarChar(32)
+  subject   String @db.VarChar(200)
+
+  orgId   String? @db.VarChar(64)
+  orgName String  @default("") @db.VarChar(255)
+
+  requesterEmail String @db.VarChar(255)
+  /// 'email' | 'form' | 'staff'
+  channel        String @db.VarChar(16)
+  /// 'billing' | 'builder' | 'export' | 'access' | 'account'
+  category       String @db.VarChar(24)
+  /// 'urgent' | 'high' | 'normal' | 'low'
+  priority       String @db.VarChar(16)
+  /// 'open' | 'waiting_customer' | 'escalated' | 'resolved'
+  status         String @default("open") @db.VarChar(24)
+
+  ownerEmail String?  @db.VarChar(255)
+  slaDueAt   DateTime
+  summary    String   @default("") @db.VarChar(500)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, slaDueAt])
+}
+
+// ─── Platform telemetrisi ────────────────────────────────────────────────
+
+/**
+ * Posta teslim defteri — `getMailer` her gönderimde yazar (en-iyi-çaba:
+ * defter yazılamıyorsa POSTA YİNE GİDER, posta kralın kendisi).
+ * `state='delivered'` SMTP rölesinin KABUL ETTİĞİ anlamına gelir — uç
+ * teslim garantisi değil; DSN takibi yok. Alıcının yalnız ALAN ADI tutulur
+ * (privacy by default) — tam adres panelde gösterilmez.
+ */
+model MailDelivery {
+  id String @id @default(cuid())
+
+  /// 'verification' | 'invitation' | 'notification' | 'support'
+  kind            String  @db.VarChar(16)
+  provider        String  @db.VarChar(64)
+  recipientDomain String  @db.VarChar(255)
+  /// 'delivered' (röle kabul etti) | 'failed'
+  state           String  @db.VarChar(16)
+  attempts        Int     @default(1)
+  error           String? @db.VarChar(300)
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// İş koşuları — şimdilik tek gerçek iş: cleanup-orphans (elle koşulur).
+model JobRun {
+  id String @id @default(cuid())
+
+  name       String  @db.VarChar(64)
+  queue      String  @default("manual") @db.VarChar(32)
+  /// 'running' | 'complete' | 'failed'
+  state      String  @db.VarChar(16)
+  attempts   Int     @default(1)
+  durationMs Int?
+  error      String? @db.VarChar(300)
+
+  scheduledAt DateTime  @default(now())
+  startedAt   DateTime?
+  finishedAt  DateTime?
+
+  @@index([name, scheduledAt])
+}
+
+/**
+ * Hata yakalama — Next `instrumentation.onRequestError` yazar. Grup =
+ * parmak izi (ad+mesaj); olaylar ayrı tabloda birikir ki "kaç kez, kaç
+ * org" gerçek sayı olsun. Satır silinmez; `state` ile yönetilir.
+ */
+model ErrorGroup {
+  id String @id @default(cuid())
+
+  fingerprint String @unique @db.VarChar(64)
+  title       String @db.VarChar(200)
+  surface     String @db.VarChar(100)
+  /// 'critical' | 'error' | 'warning'
+  severity    String @default("error") @db.VarChar(16)
+  /// 'open' | 'investigating' | 'resolved'
+  state       String @default("open") @db.VarChar(16)
+
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  events ErrorEvent[]
+
+  @@index([state, lastSeenAt])
+}
+
+model ErrorEvent {
+  id          String  @id @default(cuid())
+  fingerprint String  @db.VarChar(64)
+  orgId       String? @db.VarChar(64)
+
+  createdAt DateTime @default(now())
+
+  group ErrorGroup @relation(fields: [fingerprint], references: [fingerprint], onDelete: Restrict)
+
+  @@index([fingerprint, createdAt])
 }

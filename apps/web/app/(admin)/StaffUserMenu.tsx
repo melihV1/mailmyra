@@ -4,8 +4,7 @@ import { useDropdown } from '../(app)/navbar/useDropdown';
 
 /**
  * Personel avatar menüsü — markup müşteri panelindeki UserMenu'dan BİREBİR
- * (tema dropdown-user); yalnız hedefler personele göre: müşteri paneline
- * dönüş + çıkış. Rozet "Staff" der.
+ * (tema dropdown-user); yalnız personel kimliği ve güvenli çıkış gösterilir.
  */
 export function StaffUserMenu({ email }: { email: string }) {
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
@@ -45,15 +44,6 @@ export function StaffUserMenu({ email }: { email: string }) {
               </div>
             </div>
           </div>
-        </li>
-        <li>
-          <div className="dropdown-divider my-1 mx-n2" />
-        </li>
-        <li>
-          <a href="/app" className="dropdown-item">
-            <i className="icon-base ti tabler-arrow-back-up me-3 icon-md" aria-hidden="true" />
-            <span className="align-middle">Customer panel</span>
-          </a>
         </li>
         <li>
           <div className="dropdown-divider my-1 mx-n2" />

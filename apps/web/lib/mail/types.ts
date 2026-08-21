@@ -15,8 +15,13 @@ export interface MailBody {
   text: string;
 }
 
+/** Teslim defterindeki sınıflandırma — içerik değil, tür etiketi. */
+export type MailKind = 'verification' | 'invitation' | 'notification' | 'support';
+
 export interface OutgoingMail extends MailBody {
   to: string;
+  /** Verilmezse defterde 'notification' sayılır. */
+  kind?: MailKind;
 }
 
 export interface Mailer {

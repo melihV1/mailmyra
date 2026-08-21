@@ -3,6 +3,10 @@ import { describe, expect, test } from 'vitest';
 import { PRICING, annualTotalCents } from '../src/pricing';
 
 describe('the locked price model', () => {
+  test('has one explicit version key for new organization assignments', () => {
+    expect(PRICING.version).toBe('2026-08-07-usd-1-year');
+  });
+
   test('one dollar, per active sender, per year', () => {
     expect(PRICING.perSeatYearCents).toBe(100);
     expect(PRICING.currency).toBe('USD');

@@ -41,10 +41,62 @@ function createLogMailer(): Mailer {
  * Sağlayıcı kararı henüz açık (Plesk SMTP / Google Workspace). Uygulamanın
  * hiçbir yeri bunu bilmiyor — hangisi seçilirse `.env` değişiyor, kod değil.
  */
+/**
+ * Teslim defteri (MailDelivery) — EN-İYİ-ÇABA: defter yazılamıyorsa posta
+ * YİNE GİDER ve hata yutulur; posta işin kendisi, defter gözlemi. Alıcının
+ * yalnız ALAN ADI yazılır (privacy by default). `state='delivered'` rölenin
+ * kabul ettiği anlamına gelir — uç teslim garantisi değil (DSN takibi yok).
+ *
+ * `import('../db')` DİNAMİK: bu modül CLI script'lerinde de yükleniyor
+ * (send-test-signatures) ve orada DATABASE_URL yok — statik import olsaydı
+ * script'ler DB isterdi.
+ */
+async function recordDelivery(
+  mail: OutgoingMail,
+  provider: string,
+  state: 'delivered' | 'failed',
+  error: string | null,
+): Promise<void> {
+  try {
+    const { prisma } = await import('../db');
+    await prisma.mailDelivery.create({
+      data: {
+        kind: mail.kind ?? 'notification',
+        provider: provider.slice(0, 64),
+        recipientDomain: (mail.to.split('@')[1] ?? 'unknown').toLowerCase().slice(0, 255),
+        state,
+        error: error?.slice(0, 300) ?? null,
+      },
+    });
+  } catch {
+    // defter gözlemdir; yazılamaması gönderimi etkilemez
+  }
+}
+
+function withDeliveryLedger(mailer: Mailer, provider: string): Mailer {
+  return {
+    kind: mailer.kind,
+    async send(mail: OutgoingMail) {
+      try {
+        await mailer.send(mail);
+        await recordDelivery(mail, provider, 'delivered', null);
+      } catch (err) {
+        await recordDelivery(
+          mail,
+          provider,
+          'failed',
+          err instanceof Error ? err.message : String(err),
+        );
+        throw err;
+      }
+    },
+  };
+}
+
 export function getMailer(env: Record<string, string | undefined> = process.env): Mailer {
   const result = readSmtpConfig(env);
 
-  if (result.ok) return createSmtpMailer(result.config);
+  if (result.ok) return withDeliveryLedger(createSmtpMailer(result.config), result.config.host);
 
   if (env.NODE_ENV === 'production') {
     throw new Error(
@@ -53,5 +105,5 @@ export function getMailer(env: Record<string, string | undefined> = process.env)
     );
   }
 
-  return createLogMailer();
+  return withDeliveryLedger(createLogMailer(), 'log');
 }

@@ -40,7 +40,10 @@ export function AdminSearch() {
   const total = result ? result.orgs.length + result.invoices.length + result.users.length : 0;
 
   return (
-    <div className="navbar-nav align-items-center me-auto position-relative" style={{ minWidth: 280 }}>
+    <div
+      className="mm-admin-search navbar-nav align-items-center me-auto position-relative d-none d-md-flex"
+      style={{ minWidth: 280 }}
+    >
       <div className="input-group input-group-merge">
         <span className="input-group-text">
           <i className="icon-base ti tabler-search" aria-hidden="true" />
@@ -48,7 +51,7 @@ export function AdminSearch() {
         <input
           type="search"
           className="form-control"
-          placeholder="Org name · invoice # · exact e-mail"
+          placeholder="Org, invoice or email"
           aria-label="Search customers"
           value={q}
           onChange={(e) => setQ(e.target.value)}

@@ -17,6 +17,8 @@ deploy-next.zip
 
 # Playwright MCP ekran goruntuleri ve DOM dokumleri
 .playwright-mcp/
+.playwright-cli/
+/output/
 
 # Vuexy tema dosyaları — lisanslı, repoya girmez (scripts/vuexy-recolor.mjs üretir)
 apps/web/public/vuexy/

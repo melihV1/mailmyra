@@ -1,279 +1,151 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../lib/auth/current';
-import { listAdminQueues, listOrganizations, NotStaffError } from '../../../lib/repo/admin';
-import { fmtDate, fmtMoney, STATE_BADGE } from '../format';
+import {
+  listAdminActions,
+  listAdminQueues,
+  listInvoicesAdmin,
+  listOrganizations,
+  listStaffAccess,
+  NotStaffError,
+} from '../../../lib/repo/admin';
+import { fmtDate } from '../format';
+import { buildQueueRows } from '../queue-model';
+import { CommandCenterView } from '../ui/CommandCenterView';
+import { type CustomerRow } from '../ui/CustomerTable';
 
 export const metadata = { title: 'Command center — Mailmyra staff' };
 export const dynamic = 'force-dynamic';
 
 /**
- * Komuta merkezi. Görsel dil müşteri panelinin ONAYLI senders sayfasından
- * (karar 2026-08-13): stat kartları `avatar-initial` rozetiyle, listeler
- * kart içinde `table table-hover` (2026-08-16 dersi: list-group DEĞİL,
- * temadaki tablolar). Süs grafiği yok — her kutu ya cevap ya eylem listesi.
+ * Komuta merkezi — redesign brief §5 sözleşmesi. İlk ekran dört soruyu
+ * cevaplar: kaç faturalanabilir koltuk var · bugün kim eylem istiyor ·
+ * ne kadar para gecikmiş · onboarding nerede takıldı.
+ *
+ * KPI bandı DÖRT FARKLI kompozisyon (brief §5.2 — "aynı ağırlıkta dört
+ * ikiz kart" reddedildi): koltuk = başlık+değer+progress · müşteri =
+ * rozet-ikon + durum kırılımı · deneme = sayı + EN YAKIN bitiş tarihi ·
+ * gecikmiş = tutar + adet. Uyarı/tehlike tonu YALNIZ sıfırdan büyükken.
+ * Sahte grafik yok — geçmiş verisi olmayan yerde eğilim çizilmez.
  */
 export default async function CommandCenterPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin');
 
-  let orgs, queues;
+  let orgs, queues, invoices, accessRows, actionRows;
   try {
-    [orgs, queues] = await Promise.all([
+    [orgs, queues, invoices, accessRows, actionRows] = await Promise.all([
       listOrganizations(session.user.id),
       listAdminQueues(session.user.id),
+      listInvoicesAdmin(session.user.id),
+      listStaffAccess(session.user.id),
+      listAdminActions(session.user.id),
     ]);
   } catch (err) {
     if (err instanceof NotStaffError) redirect('/app');
     throw err;
   }
 
+  const now = Date.now();
   const activeSeats = orgs.reduce((sum, o) => sum + o.activeSeats, 0);
   const entitledSeats = orgs.reduce((sum, o) => sum + o.entitledSeats, 0);
-  const overdueTotal = queues.overdueInvoices.reduce((sum, i) => sum + i.amountCents, 0);
-  const pct = entitledSeats > 0 ? Math.min(100, (activeSeats / entitledSeats) * 100) : 0;
+  const seatPct = entitledSeats > 0 ? Math.min(100, (activeSeats / entitledSeats) * 100) : 0;
+  const activityCoverage = orgs.filter((o) => o.lastActivityAt !== null).length;
+  const workspaceCount = orgs.reduce((sum, o) => sum + 1 + o.childCount, 0);
+  const nextTrialEnd = queues.trialsEnding
+    .map((o) => o.trialEndsAt)
+    .filter((d): d is Date => d !== null)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
 
-  const stats = [
-    {
-      label: 'Customers',
-      value: String(orgs.length),
-      note: 'Root billing organizations',
-      icon: 'tabler-building',
-      tone: 'primary',
-    },
-    {
-      label: 'Trials ending',
-      value: String(queues.trialsEnding.length),
-      note: 'Within the next 7 days',
-      icon: 'tabler-hourglass',
-      tone: 'warning',
-    },
-    {
-      label: 'Overdue',
-      value: queues.overdueInvoices.length ? fmtMoney(overdueTotal, 'USD') : '0',
-      note: `${queues.overdueInvoices.length} invoice${queues.overdueInvoices.length === 1 ? '' : 's'} past due`,
-      icon: 'tabler-alert-triangle',
-      tone: 'danger',
-    },
-  ] as const;
+  const queueRows = buildQueueRows(orgs, queues, now);
 
-  const QUEUES: Array<{
-    title: string;
-    icon: string;
-    columns: [string, string];
-    rows: Array<{ key: string; href: string; main: string; side: string }>;
-    empty: string;
-  }> = [
-    {
-      title: 'Trials ending soon',
-      icon: 'tabler-hourglass',
-      columns: ['Customer', 'Ends'],
-      rows: queues.trialsEnding.map((o) => ({
-        key: o.id,
-        href: `/admin/orgs/${o.id}`,
-        main: o.name,
-        side: fmtDate(o.trialEndsAt),
-      })),
-      empty: 'No trials end in the next 7 days.',
-    },
-    {
-      title: 'Over entitlement',
-      icon: 'tabler-users-minus',
-      columns: ['Customer', 'Seats'],
-      rows: queues.overEntitlement.map((o) => ({
-        key: o.id,
-        href: `/admin/orgs/${o.id}`,
-        main: o.name,
-        side: `${o.activeSeats}/${o.entitledSeats}`,
-      })),
-      empty: 'Nobody exceeds their seats.',
-    },
-    {
-      title: 'Expired trial, still marked trial',
-      icon: 'tabler-clock-exclamation',
-      columns: ['Customer', 'Expired'],
-      rows: queues.expiredTrials.map((o) => ({
-        key: o.id,
-        href: `/admin/orgs/${o.id}`,
-        main: o.name,
-        side: fmtDate(o.trialEndsAt),
-      })),
-      empty: 'No stale trials.',
-    },
-    {
-      title: 'Overdue invoices',
-      icon: 'tabler-file-alert',
-      columns: ['Invoice', 'Overdue'],
-      rows: queues.overdueInvoices.map((i) => ({
-        key: i.id,
-        href: `/admin/orgs/${i.orgId}`,
-        main: `${i.number} · ${i.orgName}`,
-        side: `${i.overdueDays}d · ${fmtMoney(i.amountCents, i.currency)}`,
-      })),
-      empty: 'Nothing overdue.',
-    },
-  ];
+  const currencies = [...new Set(invoices.map((invoice) => invoice.currency))];
+  const displayCurrency = currencies.includes('USD') ? 'USD' : (currencies[0] ?? 'USD');
+  const currencyInvoices = invoices.filter((invoice) => invoice.currency === displayCurrency);
+  const billedInvoices = currencyInvoices.filter((invoice) => invoice.status !== 'void');
+  const paidInvoices = currencyInvoices.filter((invoice) => invoice.status === 'paid');
+  const dueInvoices = currencyInvoices.filter((invoice) => invoice.status === 'due');
+  const voidInvoices = currencyInvoices.filter((invoice) => invoice.status === 'void');
+
+  const dayAgo = now - 24 * 60 * 60 * 1000;
+  const reads24h = accessRows.filter((row) => row.createdAt.getTime() >= dayAgo).length;
+  const writes24h = actionRows.filter((row) => row.createdAt.getTime() >= dayAgo).length;
+  const auditEvents = [
+    ...accessRows.slice(0, 8).map((row) => ({
+      id: `read:${row.id}`,
+      kind: 'read' as const,
+      staffEmail: row.staffEmail,
+      orgName: row.orgName,
+      label: `Viewed ${humanize(row.scope)}`,
+      detail: row.targetId ? `target ${row.targetId}` : 'customer data',
+      createdAt: row.createdAt.getTime(),
+    })),
+    ...actionRows.slice(0, 8).map((row) => ({
+      id: `write:${row.id}`,
+      kind: 'write' as const,
+      staffEmail: row.staffEmail,
+      orgName: row.orgName,
+      label: humanize(row.action),
+      detail: row.reason,
+      createdAt: row.createdAt.getTime(),
+    })),
+  ]
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, 10);
+
+  const tableRows: CustomerRow[] = orgs.map((o) => ({
+    id: o.id,
+    name: o.name,
+    entitlementState: o.entitlementState,
+    activeSeats: o.activeSeats,
+    entitledSeats: o.entitledSeats,
+    trialEndsAt: o.trialEndsAt ? fmtDate(o.trialEndsAt) : null,
+    memberCount: o.memberCount,
+    childCount: o.childCount,
+    lastActivityAt: o.lastActivityAt ? fmtDate(o.lastActivityAt) : null,
+    createdAt: fmtDate(o.createdAt),
+  }));
 
   return (
-    <section>
-      <h4 className="mb-4">Command center</h4>
-
-      <div className="row g-4 mb-4">
-        {/* Koltuk kartı — senders sayfasındaki sayaç + ilerleme çubuğu kalıbı */}
-        <div className="col-sm-6 col-xl-3">
-          <div className="card h-100">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <p className="text-heading mb-1">Active seats</p>
-                  <h4 className="mb-2" role="status">
-                    {activeSeats} <span className="text-body-secondary">/ {entitledSeats}</span>
-                  </h4>
-                </div>
-                <span className="avatar">
-                  <span className="avatar-initial rounded bg-label-success">
-                    <i className="icon-base ti tabler-users icon-md" aria-hidden="true" />
-                  </span>
-                </span>
-              </div>
-              <div className="progress" style={{ height: 6 }} aria-hidden="true">
-                <div className="progress-bar" style={{ width: `${pct}%` }} />
-              </div>
-              {/* "Revenue" DEMİYORUZ: koltuk × $1 liste fiyatı tabanı, tahsilat değil. */}
-              <small className="text-body-secondary d-block mt-2">
-                List-price base: {fmtMoney(activeSeats * 100, 'USD')}/yr
-              </small>
-            </div>
-          </div>
-        </div>
-
-        {stats.map((s) => (
-          <div key={s.label} className="col-sm-6 col-xl-3">
-            <div className="card h-100">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-start">
-                  <div>
-                    <p className="text-heading mb-1">{s.label}</p>
-                    <h4 className="mb-1">{s.value}</h4>
-                    <small className="text-body-secondary">{s.note}</small>
-                  </div>
-                  <span className="avatar">
-                    <span className={`avatar-initial rounded bg-label-${s.tone}`}>
-                      <i className={`icon-base ti ${s.icon} icon-md`} aria-hidden="true" />
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="row g-4 mb-4">
-        {QUEUES.map((queue) => (
-          <div className="col-md-6" key={queue.title}>
-            <div className="card h-100">
-              <div className="card-header d-flex align-items-center gap-2">
-                <span className="avatar avatar-sm">
-                  <span className="avatar-initial rounded bg-label-secondary">
-                    <i className={`icon-base ti ${queue.icon} icon-sm`} aria-hidden="true" />
-                  </span>
-                </span>
-                <h5 className="card-title mb-0">{queue.title}</h5>
-                <span className="badge bg-label-secondary rounded-pill ms-auto">
-                  {queue.rows.length}
-                </span>
-              </div>
-              <div className="table-responsive">
-                <table className="table table-hover mb-0">
-                  <thead>
-                    <tr>
-                      <th>{queue.columns[0]}</th>
-                      <th className="text-end">{queue.columns[1]}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {queue.rows.length === 0 && (
-                      <tr>
-                        <td colSpan={2} className="text-body-secondary small">
-                          {queue.empty}
-                        </td>
-                      </tr>
-                    )}
-                    {queue.rows.slice(0, 6).map((row) => (
-                      <tr key={row.key}>
-                        <td>
-                          <Link href={row.href}>{row.main}</Link>
-                        </td>
-                        <td className="text-end text-body-secondary small">{row.side}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="card">
-        <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-          <div>
-            <h5 className="card-title mb-0">Customers</h5>
-            <p className="card-subtitle text-body-secondary mt-1 mb-0">
-              Root billing organizations — agency workspaces live inside their root.
-            </p>
-          </div>
-        </div>
-        <div className="table-responsive text-nowrap">
-          <table className="table table-hover">
-            <thead>
-              <tr>
-                <th>Organization</th>
-                <th>State</th>
-                <th>Seats</th>
-                <th>Trial ends</th>
-                <th>Members</th>
-                <th>Children</th>
-                <th>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orgs.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="text-body-secondary">
-                    No customers yet — the first registration shows up here.
-                  </td>
-                </tr>
-              )}
-              {orgs.map((o) => (
-                <tr key={o.id}>
-                  <td>
-                    <Link href={`/admin/orgs/${o.id}`} className="fw-medium">
-                      {o.name}
-                    </Link>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge ${STATE_BADGE[o.entitlementState] ?? 'bg-label-secondary'}`}
-                    >
-                      {o.entitlementState}
-                    </span>
-                  </td>
-                  <td className={o.activeSeats > o.entitledSeats ? 'text-danger fw-medium' : ''}>
-                    {o.activeSeats}/{o.entitledSeats}
-                  </td>
-                  <td>{fmtDate(o.trialEndsAt)}</td>
-                  <td>{o.memberCount}</td>
-                  <td>{o.childCount || '—'}</td>
-                  <td>{fmtDate(o.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+    <CommandCenterView
+      customerCount={orgs.length}
+      queueRows={queueRows}
+      tableRows={tableRows}
+      totals={{
+        activeSeats,
+        entitledSeats,
+        seatPct,
+        listPriceCents: activeSeats * 100,
+        workspaceCount,
+        activityCoverage,
+        activityCoveragePct: orgs.length ? (activityCoverage / orgs.length) * 100 : 0,
+      }}
+      customerStates={{
+        active: orgs.filter((o) => o.entitlementState === 'active').length,
+        trial: orgs.filter((o) => o.entitlementState === 'trial').length,
+        pastDue: orgs.filter((o) => o.entitlementState === 'past_due').length,
+        cancelled: orgs.filter((o) => o.entitlementState === 'cancelled').length,
+      }}
+      financials={{
+        currency: displayCurrency,
+        billedCents: billedInvoices.reduce((sum, invoice) => sum + invoice.amountCents, 0),
+        collectedCents: paidInvoices.reduce((sum, invoice) => sum + invoice.amountCents, 0),
+        outstandingCents: dueInvoices.reduce((sum, invoice) => sum + invoice.amountCents, 0),
+        invoiceCount: billedInvoices.length,
+        paidCount: paidInvoices.length,
+        dueCount: dueInvoices.length,
+        voidCount: voidInvoices.length,
+        excludedCurrencyRows: invoices.length - currencyInvoices.length,
+      }}
+      audit={{ reads24h, writes24h, events: auditEvents }}
+      trialsEndingCount={queues.trialsEnding.length}
+      overdueCount={queues.overdueInvoices.length}
+      nextTrialEnd={nextTrialEnd ? fmtDate(nextTrialEnd) : null}
+      now={now}
+    />
   );
+}
+
+function humanize(value: string) {
+  return value.replace(/[._-]+/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }

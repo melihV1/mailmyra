@@ -12,6 +12,8 @@
  */
 
 export const PRICING = {
+  /** Organization.priceVersion ile birebir eşleşen canlı fiyat politikası. */
+  version: '2026-08-07-usd-1-year',
   perSeatYearCents: 100,
   currency: 'USD',
   minSeats: 1,

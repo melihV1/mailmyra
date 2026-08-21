@@ -343,6 +343,13 @@ Kurulum rehberleri öncelikli: hem en çok aranan SEO içeriği hem destek yük�
 - ❌ 3'ten fazla şablon → motor oturunca seri üretilir
 - ❌ Bootstrap, hazır tema
 
+> **İstisna (2026-08-21, Hüseyin, sözlü):** SÜPER ADMİN PANELİ için bu
+> listeden "imza analitiği" ve "onay akışları" maddeleri açıkça esnetildi —
+> personel paneli ürün/growth analitiği ekranları ve governance onay
+> defteri taşıyor. İstisna YALNIZ personel panelini kapsar: müşteriye dönük
+> analitik/tıklama takibi ve müşteri onay akışları hâlâ yasak. Directory
+> sync yine yapılmadı (veri kaynağı yok).
+
 Kapsam şişmesi bu projenin bir numaralı ölüm sebebidir. Yeni özellik önerisi gelirse bu listeye bak.
 
 ---

@@ -4,6 +4,7 @@ import { renderSignature, type SignatureData } from '@mailmyra/renderer';
 import { mergeWithEmpty } from '../../app/builder/reducer';
 import { applyBrand } from '../brand-apply';
 import { prisma } from '../db';
+import { nextPlannedRun } from '../report-schedule';
 import type { ActivityType } from './activity';
 import { getBrand } from './brand';
 import { countActiveSeats } from './senders';
@@ -104,7 +105,23 @@ function requireReason(reason: string): string {
   return cleaned;
 }
 
-export type AccessScope = 'org' | 'senders' | 'signatures' | 'signature';
+export type AccessScope =
+  | 'org'
+  | 'members'
+  | 'senders'
+  | 'signatures'
+  | 'signature'
+  | 'kvkk'
+  | 'support';
+
+/** Destek defterinin günlükteki sentetik kimliği — KVKK_REGISTER emsali:
+ *  vakalar org'lar arası tek listede ve `requesterEmail` kişisel veri. */
+export const SUPPORT_REGISTER = { id: 'support-register', name: 'Support register' } as const;
+
+/** KVKK kayıt defterinin günlükteki sentetik kimliği: talepler tek bir
+ *  müşteriye ait değil, platformun kendi yasal defteri — ama içindeki
+ *  `subjectEmail` kişisel veri olduğu için OKUMASI yine loglanır. */
+export const KVKK_REGISTER = { id: 'kvkk-register', name: 'KVKK register' } as const;
 
 /**
  * Müşterinin KİŞİSEL verisine her bakış buraya düşer — ve bu yazma
@@ -196,6 +213,7 @@ export interface AdminOrgRow {
   id: string;
   name: string;
   createdAt: Date;
+  priceVersion: string;
   entitlementState: string;
   entitledSeats: number;
   activeSeats: number;
@@ -203,6 +221,9 @@ export interface AdminOrgRow {
   memberCount: number;
   /** Ajans ağacındaki müşteri org sayısı — 0 ise düz hesap. */
   childCount: number;
+  /** Org'un KENDİ aktivite akışındaki son olay (çocuk org'lar hariç) —
+   *  "bu müşteri yaşıyor mu" sütunu. Olay yoksa null. */
+  lastActivityAt: Date | null;
 }
 
 /**
@@ -226,12 +247,24 @@ export async function listOrganizations(staffUserId: string): Promise<AdminOrgRo
       id: true,
       name: true,
       createdAt: true,
+      priceVersion: true,
       entitlementState: true,
       entitledSeats: true,
       trialEndsAt: true,
       _count: { select: { memberships: true, children: true } },
     },
   });
+
+  // Son aktivite tek groupBy ile: org başına ayrı sorgu açılmaz.
+  const lastActivity = new Map<string, Date>();
+  const grouped = await prisma.activityEvent.groupBy({
+    by: ['orgId'],
+    _max: { createdAt: true },
+    where: { orgId: { in: orgs.map((o) => o.id) } },
+  });
+  for (const g of grouped) {
+    if (g._max.createdAt) lastActivity.set(g.orgId, g._max.createdAt);
+  }
 
   // Koltuk sayımı org başına bir sorgu. 10 müşteri için N+1 endişesi yok;
   // liste büyürse tek sorguluk toplu sayıma geçilir.
@@ -240,14 +273,99 @@ export async function listOrganizations(staffUserId: string): Promise<AdminOrgRo
       id: o.id,
       name: o.name,
       createdAt: o.createdAt,
+      priceVersion: o.priceVersion,
       entitlementState: o.entitlementState,
       entitledSeats: o.entitledSeats,
       activeSeats: await countActiveSeats(o.id),
       trialEndsAt: o.trialEndsAt,
       memberCount: o._count.memberships,
       childCount: o._count.children,
+      lastActivityAt: lastActivity.get(o.id) ?? null,
     })),
   );
+}
+
+export interface AdminCustomerUserRow {
+  id: string;
+  email: string;
+  avatarUrl: string | null;
+  createdAt: Date;
+  lastLoginAt: Date | null;
+  emailVerifiedAt: Date | null;
+  memberships: Array<{ orgId: string; orgName: string; role: string; joinedAt: Date }>;
+}
+
+/**
+ * Platform genelindeki müşteri kullanıcıları. E-posta kişisel veridir; önce
+ * erişilecek org kümesi kişisel veri olmadan çözülür, her org için erişim izi
+ * yazılır, kullanıcı satırları ancak bundan sonra okunur.
+ */
+export async function listCustomerUsers(
+  staffUserId: string,
+  ctx?: StaffContext,
+): Promise<AdminCustomerUserRow[]> {
+  const staff = await requireStaff(staffUserId);
+  const organizations = await prisma.organization.findMany({
+    where: { memberships: { some: {} } },
+    select: { id: true, name: true },
+  });
+
+  await Promise.all(organizations.map((org) => logAccess(staff, org, 'members', ctx)));
+
+  const users = await prisma.user.findMany({
+    where: { memberships: { some: {} }, isStaff: false },
+    orderBy: { createdAt: 'desc' },
+    take: 300,
+    select: {
+      id: true,
+      email: true,
+      avatarUrl: true,
+      createdAt: true,
+      lastLoginAt: true,
+      emailVerifiedAt: true,
+      memberships: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          role: true,
+          createdAt: true,
+          org: { select: { id: true, name: true } },
+        },
+      },
+    },
+  });
+
+  return users.map((user) => ({
+    id: user.id,
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+    createdAt: user.createdAt,
+    lastLoginAt: user.lastLoginAt,
+    emailVerifiedAt: user.emailVerifiedAt,
+    memberships: user.memberships.map((membership) => ({
+      orgId: membership.org.id,
+      orgName: membership.org.name,
+      role: membership.role,
+      joinedAt: membership.createdAt,
+    })),
+  }));
+}
+
+export interface AdminStaffAccountRow {
+  id: string;
+  email: string;
+  avatarUrl: string | null;
+  createdAt: Date;
+  lastLoginAt: Date | null;
+}
+
+/** Personel hesapları salt okunur; yetki hâlâ tek `isStaff` kapısıdır. */
+export async function listStaffAccounts(staffUserId: string): Promise<AdminStaffAccountRow[]> {
+  await requireStaff(staffUserId);
+  return prisma.user.findMany({
+    where: { isStaff: true },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, email: true, avatarUrl: true, createdAt: true, lastLoginAt: true },
+  });
 }
 
 /**
@@ -299,6 +417,7 @@ export async function getOrganization(
       id: true,
       name: true,
       createdAt: true,
+      priceVersion: true,
       entitlementState: true,
       entitledSeats: true,
       trialEndsAt: true,
@@ -318,6 +437,12 @@ export async function getOrganization(
   });
   if (!full) return null;
 
+  const lastEvent = await prisma.activityEvent.findFirst({
+    where: { orgId },
+    orderBy: { createdAt: 'desc' },
+    select: { createdAt: true },
+  });
+
   // Aktivasyon: üç sayım tek round-trip'te. Org'un KENDİ kayıtları —
   // ajans ağacı değil; onboarding çalışma alanı bazında takılır.
   const [signatureCount, senderCount, publishedCount, exportedCount] = await Promise.all([
@@ -331,6 +456,7 @@ export async function getOrganization(
     id: full.id,
     name: full.name,
     createdAt: full.createdAt,
+    priceVersion: full.priceVersion,
     entitlementState: full.entitlementState,
     entitledSeats: full.entitledSeats,
     activeSeats: await countActiveSeats(full.id),
@@ -343,6 +469,7 @@ export async function getOrganization(
       joinedAt: m.createdAt,
     })),
     children: full.children,
+    lastActivityAt: lastEvent?.createdAt ?? null,
     activation: {
       emailVerified: full.memberships.some((m) => m.user.emailVerifiedAt !== null),
       signatureCreated: signatureCount > 0,
@@ -634,6 +761,8 @@ export interface StaffAccessRow {
   orgName: string;
   scope: string;
   targetId: string | null;
+  ip: string | null;
+  userAgent: string | null;
   createdAt: Date;
 }
 
@@ -658,6 +787,8 @@ export async function listStaffAccess(
       orgName: true,
       scope: true,
       targetId: true,
+      ip: true,
+      userAgent: true,
       createdAt: true,
     },
   });
@@ -666,12 +797,15 @@ export async function listStaffAccess(
 export interface AdminActionRow {
   id: string;
   staffEmail: string;
+  orgId: string;
   orgName: string;
   action: string;
   targetId: string | null;
   before: unknown;
   after: unknown;
   reason: string;
+  ip: string | null;
+  userAgent: string | null;
   createdAt: Date;
 }
 
@@ -689,12 +823,15 @@ export async function listAdminActions(
     select: {
       id: true,
       staffEmail: true,
+      orgId: true,
       orgName: true,
       action: true,
       targetId: true,
       before: true,
       after: true,
       reason: true,
+      ip: true,
+      userAgent: true,
       createdAt: true,
     },
   });
@@ -1104,4 +1241,645 @@ export async function listInvoicesAdmin(
     paymentReference: r.paymentReference,
     note: r.note,
   }));
+}
+
+// ─── Product analytics ──────────────────────────────────────────────────
+
+/**
+ * Cross-organization product snapshot. Only operational metadata leaves the
+ * repository: signature identity/contact fields are deliberately discarded.
+ * Activity is bounded to twelve months so the control-plane query cannot grow
+ * without limit.
+ */
+export async function getProductAnalyticsAdmin(staffUserId: string) {
+  await requireStaff(staffUserId);
+  const since = new Date();
+  since.setUTCFullYear(since.getUTCFullYear() - 1);
+
+  const [organizations, signatures, senders, events] = await Promise.all([
+    prisma.organization.findMany({
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        entitlementState: true,
+        createdAt: true,
+        _count: { select: { memberships: true, signatures: true, senderIdentities: true } },
+        senderIdentities: {
+          select: { publishedAt: true, deactivatedAt: true, lastExportedAt: true },
+        },
+        activityEvents: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { createdAt: true },
+        },
+      },
+    }),
+    prisma.signature.findMany({
+      orderBy: { updatedAt: 'desc' },
+      select: {
+        id: true,
+        orgId: true,
+        templateId: true,
+        senderIdentityId: true,
+        data: true,
+        createdAt: true,
+        updatedAt: true,
+        org: { select: { name: true } },
+      },
+    }),
+    prisma.senderIdentity.findMany({
+      select: {
+        id: true,
+        orgId: true,
+        createdAt: true,
+        publishedAt: true,
+        deactivatedAt: true,
+        lastExportedAt: true,
+      },
+    }),
+    prisma.activityEvent.findMany({
+      where: {
+        createdAt: { gte: since },
+        type: { in: ['sender.published', 'sender.deactivated', 'export.zip', 'brand.saved'] },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 1000,
+      select: {
+        id: true,
+        orgId: true,
+        type: true,
+        payload: true,
+        createdAt: true,
+        org: { select: { name: true } },
+      },
+    }),
+  ]);
+
+  const objectValue = (value: Prisma.JsonValue): Record<string, unknown> =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : {};
+  const stringChoice = <T extends string>(value: unknown, choices: readonly T[], fallback: T): T =>
+    typeof value === 'string' && choices.includes(value as T) ? value as T : fallback;
+  const numberValue = (value: unknown): number => typeof value === 'number' && Number.isFinite(value) ? value : 0;
+
+  return {
+    organizations: organizations.map((org) => {
+      const active = org.senderIdentities.filter((sender) => sender.publishedAt && !sender.deactivatedAt);
+      return {
+        id: org.id,
+        name: org.name,
+        entitlementState: org.entitlementState,
+        createdAt: org.createdAt.toISOString(),
+        memberCount: org._count.memberships,
+        signatureCount: org._count.signatures,
+        senderCount: org._count.senderIdentities,
+        activeSenderCount: active.length,
+        exportedSenderCount: active.filter((sender) => sender.lastExportedAt).length,
+        lastActivityAt: org.activityEvents[0]?.createdAt.toISOString() ?? null,
+      };
+    }),
+    signatures: signatures.map((signature) => {
+      const data = objectValue(signature.data);
+      const layout = objectValue((data.layout ?? {}) as Prisma.JsonValue);
+      const visuals = objectValue((data.visuals ?? {}) as Prisma.JsonValue);
+      const extras = objectValue((data.extras ?? {}) as Prisma.JsonValue);
+      return {
+        id: signature.id,
+        orgId: signature.orgId,
+        orgName: signature.org.name,
+        templateId: signature.templateId,
+        createdAt: signature.createdAt.toISOString(),
+        updatedAt: signature.updatedAt.toISOString(),
+        assigned: Boolean(signature.senderIdentityId),
+        size: stringChoice(layout.size, ['small', 'medium', 'large'] as const, 'medium'),
+        iconStyle: stringChoice(layout.iconStyle, ['filled', 'outline', 'mono'] as const, 'mono'),
+        hasCta: Boolean(extras.ctaLabel && extras.ctaUrl),
+        hasLogo: Boolean(visuals.logoUrl),
+        hasAvatar: Boolean(visuals.avatarUrl),
+      };
+    }),
+    senders: senders.map((sender) => ({
+      id: sender.id,
+      orgId: sender.orgId,
+      createdAt: sender.createdAt.toISOString(),
+      publishedAt: sender.publishedAt?.toISOString() ?? null,
+      deactivatedAt: sender.deactivatedAt?.toISOString() ?? null,
+      lastExportedAt: sender.lastExportedAt?.toISOString() ?? null,
+    })),
+    events: events.map((event) => {
+      const payload = objectValue(event.payload);
+      return {
+        id: event.id,
+        orgId: event.orgId,
+        orgName: event.org.name,
+        type: event.type,
+        createdAt: event.createdAt.toISOString(),
+        fileCount: numberValue(payload.fileCount),
+        senderCount: numberValue(payload.senderCount),
+      };
+    }),
+  };
+}
+
+// ─── Governance: onaylar ─────────────────────────────────────────────────
+
+export interface AdminApprovalRow {
+  id: string;
+  title: string;
+  domain: string;
+  requester: string;
+  customer: string | null;
+  risk: string;
+  status: string;
+  requestedAt: Date;
+  requiredApprovals: number;
+  approvals: number;
+}
+
+/**
+ * Onay kuyruğu. Kişisel müşteri verisi İÇERMEZ (talep eden personel, hedef
+ * org adı ticari kayıt) → erişim günlüğüne yazılmaz (listOrganizations
+ * gerekçesi). Karar/onay DÜĞMELERİ bilinçli yok — devir sözleşmesi §7:
+ * yetki + kalıcılık + denetim + hata yolu birlikte gelmeden kontrol
+ * açılmaz. Satırlar şimdilik SQL ile açılır (isStaff emsali).
+ */
+export async function listApprovals(staffUserId: string): Promise<AdminApprovalRow[]> {
+  await requireStaff(staffUserId);
+
+  const rows = await prisma.approvalRequest.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: {
+      id: true,
+      title: true,
+      domain: true,
+      requestedByEmail: true,
+      orgName: true,
+      riskLevel: true,
+      status: true,
+      createdAt: true,
+      requiredApprovals: true,
+      _count: { select: { decisions: { where: { decision: 'approve' } } } },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    domain: r.domain,
+    requester: r.requestedByEmail,
+    customer: r.orgName,
+    risk: r.riskLevel,
+    status: r.status,
+    requestedAt: r.createdAt,
+    requiredApprovals: r.requiredApprovals,
+    approvals: r._count.decisions,
+  }));
+}
+
+// ─── Governance: KVKK talepleri ──────────────────────────────────────────
+
+export interface AdminKvkkRow {
+  id: string;
+  reference: string;
+  subjectEmail: string;
+  customer: string;
+  type: string;
+  status: string;
+  receivedAt: Date;
+  dueAt: Date;
+  owner: string | null;
+  evidenceCount: number;
+}
+
+/**
+ * KVKK defteri. `subjectEmail` KİŞİSEL VERİ — bu listeyi açmak bile
+ * `StaffAccess`e düşer ve günlük yazılamazsa liste DÖNMEZ (kapalıya düşme,
+ * getOrganization ile aynı sözleşme). Kayıt tek müşteriye bağlı olmadığı
+ * için günlük satırı sentetik `KVKK_REGISTER` kimliğini taşır.
+ */
+export async function listKvkkRequests(
+  staffUserId: string,
+  ctx?: StaffContext,
+): Promise<AdminKvkkRow[]> {
+  const staff = await requireStaff(staffUserId);
+
+  await logAccess(staff, KVKK_REGISTER, 'kvkk', ctx);
+
+  const rows = await prisma.kvkkRequest.findMany({
+    orderBy: { statutoryDueAt: 'asc' },
+    take: 200,
+    select: {
+      id: true,
+      reference: true,
+      subjectEmail: true,
+      orgName: true,
+      type: true,
+      status: true,
+      receivedAt: true,
+      statutoryDueAt: true,
+      ownerEmail: true,
+      _count: { select: { evidence: true } },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    reference: r.reference,
+    subjectEmail: r.subjectEmail,
+    customer: r.orgName,
+    type: r.type,
+    status: r.status,
+    receivedAt: r.receivedAt,
+    dueAt: r.statutoryDueAt,
+    owner: r.ownerEmail,
+    evidenceCount: r._count.evidence,
+  }));
+}
+
+// ─── Raporlar: zamanlamalar ──────────────────────────────────────────────
+
+export interface AdminReportScheduleRow {
+  id: string;
+  reportId: string;
+  cadence: string;
+  timezone: string;
+  format: string;
+  status: string;
+  nextRunAt: Date;
+  ownerEmail: string;
+  recipients: string[];
+  lastRunAt: Date | null;
+  lastRunStatus: string | null;
+}
+
+/** Zamanlama listesi — yapılandırma, kişisel veri değil; günlüğe yazılmaz. */
+export async function listReportSchedules(
+  staffUserId: string,
+): Promise<AdminReportScheduleRow[]> {
+  await requireStaff(staffUserId);
+
+  const rows = await prisma.reportSchedule.findMany({
+    orderBy: { createdAt: 'asc' },
+    take: 100,
+    select: {
+      id: true,
+      reportId: true,
+      cadence: true,
+      timezone: true,
+      format: true,
+      status: true,
+      nextRunAt: true,
+      ownerEmail: true,
+      recipients: { select: { email: true } },
+      executions: {
+        orderBy: { startedAt: 'desc' },
+        take: 1,
+        select: { startedAt: true, status: true },
+      },
+    },
+  });
+
+  const now = new Date();
+  return rows.map((r) => ({
+    id: r.id,
+    reportId: r.reportId,
+    cadence: r.cadence,
+    timezone: r.timezone,
+    format: r.format,
+    status: r.status,
+    nextRunAt: r.nextRunAt ?? nextPlannedRun(r.cadence, now),
+    ownerEmail: r.ownerEmail,
+    recipients: r.recipients.map((x) => x.email),
+    lastRunAt: r.executions[0]?.startedAt ?? null,
+    lastRunStatus: r.executions[0]?.status ?? null,
+  }));
+}
+
+// ─── Growth: lead defteri ────────────────────────────────────────────────
+
+export interface AdminLeadRow {
+  id: string;
+  company: string;
+  contact: string;
+  source: string;
+  seats: number;
+  stage: string;
+  nextStep: string;
+  createdAt: Date;
+}
+
+/**
+ * Satış hattı. Potansiyel müşteri bilgisi Voldi'nin KENDİ ticari kaydı
+ * (müşteri çalışanı verisi değil) → erişim günlüğüne yazılmaz. Otomatik
+ * kaynak yok; satırlar SQL ile açılır.
+ */
+export async function listLeads(staffUserId: string): Promise<AdminLeadRow[]> {
+  await requireStaff(staffUserId);
+  return prisma.lead.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: {
+      id: true,
+      company: true,
+      contact: true,
+      source: true,
+      seats: true,
+      stage: true,
+      nextStep: true,
+      createdAt: true,
+    },
+  });
+}
+
+// ─── Support: vaka defteri ───────────────────────────────────────────────
+
+export interface AdminSupportCaseRow {
+  id: string;
+  reference: string;
+  subject: string;
+  customer: string;
+  requesterEmail: string;
+  channel: string;
+  category: string;
+  priority: string;
+  status: string;
+  owner: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  slaDueAt: Date;
+  summary: string;
+}
+
+/**
+ * Destek vakaları. `requesterEmail` müşteri kişisel verisi — listeyi açmak
+ * `StaffAccess`e düşer, günlük yazılamazsa liste DÖNMEZ (KVKK emsali).
+ */
+export async function listSupportCases(
+  staffUserId: string,
+  ctx?: StaffContext,
+): Promise<AdminSupportCaseRow[]> {
+  const staff = await requireStaff(staffUserId);
+
+  await logAccess(staff, SUPPORT_REGISTER, 'support', ctx);
+
+  const rows = await prisma.supportCase.findMany({
+    orderBy: { slaDueAt: 'asc' },
+    take: 200,
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    reference: r.reference,
+    subject: r.subject,
+    customer: r.orgName || '—',
+    requesterEmail: r.requesterEmail,
+    channel: r.channel,
+    category: r.category,
+    priority: r.priority,
+    status: r.status,
+    owner: r.ownerEmail,
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    slaDueAt: r.slaDueAt,
+    summary: r.summary,
+  }));
+}
+
+// ─── Platform telemetrisi ────────────────────────────────────────────────
+
+export interface AdminTelemetry {
+  services: Array<{
+    id: string;
+    name: string;
+    group: string;
+    state: 'operational' | 'degraded' | 'outage' | 'unknown';
+    latencyMs: number | null;
+    uptime: number | null;
+    checkedAt: string | null;
+  }>;
+  mail: Array<{
+    id: string;
+    kind: string;
+    provider: string;
+    recipientDomain: string;
+    state: string;
+    attempts: number;
+    createdAt: string;
+  }>;
+  exports: Array<{
+    id: string;
+    orgName: string;
+    format: 'zip';
+    state: 'complete';
+    files: number;
+    durationMs: null;
+    createdAt: string;
+  }>;
+  jobs: Array<{
+    id: string;
+    name: string;
+    queue: string;
+    state: string;
+    attempts: number;
+    durationMs: number | null;
+    scheduledAt: string;
+    startedAt: string | null;
+  }>;
+  errors: Array<{
+    id: string;
+    fingerprint: string;
+    title: string;
+    surface: string;
+    severity: string;
+    events: number;
+    affectedOrgs: number;
+    firstSeenAt: string;
+    lastSeenAt: string;
+    state: string;
+  }>;
+  releases: Array<{
+    id: string;
+    version: string;
+    environment: 'production' | 'staging';
+    state: 'deployed';
+    commit: string;
+    owner: string;
+    createdAt: string;
+    checks: Array<{ label: string; passed: boolean }>;
+  }>;
+  flags: Array<{
+    id: string;
+    key: string;
+    label: string;
+    description: string;
+    owner: string;
+    state: 'on' | 'off';
+    rollout: number;
+    environments: Array<'production' | 'staging' | 'development'>;
+    updatedAt: string;
+  }>;
+}
+
+/**
+ * Platform telemetrisi — yedi defterin TAMAMI gerçek kaynaktan:
+ *
+ *   · services: DB ping ÖLÇÜLÜR (SELECT 1 süresi); SMTP/CDN sağlık probu
+ *     henüz yok → dürüstçe `unknown`, uydurma uptime yok.
+ *   · mail: `MailDelivery` (getMailer her gönderimde yazıyor; "delivered" =
+ *     röle kabul etti, uç teslim garantisi DEĞİL).
+ *   · exports: `ActivityEvent type='export.zip'` — zaten var olan gerçek olay.
+ *   · jobs: `JobRun` (cleanup-orphans koşularını yazıyor).
+ *   · errors: `ErrorGroup`+`ErrorEvent` (Next onRequestError yazıyor);
+ *     sayılar gerçek olay/org sayısı.
+ *   · releases: `_prisma_migrations` — sahici dağıtım defteri; git commit'i
+ *     çalışma zamanında bilinmez, '—' gösterilir.
+ *   · flags: env'den türeyen TEK gerçek bayrak (EXPORT_REQUIRES_AUTH),
+ *     salt-okunur.
+ *
+ * Tarihler ISO string döner: yedi defterin tek tüketicisi var (PlatformPage)
+ * ve Date→string eşleme vergisini sayfaya taşımanın getirisi yok.
+ * Kişisel veri yok (posta alıcısı yalnız ALAN ADI) → erişim günlüğüne
+ * yazılmaz; kapı `requireStaff`.
+ */
+export async function getPlatformTelemetry(staffUserId: string): Promise<AdminTelemetry> {
+  await requireStaff(staffUserId);
+
+  const nowIso = new Date().toISOString();
+
+  // DB sağlığı: gerçek ölçüm.
+  const dbStart = Date.now();
+  await prisma.$queryRaw`SELECT 1`;
+  const dbLatency = Date.now() - dbStart;
+
+  const [mailRows, exportRows, jobRows, errorGroups, errorCounts, migrations] = await Promise.all([
+    prisma.mailDelivery.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
+    prisma.activityEvent.findMany({
+      where: { type: 'export.zip' },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      select: { id: true, createdAt: true, payload: true, org: { select: { name: true } } },
+    }),
+    prisma.jobRun.findMany({ orderBy: { scheduledAt: 'desc' }, take: 100 }),
+    prisma.errorGroup.findMany({ orderBy: { lastSeenAt: 'desc' }, take: 100 }),
+    prisma.errorEvent.groupBy({ by: ['fingerprint'], _count: { _all: true } }),
+    prisma.$queryRaw<Array<{ migration_name: string; finished_at: Date | null }>>`
+      SELECT migration_name, finished_at FROM _prisma_migrations
+      ORDER BY finished_at DESC LIMIT 20`,
+  ]);
+
+  // Hata grubu başına etkilenen org sayısı (distinct orgId).
+  const orgCounts = await prisma.errorEvent.groupBy({
+    by: ['fingerprint', 'orgId'],
+    _count: { _all: true },
+  });
+  const affected = new Map<string, number>();
+  for (const g of orgCounts) {
+    if (g.orgId) affected.set(g.fingerprint, (affected.get(g.fingerprint) ?? 0) + 1);
+  }
+  const eventCount = new Map(errorCounts.map((g) => [g.fingerprint, g._count._all]));
+
+  const smtpConfigured = Boolean(process.env.MAIL_HOST);
+  const isProd = process.env.NODE_ENV === 'production';
+
+  return {
+    services: [
+      {
+        id: 'db',
+        name: 'MariaDB',
+        group: 'Data',
+        state: 'operational',
+        latencyMs: dbLatency,
+        uptime: null,
+        checkedAt: nowIso,
+      },
+      {
+        id: 'smtp',
+        name: smtpConfigured ? 'SMTP relay (configured)' : 'SMTP relay (not configured)',
+        group: 'Mail',
+        state: 'unknown',
+        latencyMs: null,
+        uptime: null,
+        checkedAt: null,
+      },
+      {
+        id: 'cdn',
+        name: 'cdn.mailmyra.com',
+        group: 'Assets',
+        state: 'unknown',
+        latencyMs: null,
+        uptime: null,
+        checkedAt: null,
+      },
+    ],
+    mail: mailRows.map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      provider: r.provider,
+      recipientDomain: r.recipientDomain,
+      state: r.state,
+      attempts: r.attempts,
+      createdAt: r.createdAt.toISOString(),
+    })),
+    exports: exportRows.map((r) => {
+      const payload = (r.payload ?? {}) as { fileCount?: number };
+      return {
+        id: r.id,
+        orgName: r.org.name,
+        format: 'zip' as const,
+        state: 'complete' as const,
+        files: typeof payload.fileCount === 'number' ? payload.fileCount : 0,
+        durationMs: null,
+        createdAt: r.createdAt.toISOString(),
+      };
+    }),
+    jobs: jobRows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      queue: r.queue,
+      state: r.state,
+      attempts: r.attempts,
+      durationMs: r.durationMs,
+      scheduledAt: r.scheduledAt.toISOString(),
+      startedAt: r.startedAt?.toISOString() ?? null,
+    })),
+    errors: errorGroups.map((g) => ({
+      id: g.id,
+      fingerprint: g.fingerprint,
+      title: g.title,
+      surface: g.surface,
+      severity: g.severity,
+      events: eventCount.get(g.fingerprint) ?? 0,
+      affectedOrgs: affected.get(g.fingerprint) ?? 0,
+      firstSeenAt: g.firstSeenAt.toISOString(),
+      lastSeenAt: g.lastSeenAt.toISOString(),
+      state: g.state,
+    })),
+    releases: migrations.map((m) => ({
+      id: m.migration_name,
+      version: m.migration_name,
+      environment: isProd ? ('production' as const) : ('staging' as const),
+      state: 'deployed' as const,
+      commit: '—',
+      owner: 'prisma migrate',
+      createdAt: m.finished_at?.toISOString() ?? nowIso,
+      checks: [],
+    })),
+    flags: [
+      {
+        id: 'export-requires-auth',
+        key: 'EXPORT_REQUIRES_AUTH',
+        label: 'Export requires auth',
+        description:
+          'Business-model gate: copy/download need a signed-in, paid account. Env-managed, read-only here.',
+        owner: 'env',
+        state: process.env.EXPORT_REQUIRES_AUTH === 'false' ? 'off' : 'on',
+        rollout: 100,
+        environments: ['production'],
+        updatedAt: nowIso,
+      },
+    ],
+  };
 }

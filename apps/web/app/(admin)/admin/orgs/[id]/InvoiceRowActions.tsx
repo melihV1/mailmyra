@@ -12,7 +12,17 @@ import { StaffDialog } from '../../../ui/StaffDialog';
  * her eylem kendi modalında. `paid` ayrı diyalog: muhasebe kaydı (tarih +
  * yöntem + dekont) ister; void/geri açma yalnız sebep. Silme YOK.
  */
-export function InvoiceRowActions({ id, number, status }: { id: string; number: string; status: string }) {
+export function InvoiceRowActions({
+  id,
+  number,
+  status,
+  buttonClassName = 'btn btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow',
+}: {
+  id: string;
+  number: string;
+  status: string;
+  buttonClassName?: string;
+}) {
   const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
   const [dialog, setDialog] = useState<'paid' | 'void' | 'due' | null>(null);
 
@@ -21,7 +31,7 @@ export function InvoiceRowActions({ id, number, status }: { id: string; number: 
       <div className="dropdown" ref={ref}>
         <button
           type="button"
-          className="btn btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow"
+          className={buttonClassName}
           aria-label={`Actions for ${number}`}
           aria-expanded={open}
           onClick={() => setOpen(!open)}
