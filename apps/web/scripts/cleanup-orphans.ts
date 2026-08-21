@@ -1,4 +1,5 @@
 import { cleanupOrphans } from '../lib/cleanup';
+import { finishCli } from '../lib/cli-exit';
 import { envInt } from '../lib/env';
 import { loadEnvFiles } from '../lib/env-file';
 import { withJobRun } from '../lib/job-run';
@@ -26,21 +27,9 @@ async function main(): Promise<void> {
   }
 }
 
-/** run-reports.ts ile aynı sebep: MariaDB havuzu süreci canlı tutar. */
-async function finish(code: number): Promise<void> {
-  try {
-    const { prisma } = await import('../lib/db');
-    await prisma.$disconnect();
-  } catch {
-    /* db hiç açılmadıysa kapatılacak bir şey yok */
-  }
-  process.exitCode = code;
-  setTimeout(() => process.exit(code), 2000).unref();
-}
-
 withJobRun('cleanup-orphans', 'manual', main)
-  .then(() => finish(0))
+  .then(() => finishCli(0))
   .catch((e) => {
     console.error(e);
-    return finish(1);
+    return finishCli(1);
   });
