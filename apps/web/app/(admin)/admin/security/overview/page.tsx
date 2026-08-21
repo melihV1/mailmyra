@@ -76,6 +76,7 @@ export default async function SecurityOverviewPage() {
     dueAt: r.dueAt.toISOString(),
     owner: r.owner,
     evidenceCount: r.evidenceCount,
+    identityVerified: r.identityVerified,
   }));
   const snapshot = buildGovernanceOverview({ staff, access, actions, approvals, requests, now: Date.now(), sources: { staff: true, access: true, actions: true, approvals: true, requests: true } });
   return <section><AdminPageHeader crumb="Security & governance / Overview" title="Security overview" support="Monitor staff access, privileged change evidence, decision policy and statutory work from one source-aware control surface." right={<RefreshButton />} /><SecurityOverviewView snapshot={snapshot} /></section>;

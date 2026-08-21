@@ -37,7 +37,7 @@ describe('admin operations model', () => {
   });
 
   it('flags due and overdue data requests', () => {
-    const request: DataRequestRow = { id: 'd1', reference: 'KVKK-1', subjectEmail: 'a@example.com', customer: 'Northwind', type: 'access', status: 'in_progress', receivedAt: iso(-20), dueAt: iso(3), owner: null, evidenceCount: 0 };
+    const request: DataRequestRow = { id: 'd1', reference: 'KVKK-1', subjectEmail: 'a@example.com', customer: 'Northwind', type: 'access', status: 'in_progress', receivedAt: iso(-20), dueAt: iso(3), owner: null, evidenceCount: 0, identityVerified: true };
     expect(getRequestFacts(request, NOW)).toMatchObject({ remainingDays: 3, urgent: true, overdue: false });
     expect(getRequestFacts({ ...request, dueAt: iso(-2) }, NOW)).toMatchObject({ remainingDays: -2, overdue: true });
   });

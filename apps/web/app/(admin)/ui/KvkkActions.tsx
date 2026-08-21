@@ -12,12 +12,14 @@ import { StaffDialog } from './StaffDialog';
  * her eylem kendi StaffDialog'unda, sebep zorunlu, fetch → hata satır
  * içinde → toast + onClose + onDone + router.refresh().
  *
- * `DataRequestRow`da ayrı bir "kimlik doğrulandı" alanı YOK — icat
- * etmiyoruz, çünkü ihtiyaç yok: `verifyKvkkIdentity` (lib/repo/admin.ts)
- * durumu ATOMIK olarak `in_progress`e taşır ve `setKvkkStatus`,
- * `identity_check → in_progress` geçişini kimlik doğrulanmadan reddeder.
- * Yani `status` `intake`/`identity_check` DIŞINDAysa kimlik HER ZAMAN
- * doğrulanmıştır — bu değişmez `isIdentityVerified` ile türetilir.
+ * Kimlik doğrulama GERÇEK alandan okunur: `row.identityVerified`
+ * (repo katmanında `identityVerifiedAt !== null`). `status`'ten türetilmez
+ * — SQL ile elle eklenmiş bir kayıt `in_progress` görünüp kimliği
+ * doğrulanmamış olabilir (`completeKvkkRequest` bunu sunucuda zaten
+ * reddediyor, bkz. lib/repo/admin.ts). Böyle bozuk bir satırda ne
+ * "Verify identity" ne "Respond & close" görünür — bu doğru davranış:
+ * panel kimliği yalnız `intake`/`identity_check`ten doğrulatabilir,
+ * geriye dönük onarım yolu yok.
  *
  * `KVKK_STATUS_TARGETS`: `setKvkkStatus`'un izinli geçiş haritasının
  * (KVKK_TRANSITIONS, hedef → izinli kaynaklar) mevcut duruma göre TERSİ —
@@ -31,21 +33,17 @@ const KVKK_STATUS_TARGETS: Record<DataRequestRow['status'], Array<DataRequestRow
   completed: [],
 };
 
-function isIdentityVerified(status: DataRequestRow['status']): boolean {
-  return status !== 'intake' && status !== 'identity_check';
-}
-
 export function KvkkRowActions({ row, onDone }: { row: DataRequestRow; onDone?: () => void }) {
   const [dialog, setDialog] = useState<'identity' | 'owner' | 'evidence' | 'status' | 'complete' | null>(null);
   if (row.status === 'completed') return null;
 
-  const verified = isIdentityVerified(row.status);
   const statusTargets = KVKK_STATUS_TARGETS[row.status];
-  const canComplete = verified && (row.status === 'in_progress' || row.status === 'legal_review');
+  const canVerifyIdentity = !row.identityVerified && (row.status === 'intake' || row.status === 'identity_check');
+  const canComplete = row.identityVerified && (row.status === 'in_progress' || row.status === 'legal_review');
 
   return (
     <>
-      {!verified && (
+      {canVerifyIdentity && (
         <button type="button" className="btn btn-primary btn-sm" onClick={() => setDialog('identity')}>
           Verify identity
         </button>
@@ -558,7 +556,8 @@ export function NewKvkkButton() {
   const [subjectEmail, setSubjectEmail] = useState('');
   const [type, setType] = useState<'access' | 'erasure' | 'correction' | 'portability'>('access');
   const [orgId, setOrgId] = useState('');
-  const [receivedAt, setReceivedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  // UTC değil, yerel tarih: gece yarısına yakın UTC dilimi yanlış günü gösterir.
+  const [receivedAt, setReceivedAt] = useState(() => new Date().toLocaleDateString('en-CA'));
   const [receivedVia, setReceivedVia] = useState('');
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);

@@ -44,8 +44,8 @@ export const previewApprovals: ApprovalQueueRow[] = [
 ];
 
 export const previewDataRequests: DataRequestRow[] = [
-  { id: 'd1', reference: 'KVKK-2026-018', subjectEmail: 'melis@bristol.example', customer: 'Bristol Metalworks', type: 'access', status: 'legal_review', receivedAt: iso(-24), dueAt: iso(3), owner: 'security@mailmyra.com', evidenceCount: 12 },
-  { id: 'd2', reference: 'KVKK-2026-019', subjectEmail: 'hello@quietcoast.example', customer: 'Quiet Coast Consulting', type: 'correction', status: 'identity_check', receivedAt: iso(-5), dueAt: iso(18), owner: 'support@mailmyra.com', evidenceCount: 2 },
-  { id: 'd3', reference: 'KVKK-2026-014', subjectEmail: 'former@atlas.example', customer: 'Atlas Field Services', type: 'erasure', status: 'in_progress', receivedAt: iso(-38), dueAt: iso(-3), owner: 'security@mailmyra.com', evidenceCount: 8 },
-  { id: 'd4', reference: 'KVKK-2026-011', subjectEmail: 'alex@northwind.example', customer: 'Northwind Studio', type: 'portability', status: 'completed', receivedAt: iso(-52), dueAt: iso(-20), owner: 'security@mailmyra.com', evidenceCount: 15 },
+  { id: 'd1', reference: 'KVKK-2026-018', subjectEmail: 'melis@bristol.example', customer: 'Bristol Metalworks', type: 'access', status: 'legal_review', receivedAt: iso(-24), dueAt: iso(3), owner: 'security@mailmyra.com', evidenceCount: 12, identityVerified: true },
+  { id: 'd2', reference: 'KVKK-2026-019', subjectEmail: 'hello@quietcoast.example', customer: 'Quiet Coast Consulting', type: 'correction', status: 'identity_check', receivedAt: iso(-5), dueAt: iso(18), owner: 'support@mailmyra.com', evidenceCount: 2, identityVerified: false },
+  { id: 'd3', reference: 'KVKK-2026-014', subjectEmail: 'former@atlas.example', customer: 'Atlas Field Services', type: 'erasure', status: 'in_progress', receivedAt: iso(-38), dueAt: iso(-3), owner: 'security@mailmyra.com', evidenceCount: 8, identityVerified: true },
+  { id: 'd4', reference: 'KVKK-2026-011', subjectEmail: 'alex@northwind.example', customer: 'Northwind Studio', type: 'portability', status: 'completed', receivedAt: iso(-52), dueAt: iso(-20), owner: 'security@mailmyra.com', evidenceCount: 15, identityVerified: true },
 ];

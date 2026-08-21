@@ -18,7 +18,7 @@ describe('admin governance overview model', () => {
     const snapshot = buildGovernanceOverview({
       staff: [], access, actions: [], now: NOW,
       approvals: [{ id: 'a1', title: 'Void invoice', domain: 'Billing', requester: 'billing@mailmyra.com', customer: 'Northwind', risk: 'critical', status: 'pending', requestedAt: iso(-30), requiredApprovals: 2, approvals: 0 }],
-      requests: [{ id: 'd1', reference: 'KVKK-1', subjectEmail: 'a@example.com', customer: 'Northwind', type: 'access', status: 'in_progress', receivedAt: iso(-2000), dueAt: iso(-1500), owner: null, evidenceCount: 0 }],
+      requests: [{ id: 'd1', reference: 'KVKK-1', subjectEmail: 'a@example.com', customer: 'Northwind', type: 'access', status: 'in_progress', receivedAt: iso(-2000), dueAt: iso(-1500), owner: null, evidenceCount: 0, identityVerified: true }],
       sources: { staff: true, access: true, actions: true, approvals: true, requests: true },
     });
     expect(snapshot.reviewSignals).toBe(1);

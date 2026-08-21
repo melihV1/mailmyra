@@ -2000,6 +2000,8 @@ export interface AdminKvkkRow {
   dueAt: Date;
   owner: string | null;
   evidenceCount: number;
+  /** Gerçek alan — `identityVerifiedAt !== null`. Status'ten türetilmez. */
+  identityVerified: boolean;
 }
 
 /**
@@ -2029,6 +2031,7 @@ export async function listKvkkRequests(
       receivedAt: true,
       statutoryDueAt: true,
       ownerEmail: true,
+      identityVerifiedAt: true,
       _count: { select: { evidence: true } },
     },
   });
@@ -2044,6 +2047,7 @@ export async function listKvkkRequests(
     dueAt: r.statutoryDueAt,
     owner: r.ownerEmail,
     evidenceCount: r._count.evidence,
+    identityVerified: r.identityVerifiedAt !== null,
   }));
 }
 

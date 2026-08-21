@@ -56,6 +56,7 @@ export default async function DataRequestsPage() {
     dueAt: r.dueAt.toISOString(),
     owner: r.owner,
     evidenceCount: r.evidenceCount,
+    identityVerified: r.identityVerified,
   }));
 
   return (

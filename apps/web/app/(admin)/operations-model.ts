@@ -57,6 +57,8 @@ export interface DataRequestRow {
   dueAt: string;
   owner: string | null;
   evidenceCount: number;
+  /** Gerçek alan — repo katmanında `identityVerifiedAt !== null`. */
+  identityVerified: boolean;
 }
 
 export interface ReceivableFacts {
