@@ -2030,10 +2030,15 @@ export async function createReportSchedule(
   if (input.format === 'csv' && TABLELESS_REPORTS.includes(input.reportId)) {
     throw new Error('Bu raporun tablo çıktısı yok.');
   }
-  if (input.recipients.length < 1 || input.recipients.length > 10) {
+  // Normalize + TEKİLLEŞTİR (sayım sınırından ÖNCE): yapıştırma sırasında aynı
+  // adres birden fazla girilebilir — `ReportRecipient` `@@unique([scheduleId,
+  // email])` taşıyor, tekilleştirmeden geçersek ham P2002 kullanıcıya sızar.
+  // Dedupe sayım sınırından önce çalıştığı için 11 ham adresten 9 tekil kalan
+  // istek dürüstçe geçer (11 tekil kalan yine reddedilir).
+  const recipients = [...new Set(input.recipients.map((r) => r.trim().toLowerCase().slice(0, 255)))];
+  if (recipients.length < 1 || recipients.length > 10) {
     throw new Error('Alıcı sayısı 1-10 arası olmalı.');
   }
-  const recipients = input.recipients.map((r) => r.trim().toLowerCase().slice(0, 255));
   for (const email of recipients) {
     if (!email.includes('@')) throw new Error('Alıcı e-postası geçersiz.');
   }

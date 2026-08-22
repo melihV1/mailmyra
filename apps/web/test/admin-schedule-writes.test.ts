@@ -109,6 +109,37 @@ describe('createReportSchedule', () => {
     expect(tx.reportRecipient.create).toHaveBeenCalledTimes(10);
   });
 
+  it('yinelenen alıcı (aynı adres iki kez) tek satıra düşer, ham P2002 fırlamaz', async () => {
+    await admin.createReportSchedule(
+      'u1',
+      { ...OK_INPUT, recipients: ['a@voldi.net', 'A@Voldi.net'] },
+      's',
+    );
+    expect(tx.reportRecipient.create).toHaveBeenCalledTimes(1);
+    expect(tx.reportRecipient.create).toHaveBeenCalledWith({
+      data: { scheduleId: 'sched1', email: 'a@voldi.net' },
+    });
+  });
+
+  it('11 ham adres / 9 tekil: tekilleştirme sayım sınırından ÖNCE çalıştığı için geçer', async () => {
+    const recipients = [
+      ...Array.from({ length: 9 }, (_, i) => `r${i}@voldi.net`),
+      'r0@voldi.net',
+      'R1@Voldi.net',
+    ];
+    expect(recipients).toHaveLength(11);
+    await admin.createReportSchedule('u1', { ...OK_INPUT, recipients }, 's');
+    expect(tx.reportRecipient.create).toHaveBeenCalledTimes(9);
+  });
+
+  it('11 ham adres / 11 tekil hâlâ reddedilir (dedupe sınırı gizlice gevşetmiyor)', async () => {
+    const recipients = Array.from({ length: 11 }, (_, i) => `r${i}@voldi.net`);
+    await expect(
+      admin.createReportSchedule('u1', { ...OK_INPUT, recipients }, 's'),
+    ).rejects.toThrow('1-10');
+    expect(tx.reportSchedule.create).not.toHaveBeenCalled();
+  });
+
   it("@ içermeyen alıcı e-postası reddedilir", async () => {
     await expect(
       admin.createReportSchedule('u1', { ...OK_INPUT, recipients: ['gecersiz-eposta'] }, 's'),
