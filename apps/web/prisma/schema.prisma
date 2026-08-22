@@ -814,7 +814,7 @@ model Lead {
   /// 'referral' | 'inbound' | 'outreach' | 'event' — serbest ama kısa.
   source   String @db.VarChar(48)
   seats    Int    @default(1)
-  /// 'new' | 'qualified' | 'scheduled' | 'won'
+  /// 'new' | 'qualified' | 'scheduled' | 'won' | 'lost'
   stage    String @default("new") @db.VarChar(16)
   nextStep String @default("") @db.VarChar(200)
 

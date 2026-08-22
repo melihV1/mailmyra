@@ -104,6 +104,7 @@ const LEAD_META = {
   qualified: { label: 'Qualified', tone: 'info', icon: 'tabler-user-check', step: 50 },
   scheduled: { label: 'Demo scheduled', tone: 'warning', icon: 'tabler-calendar-event', step: 75 },
   won: { label: 'Converted', tone: 'success', icon: 'tabler-rosette-discount-check', step: 100 },
+  lost: { label: 'Lost', tone: 'danger', icon: 'tabler-mood-sad', step: 100 },
 } as const;
 
 function LeadCard({ lead, tone }: { lead: GrowthLeadRow; tone: string }) {

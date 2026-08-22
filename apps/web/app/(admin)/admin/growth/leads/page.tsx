@@ -24,7 +24,7 @@ export default async function Page() {
   }
 
   const asStage = (v: string): GrowthLeadRow['stage'] =>
-    v === 'qualified' || v === 'scheduled' || v === 'won' ? v : 'new';
+    v === 'qualified' || v === 'scheduled' || v === 'won' || v === 'lost' ? v : 'new';
   const rows: GrowthLeadRow[] = source.map((r) => ({
     id: r.id,
     company: r.company,

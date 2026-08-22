@@ -2,7 +2,7 @@ import type { ProductAnalyticsSnapshot } from './product-analytics-model';
 
 const DAY = 86_400_000;
 
-export type GrowthLeadStage = 'new' | 'qualified' | 'scheduled' | 'won';
+export type GrowthLeadStage = 'new' | 'qualified' | 'scheduled' | 'won' | 'lost';
 
 export type GrowthLeadRow = {
   id: string;
@@ -142,6 +142,6 @@ export function momentumRows(source: ProductAnalyticsSnapshot, now: number) {
 }
 
 export function groupLeads(rows: GrowthLeadRow[]) {
-  const stages: GrowthLeadStage[] = ['new', 'qualified', 'scheduled', 'won'];
+  const stages: GrowthLeadStage[] = ['new', 'qualified', 'scheduled', 'won', 'lost'];
   return stages.map((stage) => ({ stage, rows: rows.filter((row) => row.stage === stage) }));
 }

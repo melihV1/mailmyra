@@ -47,6 +47,6 @@ describe('growth analytics model', () => {
       { id: 'l1', company: 'A', contact: 'a', source: 'Demo', seats: 2, stage: 'new', createdAt: iso(-1), nextStep: 'Call' },
       { id: 'l2', company: 'B', contact: 'b', source: 'Referral', seats: 4, stage: 'won', createdAt: iso(-2), nextStep: 'Onboard' },
     ];
-    expect(groupLeads(leads).map((row) => row.rows.length)).toEqual([1, 0, 0, 1]);
+    expect(groupLeads(leads).map((row) => row.rows.length)).toEqual([1, 0, 0, 1, 0]);
   });
 });

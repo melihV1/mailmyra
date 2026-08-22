@@ -1801,6 +1801,179 @@ export async function setSupportCasePriority(
   });
 }
 
+// ─── Yönetişim yazmaları: hata grupları ──────────────────────────────────
+
+/**
+ * İzinli durum geçişleri. `resolved` yeniden `open`a döner — hata geri
+ * geldiyse defter bunu saklamalı (`SUPPORT_TRANSITIONS` emsali).
+ */
+const ERROR_TRANSITIONS: Record<string, string[]> = {
+  open: ['investigating', 'resolved'],
+  investigating: ['open', 'resolved'],
+  resolved: ['open'],
+};
+
+/**
+ * Hata grubunun durumunu değiştirir. `ErrorGroup` org'a bağlı değil — olaylar
+ * (`ErrorEvent`) birden çok org'tan gelebilir — bu yüzden denetim platform
+ * nöbetçisiyle (`PLATFORM_ORG`) yazılır (`resolveGovernanceOrg` emsali).
+ */
+export async function setErrorGroupState(
+  staffUserId: string,
+  groupId: string,
+  state: 'open' | 'investigating' | 'resolved',
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  await prisma.$transaction(async (tx) => {
+    const group = await tx.errorGroup.findUnique({
+      where: { id: groupId },
+      select: { state: true },
+    });
+    if (!group) throw new Error(`Hata grubu ${groupId} bulunamadı.`);
+
+    const allowedTo = ERROR_TRANSITIONS[group.state] ?? [];
+    if (!allowedTo.includes(state)) {
+      throw new Error(`'${group.state}' durumundan '${state}' durumuna geçilemez.`);
+    }
+
+    await tx.errorGroup.update({ where: { id: groupId }, data: { state } });
+    await audit(tx, staff, {
+      org: PLATFORM_ORG,
+      action: 'error.state_set',
+      targetId: groupId,
+      before: { state: group.state },
+      after: { state },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+// ─── Yönetişim yazmaları: lead'ler ───────────────────────────────────────
+
+export type LeadStage = 'new' | 'qualified' | 'scheduled' | 'won' | 'lost';
+
+/**
+ * Lead açar. `seats`/`stage`/`nextStep` varsayılanlarını KOD verir (şemadaki
+ * `@default`lerin aynısı — tek kaynak burada, iki yerde bakım gerekmesin).
+ * Denetim payload'ı `company` + değişen alanları taşır, `contact`'ı ASLA:
+ * Voldi'nin kendi ticari kaydı olsa da iç defterde kişi bilgisi birikmesin
+ * (governance dalgası ortak sözleşmesi).
+ */
+export async function createLead(
+  staffUserId: string,
+  input: {
+    company: string;
+    contact: string;
+    source: string;
+    seats?: number;
+    stage?: LeadStage;
+    nextStep?: string;
+  },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<{ id: string }> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  const company = input.company.trim().slice(0, 160);
+  if (!company) throw new Error('Şirket adı zorunlu.');
+  const contact = input.contact.trim().slice(0, 255);
+  if (!contact) throw new Error('İletişim kişisi zorunlu.');
+  const source = input.source.trim().slice(0, 48);
+  if (!source) throw new Error('Kaynak zorunlu.');
+  const seats = input.seats ?? 1;
+  if (!Number.isInteger(seats) || seats < 1) {
+    throw new Error("Koltuk sayısı 1'den küçük olamaz.");
+  }
+  const stage = input.stage ?? 'new';
+  const nextStep = (input.nextStep ?? '').trim().slice(0, 200);
+
+  return prisma.$transaction(async (tx) => {
+    const lead = await tx.lead.create({
+      data: { company, contact, source, seats, stage, nextStep },
+      select: { id: true },
+    });
+
+    await audit(tx, staff, {
+      org: PLATFORM_ORG,
+      action: 'lead.created',
+      targetId: lead.id,
+      before: {},
+      after: { company, source, seats, stage, nextStep },
+      reason: cleanReason,
+      ctx,
+    });
+
+    return { id: lead.id };
+  });
+}
+
+/**
+ * Lead'i günceller — en az bir alan verilmeli. Denetim yalnız `company` +
+ * gerçekten DEĞİŞEN alanları taşır (`contact` hiç dokunulmasa da payload'a
+ * girmez — patch tipinde zaten yok).
+ */
+export async function updateLead(
+  staffUserId: string,
+  leadId: string,
+  patch: { stage?: LeadStage; nextStep?: string; seats?: number },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  if (patch.stage === undefined && patch.nextStep === undefined && patch.seats === undefined) {
+    throw new Error('Değiştirilecek alan yok.');
+  }
+  if (patch.seats !== undefined && (!Number.isInteger(patch.seats) || patch.seats < 1)) {
+    throw new Error("Koltuk sayısı 1'den küçük olamaz.");
+  }
+  const nextStep = patch.nextStep !== undefined ? patch.nextStep.trim().slice(0, 200) : undefined;
+
+  await prisma.$transaction(async (tx) => {
+    const before = await tx.lead.findUnique({
+      where: { id: leadId },
+      select: { company: true, stage: true, nextStep: true, seats: true },
+    });
+    if (!before) throw new Error(`Lead ${leadId} bulunamadı.`);
+
+    await tx.lead.update({
+      where: { id: leadId },
+      data: {
+        ...(patch.stage !== undefined ? { stage: patch.stage } : {}),
+        ...(nextStep !== undefined ? { nextStep } : {}),
+        ...(patch.seats !== undefined ? { seats: patch.seats } : {}),
+      },
+    });
+
+    await audit(tx, staff, {
+      org: PLATFORM_ORG,
+      action: 'lead.updated',
+      targetId: leadId,
+      before: {
+        company: before.company,
+        ...(patch.stage !== undefined ? { stage: before.stage } : {}),
+        ...(nextStep !== undefined ? { nextStep: before.nextStep } : {}),
+        ...(patch.seats !== undefined ? { seats: before.seats } : {}),
+      },
+      after: {
+        company: before.company,
+        ...(patch.stage !== undefined ? { stage: patch.stage } : {}),
+        ...(nextStep !== undefined ? { nextStep } : {}),
+        ...(patch.seats !== undefined ? { seats: patch.seats } : {}),
+      },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
 // ─── Komuta merkezi kuyrukları ────────────────────────────────────────────
 
 export interface AdminQueues {
