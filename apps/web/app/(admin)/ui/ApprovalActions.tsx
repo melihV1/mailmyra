@@ -7,40 +7,65 @@ import { useToast } from '../../(app)/ToastProvider';
 import type { ApprovalQueueRow } from '../operations-model';
 import { StaffDialog } from './StaffDialog';
 
+export type ApprovalAction = 'approve' | 'reject' | 'cancel';
+
 /**
- * Onay kuyruğu satır eylemleri — InvoiceRowActions deseni: her eylem kendi
- * StaffDialog'unda, sebep zorunlu, fetch → hata satır içinde → toast +
- * router.refresh(). Yalnız `pending` satırda görünür; bu bileşen kendi
- * içinde de kontrol eder ki çağıran taraf unutsa bile karar butonları
- * kapanmış bir talep için sahaya çıkmasın.
+ * Karar butonları — diyaloğu KENDİ İÇİNDE AÇMAZ. Bu butonlar detay
+ * panelinin içinde duruyor ve o panel zaten bir modal; ikinci modalı onun
+ * ÇOCUĞU olarak render etmek iki modalı üst üste bindirir (yaşandı, canlı
+ * 2026-08-22: iki kapatma düğmesi, kaymış kutu, iki kat koyu zemin).
+ * Bu yüzden bileşen yalnız hangi eylemin seçildiğini bildirir; diyaloğu
+ * çağıran taraf detay panelinin YERİNE, kardeş olarak açar.
  *
- * `onDone`: çağıran taraf tıklama anındaki satırı (`selected`) bir kopya
- * olarak tutuyorsa, başarılı eylemden sonra o kopyayı temizlemek için.
- * Aksi halde detay paneli eski durumu göstermeye devam eder ve ikinci
- * tıklama sunucudan "artık kararda değil" hatası alır.
+ * Yalnız `pending` satırda görünür; çağıran taraf unutsa bile burada da
+ * kontrol edilir.
  */
-export function ApprovalRowActions({ row, onDone }: { row: ApprovalQueueRow; onDone?: () => void }) {
-  const [dialog, setDialog] = useState<'approve' | 'reject' | 'cancel' | null>(null);
+export function ApprovalActionButtons({
+  row,
+  onPick,
+}: {
+  row: ApprovalQueueRow;
+  onPick: (action: ApprovalAction) => void;
+}) {
   if (row.status !== 'pending') return null;
 
   return (
     <>
-      <button type="button" className="btn btn-success btn-sm" onClick={() => setDialog('approve')}>
+      <button type="button" className="btn btn-success btn-sm" onClick={() => onPick('approve')}>
         Approve
       </button>
-      <button type="button" className="btn btn-danger btn-sm" onClick={() => setDialog('reject')}>
+      <button type="button" className="btn btn-danger btn-sm" onClick={() => onPick('reject')}>
         Reject
       </button>
-      <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => setDialog('cancel')}>
+      <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('cancel')}>
         Cancel
       </button>
-
-      {(dialog === 'approve' || dialog === 'reject') && (
-        <DecisionDialog row={row} decision={dialog} onClose={() => setDialog(null)} onDone={onDone} />
-      )}
-      {dialog === 'cancel' && <CancelDialog row={row} onClose={() => setDialog(null)} onDone={onDone} />}
     </>
   );
+}
+
+/**
+ * Seçilen eylemin sebep formu — InvoiceRowActions deseni: sebep zorunlu,
+ * fetch → hata satır içinde → toast + router.refresh().
+ *
+ * `onClose`: forma vazgeçildi, detay paneline dönülür.
+ * `onDone`: eylem BAŞARILI — çağıran taraf tıklama anındaki satır kopyasını
+ * (`selected`) temizler; aksi halde panel eski durumu gösterir ve ikinci
+ * tıklama sunucudan "artık kararda değil" hatası alır.
+ */
+export function ApprovalActionDialog({
+  row,
+  action,
+  onClose,
+  onDone,
+}: {
+  row: ApprovalQueueRow;
+  action: ApprovalAction;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
+  if (action === 'cancel') return <CancelDialog row={row} onClose={onClose} onDone={onDone} />;
+  return <DecisionDialog row={row} decision={action} onClose={onClose} onDone={onDone} />;
 }
 
 function DecisionDialog({

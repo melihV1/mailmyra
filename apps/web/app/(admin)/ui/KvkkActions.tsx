@@ -45,8 +45,21 @@ function kvkkStatusTargets(row: DataRequestRow): Array<DataRequestRow['status']>
   }
 }
 
-export function KvkkRowActions({ row, onDone }: { row: DataRequestRow; onDone?: () => void }) {
-  const [dialog, setDialog] = useState<'identity' | 'owner' | 'evidence' | 'status' | 'complete' | null>(null);
+export type KvkkAction = 'identity' | 'owner' | 'evidence' | 'status' | 'complete';
+
+/**
+ * Yaşam döngüsü butonları — diyaloğu KENDİ İÇİNDE AÇMAZ (ApprovalActions
+ * ile aynı gerekçe): bu butonlar bir modalın içinde duruyor, ikinci modalı
+ * çocuk olarak render etmek iki modalı üst üste bindirir. Seçilen eylem
+ * dışarı bildirilir; diyalog detay panelinin YERİNE açılır.
+ */
+export function KvkkActionButtons({
+  row,
+  onPick,
+}: {
+  row: DataRequestRow;
+  onPick: (action: KvkkAction) => void;
+}) {
   if (row.status === 'completed') return null;
 
   const statusTargets = kvkkStatusTargets(row);
@@ -56,36 +69,56 @@ export function KvkkRowActions({ row, onDone }: { row: DataRequestRow; onDone?: 
   return (
     <>
       {canVerifyIdentity && (
-        <button type="button" className="btn btn-primary btn-sm" onClick={() => setDialog('identity')}>
+        <button type="button" className="btn btn-primary btn-sm" onClick={() => onPick('identity')}>
           Verify identity
         </button>
       )}
-      <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => setDialog('owner')}>
+      <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('owner')}>
         Assign owner
       </button>
-      <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => setDialog('evidence')}>
+      <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('evidence')}>
         Add evidence
       </button>
       {statusTargets.length > 0 && (
-        <button type="button" className="btn btn-label-info btn-sm" onClick={() => setDialog('status')}>
+        <button type="button" className="btn btn-label-info btn-sm" onClick={() => onPick('status')}>
           Move status
         </button>
       )}
       {canComplete && (
-        <button type="button" className="btn btn-success btn-sm" onClick={() => setDialog('complete')}>
+        <button type="button" className="btn btn-success btn-sm" onClick={() => onPick('complete')}>
           Respond &amp; close
         </button>
       )}
-
-      {dialog === 'identity' && <IdentityDialog row={row} onClose={() => setDialog(null)} onDone={onDone} />}
-      {dialog === 'owner' && <OwnerDialog row={row} onClose={() => setDialog(null)} onDone={onDone} />}
-      {dialog === 'evidence' && <EvidenceDialog row={row} onClose={() => setDialog(null)} onDone={onDone} />}
-      {dialog === 'status' && (
-        <StatusDialog row={row} targets={statusTargets} onClose={() => setDialog(null)} onDone={onDone} />
-      )}
-      {dialog === 'complete' && <CompleteDialog row={row} onClose={() => setDialog(null)} onDone={onDone} />}
     </>
   );
+}
+
+/** Seçilen eylemin sebep formu — detay panelinin yerine açılır. */
+export function KvkkActionDialog({
+  row,
+  action,
+  onClose,
+  onDone,
+}: {
+  row: DataRequestRow;
+  action: KvkkAction;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
+  switch (action) {
+    case 'identity':
+      return <IdentityDialog row={row} onClose={onClose} onDone={onDone} />;
+    case 'owner':
+      return <OwnerDialog row={row} onClose={onClose} onDone={onDone} />;
+    case 'evidence':
+      return <EvidenceDialog row={row} onClose={onClose} onDone={onDone} />;
+    case 'status':
+      return (
+        <StatusDialog row={row} targets={kvkkStatusTargets(row)} onClose={onClose} onDone={onDone} />
+      );
+    case 'complete':
+      return <CompleteDialog row={row} onClose={onClose} onDone={onDone} />;
+  }
 }
 
 function IdentityDialog({
