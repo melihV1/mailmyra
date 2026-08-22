@@ -212,7 +212,7 @@ describe('runDueReports', () => {
     expect(f.scheduleUpdates).toEqual([]);
   });
 
-  it('the default registry serves all five ready reports', async () => {
+  it('the default registry serves all six ready reports', async () => {
     const { REPORT_BUILDERS } = await import('../lib/reports/registry');
     expect(Object.keys(REPORT_BUILDERS).sort()).toEqual([
       'command-center',
@@ -220,6 +220,7 @@ describe('runDueReports', () => {
       'product-activation',
       'revenue-collections',
       'security-evidence',
+      'support-operations',
     ]);
   });
 });

@@ -6,7 +6,8 @@ const NOW = Date.UTC(2026, 7, 20, 9, 0);
 
 describe('admin reporting model', () => {
   it('reports source coverage without treating partial definitions as ready', () => {
-    expect(getReportCoverage(REPORT_LIBRARY)).toEqual({ ready: 5, partial: 1, percent: 83 });
+    // 2026-08-22: support-operations kaynağı geldi, 6/6 'ready' oldu.
+    expect(getReportCoverage(REPORT_LIBRARY)).toEqual({ ready: 6, partial: 0, percent: 100 });
   });
 
   it('summarizes delivery state and next-day workload', () => {

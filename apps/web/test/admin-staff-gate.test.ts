@@ -37,6 +37,8 @@ const tx = {
   supportCase: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   errorGroup: { findUnique: vi.fn(), update: vi.fn() },
   lead: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  reportSchedule: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+  reportRecipient: { create: vi.fn() },
   adminAction: { create: vi.fn() },
   activityEvent: { create: vi.fn() },
 };
@@ -130,6 +132,12 @@ const CALLS: Record<string, unknown[]> = {
   setErrorGroupState: ['u1', 'err1', 'resolved', 'sebep'],
   createLead: ['u1', { company: 'Acme', contact: 'satis@ornek.com', source: 'referral' }, 'sebep'],
   updateLead: ['u1', 'lead1', { stage: 'won' }, 'sebep'],
+  createReportSchedule: [
+    'u1',
+    { reportId: 'command-center', cadence: 'weekly', format: 'digest', recipients: ['staff@voldi.net'] },
+    'sebep',
+  ],
+  setReportScheduleStatus: ['u1', 'sched1', 'paused', 'sebep'],
   listAdminQueues: ['u1'],
   searchAdmin: ['u1', 'acme'],
   listInvoicesAdmin: ['u1'],
@@ -305,6 +313,10 @@ describe('yazmalar — sebep zorunlu, denetim transaction içinde', () => {
     tx.lead.create.mockResolvedValue({ id: 'lead1' });
     tx.lead.findUnique.mockResolvedValue({ company: 'Acme', stage: 'new', nextStep: '', seats: 1 });
     tx.lead.update.mockResolvedValue({});
+    tx.reportSchedule.create.mockResolvedValue({ id: 'sched1' });
+    tx.reportSchedule.findUnique.mockResolvedValue({ status: 'active' });
+    tx.reportSchedule.update.mockResolvedValue({});
+    tx.reportRecipient.create.mockResolvedValue({});
   });
 
   for (const [label, call] of [
@@ -371,6 +383,16 @@ describe('yazmalar — sebep zorunlu, denetim transaction içinde', () => {
       () => admin.createLead('u1', { company: 'Acme', contact: 'satis@ornek.com', source: 'referral' }, ''),
     ],
     ['updateLead', () => admin.updateLead('u1', 'lead1', { stage: 'won' }, '')],
+    [
+      'createReportSchedule',
+      () =>
+        admin.createReportSchedule(
+          'u1',
+          { reportId: 'command-center', cadence: 'weekly', format: 'digest', recipients: ['staff@voldi.net'] },
+          '',
+        ),
+    ],
+    ['setReportScheduleStatus', () => admin.setReportScheduleStatus('u1', 'sched1', 'paused', '')],
   ] as const) {
     it(`${label}: boş sebeple çalışmaz ve transaction açılmaz`, async () => {
       asStaff();

@@ -29,24 +29,24 @@ npm run reports -w apps/web -- --dry-run # üretir; göndermez, defter yazmaz
   hatası çıkarsa app kökünde `.npmrc` + `scripts-prepend-node-path=true`
   (deploy ritüelindeki notla aynı).
 
-## Zamanlama açma (SQL — UI'da oluşturma bilinçli yok)
+## Zamanlama açma (2026-08-22'den beri panel-first)
 
-```sql
-INSERT INTO ReportSchedule
-  (id, reportId, cadence, timezone, format, status, ownerEmail, createdByEmail, createdAt)
-VALUES
-  ('sched-cmdcenter-weekly-1', 'command-center', 'weekly', 'Europe/Istanbul',
-   'digest', 'active', 'mail@voldi.net', 'mail@voldi.net', NOW());
+Zamanlama açmanın tek yolu **panel**: Reports → Scheduled → "New schedule".
+Ekran `lib/repo/admin.ts`'teki `createReportSchedule`'ı çağırır — bekçiler:
+`reportId` registry'de koşturulabilir olmalı ("Bu rapor koşturulamıyor."),
+`csv` tablosuz raporla açılamaz ("Bu raporun tablo çıktısı yok." —
+`command-center`), alıcı 1-10 adet ve hepsi `@` içermeli. Zamanlama satırı
+ile alıcılar AYNI transaction'da yazılır; `nextRunAt` boş bırakılır — ilk
+koşuda vadesi gelmiş sayılır ve kendini ilerletir. Duraklatma/sürdürme aynı
+ekrandan `setReportScheduleStatus` ile — yalnız diğer durumdan geçilir.
 
-INSERT INTO ReportRecipient (id, scheduleId, email)
-VALUES ('rcpt-cmdcenter-weekly-1', 'sched-cmdcenter-weekly-1', 'mail@voldi.net');
-```
+Eski yol (`scripts/seed-report-schedule.ts` + `npm run seed-reports`)
+**EMEKLİ**: panel varken elle script'e/SQL'e gerek yok; dosya silindi.
 
-`nextRunAt` boş bırakılır — ilk koşuda çalışır ve kendini ilerletir.
 Koşturulabilir raporlar: `command-center` (yalnız digest — tablosu yok) ·
 `revenue-collections` · `product-activation` · `customer-health` ·
-`security-evidence`. Format: `digest` | `csv` (`pdf` v1'de yok — dürüst
-'failed' yazar).
+`security-evidence` · `support-operations`. Format: `digest` | `csv`
+(`pdf` v1'de yok — dürüst 'failed' yazar).
 
 ## Gözlem
 

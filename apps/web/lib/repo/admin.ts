@@ -7,6 +7,7 @@ import { prisma } from '../db';
 import { probeCdn, probeSmtp } from '../health-probes';
 import { statutoryDueDate } from '../kvkk';
 import { nextPlannedRun } from '../report-schedule';
+import { REPORT_BUILDERS, TABLELESS_REPORTS } from '../reports/registry';
 import { slaDueDate, type SupportPriority } from '../support-sla';
 import type { ActivityType } from './activity';
 import { getBrand } from './brand';
@@ -1968,6 +1969,142 @@ export async function updateLead(
         ...(nextStep !== undefined ? { nextStep } : {}),
         ...(patch.seats !== undefined ? { seats: patch.seats } : {}),
       },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+// ─── Yönetişim yazmaları: rapor zamanlamaları ────────────────────────────
+
+export type ReportCadence = 'daily' | 'weekly' | 'monthly';
+export type ReportScheduleFormat = 'digest' | 'csv';
+
+const REPORT_CADENCES: readonly ReportCadence[] = ['daily', 'weekly', 'monthly'];
+const REPORT_SCHEDULE_FORMATS: readonly ReportScheduleFormat[] = ['digest', 'csv'];
+
+/** active ↔ paused — yalnız DİĞER durumdan geçilir, aynı duruma tekrar yazılamaz. */
+const REPORT_SCHEDULE_OTHER_STATUS: Record<'active' | 'paused', 'active' | 'paused'> = {
+  active: 'paused',
+  paused: 'active',
+};
+
+/**
+ * Rapor zamanlaması açar. `reportId` registry'de KOŞTURULABİLİR olmalı —
+ * `REPORT_BUILDERS`/`TABLELESS_REPORTS` `../reports/registry`dan içe
+ * aktarılır (import kapısı yalnız `app/` altını tarar; `lib/repo` serbest —
+ * çalıştırıcının kendisi `lib/reports`'u zaten kullanıyor).
+ *
+ * `cadence`/`format` tip düzeyinde birlik olsa da BURADA yeniden doğrulanır:
+ * girdi API ucundan ham JSON gövdesiyle gelir, tip anotasyonu çalışma
+ * zamanında hiçbir şey garanti etmez (governance dalgasının "field() yalnız
+ * string döndürür" dersiyle aynı temkin). `nextRunAt` BİLEREK null: ertesi
+ * sabah 10:15 koşusu vadesiz kabul eder (`nextPlannedRun` emsali). Alıcılar
+ * AYNI transaction'da yazılır; denetim payload'ı alıcı SAYISINI taşır,
+ * e-postaların kendisini değil (staff'ın zaten göreceği liste kişisel veri
+ * sayılmasa da defteri şişirmesin).
+ */
+export async function createReportSchedule(
+  staffUserId: string,
+  input: {
+    reportId: string;
+    cadence: ReportCadence;
+    format: ReportScheduleFormat;
+    recipients: string[];
+  },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<{ id: string }> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  if (!REPORT_CADENCES.includes(input.cadence)) {
+    throw new Error("Kadans 'daily', 'weekly' veya 'monthly' olmalı.");
+  }
+  if (!REPORT_SCHEDULE_FORMATS.includes(input.format)) {
+    throw new Error("Format 'digest' veya 'csv' olmalı.");
+  }
+  if (!Object.keys(REPORT_BUILDERS).includes(input.reportId)) {
+    throw new Error('Bu rapor koşturulamıyor.');
+  }
+  if (input.format === 'csv' && TABLELESS_REPORTS.includes(input.reportId)) {
+    throw new Error('Bu raporun tablo çıktısı yok.');
+  }
+  if (input.recipients.length < 1 || input.recipients.length > 10) {
+    throw new Error('Alıcı sayısı 1-10 arası olmalı.');
+  }
+  const recipients = input.recipients.map((r) => r.trim().toLowerCase().slice(0, 255));
+  for (const email of recipients) {
+    if (!email.includes('@')) throw new Error('Alıcı e-postası geçersiz.');
+  }
+
+  return prisma.$transaction(async (tx) => {
+    const schedule = await tx.reportSchedule.create({
+      data: {
+        reportId: input.reportId,
+        cadence: input.cadence,
+        timezone: 'Europe/Istanbul',
+        format: input.format,
+        status: 'active',
+        nextRunAt: null,
+        ownerEmail: staff.email,
+        createdById: staff.id,
+        createdByEmail: staff.email,
+      },
+      select: { id: true },
+    });
+
+    for (const email of recipients) {
+      await tx.reportRecipient.create({ data: { scheduleId: schedule.id, email } });
+    }
+
+    await audit(tx, staff, {
+      org: PLATFORM_ORG,
+      action: 'report.schedule_created',
+      targetId: schedule.id,
+      before: {},
+      after: {
+        reportId: input.reportId,
+        cadence: input.cadence,
+        format: input.format,
+        recipients: recipients.length,
+      },
+      reason: cleanReason,
+      ctx,
+    });
+
+    return { id: schedule.id };
+  });
+}
+
+/** Duraklat/sürdür — yalnız diğer durumdan (SUPPORT_TRANSITIONS emsali, ikili). */
+export async function setReportScheduleStatus(
+  staffUserId: string,
+  scheduleId: string,
+  status: 'active' | 'paused',
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  await prisma.$transaction(async (tx) => {
+    const before = await tx.reportSchedule.findUnique({
+      where: { id: scheduleId },
+      select: { status: true },
+    });
+    if (!before) throw new Error(`Rapor zamanlaması ${scheduleId} bulunamadı.`);
+    if (before.status !== REPORT_SCHEDULE_OTHER_STATUS[status]) {
+      throw new Error(`'${before.status}' durumundan '${status}' durumuna geçilemez.`);
+    }
+
+    await tx.reportSchedule.update({ where: { id: scheduleId }, data: { status } });
+    await audit(tx, staff, {
+      org: PLATFORM_ORG,
+      action: 'report.schedule_status_set',
+      targetId: scheduleId,
+      before: { status: before.status },
+      after: { status },
       reason: cleanReason,
       ctx,
     });

@@ -49,8 +49,23 @@ export const REPORT_LIBRARY: ReportDefinition[] = [
   { id: 'product-activation', name: 'Product activation', category: 'product', description: 'Workspace progression from account creation to saved signature, publish and export evidence.', icon: 'tabler-funnel', tone: 'info', sources: ['Organizations', 'Signatures', 'Senders', 'Activity'], metrics: ['Activation rate', 'Publish rate', 'Export evidence'], owner: 'Product', freshness: 'On page load', status: 'ready' },
   { id: 'customer-health', name: 'Customer health', category: 'customer', description: 'Seat pressure, billing state, activity recency and onboarding signals for account follow-up.', icon: 'tabler-heart-rate-monitor', tone: 'warning', sources: ['Organizations', 'Entitlements', 'Invoices', 'Activity'], metrics: ['Health score', 'Seat utilization', 'Inactive days'], owner: 'Customer success', freshness: 'On page load', status: 'ready' },
   { id: 'security-evidence', name: 'Security evidence pack', category: 'security', description: 'Sensitive reads, privileged writes and the actor/customer trail required for governance review.', icon: 'tabler-shield-check', tone: 'danger', sources: ['Staff access log', 'Admin action log'], metrics: ['Sensitive reads', 'Review signals', 'Privileged writes'], owner: 'Security', freshness: 'On page load', status: 'ready' },
-  { id: 'support-operations', name: 'Support operations', category: 'support', description: 'Queue pressure, SLA exposure, onboarding depth and case ownership for daily support review.', icon: 'tabler-headset', tone: 'secondary', sources: ['Support cases', 'Onboarding milestones'], metrics: ['Open cases', 'SLA risk', 'Milestone coverage'], owner: 'Support', freshness: 'Source integration pending', status: 'partial' },
+  { id: 'support-operations', name: 'Support operations', category: 'support', description: 'Queue pressure, SLA exposure, onboarding depth and case ownership for daily support review.', icon: 'tabler-headset', tone: 'secondary', sources: ['Support cases', 'Onboarding milestones'], metrics: ['Open cases', 'SLA risk', 'Milestone coverage'], owner: 'Support', freshness: 'On page load', status: 'ready' },
 ];
+
+/**
+ * Registry ile eşleşmek ZORUNDA — report-builder-support testi iddia eder.
+ * `app/` altı `lib/reports`'u içe aktaramadığı için (import kapısı) bu iki
+ * sabit burada yaşar; gerçek kaynak `lib/reports/registry.ts`.
+ */
+export const RUNNABLE_REPORTS = [
+  'command-center',
+  'revenue-collections',
+  'product-activation',
+  'customer-health',
+  'security-evidence',
+  'support-operations',
+] as const;
+export const TABLELESS_REPORT_IDS = ['command-center'] as const;
 
 export const KPI_DEFINITIONS: KpiDefinition[] = [
   { id: 'active-seats', name: 'Active seats', domain: 'customer', description: 'Published senders currently counted against customer entitlement.', formula: 'Count of active senders', source: 'Sender records', grain: 'Organization', owner: 'Operations', freshness: 'On page load', guardrail: 'Exclude drafts and inactive senders', status: 'defined' },
@@ -60,7 +75,7 @@ export const KPI_DEFINITIONS: KpiDefinition[] = [
   { id: 'activation-rate', name: 'Activation rate', domain: 'product', description: 'Eligible workspaces with at least one saved signature.', formula: 'Workspaces with signature / eligible workspaces × 100', source: 'Organization + signature records', grain: 'Workspace cohort', owner: 'Product', freshness: 'On page load', guardrail: 'Cohort denominator must remain fixed', status: 'defined' },
   { id: 'export-evidence', name: 'Export evidence rate', domain: 'product', description: 'Activated workspaces with a recorded export event.', formula: 'Workspaces with export / activated workspaces × 100', source: 'Activity events', grain: 'Workspace cohort', owner: 'Product', freshness: 'On page load', guardrail: 'Manual install outside Mailmyra is not observable', status: 'defined' },
   { id: 'sensitive-read-burst', name: 'Sensitive read review signal', domain: 'security', description: 'Concentrated staff reads for the same customer that merit review.', formula: '≥5 reads by one staff member for one org in 15 minutes', source: 'Staff access log', grain: 'Staff + organization + 15-minute window', owner: 'Security', freshness: 'On page load', guardrail: 'A signal is not proof of misuse', status: 'defined' },
-  { id: 'support-sla', name: 'Support SLA compliance', domain: 'support', description: 'Resolved cases completed within the committed response window.', formula: 'Cases within SLA / resolved cases × 100', source: 'Support case system', grain: 'Case + period', owner: 'Support', freshness: 'Source integration pending', guardrail: 'Paused customer-wait time needs a defined policy', status: 'source-gap' },
+  { id: 'support-sla', name: 'Support SLA compliance', domain: 'support', description: 'Resolved cases completed within the committed response window.', formula: 'Cases within SLA / resolved cases × 100', source: 'Support case system', grain: 'Case + period', owner: 'Support', freshness: 'Source integration pending', guardrail: 'No resolvedAt field in the schema yet — compliance percentage cannot be honestly calculated', status: 'source-gap' },
 ];
 
 export function summarizeSchedules(rows: readonly ReportSchedule[], now: number) {

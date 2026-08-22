@@ -10,7 +10,6 @@
     "test": "vitest run",
     "cleanup": "tsx scripts/cleanup-orphans.ts",
     "reports": "tsx scripts/run-reports.ts",
-    "seed-reports": "tsx scripts/seed-report-schedule.ts",
     "kill-stuck": "powershell -ExecutionPolicy Bypass -File scripts/kill-stuck-runners.ps1",
     "icons": "tsx scripts/generate-icons.ts",
     "test:db": "vitest run --config vitest.db.config.ts",
