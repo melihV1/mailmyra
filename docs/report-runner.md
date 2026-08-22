@@ -29,24 +29,23 @@ npm run reports -w apps/web -- --dry-run # üretir; göndermez, defter yazmaz
   hatası çıkarsa app kökünde `.npmrc` + `scripts-prepend-node-path=true`
   (deploy ritüelindeki notla aynı).
 
-## Zamanlama açma (bu dalga: panele taşınıyor)
+## Zamanlama açma (panel-ilk)
 
-Zamanlama açma bu dalgada **panele** taşınıyor: Reports → Scheduled →
-"New schedule". Yazma tarafı hazır — `lib/repo/admin.ts`'teki
-`createReportSchedule` bekçileriyle birlikte kilitli: `reportId` registry'de
-koşturulabilir olmalı ("Bu rapor koşturulamıyor."), `csv` tablosuz raporla
-açılamaz ("Bu raporun tablo çıktısı yok." — `command-center`), alıcı 1-10
-tekil adet ve hepsi `@` içermeli (aynı adres iki kez girilirse sessizce
-tekilleşir, hata vermez). Zamanlama satırı ile alıcılar AYNI transaction'da
-yazılır; `nextRunAt` boş bırakılır — ilk koşuda vadesi gelmiş sayılır ve
-kendini ilerletir. Duraklatma/sürdürme aynı ekrandan `setReportScheduleStatus`
-ile — yalnız diğer durumdan geçilir.
+Zamanlama açma **panelden**: Reports → Scheduled → "New schedule"
+(bkz. `app/(admin)/ui/ScheduleActions.tsx`, `NewScheduleButton`). Yazma
+tarafı `lib/repo/admin.ts`'teki `createReportSchedule` bekçileriyle birlikte
+kilitli: `reportId` registry'de koşturulabilir olmalı ("Bu rapor
+koşturulamıyor."), `csv` tablosuz raporla açılamaz ("Bu raporun tablo çıktısı
+yok." — `command-center`), alıcı 1-10 tekil adet ve hepsi `@` içermeli (aynı
+adres iki kez girilirse sessizce tekilleşir, hata vermez). Zamanlama satırı
+ile alıcılar AYNI transaction'da yazılır; `nextRunAt` boş bırakılır — ilk
+koşuda vadesi gelmiş sayılır ve kendini ilerletir. Duraklatma/sürdürme aynı
+ekrandan (`ScheduleActionButtons`) `setReportScheduleStatus` ile — yalnız
+diğer durumdan geçilir.
 
-**Ancak bu dalganın API ucu ve ekranı henüz sonraki görevlerde geliyor** —
-bu yüzden şimdilik zamanlama açmanın çalışan bir yolu yok; panel işi aynı
-sürümde tamamlanınca bu bölüm gerçeği yansıtır. Eski yol
-(`scripts/seed-report-schedule.ts` + `npm run seed-reports`) **EMEKLİ** ve
-dosya silindi — panel işi bitene kadar elle script/SQL'e geri dönülmez.
+Eski yol (`scripts/seed-report-schedule.ts` + `npm run seed-reports`)
+**EMEKLİ** ve dosya silindi — zamanlama açmanın tek yolu artık panel,
+elle script/SQL'e geri dönülmez.
 
 Koşturulabilir raporlar: `command-center` (yalnız digest — tablosu yok) ·
 `revenue-collections` · `product-activation` · `customer-health` ·

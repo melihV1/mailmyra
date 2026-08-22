@@ -17,8 +17,10 @@ export const dynamic = 'force-dynamic';
  * koşulardan dolar. `lastRun` alanları yalnız o zamanlama HİÇ koşmadıysa
  * null kalır ve görünüm "Never" der; sahte teslim başarısı üretilmez.
  * `nextRunAt` boşsa kadans matematiğinden türetilir (gelecek plan, geçmiş
- * değil). Zamanlama OLUŞTURMA kontrolü hâlâ bilinçli yok — schedule satırı
- * elle SQL ile açılır.
+ * değil). Zamanlama OLUŞTURMA artık PANEL-İLK: `NewScheduleButton`
+ * (bkz. `ui/ScheduleActions.tsx`) `createReportSchedule`ye gider; duraklat/
+ * sürdür aynı ekrandan `ScheduleActionButtons`. Eski yol (elle SQL /
+ * `scripts/seed-report-schedule.ts`) emekli — dosya silindi.
  */
 export default async function Page() {
   const session = await currentSession();
@@ -64,7 +66,7 @@ export default async function Page() {
       <AdminPageHeader
         crumb="Reports / Scheduled"
         title="Scheduled reports"
-        support="Cadence, recipients and delivery format — executions and deliveries are written by the scheduled runner (npm run reports, daily Plesk task); schedules are still opened via SQL."
+        support="Cadence, recipients and delivery format — executions and deliveries are written by the scheduled runner (npm run reports, daily Plesk task); schedules are opened and paused from this page."
         right={<RefreshButton />}
       />
       <ScheduledReportsView rows={rows} now={Date.now()} />

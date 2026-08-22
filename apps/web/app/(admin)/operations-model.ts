@@ -33,6 +33,17 @@ export interface StaffAccountRow {
   lastLoginAt: string | null;
 }
 
+/** `listStaffChangeRequests`in panel yansıması — `lib/repo/admin.ts`teki
+ *  `AdminStaffChangeRequestRow` ile alan alan aynı (UI, repo tiplerini
+ *  doğrudan içe aktarmaz — diğer tüm `*-model.ts` dosyaları emsali). */
+export interface StaffChangeRequestRow {
+  id: string;
+  targetType: 'staff_grant' | 'staff_revoke';
+  targetId: string;
+  status: string;
+  executed: boolean;
+}
+
 export interface ApprovalQueueRow {
   id: string;
   title: string;

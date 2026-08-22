@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useMemo, useState, type CSSProperties } from 'react';
 
 import type { GovernanceOverviewSnapshot } from '../governance-overview-model';
-import { getRequestFacts, type ApprovalQueueRow, type DataRequestRow, type StaffAccountRow } from '../operations-model';
+import { getRequestFacts, type ApprovalQueueRow, type DataRequestRow, type StaffAccountRow, type StaffChangeRequestRow } from '../operations-model';
 import { ApprovalActionButtons, ApprovalActionDialog, type ApprovalAction } from './ApprovalActions';
 import { KvkkActionButtons, KvkkActionDialog, type KvkkAction } from './KvkkActions';
 import { EmptyWorkbench, formatCompactDate, InitialAvatar, OperationsKpi, OperationsKpiStrip, OperationsSectionHeader, SourceNotice } from './OperationsShared';
+import { ExecuteStaffChangeButton } from './StaffFlagActions';
 import { StaffDialog } from './StaffDialog';
 
 export function SecurityOverviewView({ snapshot, preview = false }: { snapshot: GovernanceOverviewSnapshot; preview?: boolean }) {
@@ -70,21 +71,38 @@ function QueueLink({ href, icon, tone, title, value }: { href: string; icon: str
   return <Link href={href} className="list-group-item list-group-item-action d-flex align-items-center gap-3 px-0"><span className="avatar avatar-sm"><span className={`avatar-initial rounded bg-label-${tone}`}><i className={`icon-base ti ${icon}`} /></span></span><span className="flex-grow-1"><strong className="text-heading d-block">{title}</strong><small className="text-body-secondary">{value}</small></span><i className="icon-base ti tabler-chevron-right text-body-secondary" /></Link>;
 }
 
-export function StaffRolesView({ rows }: { rows: StaffAccountRow[] }) {
+export function StaffRolesView({
+  rows,
+  requests = [],
+  preview = false,
+}: {
+  rows: StaffAccountRow[];
+  requests?: StaffChangeRequestRow[];
+  preview?: boolean;
+}) {
   const active = rows.filter((row) => row.lastLoginAt).length;
+  const pendingExecutions = requests.filter((request) => request.status === 'approved' && !request.executed).length;
   return <>
     <OperationsKpiStrip>
       <OperationsKpi label="Staff accounts" value={String(rows.length)} support="Accounts behind isStaff" icon="tabler-shield-check" tone="primary" />
       <OperationsKpi label="Recorded login" value={String(active)} support="At least one login event" icon="tabler-login" tone="success" />
       <OperationsKpi label="Persisted roles" value="1" support="Single staff gate" icon="tabler-lock-access" tone="warning" />
-      <OperationsKpi label="Write access" value="Limited" support="Billing and entitlement flows" icon="tabler-pencil-check" tone="info" last />
+      <OperationsKpi label="Awaiting execution" value={String(pendingExecutions)} support="Approved, not yet executed" icon="tabler-player-play" tone={pendingExecutions ? 'danger' : 'success'} last />
     </OperationsKpiStrip>
     <div className="row g-6 mb-6">
       <div className="col-xl-7"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title="Staff directory" support="Read-only view of accounts currently allowed into the control plane." /><div className="row g-4">{rows.map((row) => <div className="col-md-6" key={row.id}><div className="d-flex align-items-center gap-3 rounded bg-body-secondary p-4 h-100"><InitialAvatar label={row.email} tone="primary" /><span className="flex-grow-1 min-w-0"><strong className="text-heading d-block text-truncate">{row.email}</strong><small className="text-body-secondary">Added {formatCompactDate(row.createdAt)}</small></span><span className="badge bg-label-success">Staff</span></div></div>)}</div>{rows.length === 0 && <SourceNotice title="No staff accounts" body="No account currently has the staff gate enabled." tone="warning" icon="tabler-user-off" />}</div></div></div>
       <div className="col-xl-5"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title="Current access model" support="The database has one staff flag, not granular role assignments." /><div className="timeline timeline-center mt-6"><AccessStep icon="tabler-login-2" tone="primary" title="Authenticate" body="A normal Mailmyra account signs in." /><AccessStep icon="tabler-shield-check" tone="success" title="Staff gate" body="isStaff permits the control-plane shell." /><AccessStep icon="tabler-history" tone="info" title="Audit" body="Sensitive reads and supported writes create immutable events." /></div></div></div></div>
     </div>
-    <div className="card mb-6"><div className="card-body"><OperationsSectionHeader title="Capability boundary" support="What staff can do today, without implying a role engine that does not exist." /><div className="row g-4"><Capability icon="tabler-eye" tone="primary" title="Sensitive customer reads" body="Logged per organization and target scope." /><Capability icon="tabler-file-dollar" tone="success" title="Invoice operations" body="Issue, settle and void authoritative invoice records." /><Capability icon="tabler-license" tone="warning" title="Entitlement updates" body="Change seats, state and trial dates with a reason." /><Capability icon="tabler-user-cog" tone="secondary" title="Role administration" body="Not persisted yet; staff provisioning remains outside this UI." /></div></div></div>
-    <SourceNotice title="Role engine not yet implemented" body="This page deliberately does not show editable permissions. Introduce persisted roles, grants and approval policy before exposing staff administration controls." tone="warning" icon="tabler-shield-exclamation" />
+    <div className="card mb-6"><div className="card-body">
+      <OperationsSectionHeader title="Staff change requests" support="Grant and revoke go through Security → Approvals first; execution is a separate, deliberate step and can only be spent once." />
+      {requests.length ? <div className="list-group list-group-flush">{requests.map((request) => <div className="list-group-item d-flex flex-wrap align-items-center gap-3" key={request.id}>
+        <span className={`badge bg-label-${request.targetType === 'staff_grant' ? 'success' : 'danger'}`}>{request.targetType === 'staff_grant' ? 'Grant' : 'Revoke'}</span>
+        <span className="flex-grow-1 min-w-0"><strong className="text-heading d-block text-truncate">{request.targetId}</strong><small className="text-body-secondary text-capitalize">{request.status}{request.executed ? ' · executed' : ''}</small></span>
+        {!preview && request.status === 'approved' && !request.executed && <ExecuteStaffChangeButton request={request} />}
+      </div>)}</div> : <SourceNotice title="No staff change requests" body={preview ? 'Grant and revoke requests will appear here once they are opened.' : 'Use Request staff change above, or open one from Security → Approvals, to grant or revoke the staff gate.'} tone="info" icon="tabler-user-shield" />}
+    </div></div>
+    <div className="card mb-6"><div className="card-body"><OperationsSectionHeader title="Capability boundary" support="What staff can do today, without implying a role engine that does not exist." /><div className="row g-4"><Capability icon="tabler-eye" tone="primary" title="Sensitive customer reads" body="Logged per organization and target scope." /><Capability icon="tabler-file-dollar" tone="success" title="Invoice operations" body="Issue, settle and void authoritative invoice records." /><Capability icon="tabler-license" tone="warning" title="Entitlement updates" body="Change seats, state and trial dates with a reason." /><Capability icon="tabler-user-cog" tone="info" title="Staff provisioning" body="Grant or revoke the staff gate through an approved, single-use request." /></div></div></div>
+    <SourceNotice title="Single flag, not a role engine" body="Grant and revoke change the one isStaff flag through an approved, single-use request. There is still no granular per-feature role model." tone="info" icon="tabler-shield-half-filled" />
   </>;
 }
 

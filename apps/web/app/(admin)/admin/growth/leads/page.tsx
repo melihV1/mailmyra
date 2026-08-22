@@ -5,12 +5,17 @@ import { listLeads, NotStaffError } from '../../../../../lib/repo/admin';
 import type { GrowthLeadRow } from '../../../growth-analytics-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
 import { LeadsView } from '../../../ui/GrowthOperationsViews';
+import { NewLeadButton } from '../../../ui/LeadActions';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
 export const metadata = { title: 'Leads — Mailmyra staff' };
 export const dynamic = 'force-dynamic';
 
-/** Gerçek lead defteri — otomatik kaynak yok, satırlar elle açılır. */
+/**
+ * Gerçek lead defteri — otomatik kaynak yok, ama artık elle SQL yerine
+ * bu sayfadan (`NewLeadButton`/`LeadUpdateButton`, bkz. `ui/LeadActions.tsx`)
+ * açılır ve güncellenir.
+ */
 export default async function Page() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/growth/leads');
@@ -42,7 +47,12 @@ export default async function Page() {
         crumb="Growth & content / Leads"
         title="Leads"
         support="Manually curated pipeline — no tracking source is connected."
-        right={<RefreshButton />}
+        right={
+          <>
+            <NewLeadButton />
+            <RefreshButton />
+          </>
+        }
       />
       <LeadsView rows={rows} />
     </section>
