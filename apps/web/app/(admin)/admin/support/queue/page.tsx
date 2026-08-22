@@ -6,6 +6,7 @@ import { listSupportCases, NotStaffError } from '../../../../../lib/repo/admin';
 import type { SupportCaseRow } from '../../../support-operations-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
 import { SupportQueueView } from '../../../ui/SupportOperationsViews';
+import { NewSupportCaseButton } from '../../../ui/SupportActions';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
 export const metadata = { title: 'Support queue — Mailmyra staff' };
@@ -14,6 +15,10 @@ export const dynamic = 'force-dynamic';
 /**
  * Gerçek vaka defteri. `requesterEmail` kişisel veri — sayfayı açmak
  * StaffAccess'e düşer, günlük yazılamazsa sayfa açılmaz (repo sözleşmesi).
+ * Yaşam döngüsü yazmaları artık VAR: oluşturma, durum, sahip ve öncelik —
+ * `NewSupportCaseButton`/`SupportActionButtons` (bkz. `ui/SupportActions.tsx`),
+ * her biri yetki + kalıcılık + denetim + hata yolunu aynı transaction'da
+ * taşıyan `lib/repo/admin.ts` fonksiyonlarına gider.
  */
 export default async function Page() {
   const session = await currentSession();
@@ -64,7 +69,12 @@ export default async function Page() {
         crumb="Support / Queue"
         title="Support queue"
         support="Inbound customer work by SLA, ownership and state. Opening this register is logged."
-        right={<RefreshButton />}
+        right={
+          <>
+            <NewSupportCaseButton />
+            <RefreshButton />
+          </>
+        }
       />
       <SupportQueueView rows={rows} now={Date.now()} />
     </section>

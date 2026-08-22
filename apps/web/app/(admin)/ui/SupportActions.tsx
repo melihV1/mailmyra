@@ -1,0 +1,570 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState, type FormEvent } from 'react';
+
+import { useToast } from '../../(app)/ToastProvider';
+import type { SupportCasePriority, SupportCaseRow, SupportCaseStatus } from '../support-operations-model';
+import { StaffDialog } from './StaffDialog';
+
+/**
+ * İzinli durum geçişleri — `lib/repo/admin.ts`taki `SUPPORT_TRANSITIONS`in
+ * AYNASI. Sunucu zaten reddediyor; burada tekrarlanmasının tek sebebi
+ * `<select>`e yalnız ulaşılabilir hedefleri sunmak (KvkkActions'taki
+ * `kvkkStatusTargets` emsali) — iki taraf birbirinden bağımsız sürüklenirse
+ * sunucu 400 döner, arayüz yanlışlıkla "başarılı" göstermez.
+ */
+const SUPPORT_STATUS_TARGETS: Record<SupportCaseStatus, SupportCaseStatus[]> = {
+  open: ['waiting_customer', 'escalated', 'resolved'],
+  waiting_customer: ['open', 'escalated', 'resolved'],
+  escalated: ['open', 'resolved'],
+  resolved: ['open'],
+};
+
+export type SupportAction = 'status' | 'owner' | 'priority';
+
+/**
+ * Vaka satır eylemleri — ApprovalActionButtons/KvkkActionButtons deseni
+ * birebir: diyaloğu KENDİ İÇİNDE AÇMAZ, yalnız seçilen eylemi dışarı
+ * bildirir; diyalog çağıran tarafta detay panelinin YERİNE, kardeş olarak
+ * açılır (iç içe modal ApprovalActions'ta yaşanan iki-kapatma-düğmesi
+ * hatasını üretir).
+ *
+ * Durum HER ZAMAN görünür — `resolved → open` yeniden açma yolu budur.
+ * Sahip ve öncelik `resolved` vakada gizlenir: repo ikisini de reddediyor
+ * (kapatılmış dosyada ne yeni sahip ne SLA saati anlamlı).
+ */
+export function SupportActionButtons({
+  row,
+  onPick,
+}: {
+  row: SupportCaseRow;
+  onPick: (action: SupportAction) => void;
+}) {
+  return (
+    <>
+      <button type="button" className="btn btn-label-info btn-sm" onClick={() => onPick('status')}>
+        Change status
+      </button>
+      {row.status !== 'resolved' && (
+        <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('owner')}>
+          Assign owner
+        </button>
+      )}
+      {row.status !== 'resolved' && (
+        <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('priority')}>
+          Set priority
+        </button>
+      )}
+    </>
+  );
+}
+
+/** Seçilen eylemin sebep formu — detay panelinin yerine açılır. */
+export function SupportActionDialog({
+  row,
+  action,
+  onClose,
+  onDone,
+}: {
+  row: SupportCaseRow;
+  action: SupportAction;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
+  switch (action) {
+    case 'status':
+      return <StatusDialog row={row} onClose={onClose} onDone={onDone} />;
+    case 'owner':
+      return <OwnerDialog row={row} onClose={onClose} onDone={onDone} />;
+    case 'priority':
+      return <PriorityDialog row={row} onClose={onClose} onDone={onDone} />;
+  }
+}
+
+function StatusDialog({
+  row,
+  onClose,
+  onDone,
+}: {
+  row: SupportCaseRow;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const targets = SUPPORT_STATUS_TARGETS[row.status];
+  const [status, setStatus] = useState<SupportCaseStatus>(targets[0] ?? row.status);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await fetch(`/api/admin/support/${row.id}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, reason }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(body.error ?? 'Failed — try again.');
+      return;
+    }
+    toast('success', `Status moved to ${status.replace('_', ' ')}.`);
+    onClose();
+    onDone?.();
+    router.refresh();
+  };
+
+  return (
+    <StaffDialog
+      title={`Change status — ${row.reference}`}
+      subtitle="Only the statuses reachable from the current one are offered."
+      labelledBy={`Change status ${row.reference}`}
+      busy={busy}
+      onClose={onClose}
+    >
+      <form className="row g-6" onSubmit={submit}>
+        <div className="col-12">
+          <label className="form-label" htmlFor="supportStatusTarget">Target status</label>
+          <select
+            id="supportStatusTarget"
+            className="form-select"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as SupportCaseStatus)}
+          >
+            {targets.map((target) => (
+              <option key={target} value={target}>{target.replace('_', ' ')}</option>
+            ))}
+          </select>
+        </div>
+        <div className="col-12">
+          <label className="form-label" htmlFor="supportStatusReason">
+            Reason <span className="text-danger">*</span>
+          </label>
+          <input
+            id="supportStatusReason"
+            className="form-control"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <div className="col-12">
+            <div className="alert alert-danger mb-0" role="alert">{error}</div>
+          </div>
+        )}
+        <div className="col-12 text-center">
+          <button type="submit" className="btn btn-primary me-3" disabled={busy}>
+            {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
+            Change status
+          </button>
+          <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </StaffDialog>
+  );
+}
+
+function OwnerDialog({
+  row,
+  onClose,
+  onDone,
+}: {
+  row: SupportCaseRow;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const [ownerEmail, setOwnerEmail] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await fetch(`/api/admin/support/${row.id}/owner`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ownerEmail, reason }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(body.error ?? 'Failed — try again.');
+      return;
+    }
+    toast('success', 'Owner assigned.');
+    onClose();
+    onDone?.();
+    router.refresh();
+  };
+
+  return (
+    <StaffDialog
+      title={`Assign owner — ${row.reference}`}
+      subtitle="The owner must already be a staff account."
+      labelledBy={`Assign owner ${row.reference}`}
+      busy={busy}
+      onClose={onClose}
+    >
+      <form className="row g-6" onSubmit={submit}>
+        <div className="col-12">
+          <label className="form-label" htmlFor="supportOwnerEmail">
+            Owner email <span className="text-danger">*</span>
+          </label>
+          <input
+            id="supportOwnerEmail"
+            type="email"
+            className="form-control"
+            value={ownerEmail}
+            onChange={(e) => setOwnerEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="col-12">
+          <label className="form-label" htmlFor="supportOwnerReason">
+            Reason <span className="text-danger">*</span>
+          </label>
+          <input
+            id="supportOwnerReason"
+            className="form-control"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <div className="col-12">
+            <div className="alert alert-danger mb-0" role="alert">{error}</div>
+          </div>
+        )}
+        <div className="col-12 text-center">
+          <button type="submit" className="btn btn-primary me-3" disabled={busy}>
+            {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
+            Assign owner
+          </button>
+          <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </StaffDialog>
+  );
+}
+
+/** Öncelik değişince `slaDueAt` `createdAt`ten yeniden hesaplanır — repo notu buna göre. */
+function PriorityDialog({
+  row,
+  onClose,
+  onDone,
+}: {
+  row: SupportCaseRow;
+  onClose: () => void;
+  onDone?: () => void;
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const [priority, setPriority] = useState<SupportCasePriority>(row.priority);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await fetch(`/api/admin/support/${row.id}/priority`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ priority, reason }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(body.error ?? 'Failed — try again.');
+      return;
+    }
+    toast('success', `Priority set to ${priority}.`);
+    onClose();
+    onDone?.();
+    router.refresh();
+  };
+
+  return (
+    <StaffDialog
+      title={`Set priority — ${row.reference}`}
+      subtitle="SLA due date is recalculated from the case's creation time."
+      labelledBy={`Set priority ${row.reference}`}
+      busy={busy}
+      onClose={onClose}
+    >
+      <form className="row g-6" onSubmit={submit}>
+        <div className="col-12">
+          <label className="form-label" htmlFor="supportPriorityTarget">Priority</label>
+          <select
+            id="supportPriorityTarget"
+            className="form-select"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as SupportCasePriority)}
+          >
+            <option value="urgent">Urgent</option>
+            <option value="high">High</option>
+            <option value="normal">Normal</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div className="col-12">
+          <label className="form-label" htmlFor="supportPriorityReason">
+            Reason <span className="text-danger">*</span>
+          </label>
+          <input
+            id="supportPriorityReason"
+            className="form-control"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            required
+          />
+        </div>
+        {error && (
+          <div className="col-12">
+            <div className="alert alert-danger mb-0" role="alert">{error}</div>
+          </div>
+        )}
+        <div className="col-12 text-center">
+          <button type="submit" className="btn btn-primary me-3" disabled={busy}>
+            {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
+            Set priority
+          </button>
+          <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
+            Cancel
+          </button>
+        </div>
+      </form>
+    </StaffDialog>
+  );
+}
+
+/**
+ * Yeni destek vakası açma diyaloğu — NewKvkkButton deseni: sayfa
+ * başlığında sabit buton, form gönderiminde diyalog kapanır ve sayfa
+ * yenilenir. `slaDueAt` kod tarafında hesaplanır (bkz. `createSupportCase`)
+ * — burada elle girilmez.
+ */
+export function NewSupportCaseButton() {
+  const router = useRouter();
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [reference, setReference] = useState('');
+  const [subject, setSubject] = useState('');
+  const [requesterEmail, setRequesterEmail] = useState('');
+  const [channel, setChannel] = useState<'email' | 'form' | 'staff'>('email');
+  const [category, setCategory] = useState<'billing' | 'builder' | 'export' | 'access' | 'account'>('billing');
+  const [priority, setPriority] = useState<SupportCasePriority>('normal');
+  const [orgId, setOrgId] = useState('');
+  const [summary, setSummary] = useState('');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const reset = () => {
+    setReference('');
+    setSubject('');
+    setRequesterEmail('');
+    setChannel('email');
+    setCategory('billing');
+    setPriority('normal');
+    setOrgId('');
+    setSummary('');
+    setReason('');
+  };
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await fetch('/api/admin/support', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        reference,
+        subject,
+        requesterEmail,
+        channel,
+        category,
+        priority,
+        orgId: orgId || undefined,
+        summary: summary || undefined,
+        reason,
+      }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string };
+      setError(body.error ?? 'Failed — try again.');
+      return;
+    }
+    toast('success', 'Support case created.');
+    setOpen(false);
+    reset();
+    router.refresh();
+  };
+
+  return (
+    <>
+      <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
+        <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
+        New case
+      </button>
+
+      {open && (
+        <StaffDialog
+          title="New support case"
+          subtitle="Opens a durable support case record with its own SLA clock."
+          labelledBy="New support case"
+          busy={busy}
+          onClose={() => setOpen(false)}
+        >
+          <form className="row g-6" onSubmit={submit}>
+            <div className="col-md-6">
+              <label className="form-label" htmlFor="supportNewReference">
+                Reference <span className="text-danger">*</span>
+              </label>
+              <input
+                id="supportNewReference"
+                className="form-control"
+                placeholder="SUP-2026-0001"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-6">
+              <label className="form-label" htmlFor="supportNewRequesterEmail">
+                Requester email <span className="text-danger">*</span>
+              </label>
+              <input
+                id="supportNewRequesterEmail"
+                type="email"
+                className="form-control"
+                value={requesterEmail}
+                onChange={(e) => setRequesterEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-12">
+              <label className="form-label" htmlFor="supportNewSubject">
+                Subject <span className="text-danger">*</span>
+              </label>
+              <input
+                id="supportNewSubject"
+                className="form-control"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-4">
+              <label className="form-label" htmlFor="supportNewChannel">Channel</label>
+              <select
+                id="supportNewChannel"
+                className="form-select"
+                value={channel}
+                onChange={(e) => setChannel(e.target.value as typeof channel)}
+              >
+                <option value="email">Email</option>
+                <option value="form">Form</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label" htmlFor="supportNewCategory">Category</label>
+              <select
+                id="supportNewCategory"
+                className="form-select"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as typeof category)}
+              >
+                <option value="billing">Billing</option>
+                <option value="builder">Builder</option>
+                <option value="export">Export</option>
+                <option value="access">Access</option>
+                <option value="account">Account</option>
+              </select>
+            </div>
+            <div className="col-md-4">
+              <label className="form-label" htmlFor="supportNewPriority">Priority</label>
+              <select
+                id="supportNewPriority"
+                className="form-select"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as SupportCasePriority)}
+              >
+                <option value="urgent">Urgent</option>
+                <option value="high">High</option>
+                <option value="normal">Normal</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label" htmlFor="supportNewOrgId">Org id</label>
+              <input
+                id="supportNewOrgId"
+                className="form-control"
+                value={orgId}
+                onChange={(e) => setOrgId(e.target.value)}
+              />
+              <small className="text-body-secondary">Org id — leave blank if the requester is not tied to a customer.</small>
+            </div>
+            <div className="col-12">
+              <label className="form-label" htmlFor="supportNewSummary">Summary</label>
+              <textarea
+                id="supportNewSummary"
+                className="form-control"
+                rows={3}
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+              />
+            </div>
+            <div className="col-12">
+              <label className="form-label" htmlFor="supportNewReason">
+                Reason <span className="text-danger">*</span>
+              </label>
+              <input
+                id="supportNewReason"
+                className="form-control"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                required
+              />
+            </div>
+            {error && (
+              <div className="col-12">
+                <div className="alert alert-danger mb-0" role="alert">{error}</div>
+              </div>
+            )}
+            <div className="col-12 text-center">
+              <button type="submit" className="btn btn-primary me-3" disabled={busy}>
+                {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
+                Create case
+              </button>
+              <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </StaffDialog>
+      )}
+    </>
+  );
+}

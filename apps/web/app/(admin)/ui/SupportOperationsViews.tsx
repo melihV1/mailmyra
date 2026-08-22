@@ -22,6 +22,8 @@ import {
   OperationsSectionHeader,
   SourceNotice,
 } from './OperationsShared';
+import { SupportActionButtons, SupportActionDialog, type SupportAction } from './SupportActions';
+import { StaffDialog } from './StaffDialog';
 
 const STATUS_META: Record<SupportCaseStatus, { label: string; tone: string; icon: string }> = {
   open: { label: 'Open', tone: 'primary', icon: 'tabler-mail-opened' },
@@ -49,6 +51,10 @@ function formatSlaTime(ms: number) {
 export function SupportQueueView({ rows, now, preview }: { rows: SupportCaseRow[]; now: number; preview?: boolean }) {
   const queue = useMemo(() => sortSupportQueue(rows), [rows]);
   const [selectedId, setSelectedId] = useState(queue[0]?.id ?? '');
+  // ApprovalsView/ErrorsView emsali: eylem diyaloğu kardeş olarak açılır.
+  // `selected` burada bir kopya değil, `queue`dan (kendisi `rows` prop'undan
+  // türer) `.find` ile hesaplanıyor — router.refresh() sonrası bayatlamaz.
+  const [action, setAction] = useState<SupportAction | null>(null);
   const selected = queue.find((row) => row.id === selectedId) ?? queue[0];
   const facts = supportCaseFacts(rows, now);
 
@@ -62,11 +68,11 @@ export function SupportQueueView({ rows, now, preview }: { rows: SupportCaseRow[
     </OperationsKpiStrip>
     {selected ? <div className="card mb-6 mm-support-console">
       <div className="mm-support-inbox">
-        <div className="p-4 border-bottom"><OperationsSectionHeader title="Priority inbox" support="SLA first, then urgency and last activity." action={<button className="btn btn-sm btn-primary" type="button"><i className="icon-base ti tabler-plus me-1" />New case</button>} /><div className="input-group input-group-merge"><span className="input-group-text"><i className="icon-base ti tabler-search" /></span><input className="form-control" placeholder="Search customer or subject" /></div></div>
+        <div className="p-4 border-bottom"><OperationsSectionHeader title="Priority inbox" support="SLA first, then urgency and last activity." /><div className="input-group input-group-merge"><span className="input-group-text"><i className="icon-base ti tabler-search" /></span><input className="form-control" placeholder="Search customer or subject" /></div></div>
         <div className="mm-support-inbox__list">{queue.map((row) => { const sla = slaState(row, now); const status = STATUS_META[row.status]; return <button className={`mm-support-inbox__item${selected.id === row.id ? ' is-active' : ''}`} type="button" onClick={() => setSelectedId(row.id)} key={row.id}><div className="d-flex align-items-start gap-3"><InitialAvatar label={row.customer} tone={sla.tone} /><span className="flex-grow-1 min-w-0 text-start"><span className="d-flex align-items-center justify-content-between gap-2"><strong className="text-heading text-truncate">{row.customer}</strong><small className={`text-${sla.tone} flex-shrink-0`}>{formatSlaTime(sla.remaining)}</small></span><span className="d-block text-body-secondary text-truncate mt-1">{row.subject}</span><span className="d-flex align-items-center gap-2 mt-2"><span className={`badge bg-label-${PRIORITY_TONE[row.priority]}`}>{row.priority}</span><small className="text-body-secondary"><i className={`icon-base ti ${status.icon} me-1`} />{status.label}</small></span></span></div><div className="progress mt-3"><span className={`progress-bar bg-${sla.tone}`} style={{ width: `${sla.progress}%` }} /></div></button>; })}</div>
       </div>
       <div className="mm-support-conversation">
-        <header className="mm-support-conversation__header"><div className="d-flex align-items-center gap-3 min-w-0"><InitialAvatar label={selected.customer} tone={PRIORITY_TONE[selected.priority]} /><span className="min-w-0"><small className="text-body-secondary">{selected.reference} · {selected.channel}</small><h5 className="mb-0 text-truncate">{selected.subject}</h5></span></div><div className="d-flex gap-2"><button className="btn btn-sm btn-label-secondary" type="button"><i className="icon-base ti tabler-user-plus me-1" />Assign</button><button className="btn btn-sm btn-primary" type="button">Reply<i className="icon-base ti tabler-send ms-1" /></button></div></header>
+        <header className="mm-support-conversation__header"><div className="d-flex align-items-center gap-3 min-w-0"><InitialAvatar label={selected.customer} tone={PRIORITY_TONE[selected.priority]} /><span className="min-w-0"><small className="text-body-secondary">{selected.reference} · {selected.channel}</small><h5 className="mb-0 text-truncate">{selected.subject}</h5></span></div><div className="d-flex gap-2">{!preview && <SupportActionButtons row={selected} onPick={setAction} />}<button className="btn btn-sm btn-primary" type="button">Reply<i className="icon-base ti tabler-send ms-1" /></button></div></header>
         <div className="mm-support-conversation__body">
           <div className="row g-4 mb-5"><div className="col-md-8"><div className="mm-support-message"><div className="d-flex align-items-center gap-3 mb-4"><InitialAvatar label={selected.requester} tone="secondary" /><span><strong className="d-block text-heading">{selected.requester}</strong><small className="text-body-secondary">Customer message · {formatCompactDate(selected.createdAt)}</small></span></div><p className="mb-0">{selected.summary}</p></div></div><div className="col-md-4"><SupportSlaCard row={selected} now={now} /></div></div>
           <OperationsSectionHeader title="Case context" support="Operational metadata only; customer signature content is never shown here." />
@@ -79,7 +85,8 @@ export function SupportQueueView({ rows, now, preview }: { rows: SupportCaseRow[
         </div>
       </div>
     </div> : <SupportConnectionEmpty kind="queue" />}
-    <SupportSource preview={preview} body={preview ? 'The inbox demonstrates the intended SLA workflow and is not production customer activity.' : 'No support-case or inbound-message entity exists in the current schema. The production queue stays empty until a consent-aware source and immutable case history are connected.'} />
+    <SupportSource preview={preview} body={preview ? 'The inbox demonstrates the intended SLA workflow and is not production customer activity.' : 'Support cases are a persisted, writable register. An empty queue means every case has been resolved, not that the source is missing.'} />
+    {selected && action && <SupportActionDialog row={selected} action={action} onClose={() => setAction(null)} onDone={() => setAction(null)} />}
   </>;
 }
 
@@ -88,22 +95,50 @@ function SupportSlaCard({ row, now }: { row: SupportCaseRow; now: number }) {
   return <div className={`mm-support-sla bg-label-${sla.tone}`}><span className={`avatar mb-4`}><span className={`avatar-initial rounded bg-${sla.tone} text-white`}><i className="icon-base ti tabler-alarm" /></span></span><small className="d-block text-uppercase">Response target</small><h4 className={`text-${sla.tone} mt-1 mb-2`}>{sla.label}</h4><div className="progress"><span className={`progress-bar bg-${sla.tone}`} style={{ width: `${sla.progress}%` }} /></div><small className="d-block mt-3">Priority: <strong>{row.priority}</strong></small></div>;
 }
 
+/**
+ * Boş liste görünümü — `SupportCase` gerçek, yazılabilir bir kayıt
+ * (Task 5). Bu kart artık "kaynak bağlı değil" demiyor: sıfır satır ya
+ * hiç vaka açılmamış ya da hepsi çözülmüş demek — sayfa başlığındaki
+ * "New case" düğmesi zaten görünür durumda.
+ */
 function SupportConnectionEmpty({ kind }: { kind: 'queue' | 'cases' }) {
-  return <div className="row g-6 mb-6"><div className="col-xl-7"><div className="card h-100"><div className="card-body py-10 text-center"><span className="avatar avatar-xl mb-4"><span className="avatar-initial rounded bg-label-warning"><i className={`icon-base ti ${kind === 'queue' ? 'tabler-inbox-off' : 'tabler-folders-off'} icon-32px`} /></span></span><h4>No production support {kind === 'queue' ? 'queue' : 'case store'} is connected</h4><p className="text-body-secondary mx-auto mb-0" style={{ maxWidth: '42rem' }}>Customer organizations and staff actions exist, but an inbound request is not the same thing as a support case. The workbench will not manufacture tickets from account activity.</p></div></div></div><div className="col-xl-5"><div className="card h-100 card-border-shadow-primary"><div className="card-body"><OperationsSectionHeader title="Connection contract" support="Minimum durable fields required before this surface goes live." /><div className="d-grid gap-3">{['Consent-aware inbound request', 'Immutable case and message history', 'SLA policy and response timestamps', 'Owner, status and escalation trail', 'Customer-visible outcome record'].map((label, index) => <div className="d-flex align-items-center gap-3" key={label}><span className="badge rounded-pill bg-label-primary">0{index + 1}</span><span className="text-heading fw-medium">{label}</span></div>)}</div></div></div></div></div>;
+  return <div className="card mb-6"><div className="card-body py-10 text-center"><span className="avatar avatar-xl mb-4"><span className="avatar-initial rounded bg-label-primary"><i className={`icon-base ti ${kind === 'queue' ? 'tabler-inbox-off' : 'tabler-folders-off'} icon-32px`} /></span></span><h4>{kind === 'queue' ? 'No open support cases' : 'No support cases yet'}</h4><p className="text-body-secondary mx-auto mb-0" style={{ maxWidth: '42rem' }}>{kind === 'queue' ? 'Every case has been resolved, or none have been opened yet.' : 'Cases created from the support queue will appear here.'}</p></div></div>;
 }
 
 export function SupportCasesView({ rows, now, preview }: { rows: SupportCaseRow[]; now: number; preview?: boolean }) {
   const [status, setStatus] = useState<'all' | SupportCaseStatus>('all');
   const [query, setQuery] = useState('');
+  // ApprovalsView/DataRequestsView emsali: kart ızgarasında "detay" modalı
+  // yok, bu yüzden "..." düğmesi bir StaffDialog açar; eylem diyaloğu onun
+  // YERİNE (kardeş) render edilir.
+  const [selected, setSelected] = useState<SupportCaseRow | null>(null);
+  const [action, setAction] = useState<SupportAction | null>(null);
   const facts = supportCaseFacts(rows, now);
   const visible = useMemo(() => rows.filter((row) => (status === 'all' || row.status === status) && `${row.reference} ${row.customer} ${row.subject}`.toLowerCase().includes(query.toLowerCase())).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()), [query, rows, status]);
   const resolved = rows.filter((row) => row.status === 'resolved').length;
   return <>
     <div className="d-flex justify-content-end mb-4"><PreviewBadge preview={preview} /></div>
     <OperationsKpiStrip><OperationsKpi label="All cases" value={String(rows.length)} support="Loaded support portfolio" icon="tabler-folders" tone="primary" /><OperationsKpi label="Open attention" value={String(facts.active)} support="Unresolved records" icon="tabler-folder-open" tone="warning" /><OperationsKpi label="Resolved" value={String(resolved)} support={`${rows.length ? Math.round((resolved / rows.length) * 100) : 0}% resolution share`} icon="tabler-circle-check" tone="success" /><OperationsKpi label="Waiting customer" value={String(facts.waiting)} support="Paused for a customer response" icon="tabler-hourglass" tone="info" last /></OperationsKpiStrip>
-    {rows.length ? <div className="card mb-6"><div className="card-body border-bottom"><OperationsSectionHeader title="Case portfolio" support="Scan ownership, current state and SLA without opening every record." /><div className="row g-3"><div className="col-lg-8"><div className="input-group input-group-merge"><span className="input-group-text"><i className="icon-base ti tabler-search" /></span><input className="form-control" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Reference, customer or subject" /></div></div><div className="col-lg-4"><select className="form-select" value={status} onChange={(event) => setStatus(event.target.value as typeof status)}><option value="all">All statuses</option>{Object.entries(STATUS_META).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}</select></div></div></div><div className="card-body"><div className="mm-support-case-grid">{visible.map((row) => { const state = STATUS_META[row.status]; const sla = slaState(row, now); return <article className={`mm-support-case mm-support-case--${sla.tone}`} key={row.id}><div className="d-flex align-items-start justify-content-between gap-3 mb-4"><span className={`avatar`}><span className={`avatar-initial rounded bg-label-${state.tone} text-${state.tone}`}><i className={`icon-base ti ${CATEGORY_ICON[row.category]}`} /></span></span><button className="btn btn-sm btn-icon btn-text-secondary rounded-pill" type="button" aria-label={`Actions for ${row.reference}`}><i className="icon-base ti tabler-dots-vertical" /></button></div><small className="text-body-secondary">{row.reference}</small><h6 className="mt-1 mb-2 text-truncate">{row.subject}</h6><p className="small text-body-secondary text-truncate mb-4">{row.customer} · {row.requester}</p><div className="d-flex flex-wrap gap-2 mb-4"><span className={`badge bg-label-${state.tone}`}>{state.label}</span><span className={`badge bg-label-${PRIORITY_TONE[row.priority]}`}>{row.priority}</span></div><div className="progress mb-2"><span className={`progress-bar bg-${sla.tone}`} style={{ width: `${sla.progress}%` }} /></div><div className="d-flex justify-content-between align-items-center"><small className={`text-${sla.tone}`}>{sla.label}</small><InitialAvatar label={row.owner ?? 'Unassigned'} tone={row.owner ? 'primary' : 'secondary'} /></div></article>; })}</div></div></div> : <SupportConnectionEmpty kind="cases" />}
-    <SupportSource preview={preview} body={preview ? 'The case portfolio is representative UI data and is not connected to customers.' : 'No support case model exists in production, so this page exposes the connection boundary instead of relabeling customer activity.'} />
+    {rows.length ? <div className="card mb-6"><div className="card-body border-bottom"><OperationsSectionHeader title="Case portfolio" support="Scan ownership, current state and SLA without opening every record." /><div className="row g-3"><div className="col-lg-8"><div className="input-group input-group-merge"><span className="input-group-text"><i className="icon-base ti tabler-search" /></span><input className="form-control" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Reference, customer or subject" /></div></div><div className="col-lg-4"><select className="form-select" value={status} onChange={(event) => setStatus(event.target.value as typeof status)}><option value="all">All statuses</option>{Object.entries(STATUS_META).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}</select></div></div></div><div className="card-body"><div className="mm-support-case-grid">{visible.map((row) => { const state = STATUS_META[row.status]; const sla = slaState(row, now); return <article className={`mm-support-case mm-support-case--${sla.tone}`} key={row.id}><div className="d-flex align-items-start justify-content-between gap-3 mb-4"><span className={`avatar`}><span className={`avatar-initial rounded bg-label-${state.tone} text-${state.tone}`}><i className={`icon-base ti ${CATEGORY_ICON[row.category]}`} /></span></span><button className="btn btn-sm btn-icon btn-text-secondary rounded-pill" type="button" aria-label={`Actions for ${row.reference}`} onClick={() => setSelected(row)}><i className="icon-base ti tabler-dots-vertical" /></button></div><small className="text-body-secondary">{row.reference}</small><h6 className="mt-1 mb-2 text-truncate">{row.subject}</h6><p className="small text-body-secondary text-truncate mb-4">{row.customer} · {row.requester}</p><div className="d-flex flex-wrap gap-2 mb-4"><span className={`badge bg-label-${state.tone}`}>{state.label}</span><span className={`badge bg-label-${PRIORITY_TONE[row.priority]}`}>{row.priority}</span></div><div className="progress mb-2"><span className={`progress-bar bg-${sla.tone}`} style={{ width: `${sla.progress}%` }} /></div><div className="d-flex justify-content-between align-items-center"><small className={`text-${sla.tone}`}>{sla.label}</small><InitialAvatar label={row.owner ?? 'Unassigned'} tone={row.owner ? 'primary' : 'secondary'} /></div></article>; })}</div></div></div> : <SupportConnectionEmpty kind="cases" />}
+    <SupportSource preview={preview} body={preview ? 'The case portfolio is representative UI data and is not connected to customers.' : 'Support cases are a persisted, writable register; requester email is never shown outside the queue view.'} />
+    {selected && action && <SupportActionDialog row={selected} action={action} onClose={() => setAction(null)} onDone={() => setSelected(null)} />}
+    {selected && !action && <StaffDialog title={selected.reference} subtitle={preview ? 'Preview-only case detail.' : 'Case detail.'} labelledBy={selected.reference} busy={false} onClose={() => setSelected(null)}>
+      <div className="list-group mb-6">
+        <CaseRow label="Subject" value={selected.subject} />
+        <CaseRow label="Customer" value={selected.customer} />
+        <CaseRow label="Status" value={STATUS_META[selected.status].label} />
+        <CaseRow label="Priority" value={selected.priority} />
+        <CaseRow label="Owner" value={selected.owner ?? 'Unassigned'} />
+        <CaseRow label="SLA due" value={formatCompactDate(selected.slaDueAt)} />
+      </div>
+      {!preview && <div className="d-flex flex-wrap gap-2 mb-6"><SupportActionButtons row={selected} onPick={setAction} /></div>}
+      <button type="button" className="btn btn-label-secondary w-100" onClick={() => setSelected(null)}>{preview ? 'Close preview' : 'Close'}</button>
+    </StaffDialog>}
   </>;
+}
+
+function CaseRow({ label, value }: { label: string; value: string }) {
+  return <div className="list-group-item d-flex justify-content-between gap-4"><span className="text-body-secondary">{label}</span><strong className="text-heading text-end">{value}</strong></div>;
 }
 
 export function SupportOnboardingView({ source, now, preview }: { source: ProductAnalyticsSnapshot; now: number; preview?: boolean }) {

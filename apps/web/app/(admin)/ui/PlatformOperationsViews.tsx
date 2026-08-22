@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import { BarsChart } from '../../(app)/charts/BarsChart';
 import { DonutChart } from '../../(app)/charts/DonutChart';
+import { ErrorActionButtons, ErrorActionDialog, type ErrorAction } from './ErrorActions';
 import {
   errorFacts,
   exportFacts,
@@ -154,20 +155,38 @@ export function JobsView({ source, preview }: { source: PlatformOperationsSnapsh
   </>;
 }
 
-function ErrorDetail({ row }: { row: ErrorGroupRow }) {
+function ErrorDetail({
+  row,
+  preview,
+  onPick,
+}: {
+  row: ErrorGroupRow;
+  preview?: boolean;
+  onPick: (action: ErrorAction) => void;
+}) {
   const meta = ERROR_META[row.severity];
-  return <div className="mm-error-detail"><div className="d-flex flex-wrap align-items-start justify-content-between gap-3"><span className={`avatar avatar-lg`}><span className={`avatar-initial rounded bg-label-${meta.tone} text-${meta.tone}`}><i className={`icon-base ti ${meta.icon} icon-28px`} /></span></span><div className="d-flex gap-2"><button className="btn btn-sm btn-label-secondary" type="button">Ignore</button><button className="btn btn-sm btn-primary" type="button">Investigate<i className="icon-base ti tabler-arrow-up-right ms-1" /></button></div></div><div><small className={`text-${meta.tone} text-uppercase fw-semibold`}>{row.severity} · {row.surface}</small><h4 className="mt-2 mb-2">{row.title}</h4><code>{row.fingerprint}</code></div><div className="mm-error-detail__facts">{[['Events', row.events], ['Affected orgs', row.affectedOrgs], ['First seen', formatTime(row.firstSeenAt)], ['Last seen', formatTime(row.lastSeenAt)]].map(([label, value]) => <span key={String(label)}><small>{label}</small><strong>{value}</strong></span>)}</div><div className="alert alert-warning mb-0"><strong>Privacy boundary</strong><br /><small>Stack traces must be scrubbed before storage. Customer signature fields and recipient addresses never belong in this surface.</small></div></div>;
+  return <div className="mm-error-detail"><div className="d-flex flex-wrap align-items-start justify-content-between gap-3"><span className={`avatar avatar-lg`}><span className={`avatar-initial rounded bg-label-${meta.tone} text-${meta.tone}`}><i className={`icon-base ti ${meta.icon} icon-28px`} /></span></span>{!preview && <div className="d-flex gap-2"><ErrorActionButtons onPick={onPick} /></div>}</div><div><small className={`text-${meta.tone} text-uppercase fw-semibold`}>{row.severity} · {row.surface}</small><h4 className="mt-2 mb-2">{row.title}</h4><code>{row.fingerprint}</code></div><div className="mm-error-detail__facts">{[['Events', row.events], ['Affected orgs', row.affectedOrgs], ['First seen', formatTime(row.firstSeenAt)], ['Last seen', formatTime(row.lastSeenAt)]].map(([label, value]) => <span key={String(label)}><small>{label}</small><strong>{value}</strong></span>)}</div><div className="alert alert-warning mb-0"><strong>Privacy boundary</strong><br /><small>Stack traces must be scrubbed before storage. Customer signature fields and recipient addresses never belong in this surface.</small></div></div>;
 }
 
+/**
+ * Hata grubu durumu artık yazılabilir (`setErrorGroupState`,
+ * `error.state_set` denetimi) — bu görünüm ApprovalsView/ErrorsView
+ * emsali tek-modal kuralını izler: `action` seçiliyken diyalog listenin
+ * YANINA (kardeş) açılır, `selected`i DEĞİL yalnız `action`ı temizler —
+ * `selected` burada bir kopya değil, tazelenen `source` prop'undan
+ * `.find` ile türetiliyor, bu yüzden bayatlama riski yok.
+ */
 export function ErrorsView({ source, preview }: { source: PlatformOperationsSnapshot; preview?: boolean }) {
   const facts = errorFacts(source.telemetry.errors);
   const [selectedId, setSelectedId] = useState(source.telemetry.errors[0]?.id ?? '');
+  const [action, setAction] = useState<ErrorAction | null>(null);
   const selected = source.telemetry.errors.find((row) => row.id === selectedId) ?? source.telemetry.errors[0];
   return <>
     <div className="d-flex justify-content-end mb-4"><PreviewBadge preview={preview} /></div>
     <OperationsKpiStrip><OperationsKpi label="Error groups" value={String(facts.groups)} support="Deduplicated fingerprints" icon="tabler-bug" tone="primary" /><OperationsKpi label="Open" value={String(facts.open)} support="Needs triage or resolution" icon="tabler-folder-exclamation" tone="warning" /><OperationsKpi label="Critical" value={String(facts.critical)} support="Immediate attention" icon="tabler-flame" tone="danger" /><OperationsKpi label="Events" value={String(facts.events)} support="Across loaded groups" icon="tabler-chart-histogram" tone="info" last /></OperationsKpiStrip>
-    {source.telemetry.errors.length && selected ? <div className="mm-error-console mb-6"><aside className="mm-error-list"><header><h5 className="mb-1">Error groups</h5><p className="text-body-secondary mb-0">Grouped by stable fingerprint.</p></header>{source.telemetry.errors.map((row) => { const meta = ERROR_META[row.severity]; return <button className={`mm-error-list__item ${row.id === selected.id ? 'is-active' : ''}`} type="button" onClick={() => setSelectedId(row.id)} key={row.id}><span className={`avatar avatar-sm`}><span className={`avatar-initial rounded bg-label-${meta.tone} text-${meta.tone}`}><i className={`icon-base ti ${meta.icon}`} /></span></span><span className="min-w-0 flex-grow-1 text-start"><strong className="d-block text-heading text-truncate">{row.title}</strong><small className="text-body-secondary">{row.events} events · {row.affectedOrgs} orgs</small></span><span className={`badge bg-label-${meta.tone}`}>{row.severity}</span></button>; })}</aside><section><div className="card h-100"><div className="card-body"><ErrorDetail row={selected} /></div></div></section></div> : <div className="card mb-6"><div className="card-body"><EmptyTelemetry icon="tabler-bug-off" title="No structured error source is connected" body="Console logs are not an error system. A production triage desk needs fingerprints, scrubbed context, occurrences, affected scope and resolution state." /></div></div>}
-    <PlatformSource preview={preview} warning={!source.telemetry.errors.length} body="Errors must be structured, deduplicated and scrubbed before ingestion. Browser or server console output is not treated as durable incident evidence." />
+    {source.telemetry.errors.length && selected ? <div className="mm-error-console mb-6"><aside className="mm-error-list"><header><h5 className="mb-1">Error groups</h5><p className="text-body-secondary mb-0">Grouped by stable fingerprint.</p></header>{source.telemetry.errors.map((row) => { const meta = ERROR_META[row.severity]; return <button className={`mm-error-list__item ${row.id === selected.id ? 'is-active' : ''}`} type="button" onClick={() => setSelectedId(row.id)} key={row.id}><span className={`avatar avatar-sm`}><span className={`avatar-initial rounded bg-label-${meta.tone} text-${meta.tone}`}><i className={`icon-base ti ${meta.icon}`} /></span></span><span className="min-w-0 flex-grow-1 text-start"><strong className="d-block text-heading text-truncate">{row.title}</strong><small className="text-body-secondary">{row.events} events · {row.affectedOrgs} orgs</small></span><span className={`badge bg-label-${meta.tone}`}>{row.severity}</span></button>; })}</aside><section><div className="card h-100"><div className="card-body"><ErrorDetail row={selected} preview={preview} onPick={setAction} /></div></div></section></div> : <div className="card mb-6"><div className="card-body"><EmptyTelemetry icon="tabler-bug-off" title="No open error groups" body="Nothing has reported a server-side failure in the loaded window. New groups appear automatically the next time a request fails." /></div></div>}
+    <PlatformSource preview={preview} warning={false} body="Error groups are deduplicated by fingerprint and scrubbed before storage; staff triage and resolve them here. Stack traces and customer signature content never appear in this surface." />
+    {selected && action && <ErrorActionDialog row={selected} action={action} onClose={() => setAction(null)} onDone={() => setAction(null)} />}
   </>;
 }
 
