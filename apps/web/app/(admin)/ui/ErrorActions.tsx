@@ -27,7 +27,7 @@ export type ErrorAction = 'state';
  */
 export function ErrorActionButtons({ onPick }: { onPick: (action: ErrorAction) => void }) {
   return (
-    <button type="button" className="btn btn-sm btn-primary" onClick={() => onPick('state')}>
+    <button type="button" className="btn btn-sm btn-label-info" onClick={() => onPick('state')}>
       Change status
     </button>
   );
