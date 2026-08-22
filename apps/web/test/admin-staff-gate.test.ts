@@ -29,8 +29,8 @@ const tx = {
   invoice: { create: vi.fn(), update: vi.fn(), findUnique: vi.fn() },
   approvalRequest: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   approvalDecision: { create: vi.fn(), count: vi.fn() },
-  approvalEvent: { create: vi.fn() },
-  user: { findFirst: vi.fn() },
+  approvalEvent: { create: vi.fn(), count: vi.fn() },
+  user: { findFirst: vi.fn(), findUnique: vi.fn(), count: vi.fn(), update: vi.fn() },
   kvkkRequest: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   kvkkEvidence: { create: vi.fn() },
   kvkkEvent: { create: vi.fn() },
@@ -138,6 +138,7 @@ const CALLS: Record<string, unknown[]> = {
     'sebep',
   ],
   setReportScheduleStatus: ['u1', 'sched1', 'paused', 'sebep'],
+  setStaffFlag: ['u1', 'new.staff@voldi.net', true, 'req1', 'sebep'],
   listAdminQueues: ['u1'],
   searchAdmin: ['u1', 'acme'],
   listInvoicesAdmin: ['u1'],
@@ -146,6 +147,7 @@ const CALLS: Record<string, unknown[]> = {
   listReportSchedules: ['u1'],
   listLeads: ['u1'],
   listSupportCases: ['u1'],
+  listStaffChangeRequests: ['u1'],
   getPlatformTelemetry: ['u1'],
   listStaffAccess: ['u1'],
   listAdminActions: ['u1'],
@@ -393,6 +395,7 @@ describe('yazmalar — sebep zorunlu, denetim transaction içinde', () => {
         ),
     ],
     ['setReportScheduleStatus', () => admin.setReportScheduleStatus('u1', 'sched1', 'paused', '')],
+    ['setStaffFlag', () => admin.setStaffFlag('u1', 'new.staff@voldi.net', true, 'req1', '')],
   ] as const) {
     it(`${label}: boş sebeple çalışmaz ve transaction açılmaz`, async () => {
       asStaff();

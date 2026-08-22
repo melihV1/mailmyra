@@ -2116,6 +2116,100 @@ export async function setReportScheduleStatus(
   });
 }
 
+// ─── Yönetişim yazmaları: staff yetkisi ──────────────────────────────────
+
+/**
+ * Personel bayrağını YALNIZ onaylı, tek kullanımlık bir onay talebi
+ * üzerinden çevirir — bu, onayın İLK gerçek icrasıdır. İlke korunur:
+ * `createApprovalRequest`/`decideApproval` hiçbir şeyi otomatik uygulamaz,
+ * onaylanmış bir talep yalnız bir KARAR DEFTERİ satırıdır. İcra ayrı ve
+ * bilinçli bir adım: talep → karar → (burada) icra.
+ *
+ * `targetEmail` normalizasyonu (`trim + küçük harf + 64 karaktere kes`)
+ * `createApprovalRequest`in `targetId`ye yazdığı değerle BİREBİR eşleşmeli
+ * — UI aynı normalizasyonu talep açarken kullanır (Task 7 diyaloğu);
+ * uyuşmazsa onaylanmış talep hiç bulunamaz. Bekçiler tx içinde, sırayla:
+ *
+ *   1. Talep VAR + `status 'approved'` + `domain 'security'` + `targetType`
+ *      istenen eyleme uyar (`grant→'staff_grant'`, `revoke→'staff_revoke'`)
+ *      + `targetId` hedef e-postaya eşit.
+ *   2. Talep DAHA ÖNCE İCRA EDİLMEMİŞ: `ApprovalEvent type 'executed'`
+ *      kaydı yoksa. Aynı onay iki kez harcanamaz — icra sonunda `executed`
+ *      olayı yazılır (olay tip birliği `schema.prisma`de genişletildi,
+ *      kolon varchar, migration yok).
+ *   3. Hedef kullanıcı VAR; grant'te zaten staff DEĞİL, revoke'ta staff.
+ *   4. Kilitlenme bekçisi: revoke SONRASI staff sayısı en az 1 kalmalı —
+ *      platformun kendini kilitlemesi engellenir.
+ */
+export async function setStaffFlag(
+  staffUserId: string,
+  targetEmail: string,
+  grant: boolean,
+  approvalRequestId: string,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+  const email = targetEmail.trim().toLowerCase().slice(0, 64);
+  const targetType = grant ? 'staff_grant' : 'staff_revoke';
+
+  await prisma.$transaction(async (tx) => {
+    const request = await tx.approvalRequest.findUnique({
+      where: { id: approvalRequestId },
+      select: { status: true, domain: true, targetType: true, targetId: true },
+    });
+    if (
+      !request ||
+      request.status !== 'approved' ||
+      request.domain !== 'security' ||
+      request.targetType !== targetType ||
+      request.targetId !== email
+    ) {
+      throw new Error('Bu işlem için onaylanmış talep yok.');
+    }
+
+    const executedCount = await tx.approvalEvent.count({
+      where: { requestId: approvalRequestId, type: 'executed' },
+    });
+    if (executedCount !== 0) throw new Error('Bu onay zaten kullanılmış.');
+
+    const target = await tx.user.findUnique({
+      where: { email },
+      select: { id: true, isStaff: true },
+    });
+    if (!target) throw new Error('Hedef kullanıcı bulunamadı.');
+    if (grant && target.isStaff) throw new Error('Zaten personel.');
+    if (!grant && !target.isStaff) throw new Error('Zaten personel değil.');
+
+    if (!grant) {
+      const staffCount = await tx.user.count({ where: { isStaff: true } });
+      if (staffCount <= 1) throw new Error('Son personelin yetkisi düşürülemez.');
+    }
+
+    await tx.user.update({ where: { id: target.id }, data: { isStaff: grant } });
+
+    await tx.approvalEvent.create({
+      data: {
+        requestId: approvalRequestId,
+        type: 'executed',
+        actorEmail: staff.email,
+        payload: { action: targetType, target: email },
+      },
+    });
+
+    await audit(tx, staff, {
+      org: PLATFORM_ORG,
+      action: 'staff.flag_set',
+      targetId: target.id,
+      before: { isStaff: target.isStaff },
+      after: { isStaff: grant },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
 // ─── Komuta merkezi kuyrukları ────────────────────────────────────────────
 
 export interface AdminQueues {
@@ -2749,6 +2843,53 @@ export async function listSupportCases(
     updatedAt: r.updatedAt,
     slaDueAt: r.slaDueAt,
     summary: r.summary,
+  }));
+}
+
+// ─── Security: staff icra kuyruğu ────────────────────────────────────────
+
+export interface AdminStaffChangeRequestRow {
+  id: string;
+  targetType: 'staff_grant' | 'staff_revoke';
+  targetId: string;
+  status: string;
+  /** `'executed'` tipinde bir `ApprovalEvent` var mı — talep harcanmış mı. */
+  executed: boolean;
+}
+
+/**
+ * Security → Staff ekranındaki icra kuyruğu: `domain 'security'` +
+ * `targetType` `staff_grant`/`staff_revoke` olan onay talepleri. Satır
+ * başına "Execute" düğmesi `status 'approved' && !executed` iken görünür.
+ *
+ * Kişisel veri YOK — burada dolaşan e-postalar müşteri değil PERSONEL
+ * e-postaları (`listOrganizations` gerekçesinin aynısı) → `StaffAccess`e
+ * yazılmaz, günlüksüz.
+ */
+export async function listStaffChangeRequests(
+  staffUserId: string,
+): Promise<AdminStaffChangeRequestRow[]> {
+  await requireStaff(staffUserId);
+
+  const rows = await prisma.approvalRequest.findMany({
+    where: { domain: 'security', targetType: { in: ['staff_grant', 'staff_revoke'] } },
+    orderBy: { createdAt: 'desc' },
+    take: 200,
+    select: {
+      id: true,
+      targetType: true,
+      targetId: true,
+      status: true,
+      events: { where: { type: 'executed' }, take: 1, select: { id: true } },
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    targetType: r.targetType as 'staff_grant' | 'staff_revoke',
+    targetId: r.targetId ?? '',
+    status: r.status,
+    executed: r.events.length > 0,
   }));
 }
 

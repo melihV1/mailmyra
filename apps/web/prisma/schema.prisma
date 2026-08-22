@@ -619,7 +619,10 @@ model ApprovalEvent {
   id        String @id @default(cuid())
   requestId String
 
-  /// 'created' | 'decision_recorded' | 'approved' | 'rejected' | 'cancelled'
+  /// 'created' | 'decision_recorded' | 'approved' | 'rejected' | 'cancelled' |
+  /// 'executed' (staff yetkisi icrası — talep hiçbir şeyi otomatik uygulamaz,
+  /// bu olay icranın YAPILDIĞINI ve bir daha harcanamayacağını işaretler;
+  /// migration yok, kolon zaten varchar).
   type       String @db.VarChar(32)
   actorEmail String @db.VarChar(255)
   payload    Json
