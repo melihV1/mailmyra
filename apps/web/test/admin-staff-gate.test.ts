@@ -34,6 +34,7 @@ const tx = {
   kvkkRequest: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   kvkkEvidence: { create: vi.fn() },
   kvkkEvent: { create: vi.fn() },
+  supportCase: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
   adminAction: { create: vi.fn() },
   activityEvent: { create: vi.fn() },
 };
@@ -109,6 +110,21 @@ const CALLS: Record<string, unknown[]> = {
   addKvkkEvidence: ['u1', 'kv1', { label: 'L', location: '/x' }, 'sebep'],
   setKvkkStatus: ['u1', 'kv1', 'legal_review', 'sebep'],
   completeKvkkRequest: ['u1', 'kv1', 'özet', 'sebep'],
+  createSupportCase: [
+    'u1',
+    {
+      reference: 'DSK-2026-0001',
+      subject: 'Konu',
+      requesterEmail: 'musteri@ornek.com',
+      channel: 'email',
+      category: 'billing',
+      priority: 'normal',
+    },
+    'sebep',
+  ],
+  setSupportCaseStatus: ['u1', 'case1', 'resolved', 'sebep'],
+  assignSupportCaseOwner: ['u1', 'case1', 'staff@voldi.net', 'sebep'],
+  setSupportCasePriority: ['u1', 'case1', 'high', 'sebep'],
   listAdminQueues: ['u1'],
   searchAdmin: ['u1', 'acme'],
   listInvoicesAdmin: ['u1'],
@@ -320,6 +336,25 @@ describe('yazmalar — sebep zorunlu, denetim transaction içinde', () => {
     ['addKvkkEvidence', () => admin.addKvkkEvidence('u1', 'kv1', { label: 'L', location: '/x' }, '')],
     ['setKvkkStatus', () => admin.setKvkkStatus('u1', 'kv1', 'legal_review', '')],
     ['completeKvkkRequest', () => admin.completeKvkkRequest('u1', 'kv1', 'özet', '')],
+    [
+      'createSupportCase',
+      () =>
+        admin.createSupportCase(
+          'u1',
+          {
+            reference: 'DSK-2026-0001',
+            subject: 'Konu',
+            requesterEmail: 'musteri@ornek.com',
+            channel: 'email',
+            category: 'billing',
+            priority: 'normal',
+          },
+          '',
+        ),
+    ],
+    ['setSupportCaseStatus', () => admin.setSupportCaseStatus('u1', 'case1', 'resolved', '')],
+    ['assignSupportCaseOwner', () => admin.assignSupportCaseOwner('u1', 'case1', 'staff@voldi.net', '')],
+    ['setSupportCasePriority', () => admin.setSupportCasePriority('u1', 'case1', 'high', '')],
   ] as const) {
     it(`${label}: boş sebeple çalışmaz ve transaction açılmaz`, async () => {
       asStaff();

@@ -7,6 +7,7 @@ import { prisma } from '../db';
 import { probeCdn, probeSmtp } from '../health-probes';
 import { statutoryDueDate } from '../kvkk';
 import { nextPlannedRun } from '../report-schedule';
+import { slaDueDate, type SupportPriority } from '../support-sla';
 import type { ActivityType } from './activity';
 import { getBrand } from './brand';
 import { countActiveSeats } from './senders';
@@ -174,7 +175,17 @@ async function audit(
       | 'kvkk.owner_assigned'
       | 'kvkk.evidence_added'
       | 'kvkk.status_changed'
-      | 'kvkk.completed';
+      | 'kvkk.completed'
+      | 'support.case_created'
+      | 'support.case_status_set'
+      | 'support.case_owner_set'
+      | 'support.case_priority_set'
+      | 'error.state_set'
+      | 'lead.created'
+      | 'lead.updated'
+      | 'report.schedule_created'
+      | 'report.schedule_status_set'
+      | 'staff.flag_set';
     targetId?: string;
     before: Record<string, unknown>;
     after: Record<string, unknown>;
@@ -1558,6 +1569,232 @@ export async function completeKvkkRequest(
       targetId: requestId,
       before: { status: request.status },
       after: { status: 'completed' },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+// ─── Yönetişim yazmaları: destek vakaları ────────────────────────────────
+
+export type SupportChannel = 'email' | 'form' | 'staff';
+export type SupportCategory = 'billing' | 'builder' | 'export' | 'access' | 'account';
+
+/**
+ * İzinli durum geçişleri (mevcut durum → izinli hedefler). `resolved`
+ * yeniden açılabilir (`open`) — destek gerçeği: kapatılmış vaka geri
+ * gelebilir. KVKK'nın aksine burada hedef değil KAYNAK anahtar: her
+ * durumdan nereye gidilebileceği tek bakışta okunsun diye.
+ */
+const SUPPORT_TRANSITIONS: Record<string, string[]> = {
+  open: ['waiting_customer', 'escalated', 'resolved'],
+  waiting_customer: ['open', 'escalated', 'resolved'],
+  escalated: ['open', 'resolved'],
+  resolved: ['open'],
+};
+
+/** Vaka + audit org'unu tek yerden yükler — `loadKvkkForWrite` emsali. */
+async function loadSupportCaseForWrite(
+  tx: Prisma.TransactionClient,
+  caseId: string,
+): Promise<{
+  status: string;
+  priority: SupportPriority;
+  slaDueAt: Date;
+  createdAt: Date;
+  auditOrg: { id: string; name: string };
+}> {
+  const row = await tx.supportCase.findUnique({
+    where: { id: caseId },
+    select: { status: true, priority: true, slaDueAt: true, createdAt: true, orgId: true, orgName: true },
+  });
+  if (!row) throw new Error(`Destek vakası ${caseId} bulunamadı.`);
+  return {
+    status: row.status,
+    priority: row.priority as SupportPriority,
+    slaDueAt: row.slaDueAt,
+    createdAt: row.createdAt,
+    auditOrg: row.orgId ? { id: row.orgId, name: row.orgName } : PLATFORM_ORG,
+  };
+}
+
+/**
+ * Destek vakası açar. `slaDueAt`ı KOD hesaplar (`slaDueDate(now, priority)`
+ * — lib/support-sla.ts). Denetim payload'ında `requesterEmail` YOKTUR:
+ * KVKK'daki `subjectEmail` dışlaması aynı — denetim referans taşır, kişisel
+ * veriyi değil. Müşteri aktivitesi bilerek yok (yönetişim dalgası kuralı).
+ */
+export async function createSupportCase(
+  staffUserId: string,
+  input: {
+    reference: string;
+    subject: string;
+    requesterEmail: string;
+    channel: SupportChannel;
+    category: SupportCategory;
+    priority: SupportPriority;
+    orgId?: string;
+    summary?: string;
+  },
+  reason: string,
+  ctx?: StaffContext,
+): Promise<{ id: string }> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  const reference = input.reference.trim().slice(0, 32);
+  if (!reference) throw new Error('Referans zorunlu.');
+  const subject = input.subject.trim().slice(0, 200);
+  if (!subject) throw new Error('Konu zorunlu.');
+  const requesterEmail = input.requesterEmail.trim().toLowerCase().slice(0, 255);
+  if (!requesterEmail.includes('@')) throw new Error('Talep sahibi e-postası geçersiz.');
+  const summary = input.summary?.trim().slice(0, 500) ?? '';
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const org = await resolveGovernanceOrg(tx, input.orgId);
+      const slaDueAt = slaDueDate(new Date(), input.priority);
+
+      const created = await tx.supportCase.create({
+        data: {
+          reference,
+          subject,
+          orgId: input.orgId ?? null,
+          orgName: input.orgId ? org.name : '',
+          requesterEmail,
+          channel: input.channel,
+          category: input.category,
+          priority: input.priority,
+          slaDueAt,
+          summary,
+        },
+        select: { id: true },
+      });
+
+      await audit(tx, staff, {
+        org,
+        action: 'support.case_created',
+        targetId: created.id,
+        before: {},
+        after: {
+          reference,
+          category: input.category,
+          priority: input.priority,
+          slaDueAt: slaDueAt.toISOString(),
+        },
+        reason: cleanReason,
+        ctx,
+      });
+
+      return { id: created.id };
+    });
+  } catch (err) {
+    // Duck-typing, instanceof değil (createInvoice/createKvkkRequest emsali).
+    if ((err as { code?: string })?.code === 'P2002') {
+      throw new Error('Bu referans zaten kullanılmış.');
+    }
+    throw err;
+  }
+}
+
+export async function setSupportCaseStatus(
+  staffUserId: string,
+  caseId: string,
+  status: 'open' | 'waiting_customer' | 'escalated' | 'resolved',
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  await prisma.$transaction(async (tx) => {
+    const support = await loadSupportCaseForWrite(tx, caseId);
+    const allowedTo = SUPPORT_TRANSITIONS[support.status] ?? [];
+    if (!allowedTo.includes(status)) {
+      throw new Error(`'${support.status}' durumundan '${status}' durumuna geçilemez.`);
+    }
+
+    await tx.supportCase.update({ where: { id: caseId }, data: { status } });
+    await audit(tx, staff, {
+      org: support.auditOrg,
+      action: 'support.case_status_set',
+      targetId: caseId,
+      before: { status: support.status },
+      after: { status },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+/**
+ * Sahip yalnız personel olabilir. `resolved` vakaya atanamaz — kapatılmış
+ * dosyaya yeni sahip bağlamak anlamsız. Şemada `ownerId` yok (KVKK'nın
+ * aksine), yalnız `ownerEmail` — staff kontrolü yine de yapılır, satıra
+ * yazılmaz.
+ */
+export async function assignSupportCaseOwner(
+  staffUserId: string,
+  caseId: string,
+  ownerEmail: string,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+  const email = ownerEmail.trim().toLowerCase();
+
+  await prisma.$transaction(async (tx) => {
+    const support = await loadSupportCaseForWrite(tx, caseId);
+    if (support.status === 'resolved') throw new Error('Kapatılmış vakaya sahip atanamaz.');
+
+    const owner = await tx.user.findFirst({
+      where: { email, isStaff: true },
+      select: { id: true, email: true },
+    });
+    if (!owner) throw new Error('Sahip personel olmalı.');
+
+    await tx.supportCase.update({ where: { id: caseId }, data: { ownerEmail: owner.email } });
+    await audit(tx, staff, {
+      org: support.auditOrg,
+      action: 'support.case_owner_set',
+      targetId: caseId,
+      before: {},
+      after: { owner: owner.email },
+      reason: cleanReason,
+      ctx,
+    });
+  });
+}
+
+/**
+ * Öncelik değişince `slaDueAt` **`createdAt`ten** yeniden hesaplanır —
+ * `now`dan DEĞİL: dürüst taban, vaka ne zaman açıldıysa saat oradan işler.
+ * `resolved` vakada öncelik değiştirilemez (kapatılmış dosyada SLA saati
+ * anlamsız).
+ */
+export async function setSupportCasePriority(
+  staffUserId: string,
+  caseId: string,
+  priority: SupportPriority,
+  reason: string,
+  ctx?: StaffContext,
+): Promise<void> {
+  const staff = await requireStaff(staffUserId);
+  const cleanReason = requireReason(reason);
+
+  await prisma.$transaction(async (tx) => {
+    const support = await loadSupportCaseForWrite(tx, caseId);
+    if (support.status === 'resolved') throw new Error('Kapatılmış vakada öncelik değiştirilemez.');
+
+    const slaDueAt = slaDueDate(support.createdAt, priority);
+    await tx.supportCase.update({ where: { id: caseId }, data: { priority, slaDueAt } });
+    await audit(tx, staff, {
+      org: support.auditOrg,
+      action: 'support.case_priority_set',
+      targetId: caseId,
+      before: { priority: support.priority, slaDueAt: support.slaDueAt.toISOString() },
+      after: { priority, slaDueAt: slaDueAt.toISOString() },
       reason: cleanReason,
       ctx,
     });
