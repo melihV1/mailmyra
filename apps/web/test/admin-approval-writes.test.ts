@@ -102,6 +102,20 @@ describe('createApprovalRequest', () => {
     ).rejects.toThrow('1-3');
     expect(transaction).not.toHaveBeenCalled();
   });
+
+  it('staff_grant/staff_revoke targetId setStaffFlag ile aynı pinle normalize edilir', async () => {
+    await admin.createApprovalRequest(
+      'u1',
+      { ...input, domain: 'security', targetType: 'staff_grant', targetId: '  Mixed@Case.COM  ' },
+      'sebep',
+    );
+
+    expect(tx.approvalRequest.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ targetType: 'staff_grant', targetId: 'mixed@case.com' }),
+      }),
+    );
+  });
 });
 
 describe('decideApproval', () => {

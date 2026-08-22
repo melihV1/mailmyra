@@ -17,7 +17,10 @@ export async function POST(
   const seats = typeof body.seats === 'number' ? body.seats : undefined;
   const stageRaw = field(body, 'stage');
   const stage = LEAD_STAGES.includes(stageRaw as LeadStage) ? (stageRaw as LeadStage) : undefined;
-  const nextStep = field(body, 'nextStep') || undefined;
+  // `field()` boş string ile "alan hiç gönderilmedi"yi ayırt etmez —
+  // `|| undefined` kasıtlı boşaltmayı da "değişiklik yok"a çevirirdi.
+  // `updateLead` zaten '' değerini geçerli (temizleme) kabul ediyor.
+  const nextStep = typeof body.nextStep === 'string' ? body.nextStep : undefined;
 
   try {
     await updateLead(auth.userId, id, { stage, nextStep, seats }, field(body, 'reason'), staffCtx(req));

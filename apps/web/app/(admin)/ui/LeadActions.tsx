@@ -161,19 +161,28 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Yalnız satırın MEVCUT değerinden farklı alanlar gövdeye gider — aksi
+  // halde her kaydetme dokunulmayan alanları da denetime "değişti" diye
+  // yazardı (updateLead sunucuda zaten en az bir alan istiyor).
+  const seatsNumber = seats ? Number(seats) : undefined;
+  const patch: { stage?: GrowthLeadStage; nextStep?: string; seats?: number } = {};
+  if (stage !== lead.stage) patch.stage = stage;
+  if (nextStep !== lead.nextStep) patch.nextStep = nextStep;
+  if (seatsNumber !== undefined && seatsNumber !== lead.seats) patch.seats = seatsNumber;
+  const hasChanges = Object.keys(patch).length > 0;
+
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!hasChanges) {
+      setError('No changes.');
+      return;
+    }
     setBusy(true);
     setError(null);
     const res = await fetch(`/api/admin/leads/${lead.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        stage,
-        nextStep,
-        seats: seats ? Number(seats) : undefined,
-        reason,
-      }),
+      body: JSON.stringify({ ...patch, reason }),
     });
     setBusy(false);
     if (!res.ok) {

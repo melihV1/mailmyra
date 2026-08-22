@@ -99,7 +99,12 @@ export function StaffRolesView({
         <span className={`badge bg-label-${request.targetType === 'staff_grant' ? 'success' : 'danger'}`}>{request.targetType === 'staff_grant' ? 'Grant' : 'Revoke'}</span>
         <span className="flex-grow-1 min-w-0"><strong className="text-heading d-block text-truncate">{request.targetId}</strong><small className="text-body-secondary text-capitalize">{request.status}{request.executed ? ' · executed' : ''}</small></span>
         {!preview && request.status === 'approved' && !request.executed && <ExecuteStaffChangeButton request={request} />}
-      </div>)}</div> : <SourceNotice title="No staff change requests" body={preview ? 'Grant and revoke requests will appear here once they are opened.' : 'Use Request staff change above, or open one from Security → Approvals, to grant or revoke the staff gate.'} tone="info" icon="tabler-user-shield" />}
+      </div>)}</div> : (
+        // Security → Approvals'ta AÇILAN genel bir onay talebinin targetType/
+        // targetId'si yok — setStaffFlag'in bekçisiyle asla eşleşmez, o yüzden
+        // o yolu burada işaret etmiyoruz (2026-08-22 final-review).
+        <SourceNotice title="No staff change requests" body={preview ? 'Grant and revoke requests will appear here once they are opened.' : 'Use Request staff change above to grant or revoke the staff gate.'} tone="info" icon="tabler-user-shield" />
+      )}
     </div></div>
     <div className="card mb-6"><div className="card-body"><OperationsSectionHeader title="Capability boundary" support="What staff can do today, without implying a role engine that does not exist." /><div className="row g-4"><Capability icon="tabler-eye" tone="primary" title="Sensitive customer reads" body="Logged per organization and target scope." /><Capability icon="tabler-file-dollar" tone="success" title="Invoice operations" body="Issue, settle and void authoritative invoice records." /><Capability icon="tabler-license" tone="warning" title="Entitlement updates" body="Change seats, state and trial dates with a reason." /><Capability icon="tabler-user-cog" tone="info" title="Staff provisioning" body="Grant or revoke the staff gate through an approved, single-use request." /></div></div></div>
     <SourceNotice title="Single flag, not a role engine" body="Grant and revoke change the one isStaff flag through an approved, single-use request. There is still no granular per-feature role model." tone="info" icon="tabler-shield-half-filled" />

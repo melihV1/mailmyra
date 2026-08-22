@@ -1097,6 +1097,16 @@ export async function createApprovalRequest(
     throw new Error('Gereken onay sayısı 1-3 arası olmalı.');
   }
 
+  // staff_grant/staff_revoke hedefi bir e-posta — `setStaffFlag`in bekçisi
+  // targetId'yi `trim().toLowerCase().slice(0,64)` ile PİNLEYİP karşılaştırır;
+  // burada normalize edilmezse ham-API'den karışık-case gelen bir talep
+  // hiçbir zaman `setStaffFlag`in okuduğu değerle eşleşmez, kalıcı olarak
+  // yürütülemez kalır.
+  const isStaffTarget = input.targetType === 'staff_grant' || input.targetType === 'staff_revoke';
+  const normalizedTargetId = isStaffTarget
+    ? input.targetId?.trim().toLowerCase().slice(0, 64)
+    : input.targetId?.slice(0, 64);
+
   return prisma.$transaction(async (tx) => {
     const org = await resolveGovernanceOrg(tx, input.orgId);
     const request = await tx.approvalRequest.create({
@@ -1108,7 +1118,7 @@ export async function createApprovalRequest(
         orgId: input.orgId ?? null,
         orgName: input.orgId ? org.name : null,
         targetType: input.targetType?.slice(0, 24) ?? null,
-        targetId: input.targetId?.slice(0, 64) ?? null,
+        targetId: normalizedTargetId ?? null,
         requestedById: staff.id,
         requestedByEmail: staff.email,
         reason: cleanReason,
