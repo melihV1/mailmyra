@@ -2140,7 +2140,39 @@ export async function setReportScheduleStatus(
  *   3. Hedef kullanıcı VAR; grant'te zaten staff DEĞİL, revoke'ta staff.
  *   4. Kilitlenme bekçisi: revoke SONRASI staff sayısı en az 1 kalmalı —
  *      platformun kendini kilitlemesi engellenir.
+ *
+ * ── Geniş kilit, geçici çakışma ─────────────────────────────────────────
+ * Revoke'ün personel-seti kilidi (`isStaff = 1 OR email = ...`) tam tablo
+ * taraması — `senders.ts`teki tekil-PK kilidinin (`WHERE id = ...`) aksine.
+ * MariaDB 11.8'de ÖLÇÜLDÜ: bloke olan transaction kilidi aldığında altındaki
+ * satır artık eşleşmiyorsa sunucu `ER_CHECKREAD` (1020) ile döner; iki
+ * transaction kısmi kilitleri çapraz sırada alırsa gerçek `deadlock` (1213)
+ * da mümkün. İkisi de transient ve sunucunun kendi metni "restart the
+ * transaction" — tek doğru cevap taze okuma + taze kilitle SIFIRDAN tekrar
+ * denemek, bkz. `isTransientLockConflict`.
  */
+function isTransientLockConflict(err: unknown): boolean {
+  const e = err as {
+    code?: string;
+    meta?: { driverAdapterError?: { cause?: { originalCode?: string } } };
+  };
+  if (e?.code !== 'P2010') return false;
+  const originalCode = e.meta?.driverAdapterError?.cause?.originalCode;
+  return originalCode === '1020' || originalCode === '1213';
+}
+
+/** Yukarıdaki geçici çakışmalarda transaction'ı SIFIRDAN tekrar çalıştırır
+ *  — başka her hatada (bekçi reddi dahil) olduğu gibi ilk denemede fırlatır. */
+async function withLockConflictRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt >= attempts || !isTransientLockConflict(err)) throw err;
+    }
+  }
+}
+
 export async function setStaffFlag(
   staffUserId: string,
   targetEmail: string,
@@ -2154,7 +2186,17 @@ export async function setStaffFlag(
   const email = targetEmail.trim().toLowerCase().slice(0, 64);
   const targetType = grant ? 'staff_grant' : 'staff_revoke';
 
-  await prisma.$transaction(async (tx) => {
+  await withLockConflictRetry(() => prisma.$transaction(async (tx) => {
+    // Onay satırını KİLİTLE — tx'in İLK işlemi. Kilit olmadan aynı talebin
+    // iki eşzamanlı icrası ikisi de aşağıdaki `executedCount`u 0 okur ve
+    // ikisi de yürütür (double-spend). Kilitle: ikinci execute birincinin
+    // COMMIT'ine kadar burada bekler; ardından gelen `findUnique` +
+    // `executedCount` okumaları taze veriyi görür ve ikinci çağrı
+    // 'Bu onay zaten kullanılmış.' ile döner. `senders.ts`'teki
+    // `publishSender`in `SELECT ... FOR UPDATE` emsali (aynı gerekçe:
+    // kilitsiz okuma + yaz eşzamanlılıkta güvenli değil).
+    await tx.$queryRaw`SELECT id FROM ApprovalRequest WHERE id = ${approvalRequestId} FOR UPDATE`;
+
     const request = await tx.approvalRequest.findUnique({
       where: { id: approvalRequestId },
       select: { status: true, domain: true, targetType: true, targetId: true },
@@ -2174,17 +2216,47 @@ export async function setStaffFlag(
     });
     if (executedCount !== 0) throw new Error('Bu onay zaten kullanılmış.');
 
-    const target = await tx.user.findUnique({
-      where: { email },
-      select: { id: true, isStaff: true },
-    });
-    if (!target) throw new Error('Hedef kullanıcı bulunamadı.');
-    if (grant && target.isStaff) throw new Error('Zaten personel.');
-    if (!grant && !target.isStaff) throw new Error('Zaten personel değil.');
+    // Hedefi grant/revoke'ta BİLEREK FARKLI okuyoruz — ölçülmüş bir MariaDB
+    // (11.8.8) davranışı yüzünden:
+    //   · `User` tablosunda düz bir okumanın (`findUnique`) ardından AYNI
+    //     transaction'da o tabloya kilitli bir okuma (`FOR UPDATE`) gelirse
+    //     sunucu `ER_CHECKREAD` ("Record has changed since last read... try
+    //     restarting transaction") ile patlar — REPEATABLE READ altında bu
+    //     kombinasyon güvenli değil.
+    //   · Hedefi AYRI bir `FOR UPDATE` ile önce kilitleyip personel setini
+    //     AYRI bir `FOR UPDATE` ile sonra kilitlemek de güvenli değil: iki
+    //     eşzamanlı revoke kısmi kilitleri FARKLI sırada alırsa gerçek bir
+    //     deadlock'a (1213) düşer.
+    // Çözüm: revoke'ta hedef + personel seti TEK kilitli okumada birlikte
+    // gelir — `User` tablosuna bu transaction'da dokunan TEK sorgu bu olur.
+    // Grant hiçbir zaman `FOR UPDATE`e dokunmaz (kilitlenme onu ilgilendirmez),
+    // o yüzden düz `findUnique` orada sorunsuz kalır.
+    let target: { id: string; isStaff: boolean };
 
-    if (!grant) {
-      const staffCount = await tx.user.count({ where: { isStaff: true } });
+    if (grant) {
+      const row = await tx.user.findUnique({
+        where: { email },
+        select: { id: true, isStaff: true },
+      });
+      if (!row) throw new Error('Hedef kullanıcı bulunamadı.');
+      if (row.isStaff) throw new Error('Zaten personel.');
+      target = row;
+    } else {
+      // Personel SETİNİ kilitle — sayıp AYRI bir okuma yapmak (eski
+      // `tx.user.count`) iki eşzamanlı revoke'un (FARKLI hedeflere) ikisinin
+      // de "2 personel var" okuyup ikisinin de geçmesine, sonunda 0 personel
+      // kalmasına izin verir (lockout bypass). Sayı bu KİLİTLİ okumadan
+      // TÜRETİLİR, ayrı bir snapshot'tan değil — ikinci revoke, birincinin
+      // COMMIT'inden SONRA güncel sayıyı görür.
+      const lockedRows = await tx.$queryRaw<
+        Array<{ id: string; email: string; isStaff: number }>
+      >`SELECT id, email, isStaff FROM User WHERE isStaff = 1 OR email = ${email} FOR UPDATE`;
+      const row = lockedRows.find((r) => r.email === email);
+      if (!row) throw new Error('Hedef kullanıcı bulunamadı.');
+      if (!row.isStaff) throw new Error('Zaten personel değil.');
+      const staffCount = lockedRows.filter((r) => r.isStaff).length;
       if (staffCount <= 1) throw new Error('Son personelin yetkisi düşürülemez.');
+      target = { id: row.id, isStaff: true };
     }
 
     await tx.user.update({ where: { id: target.id }, data: { isStaff: grant } });
@@ -2207,7 +2279,7 @@ export async function setStaffFlag(
       reason: cleanReason,
       ctx,
     });
-  });
+  }));
 }
 
 // ─── Komuta merkezi kuyrukları ────────────────────────────────────────────

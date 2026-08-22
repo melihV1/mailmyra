@@ -3,6 +3,13 @@ import { prisma } from '../lib/db';
 /** Testler arası tam temizlik. Sıra önemli: çocuklar önce. */
 export async function truncateAll() {
   await prisma.$transaction([
+    // Onay/denetim satırları — `ApprovalEvent`/`ApprovalDecision`nın
+    // `ApprovalRequest`e FK'sı `Restrict`, çocuklar önce gitmeli.
+    prisma.approvalEvent.deleteMany(),
+    prisma.approvalDecision.deleteMany(),
+    prisma.approvalRequest.deleteMany(),
+    prisma.adminAction.deleteMany(),
+    prisma.staffAccess.deleteMany(),
     prisma.invoice.deleteMany(),
     prisma.activityEvent.deleteMany(),
     prisma.notificationPreference.deleteMany(),
