@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { useLang } from '../../lib/i18n/LangProvider';
 import { ToastProvider } from './ToastProvider';
 import { LanguageMenu } from './navbar/LanguageMenu';
 import { NotificationsBell } from './navbar/NotificationsBell';
@@ -89,6 +90,7 @@ export function PanelShell({
   children: ReactNode;
 }) {
   const pathname = usePathname();
+  const lang = useLang();
   const [menuOpen, setMenuOpen] = useState(false); // mobil off-canvas
   const [collapsed, setCollapsed] = useState(false); // masaüstü ray modu
   const [hovered, setHovered] = useState(false); // çökertilmişken imleç üstünde
@@ -234,6 +236,7 @@ export function PanelShell({
         .join(' ')}
       data-skin="default"
       data-bs-theme={dark ? 'dark' : 'light'}
+      lang={lang}
     >
       <ToastProvider>
       <div className="layout-wrapper layout-content-navbar">

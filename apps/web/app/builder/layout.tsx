@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 
+import { LangProvider } from '../../lib/i18n/LangProvider';
+import { getLang } from '../../lib/i18n/lang.server';
 import '../(app)/panel-overrides.css';
 
 /**
@@ -17,13 +19,14 @@ import '../(app)/panel-overrides.css';
  * kullanıcı koyu moda geçiremez; önizlemenin Light/Dark düğmeleri
  * imzanın zeminini değiştirir, arayüzün temasını değil.
  */
-export default function BuilderLayout({ children }: { children: ReactNode }) {
+export default async function BuilderLayout({ children }: { children: ReactNode }) {
+  const lang = await getLang();
   return (
     <>
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
-      <div className="mm-panel" data-skin="default" data-bs-theme="light">
-        {children}
+      <div className="mm-panel" data-skin="default" data-bs-theme="light" lang={lang}>
+        <LangProvider lang={lang}>{children}</LangProvider>
       </div>
     </>
   );

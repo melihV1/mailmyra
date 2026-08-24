@@ -15,6 +15,7 @@ import { StyleStep } from './steps/StyleStep';
 import { Preview } from './Preview';
 import { ExportButtons } from '../../components/ExportButtons';
 import { SaveDialog } from './SaveDialog';
+import { LangToggle } from './LangToggle';
 import './builder-theme.css';
 
 const STEPS = [
@@ -348,6 +349,7 @@ export function BuilderClient({
           </p>
         </div>
         <div className="d-flex flex-wrap align-items-center gap-2">
+          <LangToggle />
           {savedId ? (
             /* Kayıtlı imza: otomatik kayıt zaten çalışıyor, düğme yerine
                nereye kaydedildiğini söyleyen bir bağlantı. */

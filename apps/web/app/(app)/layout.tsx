@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { currentSession } from '../../lib/auth/current';
+import { LangProvider } from '../../lib/i18n/LangProvider';
+import { getLang } from '../../lib/i18n/lang.server';
 import { isStaff } from '../../lib/repo/admin';
 import { primaryOrgId, roleFor, seatSummary } from '../../lib/repo/senders';
 import { PanelShell } from './PanelShell';
@@ -25,6 +27,7 @@ import './panel-overrides.css';
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/signatures');
+  const lang = await getLang();
 
   // Doğrulanmamış adres panele GİREMEZ (karar 2026-08-14, eski "banner +
   // export kilidi" modelini değiştirir): kapı tek yerde, bekleme odası
@@ -45,16 +48,18 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
-      <PanelShell
-        email={session.user.email}
-        role={role}
-        seatsFull={seats.entitled > 0 && seats.active >= seats.entitled}
-        seatsBadge={`${seats.active}/${seats.entitled}`}
-        avatarUrl={session.user.avatarUrl}
-        staff={staff}
-      >
-        {children}
-      </PanelShell>
+      <LangProvider lang={lang}>
+        <PanelShell
+          email={session.user.email}
+          role={role}
+          seatsFull={seats.entitled > 0 && seats.active >= seats.entitled}
+          seatsBadge={`${seats.active}/${seats.entitled}`}
+          avatarUrl={session.user.avatarUrl}
+          staff={staff}
+        >
+          {children}
+        </PanelShell>
+      </LangProvider>
     </>
   );
 }
