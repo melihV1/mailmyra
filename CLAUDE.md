@@ -21,6 +21,14 @@ paneli ve işlemsel e-postalar. Kullanıcı siteden panele geçerken dil değiş
 > e-postalar İngilizce KALIR (hreflang/SEO maliyeti bilinçli ertelendi).
 > Süper admin paneli bu karardan bağımsızdır (iç yüzey).
 
+> **Revizyon (2026-08-24, Hüseyin, sözlü):** üstteki "varsayılan İngilizce
+> kalır" ifadesi değişti — **varsayılan dil tarayıcıdan gelir**: `mm-lang`
+> çerezi yoksa `Accept-Language` tr→TR, değilse EN; elle seçim çerezle
+> cihaz başına kalıcıdır (DB kolonu yok, migration yok). URL yerelleşmez
+> (`/tr/` rotası açılmaz). Pazarlama + işlemsel e-postalar yine İngilizce
+> KALIR. Tasarım: `docs/superpowers/specs/2026-08-24-customer-panel-
+> builder-tr-en-design.md`.
+
 ---
 
 ## Kilitli Kararlar (tartışmaya kapalı)
