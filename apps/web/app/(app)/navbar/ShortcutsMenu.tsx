@@ -58,12 +58,6 @@ export function ShortcutsMenu() {
         <div className="dropdown-menu-header border-bottom">
           <div className="dropdown-header d-flex align-items-center py-3">
             <h6 className="mb-0 me-auto">Shortcuts</h6>
-            <span
-              className="dropdown-shortcuts-add py-2 btn btn-text-secondary rounded-pill btn-icon"
-              title="Customization coming soon"
-            >
-              <i className="icon-base ti tabler-plus icon-20px text-heading" aria-hidden="true" />
-            </span>
           </div>
         </div>
         <div className="dropdown-shortcuts-list" style={{ maxHeight: 430, overflowY: 'auto' }}>
