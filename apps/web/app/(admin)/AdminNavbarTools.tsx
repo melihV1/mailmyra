@@ -7,9 +7,9 @@ import { useDropdown } from '../(app)/navbar/useDropdown';
 
 const CREATE_ACTIONS = [
   {
-    href: '/admin/invoices?new=1',
+    href: '/admin/orgs',
     label: 'Create invoice',
-    detail: 'Start a governed billing record',
+    detail: 'Pick the customer first — invoices are issued from the org page.',
     icon: 'tabler-file-dollar',
     tone: 'success',
   },
@@ -19,13 +19,6 @@ const CREATE_ACTIONS = [
     detail: 'Create an owned customer follow-up',
     icon: 'tabler-headset',
     tone: 'info',
-  },
-  {
-    href: '/admin/growth/content/pages?new=1',
-    label: 'New content draft',
-    detail: 'Begin a reviewed publishing flow',
-    icon: 'tabler-file-pencil',
-    tone: 'warning',
   },
   {
     href: '/admin/security/data-requests?new=1',

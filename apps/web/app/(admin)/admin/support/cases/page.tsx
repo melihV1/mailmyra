@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { currentSession } from '../../../../../lib/auth/current';
 import { listSupportCases, NotStaffError } from '../../../../../lib/repo/admin';
@@ -71,7 +72,9 @@ export default async function Page() {
         support="Durable support portfolio. Opening this register is logged."
         right={
           <>
-            <NewSupportCaseButton />
+            <Suspense fallback={null}>
+              <NewSupportCaseButton />
+            </Suspense>
             <RefreshButton />
           </>
         }

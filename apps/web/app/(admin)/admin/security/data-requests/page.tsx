@@ -1,5 +1,6 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { currentSession } from '../../../../../lib/auth/current';
 import { listKvkkRequests, NotStaffError } from '../../../../../lib/repo/admin';
@@ -67,7 +68,9 @@ export default async function DataRequestsPage() {
         support="Statutory data-subject work with ownership, due dates and evidence. Opening this register is logged."
         right={
           <>
-            <NewKvkkButton />
+            <Suspense fallback={null}>
+              <NewKvkkButton />
+            </Suspense>
             <RefreshButton />
           </>
         }

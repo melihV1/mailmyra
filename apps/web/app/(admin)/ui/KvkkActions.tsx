@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, type FormEvent } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
 import type { DataRequestRow } from '../operations-model';
@@ -607,6 +607,18 @@ export function NewKvkkButton() {
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  /* Navbar'daki Quick create `?new=1` ile gelir (Dalga A, K2): diyaloğu aç
+     ve parametreyi URL'den düşür — yenileme yeniden açmasın; navbar'dan
+     ikinci tıklama parametreyi geri getirip effect'i yeniden tetiklesin. */
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get('new') === '1') {
+      setOpen(true);
+      router.replace(pathname, { scroll: false });
+    }
+  }, [searchParams, pathname, router]);
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
