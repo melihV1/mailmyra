@@ -15,6 +15,12 @@ Geliştirici: **Hüseyin** (tek kişi, part-time). Kararları o verir, kodu onay
 paneli ve işlemsel e-postalar. Kullanıcı siteden panele geçerken dil değişmez.
 Çift dil kapsam dışı.
 
+> **Revizyon (2026-08-22, Hüseyin, sözlü):** "çift dil kapsam dışı" maddesi
+> YALNIZ **müşteri paneli + builder** için esnetildi — TR/EN dil seçeneği
+> eklenecek; varsayılan İngilizce kalır. Pazarlama sitesi ve işlemsel
+> e-postalar İngilizce KALIR (hreflang/SEO maliyeti bilinçli ertelendi).
+> Süper admin paneli bu karardan bağımsızdır (iç yüzey).
+
 ---
 
 ## Kilitli Kararlar (tartışmaya kapalı)
