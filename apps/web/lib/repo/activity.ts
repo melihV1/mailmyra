@@ -34,7 +34,9 @@ export type ActivityType =
      `StaffAccess` tablosunda durur, müşteriye gürültü olmasın. */
   | 'support.entitlement_changed'
   | 'support.invoice_issued'
-  | 'support.invoice_status_changed';
+  | 'support.invoice_status_changed'
+  /* Müşterinin kendi açtığı destek vakası (ticket v1) — kanal 'form'. */
+  | 'support.case_opened';
 
 export interface ActivityRow {
   id: string;
@@ -53,7 +55,7 @@ export async function recordActivity(input: {
   orgId: string;
   actorUserId?: string | null;
   type: ActivityType;
-  targetType?: 'sender' | 'signature' | 'member' | 'invitation' | 'brand' | 'export';
+  targetType?: 'sender' | 'signature' | 'member' | 'invitation' | 'brand' | 'export' | 'support';
   targetId?: string | null;
   payload?: Record<string, unknown>;
 }): Promise<void> {

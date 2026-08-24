@@ -140,6 +140,12 @@ export const ACTIVITY_LOOKS: Record<
     title: 'Invoice updated',
     body: (p) => `Invoice ${str(p.number, '')} was marked ${str(p.status, 'updated')}.`.replace('  ', ' '),
   },
+  'support.case_opened': {
+    icon: 'tabler-headset',
+    tone: 'info',
+    title: 'Support case opened',
+    body: (p) => `Case ${str(p.reference, '?')} was opened — ${str(p.subject, 'no subject')}.`,
+  },
 };
 
 /** Filtre menüsündeki gruplar — tek tek 14 tip yerine anlamlı kümeler. */
