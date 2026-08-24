@@ -60,6 +60,7 @@ const MENU: ReadonlyArray<
   },
   { type: 'header', label: 'Tools' },
   { type: 'item', href: '/app/guides', label: 'Setup guides', icon: 'tabler-book' },
+  { type: 'item', href: '/app/support', label: 'Support', icon: 'tabler-headset' },
   /* Builder BİLEREK tam sayfa (<a>): panel rotasından çıkınca Vuexy
      <link>'leri DOM'dan düşsün, builder'ın CSS dünyası temiz kalsın. */
   { type: 'item', href: '/builder', label: 'Open builder', icon: 'tabler-edit', external: true },
