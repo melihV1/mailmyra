@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../../components/ui/ConfirmDialog';
+import { common } from '../../../../../lib/i18n/dict/common';
 import { senders as sendersDict } from '../../../../../lib/i18n/dict/senders';
 import { useLang } from '../../../../../lib/i18n/LangProvider';
 import { useToast } from '../../../ToastProvider';
@@ -40,6 +41,7 @@ export function SenderDetailActions({
   const toast = useToast();
   const lang = useLang();
   const t = sendersDict[lang];
+  const c = common[lang];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<'publish' | 'deactivate' | 'delete' | null>(null);
@@ -224,7 +226,7 @@ export function SenderDetailActions({
           title={t.actions.deleteConfirmTitle(name)}
           onCancel={() => !busy && setConfirming(null)}
           onConfirm={() => void call(`/api/senders/${id}/delete`, t.actions.deletedToast(name), true)}
-          confirmLabel={t.actions.delete}
+          confirmLabel={c.delete}
           tone="danger"
           busy={busy}
         >

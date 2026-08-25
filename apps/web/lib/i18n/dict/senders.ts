@@ -5,9 +5,9 @@ import type { Mirror } from '../types';
  * AddSenderForm, EditSenderDialog, ImportCsv, SenderActions, `[id]` detayı
  * + SenderDetailActions. `actions` alt nesnesi SenderActions VE
  * SenderDetailActions arasında paylaşılır (metinler birebir aynı); yalnız
- * detayda ek bulunan metinler `detailActions`'ta. Ortak "Cancel" metni
- * `common`'dan gelir. CSV BAŞLIK adları (dosya biçimi) burada YOK — o
- * `lib/csv.ts`'in sözleşmesi, çevrilmez.
+ * detayda ek bulunan metinler `detailActions`'ta. Ortak "Cancel"/"Delete"
+ * metinleri `common`'dan gelir — burada tekrar tanımlanmaz. CSV BAŞLIK
+ * adları (dosya biçimi) burada YOK — o `lib/csv.ts`'in sözleşmesi, çevrilmez.
  */
 
 const en = {
@@ -94,7 +94,6 @@ const en = {
     validationError: 'Enter a name and a valid e-mail address.',
     savedToast: (name: string) => `Saved ${name}.`,
     save: 'Save changes',
-    cancel: 'Cancel',
     errors: {
       email_taken: 'Another sender in this workspace already uses this address.',
       email_locked: 'Live senders keep their address — deactivate first to change it.',
@@ -137,7 +136,6 @@ const en = {
   actions: {
     publish: 'Publish',
     deactivate: 'Deactivate',
-    delete: 'Delete',
     editAria: (name: string) => `Edit ${name}`,
     deleteAria: (name: string) => `Delete ${name}`,
     seatsFullTip: (entitled: number) => `All ${entitled} seats are in use.`,
@@ -282,7 +280,6 @@ const tr: Mirror<typeof en> = {
     validationError: 'Bir ad ve geçerli bir e-posta adresi gir.',
     savedToast: (name: string) => `${name} kaydedildi.`,
     save: 'Değişiklikleri kaydet',
-    cancel: 'Vazgeç',
     errors: {
       email_taken: 'Bu çalışma alanında başka bir gönderici zaten bu adresi kullanıyor.',
       email_locked: 'Yayındaki göndericiler adresini korur — değiştirmek için önce pasifleştir.',
@@ -325,7 +322,6 @@ const tr: Mirror<typeof en> = {
   actions: {
     publish: 'Yayına al',
     deactivate: 'Pasifleştir',
-    delete: 'Sil',
     editAria: (name: string) => `${name} düzenle`,
     deleteAria: (name: string) => `${name} sil`,
     seatsFullTip: (entitled: number) => `${entitled} koltuğun tamamı dolu.`,
@@ -361,7 +357,9 @@ const tr: Mirror<typeof en> = {
     deleteSender: 'Göndericiyi sil',
     exportFailed: 'Dışa aktarma başarısız — tekrar dene.',
     downloadedToast: (name: string, count: number) =>
-      `${name} adlı göndericinin imza dosyası indirildi.`,
+      count === 1
+        ? `${name} adlı göndericinin imza dosyası indirildi.`
+        : `${name} adlı göndericinin imza dosyaları indirildi.`,
     errors: {
       is_live: 'Yayındaki göndericiler silinemez — önce pasifleştir.',
     },

@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { useBsPresence } from '../../../../components/ui/useBsPresence';
+import { common } from '../../../../lib/i18n/dict/common';
 import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
 import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
@@ -32,6 +33,7 @@ export function EditSenderDialog({
   const toast = useToast();
   const lang = useLang();
   const t = sendersDict[lang];
+  const c = common[lang];
   const [displayName, setDisplayName] = useState(sender.displayName);
   const [email, setEmail] = useState(sender.email);
   const [jobTitle, setJobTitle] = useState(sender.jobTitle ?? '');
@@ -133,7 +135,7 @@ export function EditSenderDialog({
             <button
               type="button"
               className="btn-close"
-              aria-label={t.editDialog.cancel}
+              aria-label={c.cancel}
               onClick={requestClose}
               disabled={busy}
             />
@@ -208,7 +210,7 @@ export function EditSenderDialog({
                   onClick={requestClose}
                   disabled={busy}
                 >
-                  {t.editDialog.cancel}
+                  {c.cancel}
                 </button>
               </div>
             </form>
