@@ -70,7 +70,7 @@ const tr: Mirror<typeof en> = {
   page: {
     heading: 'Bildirimler',
     subtitleLead: 'Sana gönderilen her şey. Sana neyin ulaşacağını ',
-    prefsLink: 'bildirim tercihlerinden',
+    prefsLink: 'bildirim tercihlerinden ayarlayabilirsin',
   },
   inbox: {
     unreadHeading: 'Okunmamış',
