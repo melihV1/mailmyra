@@ -11,12 +11,21 @@ import {
 } from 'react';
 
 import { useBsPresence } from '../../components/ui/useBsPresence';
+import { useLang } from '../../lib/i18n/LangProvider';
+import type { Lang, Mirror } from '../../lib/i18n/types';
 
 /**
  * Tema toast'ları (ui-toasts; Hüseyin, 2026-08-14): başarı geri bildirimleri
  * artık sağ alttan tonlu toast olarak düşer. HATALAR toast DEĞİL — formda
  * kalır (kullanıcı düzeltecek şeyin yanında görsün). Bootstrap JS yok;
  * yığın React state'i, 4.5 sn'de kendiliğinden düşer, X ile erken kapanır.
+ *
+ * DEFAULT_TITLE dil-farkında (Task 6, Dalga B — B-Task 3'ten devreden not):
+ * çağıran özel bir `title` vermezse tona göre varsayılan başlık kullanılır,
+ * bu da `useLang()` ile panel diline döner. `(admin)` de bu bileşeni
+ * paylaşır ama kendi ağacında `LangProvider` YOK — orada `useLang()`
+ * context varsayılanı 'en'e düşer, yani admin toast başlıkları her zaman
+ * İngilizce kalır (personel yüzeyi, jenerik kelimeler — kabul edilebilir).
  */
 
 type Tone = 'success' | 'danger' | 'warning' | 'info' | 'primary';
@@ -38,12 +47,25 @@ const TONE_ICON: Record<Tone, string> = {
   primary: 'tabler-bell',
 };
 
-const DEFAULT_TITLE: Record<Tone, string> = {
+const DEFAULT_TITLE_EN: Record<Tone, string> = {
   success: 'Success',
   danger: 'Something went wrong',
   warning: 'Heads up',
   info: 'Info',
   primary: 'Mailmyra',
+};
+
+const DEFAULT_TITLE_TR: Mirror<typeof DEFAULT_TITLE_EN> = {
+  success: 'Başarılı',
+  danger: 'Bir şeyler ters gitti',
+  warning: 'Dikkat',
+  info: 'Bilgi',
+  primary: 'Mailmyra',
+};
+
+const DEFAULT_TITLE: Record<Lang, Record<Tone, string>> = {
+  en: DEFAULT_TITLE_EN,
+  tr: DEFAULT_TITLE_TR,
 };
 
 const TOAST_MS = 4500;
@@ -98,6 +120,7 @@ function ToastView({
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const lang = useLang();
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(1);
 
@@ -113,10 +136,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback(
     (tone: Tone, message: string, title?: string) => {
       const id = nextId.current++;
-      setToasts((prev) => [...prev, { id, tone, title: title ?? DEFAULT_TITLE[tone], message }]);
+      setToasts((prev) => [
+        ...prev,
+        { id, tone, title: title ?? DEFAULT_TITLE[lang][tone], message },
+      ]);
       window.setTimeout(() => dismiss(id), TOAST_MS);
     },
-    [dismiss],
+    [dismiss, lang],
   );
 
   return (

@@ -15,7 +15,7 @@ import type { NotificationType } from '../../../../../lib/repo/notifications';
  *
  * E-posta kutusu yalnız gerçekten mail üreten tiplerde etkin (bugün koltuk
  * uyarısı) — diğerlerinde pasif ve sebebi satırda yazıyor. Satır başlığı
- * (`look.title`) NOTIFICATION_LOOKS'tan (Task 6) — dokunulmadı.
+ * (`look.title`) NOTIFICATION_LOOKS'tan, dil-farkında (Task 6).
  */
 export function PreferencesForm({
   initial,
@@ -65,7 +65,7 @@ export function PreferencesForm({
           </thead>
           <tbody className="table-border-bottom-0">
             {rows.map((row) => {
-              const look = NOTIFICATION_LOOKS[row.type];
+              const look = NOTIFICATION_LOOKS[lang][row.type];
               const canEmail = emailCapable.includes(row.type);
               return (
                 <tr key={row.type}>

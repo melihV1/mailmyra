@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { listActivityAs } from '../../../../lib/repo/activity';
-import { ACTIVITY_FILTERS, ACTIVITY_LOOKS } from '../../activity-looks';
+import { ACTIVITY_LOOKS, activityFilters } from '../../activity-looks';
 import { timeAgo } from '../../notification-looks';
 
 export const metadata = { title: 'Activity — Mailmyra' };
@@ -24,9 +25,11 @@ export default async function ActivityPage({
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/activity');
+  const lang = await getLang();
+  const filters = activityFilters(lang);
 
   const { type } = await searchParams;
-  const active = ACTIVITY_FILTERS.some((f) => f.value === type) ? (type ?? '') : '';
+  const active = filters.some((f) => f.value === type) ? (type ?? '') : '';
   const rows = await listActivityAs(session.user.id, active ? { type: active } : undefined);
 
   if (rows === null) {
@@ -67,7 +70,7 @@ export default async function ActivityPage({
           </h5>
           {/* Filtre link'lerle: sunucu bileşeni, JS'siz de çalışır. */}
           <div className="d-flex flex-wrap gap-2">
-            {ACTIVITY_FILTERS.map((f) => (
+            {filters.map((f) => (
               <Link
                 key={f.value || 'all'}
                 href={f.value ? `/app/activity?type=${f.value}` : '/app/activity'}
@@ -101,7 +104,7 @@ export default async function ActivityPage({
               </thead>
               <tbody className="table-border-bottom-0">
                 {rows.map((row) => {
-                  const look = ACTIVITY_LOOKS[row.type];
+                  const look = ACTIVITY_LOOKS[lang][row.type];
                   // Bilinmeyen tip (eski kayıt / ileri sürüm): satırı düşürmek
                   // yerine ham tipi göster — günlükte boşluk olmaz.
                   if (!look) {
@@ -110,7 +113,7 @@ export default async function ActivityPage({
                         <td className="text-heading">{row.type}</td>
                         <td className="text-body-secondary">—</td>
                         <td>{row.actorEmail ?? '—'}</td>
-                        <td>{timeAgo(row.createdAt)}</td>
+                        <td>{timeAgo(lang, row.createdAt)}</td>
                       </tr>
                     );
                   }
@@ -138,7 +141,7 @@ export default async function ActivityPage({
                           dateTime={row.createdAt.toISOString()}
                           title={row.createdAt.toLocaleString('en-GB')}
                         >
-                          {timeAgo(row.createdAt)}
+                          {timeAgo(lang, row.createdAt)}
                         </time>
                       </td>
                     </tr>

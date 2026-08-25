@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { NOTIFICATION_LOOKS, timeAgo } from '../../notification-looks';
 import { useToast } from '../../ToastProvider';
 
@@ -41,6 +42,7 @@ export function InboxClient({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -244,7 +246,7 @@ export function InboxClient({
               </thead>
               <tbody className="table-border-bottom-0">
                 {rows.map((n) => {
-                  const look = NOTIFICATION_LOOKS[n.type];
+                  const look = NOTIFICATION_LOOKS[lang][n.type];
                   return (
                     <tr key={n.id} className={n.readAt ? undefined : 'bg-lighter'}>
                       <td>
@@ -287,7 +289,7 @@ export function InboxClient({
                           title={new Date(n.createdAt).toLocaleString('en-GB')}
                           className="text-body-secondary"
                         >
-                          {timeAgo(n.createdAt)}
+                          {timeAgo(lang, n.createdAt)}
                         </time>
                       </td>
                       <td>

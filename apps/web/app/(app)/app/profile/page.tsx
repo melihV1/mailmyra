@@ -32,7 +32,7 @@ function longDate(lang: 'en' | 'tr', date: Date): string {
  * 2026-08-15): kapak şeridi + avatar (yükleme buradan) + kimlik rozetleri;
  * solda About kartı, sağda temanın TIMELINE elementiyle etkinlik akışı
  * (bildirim tablosundan — gerçek veri). Bildirim İÇERİĞİ (NOTIFICATION_LOOKS,
- * timeAgo) burada DEĞİL — Task 6, dokunulmadı.
+ * timeAgo) dil-farkında — Task 6.
  */
 export default async function ProfilePage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü).
@@ -158,7 +158,7 @@ export default async function ProfilePage() {
               ) : (
                 <ul className="timeline mb-0">
                   {activity.map((n, i) => {
-                    const look = NOTIFICATION_LOOKS[n.type];
+                    const look = NOTIFICATION_LOOKS[lang][n.type];
                     return (
                       <li
                         key={n.id}
@@ -170,7 +170,7 @@ export default async function ProfilePage() {
                         <div className="timeline-event">
                           <div className="timeline-header mb-1">
                             <h6 className="mb-0">{look.title}</h6>
-                            <small className="text-body-secondary">{timeAgo(n.createdAt)}</small>
+                            <small className="text-body-secondary">{timeAgo(lang, n.createdAt)}</small>
                           </div>
                           <p className="mb-0 text-body-secondary">{look.body(n.payload)}</p>
                         </div>

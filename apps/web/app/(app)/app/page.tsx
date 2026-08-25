@@ -526,7 +526,7 @@ export default async function DashboardPage() {
               ) : (
                 <ul className="list-unstyled mb-0 d-grid gap-3">
                   {recentActivity.map((n) => {
-                    const look = NOTIFICATION_LOOKS[n.type];
+                    const look = NOTIFICATION_LOOKS[lang][n.type];
                     return (
                       <li key={n.id} className="d-flex align-items-start">
                         <div className="avatar avatar-sm flex-shrink-0 me-3">
@@ -544,7 +544,7 @@ export default async function DashboardPage() {
                           </small>
                         </div>
                         <small className="text-body-secondary flex-shrink-0 ms-2">
-                          {timeAgo(n.createdAt)}
+                          {timeAgo(lang, n.createdAt)}
                         </small>
                       </li>
                     );

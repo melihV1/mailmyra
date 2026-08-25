@@ -128,7 +128,7 @@ export function NotificationsBell() {
             </li>
           ) : (
             items.map((n) => {
-              const look = NOTIFICATION_LOOKS[n.type];
+              const look = NOTIFICATION_LOOKS[lang][n.type];
               return (
                 <li
                   key={n.id}
@@ -142,7 +142,7 @@ export function NotificationsBell() {
                   <div className="flex-grow-1">
                     <h6 className="mb-1 small fw-medium">{look.title}</h6>
                     <p className="mb-1 small text-body-secondary">{look.body(n.payload)}</p>
-                    <small className="text-body-secondary">{timeAgo(n.createdAt)}</small>
+                    <small className="text-body-secondary">{timeAgo(lang, n.createdAt)}</small>
                   </div>
                   {!n.readAt && (
                     <span

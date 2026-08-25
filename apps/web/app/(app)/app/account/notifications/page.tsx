@@ -18,7 +18,7 @@ export async function generateMetadata() {
  * Notifications sekmesi: tercih tablosu (2026-08-15, dış denetim bulgusu —
  * sayfa yalnız geçmişi açıklıyordu) + zilin uzun listesi + hangi olayların
  * bildirim ürettiğinin dökümü. Bildirim İÇERİĞİ (NOTIFICATION_LOOKS,
- * timeAgo) burada DEĞİL — Task 6, dokunulmadı.
+ * timeAgo) dil-farkında — Task 6.
  */
 export default async function NotificationsPage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
@@ -62,7 +62,7 @@ export default async function NotificationsPage() {
               ) : (
                 <ul className="list-unstyled mb-0 d-grid gap-3">
                   {notifications.map((n) => {
-                    const look = NOTIFICATION_LOOKS[n.type];
+                    const look = NOTIFICATION_LOOKS[lang][n.type];
                     return (
                       <li key={n.id} className="d-flex align-items-start">
                         <div className="avatar avatar-sm flex-shrink-0 me-3">
@@ -80,7 +80,7 @@ export default async function NotificationsPage() {
                           </small>
                         </div>
                         <small className="text-body-secondary flex-shrink-0 ms-2">
-                          {timeAgo(n.createdAt)}
+                          {timeAgo(lang, n.createdAt)}
                         </small>
                       </li>
                     );
@@ -98,7 +98,7 @@ export default async function NotificationsPage() {
             </div>
             <div className="card-body">
               <ul className="list-unstyled d-grid gap-3 mb-4">
-                {Object.values(NOTIFICATION_LOOKS).map((look) => (
+                {Object.values(NOTIFICATION_LOOKS[lang]).map((look) => (
                   <li key={look.title} className="d-flex align-items-center">
                     <div className="avatar avatar-sm flex-shrink-0 me-3">
                       <span className={`avatar-initial rounded-circle bg-label-${look.tone}`}>
