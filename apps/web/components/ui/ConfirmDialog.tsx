@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useBsPresence } from './useBsPresence';
+import { common } from '../../lib/i18n/dict/common';
+import { useLang } from '../../lib/i18n/LangProvider';
 
 /**
  * Panelin tek onay diyaloğu — görünüm temanın Bootstrap modal'ı
@@ -10,6 +12,14 @@ import { useBsPresence } from './useBsPresence';
  * gelir, Tab içeride döner, Escape = Cancel, zeminde tıklama = Cancel.
  * Metinler çağıranın işi — bileşen kabuk. `tone="danger"` yıkıcı onaylarda
  * (silme) düğmeyi kırmızıya çevirir.
+ *
+ * `cancelLabel` varsayılanı dil-farkında (Dalga A fix-wave, B-Task 5 notu):
+ * `confirmLabel`in aksine `cancelLabel`i hiç geçmeyen çağıranlar var
+ * (SenderActions/SenderDetailActions/SenderTable/SignatureTable/RowActions
+ * — hepsi "Cancel" varsayılanına güveniyordu). Sabit `'Cancel'` yerine
+ * `common[lang].cancel` kullanılır; açıkça `cancelLabel` veren çağırıcılar
+ * (Brand/Members/Account/Notifications) DEĞİŞMEZ — kendi verdikleri değer
+ * önceliklidir, burada yalnız BOŞ bırakılırsa devreye girer.
  */
 export function ConfirmDialog({
   title,
@@ -17,7 +27,7 @@ export function ConfirmDialog({
   onCancel,
   onConfirm,
   confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  cancelLabel,
   busy = false,
   tone = 'primary',
 }: {
@@ -30,6 +40,8 @@ export function ConfirmDialog({
   busy?: boolean;
   tone?: 'primary' | 'danger';
 }) {
+  const lang = useLang();
+  const resolvedCancelLabel = cancelLabel ?? common[lang].cancel;
   const panel = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
   /* Çıkış animasyonu: iptal yolları önce `show`u düşürür (tema geçişi
@@ -117,7 +129,7 @@ export function ConfirmDialog({
             <button
               type="button"
               className="btn-close"
-              aria-label={cancelLabel}
+              aria-label={resolvedCancelLabel}
               onClick={requestClose}
               disabled={busy}
             />
@@ -130,7 +142,7 @@ export function ConfirmDialog({
               onClick={requestClose}
               disabled={busy}
             >
-              {cancelLabel}
+              {resolvedCancelLabel}
             </button>
             {onConfirm && (
               <button
