@@ -2,6 +2,8 @@
 
 import type { SignatureData } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
+import { builder as builderDict } from '../../../lib/i18n/dict/builder';
+import { useLang } from '../../../lib/i18n/LangProvider';
 
 
 const PLATFORMS: SignatureData['social'][number]['platform'][] = [
@@ -22,6 +24,7 @@ export function SocialStep({
   data: SignatureData;
   dispatch: (a: BuilderAction) => void;
 }) {
+  const t = builderDict[useLang()].steps.social;
   const social = data.social;
 
   function update(next: SignatureData['social']) {
@@ -38,16 +41,14 @@ export function SocialStep({
   return (
     <div>
       {social.length === 0 && (
-        <p className="text-body-secondary">
-          No social links yet. Icons are generated in your icon color when you add one.
-        </p>
+        <p className="text-body-secondary">{t.emptyNote}</p>
       )}
       {social.map((s, i) => (
         <div key={i} className="d-flex flex-wrap align-items-center gap-2 mb-3">
           <select
             className="form-select flex-shrink-0"
             style={{ width: 150 }}
-            aria-label={`Social platform ${i + 1}`}
+            aria-label={t.platformAria(i + 1)}
             value={s.platform}
             onChange={(e) =>
               update(social.map((x, j) => (j === i ? { ...x, platform: e.target.value as typeof s.platform } : x)))
@@ -62,8 +63,8 @@ export function SocialStep({
           <input
             className="form-control flex-grow-1"
             style={{ minWidth: 180 }}
-            placeholder="https://..."
-            aria-label={`Social link ${i + 1} URL`}
+            placeholder={t.urlPlaceholder}
+            aria-label={t.urlAria(i + 1)}
             value={s.url}
             onChange={(e) => update(social.map((x, j) => (j === i ? { ...x, url: e.target.value } : x)))}
           />
@@ -72,8 +73,8 @@ export function SocialStep({
               type="button"
               className="btn btn-icon btn-label-secondary"
               onClick={() => move(i, -1)}
-              aria-label="Move up"
-              data-mm-tip="Move up"
+              aria-label={t.moveUp}
+              data-mm-tip={t.moveUp}
             >
               <i className="icon-base ti tabler-arrow-up" aria-hidden="true" />
             </button>
@@ -81,15 +82,15 @@ export function SocialStep({
               type="button"
               className="btn btn-icon btn-label-secondary"
               onClick={() => move(i, 1)}
-              aria-label="Move down"
-              data-mm-tip="Move down"
+              aria-label={t.moveDown}
+              data-mm-tip={t.moveDown}
             >
               <i className="icon-base ti tabler-arrow-down" aria-hidden="true" />
             </button>
             <button
               type="button"
               className="btn btn-icon btn-label-danger"
-              aria-label={`Delete social link ${i + 1}`}
+              aria-label={t.deleteAria(i + 1)}
               onClick={() => update(social.filter((_, j) => j !== i))}
             >
               <i className="icon-base ti tabler-trash" aria-hidden="true" />
@@ -103,7 +104,7 @@ export function SocialStep({
         onClick={() => update([...social, { platform: 'linkedin', url: '' }])}
       >
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        Add social link
+        {t.addLink}
       </button>
     </div>
   );

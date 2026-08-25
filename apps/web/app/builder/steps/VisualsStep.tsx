@@ -5,19 +5,17 @@ import type { SignatureData } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, LockHint } from '../fields';
 import type { BrandFieldName } from '../../../lib/brand-apply';
+import { builder as builderDict } from '../../../lib/i18n/dict/builder';
+import { useLang } from '../../../lib/i18n/LangProvider';
 
 type VisualKey = 'avatarUrl' | 'logoUrl' | 'handSignatureUrl';
 
-const SLOTS: Array<{
-  key: VisualKey;
-  kind: string;
-  icon: string;
-  title: string;
-  hint: string;
-}> = [
-  { key: 'avatarUrl', kind: 'avatar', icon: 'tabler-user-circle', title: 'Profile photo', hint: '180px, target under 40KB' },
-  { key: 'logoUrl', kind: 'logo', icon: 'tabler-building', title: 'Company logo', hint: '360px, target under 60KB' },
-  { key: 'handSignatureUrl', kind: 'handSignature', icon: 'tabler-signature', title: 'Handwritten signature', hint: '300px, target under 50KB' },
+/** Ad/ipucu artık dict'ten (`t.steps.visuals.slots[key]`) — yalnız ikon ve
+ *  yükleme türü (`kind`) burada sabit kalır. */
+const SLOTS: Array<{ key: VisualKey; kind: string; icon: string }> = [
+  { key: 'avatarUrl', kind: 'avatar', icon: 'tabler-user-circle' },
+  { key: 'logoUrl', kind: 'logo', icon: 'tabler-building' },
+  { key: 'handSignatureUrl', kind: 'handSignature', icon: 'tabler-signature' },
 ];
 
 export function VisualsStep({
@@ -34,6 +32,7 @@ export function VisualsStep({
   /** Marka ayarlarından yönetilen alan adları — o kontroller pasif. */
   locked?: Set<BrandFieldName>;
 }) {
+  const t = builderDict[useLang()].steps.visuals;
   const [busy, setBusy] = useState<VisualKey | null>(null);
   const [messages, setMessages] = useState<Partial<Record<VisualKey, string>>>({});
 
@@ -47,13 +46,13 @@ export function VisualsStep({
       const res = await fetch('/api/upload', { method: 'POST', body: form });
       const body = (await res.json()) as { url?: string; error?: string; warning?: string };
       if (!res.ok || !body.url) {
-        setMessages((m) => ({ ...m, [slot.key]: body.error ?? 'Upload failed.' }));
+        setMessages((m) => ({ ...m, [slot.key]: body.error ?? t.uploadFailed }));
         return;
       }
       dispatch({ type: 'patchVisuals', value: { [slot.key]: body.url } });
       if (body.warning) setMessages((m) => ({ ...m, [slot.key]: `⚠️ ${body.warning}` }));
     } catch {
-      setMessages((m) => ({ ...m, [slot.key]: 'Network error — try again.' }));
+      setMessages((m) => ({ ...m, [slot.key]: t.networkError }));
     } finally {
       setBusy(null);
     }
@@ -69,23 +68,22 @@ export function VisualsStep({
         // marka logosu değiştikten sonra bu kontrol eski kişisel logoyu
         // göstermeye devam eder (önizleme/export ise yeni logoyu gösterir).
         const url = isLocked ? applied.visuals[slot.key] : data.visuals[slot.key];
+        const slotText = t.slots[slot.key];
         return (
           <FieldGroup
             key={slot.key}
-            title={slot.title}
+            title={slotText.title}
             icon={slot.icon}
             first={slot.key === 'avatarUrl'}
           >
             <div className="col-12">
-              <p className="text-body-secondary small mb-3">
-                PNG, JPG or SVG · max 5MB · {slot.hint}
-              </p>
+              <p className="text-body-secondary small mb-3">{t.formatHint(slotText.hint)}</p>
               {url ? (
                 <div className="d-flex flex-wrap align-items-center gap-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={url}
-                    alt={slot.title}
+                    alt={slotText.title}
                     className="rounded border mm-asset-thumb"
                   />
                   <code className="small text-truncate" style={{ maxWidth: 260 }}>
@@ -101,7 +99,7 @@ export function VisualsStep({
                     }}
                   >
                     <i className="icon-base ti tabler-trash me-1" aria-hidden="true" />
-                    Remove
+                    {t.remove}
                   </button>
                 </div>
               ) : (
@@ -110,7 +108,7 @@ export function VisualsStep({
                   className="form-control"
                   accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
                   disabled={busy !== null || isLocked}
-                  aria-label={`Upload ${slot.title}`}
+                  aria-label={t.uploadAria(slotText.title)}
                   onChange={(e) => {
                     const f = e.target.files?.[0];
                     if (f) void upload(slot, f);
@@ -122,7 +120,7 @@ export function VisualsStep({
               {busy === slot.key && (
                 <div className="d-flex align-items-center gap-2 mt-2 text-body-secondary small">
                   <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
-                  Uploading…
+                  {t.uploading}
                 </div>
               )}
               {messages[slot.key] && (

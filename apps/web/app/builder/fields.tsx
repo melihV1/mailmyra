@@ -2,6 +2,9 @@
 
 import type { ReactNode } from 'react';
 
+import { builder as builderDict } from '../../lib/i18n/dict/builder';
+import { useLang } from '../../lib/i18n/LangProvider';
+
 /**
  * Builder form primitifleri — Vuexy dili (2026-08-17). Eskiden satır içi
  * stil objeleriydi (`labelStyle`/`inputStyle`); artık temanın `form-label` /
@@ -59,10 +62,11 @@ export function TextField({
 
 /** Marka kilidi ipucu — tek yerden, bütün adımlarda aynı görünür. */
 export function LockHint() {
+  const t = builderDict[useLang()];
   return (
     <div className="form-text d-flex align-items-center gap-1">
       <i className="icon-base ti tabler-lock icon-14px" aria-hidden="true" />
-      Managed in brand settings
+      {t.lockHint}
     </div>
   );
 }

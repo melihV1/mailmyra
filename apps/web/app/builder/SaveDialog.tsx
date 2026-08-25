@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { useBsPresence } from '../../components/ui/useBsPresence';
+import { common } from '../../lib/i18n/dict/common';
+import { builder as builderDict } from '../../lib/i18n/dict/builder';
+import { useLang } from '../../lib/i18n/LangProvider';
 
 /**
  * "Save to my signatures" — anonim/kaydedilmemiş builder oturumunu hesaba
@@ -23,6 +26,9 @@ export function SaveDialog({
   /** Sunucu id döndürdü — çağıran URL'i ?sig= ile tazeler. */
   onSaved: (id: string, name: string) => void;
 }) {
+  const lang = useLang();
+  const t = builderDict[lang];
+  const c = common[lang];
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,20 +62,18 @@ export function SaveDialog({
       });
       if (!res.ok) {
         setError(
-          res.status === 401
-            ? 'Your session expired — sign in again to save.'
-            : 'Could not save. Please try again.',
+          res.status === 401 ? t.saveDialog.sessionExpiredError : t.saveDialog.genericError,
         );
         return;
       }
       const body = (await res.json()) as { id?: string };
       if (!body.id) {
-        setError('Could not save. Please try again.');
+        setError(t.saveDialog.genericError);
         return;
       }
-      onSaved(body.id, name.trim() || 'Untitled signature');
+      onSaved(body.id, name.trim() || t.saveDialog.untitledName);
     } catch {
-      setError('Could not save. Please try again.');
+      setError(t.saveDialog.genericError);
     } finally {
       setBusy(false);
     }
@@ -85,7 +89,7 @@ export function SaveDialog({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Save signature"
+          aria-label={t.saveDialog.ariaLabel}
           className="modal-content"
           onKeyDown={(e) => {
             if (e.key === 'Escape' && !busy) {
@@ -98,29 +102,29 @@ export function SaveDialog({
             <button
               type="button"
               className="btn-close"
-              aria-label="Cancel"
+              aria-label={c.cancel}
               onClick={requestClose}
               disabled={busy}
             />
             <div className="text-center mb-6">
-              <h4 className="mb-2">Save to my signatures</h4>
-              <p>Give it a name so you can find it in the panel later.</p>
+              <h4 className="mb-2">{t.saveDialog.title}</h4>
+              <p>{t.saveDialog.body}</p>
             </div>
             <form className="row g-6" onSubmit={submit}>
               <div className="col-12">
                 <label className="form-label" htmlFor="saveSignatureName">
-                  Name
+                  {t.saveDialog.nameLabel}
                 </label>
                 <input
                   id="saveSignatureName"
                   ref={inputRef}
                   className="form-control"
-                  placeholder="Sales team signature"
+                  placeholder={t.saveDialog.namePlaceholder}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={255}
                 />
-                <div className="form-text">Only your team sees this — it never appears in the signature.</div>
+                <div className="form-text">{t.saveDialog.nameHint}</div>
               </div>
               {error && (
                 <div className="col-12">
@@ -138,7 +142,7 @@ export function SaveDialog({
                       aria-hidden="true"
                     />
                   )}
-                  Save
+                  {c.save}
                 </button>
                 <button
                   type="button"
@@ -146,7 +150,7 @@ export function SaveDialog({
                   onClick={requestClose}
                   disabled={busy}
                 >
-                  Cancel
+                  {c.cancel}
                 </button>
               </div>
             </form>

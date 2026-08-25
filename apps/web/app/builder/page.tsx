@@ -3,12 +3,16 @@ import { redirect } from 'next/navigation';
 import { currentSession } from '../../lib/auth/current';
 import type { BrandDocument } from '../../lib/brand-doc';
 import { isExportGated } from '../../lib/export-gate';
+import { builder as builderDict } from '../../lib/i18n/dict/builder';
+import { getLang } from '../../lib/i18n/lang.server';
 import { getBrand } from '../../lib/repo/brand';
 import { primaryOrgId } from '../../lib/repo/senders';
 import { getSignature } from '../../lib/repo/signatures';
 import { BuilderClient } from './BuilderClient';
 
-export const metadata = { title: 'Signature builder — Mailmyra' };
+export async function generateMetadata() {
+  return { title: builderDict[await getLang()].pageTitle };
+}
 // isExportGated() build zamanında değil, HER İSTEKTE değerlendirilmeli:
 // `next build` bu sayfayı statik olarak öndeğerlendirirse, build makinesinin
 // ortam değişkeni (EXPORT_REQUIRES_AUTH) build çıktısına gömülür ve sunucu

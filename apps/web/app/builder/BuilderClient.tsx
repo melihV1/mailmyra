@@ -8,6 +8,8 @@ import { saveDraft, loadDraft, clearDraft } from '../../lib/draft';
 import { applyBrand, lockedBrandFields } from '../../lib/brand-apply';
 import type { BrandDocument } from '../../lib/brand-doc';
 import { needsGeneratedIcons } from '../../lib/icon-readiness';
+import { builder as builderDict } from '../../lib/i18n/dict/builder';
+import { useLang } from '../../lib/i18n/LangProvider';
 import { InfoStep } from './steps/InfoStep';
 import { VisualsStep } from './steps/VisualsStep';
 import { SocialStep } from './steps/SocialStep';
@@ -19,10 +21,10 @@ import { LangToggle } from './LangToggle';
 import './builder-theme.css';
 
 const STEPS = [
-  { id: 'info', title: 'Details', icon: 'tabler-user' },
-  { id: 'visuals', title: 'Images', icon: 'tabler-photo' },
-  { id: 'social', title: 'Social', icon: 'tabler-share' },
-  { id: 'style', title: 'Style', icon: 'tabler-palette' },
+  { id: 'info', icon: 'tabler-user' },
+  { id: 'visuals', icon: 'tabler-photo' },
+  { id: 'social', icon: 'tabler-share' },
+  { id: 'style', icon: 'tabler-palette' },
 ] as const;
 
 type StepId = (typeof STEPS)[number]['id'];
@@ -47,6 +49,8 @@ export function BuilderClient({
   /** Yalnız düzenleme kipinde (?sig=) dolu — anonim builder'da hep null. */
   brand?: BrandDocument | null;
 }) {
+  const lang = useLang();
+  const t = builderDict[lang];
   const [data, dispatch] = useReducer(builderReducer, undefined, createEmptyData);
   // Kayıtlı veri (reducer state, autosave gövdesi) HİÇ değişmez — kilit
   // kalkınca kişinin girdiği ham değer geri görünür. `applied` iki yerde
@@ -165,7 +169,7 @@ export function BuilderClient({
     const color = data.visuals.iconColor;
     const seq = ++iconsSeq.current;
     setIconsFailed(false);
-    const t = setTimeout(async () => {
+    const iconTimer = setTimeout(async () => {
       try {
         const res = await fetch('/api/icons', {
           method: 'POST',
@@ -183,7 +187,7 @@ export function BuilderClient({
         if (seq === iconsSeq.current) setIconsFailed(true);
       }
     }, 500);
-    return () => clearTimeout(t);
+    return () => clearTimeout(iconTimer);
   }, [iconsNeeded, data.visuals.iconColor, retryTick, readyColor]);
 
   const exportDisabled = iconsNeeded && readyColor !== data.visuals.iconColor;
@@ -203,7 +207,7 @@ export function BuilderClient({
     iconsNeeded && contrastRatio(data.visuals.iconColor, '#ffffff') < ICON_LOW_CONTRAST_ON_WHITE;
 
   function resetAll() {
-    if (!window.confirm('This clears the saved draft and resets the form. Continue?')) return;
+    if (!window.confirm(t.client.editPane.resetConfirm)) return;
     clearDraft(window.localStorage);
     dispatch({ type: 'reset' });
   }
@@ -233,7 +237,7 @@ export function BuilderClient({
                 onClick={() => setStep(s.id)}
               >
                 <i className={`icon-base ti ${s.icon} icon-18px me-2`} aria-hidden="true" />
-                {s.title}
+                {t.client.steps[s.id]}
               </button>
             </li>
           ))}
@@ -262,7 +266,7 @@ export function BuilderClient({
       <div className="card-footer d-flex flex-wrap align-items-center justify-content-between gap-2">
         <button type="button" className="btn btn-label-secondary btn-sm" onClick={resetAll}>
           <i className="icon-base ti tabler-refresh me-1" aria-hidden="true" />
-          Clear and start over
+          {t.client.editPane.clearButton}
         </button>
         {/* Kayıt durumu: kayıtlı imzada gerçek zaman damgası, anonim
             taslakta yalnız "kaydedildi" — eski davranış AYNEN. */}
@@ -275,9 +279,9 @@ export function BuilderClient({
         >
           {savedId
             ? saveFailed
-              ? 'Could not save — check your connection'
-              : `Saved · ${savedAt ?? ''}`
-            : 'Draft saved locally'}
+              ? t.client.editPane.saveFailedStatus
+              : t.client.editPane.savedStatus(savedAt ?? '')
+            : t.client.editPane.draftSavedLocally}
         </span>
       </div>
     </div>
@@ -287,8 +291,8 @@ export function BuilderClient({
     <div className="card mm-preview-card">
       <div className="card-header pb-2">
         <div className="card-title mb-0">
-          <h5 className="mb-1">Live preview</h5>
-          <p className="card-subtitle mb-0">Exactly what recipients get.</p>
+          <h5 className="mb-1">{t.client.previewPane.heading}</h5>
+          <p className="card-subtitle mb-0">{t.client.previewPane.subtitle}</p>
         </div>
       </div>
       <div className="card-body">
@@ -304,10 +308,8 @@ export function BuilderClient({
                 <i className="icon-base ti tabler-signature icon-26px" aria-hidden="true" />
               </span>
             </div>
-            <h6 className="mb-1">Your signature appears here</h6>
-            <p className="text-body-secondary mb-0 small">
-              Start with a name on the Details step — everything updates as you type.
-            </p>
+            <h6 className="mb-1">{t.client.previewPane.emptyTitle}</h6>
+            <p className="text-body-secondary mb-0 small">{t.client.previewPane.emptyBody}</p>
           </div>
         )}
       </div>
@@ -321,8 +323,8 @@ export function BuilderClient({
           disabledNote={
             exportDisabled
               ? iconsFailed
-                ? 'Could not build the icons — try again'
-                : 'Preparing icons…'
+                ? t.client.previewPane.iconsBuildFailed
+                : t.client.previewPane.preparingIcons
               : undefined
           }
         />
@@ -332,7 +334,7 @@ export function BuilderClient({
             className="btn btn-label-warning btn-sm w-100 mt-2"
             onClick={() => setRetryTick((n) => n + 1)}
           >
-            Try again
+            {t.client.previewPane.tryAgain}
           </button>
         )}
       </div>
@@ -343,10 +345,8 @@ export function BuilderClient({
     <div className="container-fluid flex-grow-1 container-p-y mm-builder">
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-          <h4 className="mb-1">Signature builder</h4>
-          <p className="text-body-secondary mb-0">
-            Fill in the details on the left — the preview updates as you type.
-          </p>
+          <h4 className="mb-1">{t.client.header.heading}</h4>
+          <p className="text-body-secondary mb-0">{t.client.header.subtitle}</p>
         </div>
         <div className="d-flex flex-wrap align-items-center gap-2">
           <LangToggle />
@@ -355,17 +355,17 @@ export function BuilderClient({
                nereye kaydedildiğini söyleyen bir bağlantı. */
             <a href="/app/signatures" className="btn btn-label-success">
               <i className="icon-base ti tabler-check me-1" aria-hidden="true" />
-              Saved to your signatures
+              {t.client.header.savedLink}
             </a>
           ) : (
             <button type="button" className="btn btn-primary" onClick={saveAction}>
               <i className="icon-base ti tabler-device-floppy me-1" aria-hidden="true" />
-              {signedIn ? 'Save to my signatures' : 'Sign in to save'}
+              {signedIn ? t.client.header.saveButton : t.client.header.signInToSave}
             </button>
           )}
           <a href="/app/signatures" className="btn btn-label-secondary">
             <i className="icon-base ti tabler-arrow-left me-1" aria-hidden="true" />
-            Back to panel
+            {t.client.header.backToPanel}
           </a>
         </div>
       </div>
@@ -379,7 +379,7 @@ export function BuilderClient({
             className={`nav-link${mobilePane === 'edit' ? ' active' : ''}`}
             onClick={() => setMobilePane('edit')}
           >
-            Edit
+            {t.client.mobileTabs.edit}
           </button>
         </li>
         <li className="nav-item">
@@ -388,7 +388,7 @@ export function BuilderClient({
             className={`nav-link${mobilePane === 'preview' ? ' active' : ''}`}
             onClick={() => setMobilePane('preview')}
           >
-            Preview
+            {t.client.mobileTabs.preview}
           </button>
         </li>
       </ul>

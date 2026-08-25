@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { contrastRatio } from '@mailmyra/renderer';
 import { wrapPreviewDoc } from '../../components/preview-doc';
+import { builder as builderDict } from '../../lib/i18n/dict/builder';
+import { useLang } from '../../lib/i18n/LangProvider';
+import type { Lang } from '../../lib/i18n/types';
 
 const DARK_BG = '#1a1a1a';
 /** WCAG "büyük metin" alt sınırı — altı pratikte "kutu boş görünüyor" demek. */
@@ -13,17 +16,17 @@ const READABLE_ON_DARK = 3;
  * koyu-zemin uyarısı bilerek kaldırılmıştı (hiçbir renk iki zeminde birden
  * uyarısız kalamıyor); bu not o kararı geri almaz — yalnız koyu kipte, o
  * anki metin rengi için görünür.
+ *
+ * `lang` opsiyonel, varsayılan 'en' — preview-dark-note.test.ts'in tek
+ * argümanlı çağrıları İngilizce metni BİREBİR almaya devam eder (B-Task 8).
  */
-export function darkPreviewNote(textColor: string): string | null {
+export function darkPreviewNote(textColor: string, lang: Lang = 'en'): string | null {
   try {
     if (contrastRatio(textColor, DARK_BG) >= READABLE_ON_DARK) return null;
   } catch {
     return null; // geçersiz hex — renk seçici geçerli üretir, bozuk girişte sessiz
   }
-  return (
-    'Your text color is hard to read on a dark background. Most clients adapt colors ' +
-    'in dark mode; this preview shows one that does not.'
-  );
+  return builderDict[lang].preview.darkNoteFn;
 }
 
 export function Preview({
@@ -37,12 +40,18 @@ export function Preview({
    *  'plain' (varsayılan): builder'ın mevcut hâli, DEĞİŞMEDİ. */
   chrome?: 'plain' | 'theme';
 }) {
+  const lang = useLang();
+  const t = builderDict[lang];
   const [dark, setDark] = useState(false);
-  const note = dark ? darkPreviewNote(textColor) : null;
+  const note = dark ? darkPreviewNote(textColor, lang) : null;
   return (
     <div>
       {chrome === 'theme' ? (
-        <div className="btn-group btn-group-sm mb-3" role="group" aria-label="Preview background">
+        <div
+          className="btn-group btn-group-sm mb-3"
+          role="group"
+          aria-label={t.preview.backgroundAria}
+        >
           <button
             type="button"
             className={`btn ${dark ? 'btn-outline-primary' : 'btn-primary'}`}
@@ -50,7 +59,7 @@ export function Preview({
             onClick={() => setDark(false)}
           >
             <i className="icon-base ti tabler-sun icon-14px me-1" aria-hidden="true" />
-            Light
+            {t.preview.light}
           </button>
           <button
             type="button"
@@ -59,24 +68,23 @@ export function Preview({
             onClick={() => setDark(true)}
           >
             <i className="icon-base ti tabler-moon-stars icon-14px me-1" aria-hidden="true" />
-            Dark
+            {t.preview.dark}
           </button>
         </div>
       ) : (
         <div style={{ marginBottom: 8, display: 'flex', gap: 8 }}>
           <button type="button" onClick={() => setDark(false)} disabled={!dark}>
-            Light
+            {t.preview.light}
           </button>
           <button type="button" onClick={() => setDark(true)} disabled={dark}>
-            Dark
+            {t.preview.dark}
           </button>
         </div>
       )}
       {note &&
         (chrome === 'theme' ? (
           <div className="alert alert-warning py-2 small" role="note">
-            Your text color is hard to read on a dark background. Most clients adapt colors in
-            dark mode — this preview shows one that does not.
+            {t.preview.darkNoteAlert}
           </div>
         ) : (
           <p style={{ margin: '0 0 8px', fontSize: 13, color: '#8a6d1a' }}>{note}</p>
