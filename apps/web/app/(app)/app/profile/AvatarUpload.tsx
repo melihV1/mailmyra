@@ -3,11 +3,13 @@
 import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 
+import { account as accountDict } from '../../../../lib/i18n/dict/account';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
  * Profil avatarı — temanın account-settings foto alanı dili: "Upload new
- * photo" + Remove. Baş harf yoksa gerçek fotoğraf; navbar ve üye listesi de
+ * photo" + Reset. Baş harf yoksa gerçek fotoğraf; navbar ve üye listesi de
  * aynı URL'yi okur (User.avatarUrl).
  */
 export function AvatarUpload({
@@ -19,6 +21,8 @@ export function AvatarUpload({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = accountDict[lang].avatar;
   const fileRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
@@ -30,13 +34,13 @@ export function AvatarUpload({
       const res = await fetch('/api/account/avatar', { method: 'POST', body: form });
       const body = (await res.json().catch(() => ({}))) as { error?: string; warning?: string };
       if (!res.ok) {
-        toast('danger', body.error ?? 'Upload failed — try again.');
+        toast('danger', body.error ?? t.uploadFailed);
         return;
       }
-      toast('success', body.warning ? `Photo updated. ⚠️ ${body.warning}` : 'Photo updated.');
+      toast('success', body.warning ? t.photoUpdatedWithWarning(body.warning) : t.photoUpdated);
       router.refresh();
     } catch {
-      toast('danger', 'Upload failed — try again.');
+      toast('danger', t.uploadFailed);
     } finally {
       setBusy(false);
     }
@@ -51,7 +55,7 @@ export function AvatarUpload({
         body: JSON.stringify({ remove: true }),
       });
       if (res.ok) {
-        toast('success', 'Photo removed.');
+        toast('success', t.photoRemoved);
         router.refresh();
       }
     } finally {
@@ -64,7 +68,7 @@ export function AvatarUpload({
       <div className="avatar avatar-xl">
         {avatarUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarUrl} alt="Profile photo" className="rounded-circle" />
+          <img src={avatarUrl} alt={t.photoAlt} className="rounded-circle" />
         ) : (
           <span className="avatar-initial rounded-circle bg-label-primary fs-3">{initial}</span>
         )}
@@ -81,7 +85,7 @@ export function AvatarUpload({
           ) : (
             <i className="icon-base ti tabler-upload me-1" aria-hidden="true" />
           )}
-          Upload new photo
+          {t.uploadButton}
         </button>
         {avatarUrl && (
           <button
@@ -90,7 +94,7 @@ export function AvatarUpload({
             onClick={() => void remove()}
             disabled={busy}
           >
-            Reset
+            {t.resetButton}
           </button>
         )}
         <input

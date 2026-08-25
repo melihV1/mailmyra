@@ -3,29 +3,36 @@ import { redirect } from 'next/navigation';
 import { can } from '@mailmyra/core';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { members as membersDict } from '../../../../lib/i18n/dict/members';
+import { nav as navDict } from '../../../../lib/i18n/dict/nav';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { getWorkspace, listInvitations, listMembers } from '../../../../lib/repo/members';
 import { InviteForm } from './InviteForm';
 import { InvitationActions, MemberActions } from './MemberActions';
 import { WorkspaceCard } from './WorkspaceCard';
 
-export const metadata = { title: 'Members — Mailmyra' };
+export async function generateMetadata() {
+  return { title: membersDict[await getLang()].pageTitle };
+}
 
-/** Rol → renk/ikon dili (temanın access-roles kartları). */
-const ROLE_LOOKS: Record<string, { tone: string; icon: string; note: string }> = {
-  owner: { tone: 'primary', icon: 'tabler-crown', note: 'Billing, plan, everything' },
-  admin: { tone: 'info', icon: 'tabler-user-cog', note: 'Members, senders, brand' },
-  editor: { tone: 'success', icon: 'tabler-edit', note: 'Edit & export signatures' },
-  viewer: { tone: 'secondary', icon: 'tabler-eye', note: 'View only' },
+/** Rol → renk/ikon dili (temanın access-roles kartları). Not metni ve rol
+ *  etiketinin KENDİSİ (Owner/Admin/...) dilden geliyor — bkz. bileşen gövdesi. */
+const ROLE_LOOKS: Record<string, { tone: string; icon: string }> = {
+  owner: { tone: 'primary', icon: 'tabler-crown' },
+  admin: { tone: 'info', icon: 'tabler-user-cog' },
+  editor: { tone: 'success', icon: 'tabler-edit' },
+  viewer: { tone: 'secondary', icon: 'tabler-eye' },
 };
 
-/** Rol matrisi içeriği — kod değil ürün gerçeği; tik/eksi temanın ikon dili. */
-const MATRIX: Array<[string, boolean[]]> = [
-  ['Billing, plan, delete org', [true, false, false, false]],
-  ['Invite members, change roles', [true, true, false, false]],
-  ['Add & publish senders', [true, true, false, false]],
-  ['Brand settings', [true, true, false, false]],
-  ['Edit & export signatures', [true, true, true, false]],
-  ['View', [true, true, true, true]],
+/** Rol matrisi hücreleri — kod değil ürün gerçeği; satır ETİKETLERİ
+ *  `t.matrixLabels`'tan aynı sırayla gelir (bkz. bileşen gövdesi). */
+const MATRIX_CELLS: boolean[][] = [
+  [true, false, false, false],
+  [true, true, false, false],
+  [true, true, false, false],
+  [true, true, false, false],
+  [true, true, true, false],
+  [true, true, true, true],
 ];
 
 /**
@@ -37,6 +44,9 @@ export default async function MembersPage() {
   // Layout korumasına güvenme — paralel render (bkz. diğer panel sayfaları).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/members');
+  const lang = await getLang();
+  const t = membersDict[lang];
+  const nt = navDict[lang];
 
   const [members, invitations, workspace] = await Promise.all([
     listMembers(session.user.id),
@@ -47,9 +57,11 @@ export default async function MembersPage() {
   const myRole = members.find((m) => m.userId === session.user.id)?.role;
   const canManage = Boolean(myRole && can(myRole, 'member:manage'));
 
+  const matrix = t.matrixLabels.map((label, i) => [label, MATRIX_CELLS[i]!] as const);
+
   return (
     <section>
-      <h4 className="mb-4">Members</h4>
+      <h4 className="mb-4">{t.heading}</h4>
 
       {workspace && <WorkspaceCard name={workspace.name} canManage={canManage} />}
 
@@ -57,15 +69,17 @@ export default async function MembersPage() {
       <div className="row g-4 mb-4">
         {Object.entries(ROLE_LOOKS).map(([role, look]) => {
           const count = members.filter((m) => m.role === role).length;
+          const roleKey = role as keyof typeof nt.roleLabels;
+          const noteKey = role as keyof typeof t.roleNotes;
           return (
             <div key={role} className="col-sm-6 col-xl-3">
               <div className="card h-100">
                 <div className="card-body">
                   <div className="d-flex align-items-start justify-content-between">
                     <div>
-                      <span className="text-heading text-capitalize">{role}</span>
+                      <span className="text-heading">{nt.roleLabels[roleKey]}</span>
                       <h4 className="mb-1">{count}</h4>
-                      <small className="text-body-secondary">{look.note}</small>
+                      <small className="text-body-secondary">{t.roleNotes[noteKey]}</small>
                     </div>
                     <div className="avatar">
                       <span className={`avatar-initial rounded bg-label-${look.tone}`}>
@@ -82,10 +96,8 @@ export default async function MembersPage() {
 
       <div className="card mb-4">
         <div className="card-header pb-2">
-          <h5 className="card-title mb-1">Invite a teammate</h5>
-          <p className="card-subtitle mb-0">
-            The link is good for 7 days. Owner role is never handed out by invitation.
-          </p>
+          <h5 className="card-title mb-1">{t.invite.title}</h5>
+          <p className="card-subtitle mb-0">{t.invite.subtitle}</p>
         </div>
         <div className="card-body">
           <InviteForm />
@@ -95,21 +107,22 @@ export default async function MembersPage() {
       <div className="card mb-4">
         <div className="card-header">
           <h5 className="card-title mb-0">
-            All members <span className="badge bg-label-primary ms-1">{members.length}</span>
+            {t.allMembers} <span className="badge bg-label-primary ms-1">{members.length}</span>
           </h5>
         </div>
         <div className="table-responsive text-nowrap">
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>Member</th>
-                <th>Joined</th>
-                <th>Role &amp; actions</th>
+                <th>{t.table.colMember}</th>
+                <th>{t.table.colJoined}</th>
+                <th>{t.table.colRoleActions}</th>
               </tr>
             </thead>
             <tbody className="table-border-bottom-0">
               {members.map((m) => {
                 const look = ROLE_LOOKS[m.role] ?? ROLE_LOOKS.viewer!;
+                const roleKey = m.role as keyof typeof nt.roleLabels;
                 return (
                   <tr key={m.userId}>
                     <td>
@@ -130,16 +143,16 @@ export default async function MembersPage() {
                           <span className="d-block fw-medium text-heading">
                             {m.email}
                             {m.userId === session.user.id && (
-                              <span className="badge bg-label-primary ms-2">You</span>
+                              <span className="badge bg-label-primary ms-2">{t.table.you}</span>
                             )}
                           </span>
-                          <small className="text-body-secondary text-capitalize">{m.role}</small>
+                          <small className="text-body-secondary">{nt.roleLabels[roleKey]}</small>
                         </div>
                       </div>
                     </td>
                     <td>
                       <time dateTime={m.joinedAt.toISOString()}>
-                        {m.joinedAt.toLocaleDateString('en-GB')}
+                        {m.joinedAt.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-GB')}
                       </time>
                     </td>
                     <td>
@@ -162,7 +175,7 @@ export default async function MembersPage() {
         <div className="card mb-4">
           <div className="card-header">
             <h5 className="card-title mb-0">
-              Pending invitations{' '}
+              {t.pendingInvitations}{' '}
               <span className="badge bg-label-warning ms-1">{invitations.length}</span>
             </h5>
           </div>
@@ -170,29 +183,32 @@ export default async function MembersPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Expires</th>
+                  <th>{t.invitationsTable.colEmail}</th>
+                  <th>{t.invitationsTable.colRole}</th>
+                  <th>{t.invitationsTable.colExpires}</th>
                   <th style={{ width: '1%' }}></th>
                 </tr>
               </thead>
               <tbody className="table-border-bottom-0">
-                {invitations.map((i) => (
-                  <tr key={i.id}>
-                    <td className="fw-medium text-heading">{i.email}</td>
-                    <td>
-                      <span className="badge bg-label-secondary text-capitalize">{i.role}</span>
-                    </td>
-                    <td>
-                      <time dateTime={i.expiresAt.toISOString()}>
-                        {i.expiresAt.toLocaleDateString('en-GB')}
-                      </time>
-                    </td>
-                    <td>
-                      <InvitationActions id={i.id} />
-                    </td>
-                  </tr>
-                ))}
+                {invitations.map((i) => {
+                  const roleKey = i.role as keyof typeof nt.roleLabels;
+                  return (
+                    <tr key={i.id}>
+                      <td className="fw-medium text-heading">{i.email}</td>
+                      <td>
+                        <span className="badge bg-label-secondary">{nt.roleLabels[roleKey]}</span>
+                      </td>
+                      <td>
+                        <time dateTime={i.expiresAt.toISOString()}>
+                          {i.expiresAt.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-GB')}
+                        </time>
+                      </td>
+                      <td>
+                        <InvitationActions id={i.id} />
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -201,22 +217,21 @@ export default async function MembersPage() {
 
       <div className="card">
         <div className="card-header">
-          <h5 className="card-title mb-0">What each role can do</h5>
+          <h5 className="card-title mb-0">{t.matrixTitle}</h5>
         </div>
         <div className="table-responsive text-nowrap">
           <table className="table">
             <thead>
               <tr>
                 <th></th>
-                {Object.keys(ROLE_LOOKS).map((role) => (
-                  <th key={role} className="text-capitalize">
-                    {role}
-                  </th>
-                ))}
+                {Object.keys(ROLE_LOOKS).map((role) => {
+                  const roleKey = role as keyof typeof nt.roleLabels;
+                  return <th key={role}>{nt.roleLabels[roleKey]}</th>;
+                })}
               </tr>
             </thead>
             <tbody className="table-border-bottom-0">
-              {MATRIX.map(([label, cells]) => (
+              {matrix.map(([label, cells]) => (
                 <tr key={label}>
                   <td className="text-heading">{label}</td>
                   {cells.map((allowed, i) => (
@@ -224,12 +239,12 @@ export default async function MembersPage() {
                       {allowed ? (
                         <i
                           className="icon-base ti tabler-check text-success"
-                          aria-label="Allowed"
+                          aria-label={t.allowedAria}
                         />
                       ) : (
                         <i
                           className="icon-base ti tabler-minus text-body-secondary opacity-50"
-                          aria-label="Not allowed"
+                          aria-label={t.notAllowedAria}
                         />
                       )}
                     </td>

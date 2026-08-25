@@ -12,6 +12,9 @@ import {
   type BrandMode,
 } from '../../../../lib/brand-doc';
 import { applyBrand, seedBrandDefaults } from '../../../../lib/brand-apply';
+import { common } from '../../../../lib/i18n/dict/common';
+import { brand as brandDict } from '../../../../lib/i18n/dict/brand';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { mergeWithEmpty } from '../../../builder/reducer';
 import { Preview } from '../../../builder/Preview';
 import { contrastWarnings } from '../../../builder/steps/StyleStep';
@@ -25,17 +28,15 @@ import { useToast } from '../../ToastProvider';
  * bindirilmiş hâlinin canlı önizlemesi (sandbox iframe — Vuexy CSS'i imzaya
  * SIZAMAZ). Mod seçici artık temanın segmented düğme grubu; kilit ikonla
  * söyleniyor. Doğrulamanın tek yetkilisi hâlâ parseBrandDocument.
+ *
+ * Metinler (Task 5, i18n): `dict/brand.ts`'ten. Kontrast uyarıları
+ * (`contrastWarnings`, StyleStep'ten) BİLİNÇLİ dışarıda — builder ile aynı,
+ * Türkçe döner, dil göçü bu ekranın kapsamı dışında.
  */
 
 type FieldKey = keyof BrandDocument;
 type ModeOption = 'unmanaged' | BrandMode;
 type FieldValue<K extends FieldKey> = BrandDocument[K] extends BrandField<infer V> | undefined ? V : never;
-
-const MODE_LABEL: Record<ModeOption, string> = {
-  unmanaged: 'Not managed',
-  default: 'Default',
-  locked: 'Locked',
-};
 
 function ModeSelect({
   label,
@@ -46,9 +47,11 @@ function ModeSelect({
   value: ModeOption;
   onChange: (mode: ModeOption) => void;
 }) {
+  const lang = useLang();
+  const t = brandDict[lang];
   return (
-    <div className="btn-group btn-group-sm" role="group" aria-label={`${label} management mode`}>
-      {(Object.keys(MODE_LABEL) as ModeOption[]).map((m) => (
+    <div className="btn-group btn-group-sm" role="group" aria-label={t.modeGroupAria(label)}>
+      {(Object.keys(t.modeLabel) as ModeOption[]).map((m) => (
         <button
           key={m}
           type="button"
@@ -59,7 +62,7 @@ function ModeSelect({
           {m === 'locked' && (
             <i className="icon-base ti tabler-lock icon-14px me-1" aria-hidden="true" />
           )}
-          {MODE_LABEL[m]}
+          {t.modeLabel[m]}
         </button>
       ))}
     </div>
@@ -81,6 +84,8 @@ function ColorControl({
   value: string;
   onChange: (v: string) => void;
 }) {
+  const lang = useLang();
+  const t = brandDict[lang];
   return (
     <div className="input-group" style={{ maxWidth: 220 }}>
       <input
@@ -95,7 +100,7 @@ function ColorControl({
       <input
         type="text"
         className="form-control font-monospace"
-        aria-label="Hex value"
+        aria-label={t.hexValueAria}
         value={value}
         maxLength={7}
         onChange={(e) => onChange(e.target.value)}
@@ -170,6 +175,9 @@ export function BrandClient({
   iconBaseUrl: string;
 }) {
   const toast = useToast();
+  const lang = useLang();
+  const t = brandDict[lang];
+  const c = common[lang];
   const [doc, setDoc] = useState<BrandDocument>(initialBrand ?? {});
   const [dialogOpen, setDialogOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -222,13 +230,13 @@ export function BrandClient({
       const res = await fetch('/api/upload', { method: 'POST', body: form });
       const body = (await res.json()) as { url?: string; error?: string; warning?: string };
       if (!res.ok || !body.url) {
-        setLogoMessage(body.error ?? 'Upload failed.');
+        setLogoMessage(body.error ?? t.logoUploadFailed);
         return;
       }
       setValue('logoUrl', body.url);
       if (body.warning) setLogoMessage(`⚠️ ${body.warning}`);
     } catch {
-      setLogoMessage('Network error — try again.');
+      setLogoMessage(t.logoNetworkError);
     } finally {
       setLogoBusy(false);
     }
@@ -269,17 +277,17 @@ export function BrandClient({
   const fieldErrors = useMemo(() => {
     const errs: Partial<Record<FieldKey, string>> = {};
     if (doc.logoUrl && !doc.logoUrl.value.trim()) {
-      errs.logoUrl = 'Upload a logo or set this to Not managed.';
+      errs.logoUrl = t.fieldErrors.logoUrl;
     }
     if (doc.cta && (!doc.cta.value.label.trim() || !doc.cta.value.url.trim())) {
-      errs.cta = 'Enter a label and URL, or set this to Not managed.';
+      errs.cta = t.fieldErrors.cta;
     }
     for (const key of ['brandColor', 'textColor', 'mutedColor'] as const) {
       const f = doc[key];
-      if (f && !isValidBrandHex(f.value)) errs[key] = 'Enter a valid hex color.';
+      if (f && !isValidBrandHex(f.value)) errs[key] = t.fieldErrors.invalidHex;
     }
     return errs;
-  }, [doc]);
+  }, [doc, t]);
 
   const isValid = useMemo(() => parseBrandDocument(doc) !== null, [doc]);
 
@@ -308,18 +316,23 @@ export function BrandClient({
         const body = (await res.json().catch(() => ({}))) as { error?: string };
         setError(
           body.error === 'invalid_input'
-            ? 'Some fields have an invalid value — check colors, links, and the CTA URL.'
+            ? t.saveDialog.errors.invalid_input
             : body.error === 'forbidden'
-              ? 'Only owners and admins can manage brand settings.'
-              : 'Something went wrong. Please try again.',
+              ? t.saveDialog.errors.forbidden
+              : t.saveDialog.errors.generic,
         );
         return;
       }
       setDialogOpen(false);
-      setSavedAt(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-      toast('success', 'Brand settings saved — they apply from the next export.');
+      setSavedAt(
+        new Date().toLocaleTimeString(lang === 'tr' ? 'tr-TR' : 'en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+      );
+      toast('success', t.savedToast);
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(t.saveDialog.errors.generic);
     } finally {
       setBusy(false);
     }
@@ -330,14 +343,12 @@ export function BrandClient({
       {/* Üst aksiyon çubuğu — temanın product-add başlığı: solda ad, sağda kaydet */}
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
-          <h4 className="mb-1">Brand</h4>
-          <p className="text-body-secondary mb-0">
-            Defaults and locks for every signature in this workspace
-          </p>
+          <h4 className="mb-1">{t.heading}</h4>
+          <p className="text-body-secondary mb-0">{t.subtitle}</p>
         </div>
         <div className="d-flex align-items-center gap-3">
           {savedAt && !dialogOpen && (
-            <span className="badge bg-label-success">Saved · {savedAt}</span>
+            <span className="badge bg-label-success">{t.savedBadge(savedAt)}</span>
           )}
           <button
             type="button"
@@ -346,7 +357,7 @@ export function BrandClient({
             disabled={!isValid}
           >
             <i className="icon-base ti tabler-device-floppy me-1" aria-hidden="true" />
-            Save brand settings
+            {t.saveButton}
           </button>
         </div>
       </div>
@@ -354,9 +365,9 @@ export function BrandClient({
       <div className="row g-4">
         {/* 6/6 bölünme (Hüseyin, 2026-08-14): önizleme büyük olsun */}
         <div className="col-xl-6">
-          <GroupCard title="Design" icon="tabler-layout">
+          <GroupCard title={t.groups.design} icon="tabler-layout">
               <FieldRow
-                label="Template"
+                label={t.fields.template}
                 labelFor="brand-templateId"
                 mode={doc.templateId?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('templateId', m, TEMPLATE_IDS[0]!)}
@@ -378,7 +389,7 @@ export function BrandClient({
               </FieldRow>
 
               <FieldRow
-                label="Font"
+                label={t.fields.font}
                 labelFor="brand-fontFamily"
                 mode={doc.fontFamily?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('fontFamily', m, WEB_SAFE_FONTS[0])}
@@ -403,9 +414,9 @@ export function BrandClient({
               </FieldRow>
           </GroupCard>
 
-          <GroupCard title="Colors" icon="tabler-palette">
+          <GroupCard title={t.groups.colors} icon="tabler-palette">
               <FieldRow
-                label="Brand color"
+                label={t.fields.brandColor}
                 labelFor="brand-brandColor"
                 mode={doc.brandColor?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('brandColor', m, BRAND.primary)}
@@ -425,7 +436,7 @@ export function BrandClient({
               </FieldRow>
 
               <FieldRow
-                label="Text color"
+                label={t.fields.textColor}
                 labelFor="brand-textColor"
                 mode={doc.textColor?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('textColor', m, '#333333')}
@@ -445,7 +456,7 @@ export function BrandClient({
               </FieldRow>
 
               <FieldRow
-                label="Secondary text color"
+                label={t.fields.mutedColor}
                 labelFor="brand-mutedColor"
                 mode={doc.mutedColor?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('mutedColor', m, '#666666')}
@@ -466,23 +477,21 @@ export function BrandClient({
               </FieldRow>
           </GroupCard>
 
-          <GroupCard title="Content & assets" icon="tabler-photo">
+          <GroupCard title={t.groups.content} icon="tabler-photo">
               <FieldRow
-                label="Logo"
+                label={t.fields.logo}
                 mode={doc.logoUrl?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('logoUrl', m, '')}
               >
                 {doc.logoUrl && (
                   <>
-                    <div className="form-text mb-2">
-                      PNG, JPG or SVG · max 5MB · 360px/&lt;60KB target
-                    </div>
+                    <div className="form-text mb-2">{t.logoHint}</div>
                     {doc.logoUrl.value ? (
                       <div className="d-flex align-items-center flex-wrap gap-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={doc.logoUrl.value}
-                          alt="Logo"
+                          alt={t.fields.logo}
                           style={{ maxHeight: 48, maxWidth: 160 }}
                           className="border rounded p-1"
                         />
@@ -497,7 +506,7 @@ export function BrandClient({
                             setLogoMessage(null);
                           }}
                         >
-                          Remove
+                          {t.remove}
                         </button>
                       </div>
                     ) : (
@@ -513,7 +522,7 @@ export function BrandClient({
                         }}
                       />
                     )}
-                    {logoBusy && <small className="text-body-secondary d-block mt-1">Uploading…</small>}
+                    {logoBusy && <small className="text-body-secondary d-block mt-1">{t.logoUploading}</small>}
                     {logoMessage && (
                       <small className="text-body-secondary d-block mt-1">{logoMessage}</small>
                     )}
@@ -525,7 +534,7 @@ export function BrandClient({
               </FieldRow>
 
               <FieldRow
-                label="Call to action"
+                label={t.fields.cta}
                 mode={doc.cta?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('cta', m, { label: '', url: '' })}
               >
@@ -535,8 +544,8 @@ export function BrandClient({
                       <div className="col-sm-5">
                         <input
                           className="form-control"
-                          placeholder="Label"
-                          aria-label="CTA label"
+                          placeholder={t.ctaLabelPlaceholder}
+                          aria-label={t.ctaLabelAria}
                           value={doc.cta.value.label}
                           onChange={(e) =>
                             setValue('cta', { ...doc.cta!.value, label: e.target.value })
@@ -546,8 +555,8 @@ export function BrandClient({
                       <div className="col-sm-7">
                         <input
                           className="form-control"
-                          placeholder="https://…"
-                          aria-label="CTA URL"
+                          placeholder={t.ctaUrlPlaceholder}
+                          aria-label={t.ctaUrlAria}
                           value={doc.cta.value.url}
                           onChange={(e) =>
                             setValue('cta', { ...doc.cta!.value, url: e.target.value })
@@ -563,7 +572,7 @@ export function BrandClient({
               </FieldRow>
 
               <FieldRow
-                label="Legal disclaimer"
+                label={t.fields.disclaimer}
                 labelFor="brand-disclaimer"
                 mode={doc.disclaimer?.mode ?? 'unmanaged'}
                 onMode={(m) => setMode('disclaimer', m, '')}
@@ -587,8 +596,8 @@ export function BrandClient({
           <div style={{ position: 'sticky', top: 90 }}>
             <div className="card mb-4">
               <div className="card-header pb-2">
-                <h5 className="card-title mb-1">Live preview</h5>
-                <p className="card-subtitle mb-0">Sample data with your brand applied</p>
+                <h5 className="card-title mb-1">{t.preview.title}</h5>
+                <p className="card-subtitle mb-0">{t.preview.subtitle}</p>
               </div>
               <div className="card-body">
                 {contrastNotes.length > 0 && (
@@ -606,27 +615,24 @@ export function BrandClient({
 
             <div className="card">
               <div className="card-header pb-2">
-                <h5 className="card-title mb-0">How modes work</h5>
+                <h5 className="card-title mb-0">{t.howModes.title}</h5>
               </div>
               <div className="card-body d-grid gap-3">
                 <div className="d-flex align-items-start gap-2">
-                  <span className="badge bg-label-secondary flex-shrink-0">Not managed</span>
-                  <small className="text-body-secondary">
-                    The workspace stays out of it — every signature keeps its own value.
-                  </small>
+                  <span className="badge bg-label-secondary flex-shrink-0">
+                    {t.modeLabel.unmanaged}
+                  </span>
+                  <small className="text-body-secondary">{t.howModes.unmanagedNote}</small>
                 </div>
                 <div className="d-flex align-items-start gap-2">
-                  <span className="badge bg-label-info flex-shrink-0">Default</span>
-                  <small className="text-body-secondary">
-                    Pre-fills new signatures; people can still change it afterwards.
-                  </small>
+                  <span className="badge bg-label-info flex-shrink-0">{t.modeLabel.default}</span>
+                  <small className="text-body-secondary">{t.howModes.defaultNote}</small>
                 </div>
                 <div className="d-flex align-items-start gap-2">
-                  <span className="badge bg-label-success flex-shrink-0">Locked</span>
-                  <small className="text-body-secondary">
-                    Forced on every export — existing values are overridden, nothing is rewritten
-                    in saved signatures.
-                  </small>
+                  <span className="badge bg-label-success flex-shrink-0">
+                    {t.modeLabel.locked}
+                  </span>
+                  <small className="text-body-secondary">{t.howModes.lockedNote}</small>
                 </div>
               </div>
             </div>
@@ -636,16 +642,15 @@ export function BrandClient({
 
       {dialogOpen && (
         <ConfirmDialog
-          title="Save brand settings"
+          title={t.saveDialog.title}
           onCancel={closeDialog}
           onConfirm={save}
-          confirmLabel={busy ? 'Saving…' : 'Save'}
+          confirmLabel={busy ? t.saveDialog.saving : c.save}
+          cancelLabel={c.cancel}
           busy={busy}
         >
-          <p>
-            {`This will affect ${liveSignatures} live signature${liveSignatures === 1 ? '' : 's'}.`}
-          </p>
-          <p>Changes apply from the next export — e-mails already sent do not change.</p>
+          <p>{t.saveDialog.affects(liveSignatures)}</p>
+          <p>{t.saveDialog.appliesFrom}</p>
           {error && (
             <p className="text-danger mb-0" role="alert">
               {error}

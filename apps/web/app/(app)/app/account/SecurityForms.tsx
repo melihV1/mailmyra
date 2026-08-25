@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { account as accountDict } from '../../../../lib/i18n/dict/account';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -13,6 +15,8 @@ import { useToast } from '../../ToastProvider';
 export function SecurityForms({ otherSessionCount }: { otherSessionCount: number }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = accountDict[lang];
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -35,7 +39,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
     setBusy(false);
     if (res.ok) {
       form.reset();
-      toast('success', 'Password changed. Every other session was signed out.');
+      toast('success', t.security.forms.passwordChangedToast);
       router.refresh();
       return;
     }
@@ -44,8 +48,8 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
       kind: 'err',
       text:
         body.error === 'wrong_password'
-          ? 'Your current password is not right.'
-          : 'New password needs at least 10 characters, and not a common one.',
+          ? t.security.forms.errors.wrong_password
+          : t.security.forms.errors.generic,
     });
   };
 
@@ -54,7 +58,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
     const res = await fetch('/api/account/signout-others', { method: 'POST' });
     setBusy(false);
     if (res.ok) {
-      toast('success', 'Other sessions signed out.');
+      toast('success', t.security.forms.othersSignedOutToast);
       router.refresh();
     }
   };
@@ -73,7 +77,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
       <form onSubmit={changePassword} className="row g-3">
         <div className="col-md-6">
           <label className="form-label" htmlFor="sec-current">
-            Current password
+            {t.security.forms.currentPasswordLabel}
           </label>
           <input
             id="sec-current"
@@ -86,7 +90,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
         </div>
         <div className="col-md-6">
           <label className="form-label" htmlFor="sec-next">
-            New password
+            {t.security.forms.newPasswordLabel}
           </label>
           <input
             id="sec-next"
@@ -97,12 +101,12 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
             minLength={10}
             required
           />
-          <div className="form-text">At least 10 characters, not a common one.</div>
+          <div className="form-text">{t.security.forms.newPasswordHint}</div>
         </div>
         <div className="col-12 d-flex flex-wrap gap-2">
           <button className="btn btn-primary" type="submit" disabled={busy}>
             {busy ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> : <i className="icon-base ti tabler-key me-1" aria-hidden="true" />}
-            Change password
+            {t.security.forms.changePassword}
           </button>
           {otherSessionCount > 0 && (
             <button
@@ -111,7 +115,7 @@ export function SecurityForms({ otherSessionCount }: { otherSessionCount: number
               onClick={() => void signOutOthers()}
               disabled={busy}
             >
-              Sign out the {otherSessionCount} other session{otherSessionCount === 1 ? '' : 's'}
+              {t.security.forms.signOutOthers(otherSessionCount)}
             </button>
           )}
         </div>

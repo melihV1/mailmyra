@@ -3,30 +3,44 @@ import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
 import { prisma } from '../../../../lib/db';
+import { account as accountDict } from '../../../../lib/i18n/dict/account';
+import { nav as navDict } from '../../../../lib/i18n/dict/nav';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { getWorkspace } from '../../../../lib/repo/members';
 import { listNotifications } from '../../../../lib/repo/notifications';
 import { primaryOrgId, roleFor, seatSummary } from '../../../../lib/repo/senders';
 import { NOTIFICATION_LOOKS, timeAgo } from '../../notification-looks';
 import { AvatarUpload } from './AvatarUpload';
 
-export const metadata = { title: 'My Profile — Mailmyra' };
+export async function generateMetadata() {
+  return { title: accountDict[await getLang()].pageTitles.profile };
+}
 
-const longDate = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'long',
-  year: 'numeric',
-});
+/** Uzun tarih ("24 August 2026" / "24 Ağustos 2026") — `formatDate`'in
+ *  kısa biçimiyle eşleşmiyor (ay uzun yazılıyor), o yüzden yalnız yerel dil
+ *  parametreleniyor, seçenekler AYNEN korunuyor (bkz. sweep notu). */
+function longDate(lang: 'en' | 'tr', date: Date): string {
+  return new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(date);
+}
 
 /**
  * Profil sayfası — temanın `pages-profile-user` uyarlaması (Hüseyin,
  * 2026-08-15): kapak şeridi + avatar (yükleme buradan) + kimlik rozetleri;
  * solda About kartı, sağda temanın TIMELINE elementiyle etkinlik akışı
- * (bildirim tablosundan — gerçek veri).
+ * (bildirim tablosundan — gerçek veri). Bildirim İÇERİĞİ (NOTIFICATION_LOOKS,
+ * timeAgo) burada DEĞİL — Task 6, dokunulmadı.
  */
 export default async function ProfilePage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/profile');
+  const lang = await getLang();
+  const t = accountDict[lang];
+  const nt = navDict[lang];
 
   const orgId = await primaryOrgId(session.user.id);
   const [me, role, workspace, seats, activity] = await Promise.all([
@@ -40,15 +54,24 @@ export default async function ProfilePage() {
     listNotifications(session.user.id),
   ]);
 
-  const roleLabel = role ? role.slice(0, 1).toUpperCase() + role.slice(1) : 'Member';
+  const roleKey = (role ?? 'member') as keyof typeof nt.roleLabels;
+  const roleLabel = nt.roleLabels[roleKey] ?? role;
   const initial = session.user.email.slice(0, 1).toUpperCase();
 
   const about = [
-    { icon: 'tabler-mail', label: 'Email', value: session.user.email },
-    { icon: 'tabler-crown', label: 'Role', value: roleLabel },
-    { icon: 'tabler-building', label: 'Workspace', value: workspace?.name ?? '—' },
-    { icon: 'tabler-users', label: 'Seats', value: `${seats.active} / ${seats.entitled} in use` },
-    { icon: 'tabler-calendar', label: 'Member since', value: longDate.format(me.createdAt) },
+    { icon: 'tabler-mail', label: t.profile.about.email, value: session.user.email },
+    { icon: 'tabler-crown', label: t.profile.about.role, value: roleLabel },
+    { icon: 'tabler-building', label: t.profile.about.workspace, value: workspace?.name ?? '—' },
+    {
+      icon: 'tabler-users',
+      label: t.profile.about.seats,
+      value: t.profile.about.seatsValue(seats.active, seats.entitled),
+    },
+    {
+      icon: 'tabler-calendar',
+      label: t.profile.about.memberSince,
+      value: longDate(lang, me.createdAt),
+    },
   ];
 
   return (
@@ -71,20 +94,23 @@ export default async function ProfilePage() {
             <div className="d-flex align-items-center gap-2">
               <span className="badge bg-label-primary">{roleLabel}</span>
               {session.user.emailVerifiedAt ? (
-                <span className="badge bg-label-success">Verified</span>
+                <span className="badge bg-label-success">{t.verified}</span>
               ) : (
-                <span className="badge bg-label-warning">Not verified</span>
+                <span className="badge bg-label-warning">{t.notVerified}</span>
               )}
               <Link href="/app/account" className="btn btn-sm btn-primary">
                 <i className="icon-base ti tabler-settings me-1" aria-hidden="true" />
-                Account settings
+                {t.profile.accountSettings}
               </Link>
             </div>
           </div>
           <h4 className="mt-3 mb-0">{session.user.email}</h4>
           <small className="text-body-secondary">
-            {roleLabel} at {workspace?.name ?? 'your workspace'} · joined{' '}
-            {longDate.format(me.createdAt)}
+            {t.profile.headerLine(
+              roleLabel,
+              workspace?.name ?? t.profile.yourWorkspace,
+              longDate(lang, me.createdAt),
+            )}
           </small>
         </div>
       </div>
@@ -94,7 +120,7 @@ export default async function ProfilePage() {
         <div className="col-xl-4">
           <div className="card h-100">
             <div className="card-header pb-2">
-              <h5 className="card-title mb-0">About</h5>
+              <h5 className="card-title mb-0">{t.profile.about.title}</h5>
             </div>
             <div className="card-body">
               <ul className="list-unstyled mb-0 d-grid gap-3">
@@ -123,14 +149,12 @@ export default async function ProfilePage() {
             <div className="card-header pb-2">
               <h5 className="card-title mb-0">
                 <i className="icon-base ti tabler-chart-bar me-2 text-primary" aria-hidden="true" />
-                Activity timeline
+                {t.profile.activityTitle}
               </h5>
             </div>
             <div className="card-body pt-3">
               {activity.length === 0 ? (
-                <p className="text-body-secondary mb-0">
-                  Nothing yet — publishes, invitations and seat warnings will show up here.
-                </p>
+                <p className="text-body-secondary mb-0">{t.activityEmpty}</p>
               ) : (
                 <ul className="timeline mb-0">
                   {activity.map((n, i) => {

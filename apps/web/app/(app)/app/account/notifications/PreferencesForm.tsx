@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from 'react';
 
+import { account as accountDict } from '../../../../../lib/i18n/dict/account';
+import { useLang } from '../../../../../lib/i18n/LangProvider';
 import { NOTIFICATION_LOOKS } from '../../../notification-looks';
 import { useToast } from '../../../ToastProvider';
 import type { NotificationType } from '../../../../../lib/repo/notifications';
@@ -12,7 +14,8 @@ import type { NotificationType } from '../../../../../lib/repo/notifications';
  * "Browser" kanalı gösteriyor; bizde push YOK, uydurma kolon koymuyoruz.
  *
  * E-posta kutusu yalnız gerçekten mail üreten tiplerde etkin (bugün koltuk
- * uyarısı) — diğerlerinde pasif ve sebebi satırda yazıyor.
+ * uyarısı) — diğerlerinde pasif ve sebebi satırda yazıyor. Satır başlığı
+ * (`look.title`) NOTIFICATION_LOOKS'tan (Task 6) — dokunulmadı.
  */
 export function PreferencesForm({
   initial,
@@ -22,6 +25,8 @@ export function PreferencesForm({
   emailCapable: readonly string[];
 }) {
   const toast = useToast();
+  const lang = useLang();
+  const t = accountDict[lang].notifications.preferencesForm;
   const [rows, setRows] = useState(initial.map((r) => ({ ...r })));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,10 +46,10 @@ export function PreferencesForm({
     });
     setBusy(false);
     if (res.ok) {
-      toast('success', 'Notification preferences saved.');
+      toast('success', t.savedToast);
       return;
     }
-    setError('Could not save your preferences. Please try again.');
+    setError(t.saveFailed);
   };
 
   return (
@@ -53,9 +58,9 @@ export function PreferencesForm({
         <table className="table table-borderless">
           <thead>
             <tr>
-              <th className="text-nowrap">Type</th>
-              <th className="text-nowrap text-center">In-app</th>
-              <th className="text-nowrap text-center">E-mail</th>
+              <th className="text-nowrap">{t.table.colType}</th>
+              <th className="text-nowrap text-center">{t.table.colInApp}</th>
+              <th className="text-nowrap text-center">{t.table.colEmail}</th>
             </tr>
           </thead>
           <tbody className="table-border-bottom-0">
@@ -67,7 +72,7 @@ export function PreferencesForm({
                   <td className="text-nowrap text-heading">
                     <span className="d-block">{look.title}</span>
                     {!canEmail && (
-                      <small className="text-body-secondary">In-app only for now</small>
+                      <small className="text-body-secondary">{t.inAppOnlyNote}</small>
                     )}
                   </td>
                   <td className="text-center">
@@ -75,7 +80,7 @@ export function PreferencesForm({
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        aria-label={`${look.title} — in-app`}
+                        aria-label={t.inAppAria(look.title)}
                         checked={row.inApp}
                         onChange={(e) => setValue(row.type, 'inApp', e.target.checked)}
                       />
@@ -86,7 +91,7 @@ export function PreferencesForm({
                       <input
                         className="form-check-input"
                         type="checkbox"
-                        aria-label={`${look.title} — e-mail`}
+                        aria-label={t.emailAria(look.title)}
                         checked={canEmail && row.email}
                         disabled={!canEmail}
                         onChange={(e) => setValue(row.type, 'email', e.target.checked)}
@@ -109,7 +114,7 @@ export function PreferencesForm({
               aria-hidden="true"
             />
           )}
-          Save changes
+          {t.saveChanges}
         </button>
         {error && (
           <span className="text-danger small" role="alert">

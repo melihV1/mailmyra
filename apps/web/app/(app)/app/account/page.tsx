@@ -2,13 +2,18 @@ import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
 import { prisma } from '../../../../lib/db';
+import { account as accountDict } from '../../../../lib/i18n/dict/account';
+import { nav as navDict } from '../../../../lib/i18n/dict/nav';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { LEGAL } from '../../../../lib/legal-links';
 import { primaryOrgId, roleFor } from '../../../../lib/repo/senders';
 import { AccountTabs } from './AccountTabs';
 import { DangerZone } from './DangerZone';
 import { EmailChangeForm } from './EmailChangeForm';
 
-export const metadata = { title: 'Account — Mailmyra' };
+export async function generateMetadata() {
+  return { title: accountDict[await getLang()].pageTitles.account };
+}
 
 /** `LegalAcceptance.docType` → ilgili sayfa (dpa henüz sayfaya bağlı değil,
  *  haritada yok — link olmadan düz metin kalır). Tek kaynak lib/legal-links. */
@@ -26,6 +31,9 @@ export default async function AccountPage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/account');
+  const lang = await getLang();
+  const t = accountDict[lang];
+  const nt = navDict[lang];
 
   const orgId = await primaryOrgId(session.user.id);
   const [role, acceptances] = await Promise.all([
@@ -38,7 +46,8 @@ export default async function AccountPage() {
   ]);
 
   const initial = session.user.email.slice(0, 1).toUpperCase();
-  const roleLabel = role ? role.slice(0, 1).toUpperCase() + role.slice(1) : 'Member';
+  const roleKey = (role ?? 'member') as keyof typeof nt.roleLabels;
+  const roleLabel = nt.roleLabels[roleKey] ?? role;
 
   return (
     <section>
@@ -61,9 +70,9 @@ export default async function AccountPage() {
               <div className="d-flex flex-wrap gap-2">
                 <span className="badge bg-label-primary">{roleLabel}</span>
                 {session.user.emailVerifiedAt ? (
-                  <span className="badge bg-label-success">Verified</span>
+                  <span className="badge bg-label-success">{t.verified}</span>
                 ) : (
-                  <span className="badge bg-label-warning">Not verified</span>
+                  <span className="badge bg-label-warning">{t.notVerified}</span>
                 )}
               </div>
             </div>
@@ -73,10 +82,8 @@ export default async function AccountPage() {
 
       <div className="card mb-4">
         <div className="card-header pb-2">
-          <h5 className="card-title mb-1">Change e-mail</h5>
-          <p className="card-subtitle mb-0">
-            We send a confirmation to the new address — the switch happens when you confirm.
-          </p>
+          <h5 className="card-title mb-1">{t.page.changeEmailTitle}</h5>
+          <p className="card-subtitle mb-0">{t.page.changeEmailSubtitle}</p>
         </div>
         <div className="card-body">
           <EmailChangeForm />
@@ -85,20 +92,20 @@ export default async function AccountPage() {
 
       <div className="card mb-4">
         <div className="card-header pb-2">
-          <h5 className="card-title mb-0">Legal</h5>
+          <h5 className="card-title mb-0">{t.page.legalTitle}</h5>
         </div>
         {acceptances.length === 0 ? (
           <div className="card-body">
-            <p className="text-body-secondary mb-0">No recorded acceptances.</p>
+            <p className="text-body-secondary mb-0">{t.page.legalEmpty}</p>
           </div>
         ) : (
           <div className="table-responsive text-nowrap">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Document</th>
-                  <th>Version</th>
-                  <th>Accepted</th>
+                  <th>{t.page.legalTable.colDocument}</th>
+                  <th>{t.page.legalTable.colVersion}</th>
+                  <th>{t.page.legalTable.colAccepted}</th>
                 </tr>
               </thead>
               <tbody className="table-border-bottom-0">
@@ -110,7 +117,7 @@ export default async function AccountPage() {
                       <td>v{a.version}</td>
                       <td>
                         <time dateTime={a.acceptedAt.toISOString()}>
-                          {a.acceptedAt.toLocaleDateString('en-GB')}
+                          {a.acceptedAt.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-GB')}
                         </time>
                       </td>
                     </tr>

@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { common } from '../../../../lib/i18n/dict/common';
+import { members as membersDict } from '../../../../lib/i18n/dict/members';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -24,6 +27,9 @@ export function MemberActions({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = membersDict[lang];
+  const c = common[lang];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -31,10 +37,10 @@ export function MemberActions({
   const fail = (body: { error?: string }) =>
     setError(
       body.error === 'last_owner'
-        ? 'The last owner cannot be changed — promote someone else to owner first.'
+        ? t.actions.errors.last_owner
         : body.error === 'forbidden'
-          ? 'Only owners and admins can manage members.'
-          : 'Something went wrong.',
+          ? t.actions.errors.forbidden
+          : t.actions.errors.generic,
     );
 
   const changeRole = async (next: string) => {
@@ -47,7 +53,7 @@ export function MemberActions({
     });
     setBusy(false);
     if (res.ok) {
-      toast('success', `Role changed to ${next}.`);
+      toast('success', t.actions.roleChangedToast(next));
       router.refresh();
     } else fail((await res.json().catch(() => ({}))) as { error?: string });
   };
@@ -61,11 +67,13 @@ export function MemberActions({
     if (res.ok) {
       if (isSelf) window.location.assign('/login');
       else {
-        toast('success', 'Member removed.');
+        toast('success', t.actions.removedToast);
         router.refresh();
       }
     } else fail((await res.json().catch(() => ({}))) as { error?: string });
   };
+
+  const roleOptions = ['owner', 'admin', 'editor', 'viewer'] as const;
 
   return (
     <>
@@ -75,15 +83,16 @@ export function MemberActions({
           value={role}
           onChange={(e) => void changeRole(e.target.value)}
           disabled={busy || lastOwner}
-          title={lastOwner ? 'The last owner cannot be demoted.' : undefined}
-          aria-label="Change role"
+          title={lastOwner ? t.actions.lastOwnerDemoteTip : undefined}
+          aria-label={t.actions.changeRoleAria}
         >
-          <option value="owner">owner</option>
-          <option value="admin">admin</option>
-          <option value="editor">editor</option>
-          <option value="viewer">viewer</option>
+          {roleOptions.map((r) => (
+            <option key={r} value={r}>
+              {t.roleOptionLabel[r]}
+            </option>
+          ))}
         </select>
-        <span data-mm-tip={lastOwner ? 'The last owner cannot be removed.' : undefined}>
+        <span data-mm-tip={lastOwner ? t.actions.lastOwnerRemoveTip : undefined}>
           <button
             type="button"
             className="btn btn-sm btn-label-danger"
@@ -91,7 +100,7 @@ export function MemberActions({
             disabled={busy || lastOwner}
           >
             <i className="icon-base ti tabler-user-minus me-1" aria-hidden="true" />
-            {isSelf ? 'Leave' : 'Remove'}
+            {isSelf ? t.actions.leave : t.actions.remove}
           </button>
         </span>
         {error && (
@@ -103,18 +112,15 @@ export function MemberActions({
 
       {confirming && (
         <ConfirmDialog
-          title={isSelf ? 'Leave this workspace?' : 'Remove this member?'}
+          title={isSelf ? t.actions.leaveConfirmTitle : t.actions.removeConfirmTitle}
           onCancel={() => !busy && setConfirming(false)}
           onConfirm={remove}
-          confirmLabel={isSelf ? 'Leave' : 'Remove'}
+          confirmLabel={isSelf ? t.actions.leave : t.actions.remove}
+          cancelLabel={c.cancel}
           tone="danger"
           busy={busy}
         >
-          <p className="mb-0">
-            {isSelf
-              ? 'You will lose access immediately.'
-              : 'They lose access immediately; signatures and senders stay.'}
-          </p>
+          <p className="mb-0">{isSelf ? t.actions.leaveBody : t.actions.removeBody}</p>
         </ConfirmDialog>
       )}
     </>
@@ -124,6 +130,8 @@ export function MemberActions({
 export function InvitationActions({ id }: { id: string }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = membersDict[lang];
   const [busy, setBusy] = useState(false);
 
   const revoke = async () => {
@@ -131,7 +139,7 @@ export function InvitationActions({ id }: { id: string }) {
     const res = await fetch(`/api/invitations/${id}/revoke`, { method: 'POST' });
     setBusy(false);
     if (res.ok) {
-      toast('success', 'Invitation revoked.');
+      toast('success', t.invitationActions.revokedToast);
       router.refresh();
     }
   };
@@ -147,21 +155,21 @@ export function InvitationActions({ id }: { id: string }) {
     });
     setBusy(false);
     if (!res.ok) {
-      toast('danger', 'Could not refresh the invitation. Please try again.');
+      toast('danger', t.invitationActions.refreshFailedToast);
       return;
     }
     if (delivery === 'email') {
-      toast('success', 'Invitation e-mail sent again — the old link no longer works.');
+      toast('success', t.invitationActions.emailSentToast);
     } else {
       const body = (await res.json().catch(() => ({}))) as { actionUrl?: string };
       if (body.actionUrl) {
         try {
           await navigator.clipboard.writeText(body.actionUrl);
-          toast('success', 'Fresh invite link copied — the old link no longer works.');
+          toast('success', t.invitationActions.linkCopiedToast);
         } catch {
           // Pano reddedilirse link kaybolmasın: eski link ZATEN öldü,
           // kullanıcı yeniyi elle kopyalayabilsin.
-          window.prompt('Copy the invite link:', body.actionUrl);
+          window.prompt(t.invitationActions.copyPrompt, body.actionUrl);
         }
       }
     }
@@ -173,8 +181,8 @@ export function InvitationActions({ id }: { id: string }) {
       <button
         type="button"
         className="btn btn-sm btn-icon btn-label-primary"
-        aria-label="Resend invitation e-mail"
-        data-mm-tip="Resend e-mail"
+        aria-label={t.invitationActions.resendAria}
+        data-mm-tip={t.invitationActions.resendTip}
         onClick={() => void refresh('email')}
         disabled={busy}
       >
@@ -183,8 +191,8 @@ export function InvitationActions({ id }: { id: string }) {
       <button
         type="button"
         className="btn btn-sm btn-icon btn-label-secondary"
-        aria-label="Copy invite link"
-        data-mm-tip="Copy fresh link"
+        aria-label={t.invitationActions.copyLinkAria}
+        data-mm-tip={t.invitationActions.copyLinkTip}
         onClick={() => void refresh('link')}
         disabled={busy}
       >
@@ -201,7 +209,7 @@ export function InvitationActions({ id }: { id: string }) {
         ) : (
           <i className="icon-base ti tabler-x me-1" aria-hidden="true" />
         )}
-        Revoke
+        {t.invitationActions.revoke}
       </button>
     </span>
   );

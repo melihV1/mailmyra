@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { members as membersDict } from '../../../../lib/i18n/dict/members';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -14,6 +16,8 @@ import { useToast } from '../../ToastProvider';
 export function WorkspaceCard({ name, canManage }: { name: string; canManage: boolean }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = membersDict[lang];
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
 
@@ -31,7 +35,7 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
 
     setBusy(false);
     if (res.ok) {
-      toast('success', 'Workspace renamed.');
+      toast('success', t.workspaceCard.renamedToast);
       router.refresh();
       return;
     }
@@ -40,18 +44,16 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
       kind: 'err',
       text:
         body.error === 'forbidden'
-          ? 'Only owners and admins can rename the workspace.'
-          : 'Enter a name between 1 and 255 characters.',
+          ? t.workspaceCard.errors.forbidden
+          : t.workspaceCard.errors.generic,
     });
   };
 
   return (
     <div className="card mb-4">
       <div className="card-header pb-2">
-        <h5 className="card-title mb-1">Workspace</h5>
-        <p className="card-subtitle mb-0">
-          This name shows up in invitation and seat-warning e-mails.
-        </p>
+        <h5 className="card-title mb-1">{t.workspaceCard.title}</h5>
+        <p className="card-subtitle mb-0">{t.workspaceCard.subtitle}</p>
       </div>
       <div className="card-body">
         {msg && (
@@ -66,7 +68,7 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
           <form onSubmit={submit} className="row g-3 align-items-end">
             <div className="col-sm-8 col-lg-5">
               <label className="form-label" htmlFor="workspace-name">
-                Workspace name
+                {t.workspaceCard.nameLabel}
               </label>
               <input
                 id="workspace-name"
@@ -80,11 +82,11 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
             <div className="col-sm-4 col-lg-2">
               <button type="submit" className="btn btn-primary" disabled={busy}>
                 {busy ? (
-                  <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />Saving…</>
+                  <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />{t.workspaceCard.saving}</>
                 ) : (
                   <>
                     <i className="icon-base ti tabler-pencil me-1" aria-hidden="true" />
-                    Rename
+                    {t.workspaceCard.rename}
                   </>
                 )}
               </button>
@@ -95,7 +97,7 @@ export function WorkspaceCard({ name, canManage }: { name: string; canManage: bo
             <span className="fw-medium text-heading">{name}</span>
             <span className="text-body-secondary">
               {' '}
-              — renaming is up to workspace owners and admins.
+              {t.workspaceCard.readOnlyTrail}
             </span>
           </p>
         )}

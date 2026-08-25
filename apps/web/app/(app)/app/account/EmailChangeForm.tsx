@@ -2,6 +2,8 @@
 
 import { useState, type FormEvent } from 'react';
 
+import { account as accountDict } from '../../../../lib/i18n/dict/account';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -10,6 +12,8 @@ import { useToast } from '../../ToastProvider';
  */
 export function EmailChangeForm() {
   const toast = useToast();
+  const lang = useLang();
+  const t = accountDict[lang];
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -33,7 +37,11 @@ export function EmailChangeForm() {
 
       if (res.ok) {
         form.reset();
-        toast('info', `Check ${newEmail} — the switch happens when you confirm.`, 'Confirmation sent');
+        toast(
+          'info',
+          t.emailChange.confirmationSentBody(newEmail),
+          t.emailChange.confirmationSentTitle,
+        );
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { error?: string };
@@ -41,16 +49,16 @@ export function EmailChangeForm() {
         kind: 'err',
         text:
           body.error === 'email_taken'
-            ? 'That address already has an account.'
+            ? t.emailChange.errors.email_taken
             : body.error === 'invalid_credentials'
-              ? 'Wrong password.'
+              ? t.emailChange.errors.invalid_credentials
               : body.error === 'rate_limited'
-                ? 'Too many attempts — try again later.'
-                : 'Enter a valid address (or it is already yours).', // invalid_email ve tanınmayan hata gövdesi
+                ? t.emailChange.errors.rate_limited
+                : t.emailChange.errors.generic, // invalid_email ve tanınmayan hata gövdesi
       });
     } catch {
       // Ağ arızası — istek panele hiç ulaşmamış olabilir.
-      setMsg({ kind: 'err', text: 'Something went wrong — try again.' });
+      setMsg({ kind: 'err', text: t.emailChange.errors.network });
     } finally {
       setBusy(false);
     }
@@ -70,7 +78,7 @@ export function EmailChangeForm() {
       <form onSubmit={changeEmail} className="row g-3">
         <div className="col-md-6">
           <label className="form-label" htmlFor="acc-new-email">
-            New address
+            {t.emailChange.newAddressLabel}
           </label>
           <input
             id="acc-new-email"
@@ -83,7 +91,7 @@ export function EmailChangeForm() {
         </div>
         <div className="col-md-6">
           <label className="form-label" htmlFor="acc-email-password">
-            Current password
+            {t.emailChange.currentPasswordLabel}
           </label>
           <input
             id="acc-email-password"
@@ -97,7 +105,7 @@ export function EmailChangeForm() {
         <div className="col-12">
           <button className="btn btn-primary" type="submit" disabled={busy}>
             {busy ? <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" /> : <i className="icon-base ti tabler-mail-forward me-1" aria-hidden="true" />}
-            Change e-mail
+            {t.emailChange.submit}
           </button>
         </div>
       </form>
