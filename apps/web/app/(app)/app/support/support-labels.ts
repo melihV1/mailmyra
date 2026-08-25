@@ -64,7 +64,7 @@ const statusTr: Mirror<typeof statusEn> = {
   resolved: { label: 'Çözüldü', tone: 'success' },
 };
 
-export const CASE_STATUS_LOOKS: Record<Lang, Record<CustomerCaseStatus, StatusLook>> = {
+const CASE_STATUS_LOOKS: Record<Lang, Record<CustomerCaseStatus, StatusLook>> = {
   en: statusEn,
   tr: statusTr,
 };

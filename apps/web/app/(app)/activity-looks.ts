@@ -15,7 +15,7 @@ import type { ActivityType } from '../../lib/repo/activity';
  * kılar (yeni bir ActivityType eklenirse iki taraf da derlemede kırılır).
  */
 
-type Look = {
+export type Look = {
   icon: string;
   tone: string;
   title: string;

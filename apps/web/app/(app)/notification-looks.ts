@@ -1,5 +1,6 @@
 import type { Lang, Mirror } from '../../lib/i18n/types';
 import type { NotificationType } from '../../lib/repo/notifications';
+import type { Look } from './activity-looks';
 
 /**
  * Bildirim tipi → görünüm sözlüğü. İki tüketicisi var: navbar zili (istemci)
@@ -10,14 +11,10 @@ import type { NotificationType } from '../../lib/repo/notifications';
  * `tone` teknik alanlar — iki dilde de aynı, çevrilmez. `en` gövdeleri
  * BİREBİR korunur; `tr` `Mirror<typeof en>` ile aynı 3 anahtarı zorunlu
  * kılar (yeni bir NotificationType eklenirse iki taraf da derlemede kırılır).
+ *
+ * `Look` tipi `activity-looks.ts`ten alınır — iki dosya aynı şekli birebir
+ * kopyalamasın diye tek yerde tanımlı (polish review notu).
  */
-
-type Look = {
-  icon: string;
-  tone: string;
-  title: string;
-  body: (p: Record<string, unknown>) => string;
-};
 
 const en: Record<NotificationType, Look> = {
   sender_published: {

@@ -78,6 +78,7 @@ const en = {
     backgroundAria: 'Preview background',
     light: 'Light',
     dark: 'Dark',
+    iframeTitle: 'signature-preview',
     darkNoteFn:
       'Your text color is hard to read on a dark background. Most clients adapt colors ' +
       'in dark mode; this preview shows one that does not.',
@@ -215,10 +216,10 @@ const tr: Mirror<typeof en> = {
     },
     editPane: {
       clearButton: 'Temizle ve baştan başla',
-      resetConfirm: 'Bu, kayıtlı taslağı temizler ve formu sıfırlar. Devam edilsin mi?',
+      resetConfirm: 'Bu, kayıtlı taslağı temizler ve formu sıfırlar. Devam etmek istiyor musun?',
       savedStatus: (time: string) => `Kaydedildi · ${time}`,
       saveFailedStatus: 'Kaydedilemedi — bağlantını kontrol et',
-      draftSavedLocally: 'Taslak yerelde kaydedildi',
+      draftSavedLocally: 'Taslak bu cihazda kaydedildi',
     },
     previewPane: {
       heading: 'Canlı önizleme',
@@ -245,6 +246,7 @@ const tr: Mirror<typeof en> = {
     backgroundAria: 'Önizleme arka planı',
     light: 'Açık',
     dark: 'Koyu',
+    iframeTitle: 'imza önizlemesi',
     darkNoteFn:
       'Metin rengin koyu bir zeminde okunması zor. Çoğu istemci koyu modda renkleri uyarlar; ' +
       'bu önizleme uyarlamayan birini gösteriyor.',
@@ -297,7 +299,7 @@ const tr: Mirror<typeof en> = {
         'Henüz sosyal medya bağlantısı yok. Bir tane eklediğinde ikonlar senin ikon renginle üretilir.',
       platformAria: (n: number) => `${n}. sosyal medya platformu`,
       urlPlaceholder: 'https://...',
-      urlAria: (n: number) => `${n}. sosyal medya bağlantısı URL’i`,
+      urlAria: (n: number) => `${n}. sosyal medya bağlantısı URL’si`,
       moveUp: 'Yukarı taşı',
       moveDown: 'Aşağı taşı',
       deleteAria: (n: number) => `${n}. sosyal medya bağlantısını sil`,
@@ -349,7 +351,7 @@ const tr: Mirror<typeof en> = {
         logoUrl: { title: 'Şirket logosu', hint: '360px, hedef 60KB altı' },
         handSignatureUrl: { title: 'El yazısı imza', hint: '300px, hedef 50KB altı' },
       },
-      formatHint: (hint: string) => `PNG, JPG ya da SVG · azami 5MB · ${hint}`,
+      formatHint: (hint: string) => `PNG, JPG ya da SVG · en fazla 5MB · ${hint}`,
       uploadAria: (title: string) => `${title} yükle`,
       remove: 'Kaldır',
       uploading: 'Yükleniyor…',

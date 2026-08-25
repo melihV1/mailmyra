@@ -11,8 +11,10 @@ import { useDropdown } from './useDropdown';
  * (Hüseyin'in ekran görüntüsüyle istediği parça, 2026-08-13).
  * Builder tam sayfa <a>: panel CSS'i builder'a taşınmasın.
  */
+type ShortcutKey = keyof Omit<(typeof nav)['en']['shortcuts'], 'title' | 'ariaLabel'>;
+
 const SHORTCUTS: ReadonlyArray<{
-  key: 'builder' | 'signatures' | 'senders' | 'members' | 'brand' | 'account' | 'dashboard' | 'help';
+  key: ShortcutKey;
   icon: string;
   href: string;
   external?: boolean;

@@ -117,7 +117,7 @@ const tr: Mirror<typeof en> = {
     disclaimer: 'Yasal metin',
   },
   steps: {
-    verifyEmail: { label: 'E-postanı doğrula', note: 'Dışa aktarımın kilidini açar' },
+    verifyEmail: { label: 'E-postanı doğrula', note: 'Dışa aktarımı açar' },
     createSignature: { label: 'Bir imza oluştur', note: "Builder'da tasarla" },
     addSender: { label: 'Bir gönderici ekle', note: 'Taslaklar ücretsizdir' },
     assignSignature: { label: 'Bir imza ata', note: 'Kişiyi ve tasarımı eşleştir' },
@@ -142,14 +142,14 @@ const tr: Mirror<typeof en> = {
   welcome: {
     title: 'Tekrar hoş geldin 👋',
     note: (activeSenders: number, signatureCount: number) =>
-      `${activeSenders} yayında gönderici · ${signatureCount} imza çalışma alanında.`,
+      `Çalışma alanında ${activeSenders} yayında gönderici · ${signatureCount} imza var.`,
     openBuilder: "Builder'ı aç",
   },
   seatsCard: {
     title: 'Koltuklar',
-    subtitle: 'Kullanılan / uygun',
+    subtitle: 'Kullanılan / boşta',
     inUse: 'Kullanımda',
-    available: 'Uygun',
+    available: 'Boşta',
     centerLabel: 'Koltuklar',
   },
   weeklyCard: {

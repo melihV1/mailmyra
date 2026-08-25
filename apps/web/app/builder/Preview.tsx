@@ -100,7 +100,7 @@ export function Preview({
         data-dark={chrome === 'theme' ? String(dark) : undefined}
       >
         <iframe
-          title="signature-preview"
+          title={t.preview.iframeTitle}
           sandbox="allow-same-origin"
           srcDoc={wrapPreviewDoc(html, dark ? '#1a1a1a' : '#ffffff')}
           style={
