@@ -3,10 +3,14 @@ import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
 import { prisma } from '../../../../lib/db';
+import { notifications as notificationsDict } from '../../../../lib/i18n/dict/notifications';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { listInbox, unreadCount } from '../../../../lib/repo/notifications';
 import { InboxClient } from './InboxClient';
 
-export const metadata = { title: 'Notifications — Mailmyra' };
+export async function generateMetadata() {
+  return { title: notificationsDict[await getLang()].pageTitle };
+}
 
 /**
  * Bildirim kutusu — zilin "View all notifications" hedefi (2026-08-15).
@@ -21,6 +25,8 @@ export default async function NotificationsInboxPage({
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/notifications');
+  const lang = await getLang();
+  const t = notificationsDict[lang].page;
 
   const { filter } = await searchParams;
   const unreadOnly = filter === 'unread';
@@ -35,10 +41,10 @@ export default async function NotificationsInboxPage({
     <section>
       <div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
         <div>
-          <h4 className="mb-1">Notifications</h4>
+          <h4 className="mb-1">{t.heading}</h4>
           <p className="text-body-secondary mb-0">
-            Everything sent to you. Choose what reaches you in{' '}
-            <Link href="/app/account/notifications">notification preferences</Link>.
+            {t.subtitleLead}
+            <Link href="/app/account/notifications">{t.prefsLink}</Link>.
           </p>
         </div>
       </div>

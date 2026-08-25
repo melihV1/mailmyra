@@ -2,12 +2,15 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { activity as activityDict } from '../../../../lib/i18n/dict/activity';
 import { getLang } from '../../../../lib/i18n/lang.server';
 import { listActivityAs } from '../../../../lib/repo/activity';
 import { ACTIVITY_LOOKS, activityFilters } from '../../activity-looks';
 import { timeAgo } from '../../notification-looks';
 
-export const metadata = { title: 'Activity — Mailmyra' };
+export async function generateMetadata() {
+  return { title: activityDict[await getLang()].pageTitle };
+}
 
 /**
  * Denetim günlüğü (2026-08-15, dış denetim P2). Bildirim listesinden farkı:
@@ -26,6 +29,7 @@ export default async function ActivityPage({
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/activity');
   const lang = await getLang();
+  const t = activityDict[lang];
   const filters = activityFilters(lang);
 
   const { type } = await searchParams;
@@ -35,7 +39,7 @@ export default async function ActivityPage({
   if (rows === null) {
     return (
       <section>
-        <h4 className="mb-4">Activity</h4>
+        <h4 className="mb-4">{t.heading}</h4>
         <div className="card">
           <div className="card-body text-center py-5">
             <div className="avatar avatar-lg mx-auto mb-3">
@@ -43,10 +47,8 @@ export default async function ActivityPage({
                 <i className="icon-base ti tabler-lock icon-26px" aria-hidden="true" />
               </span>
             </div>
-            <h5>Owners and admins only</h5>
-            <p className="text-body-secondary mb-0">
-              The activity log shows who changed what across the workspace.
-            </p>
+            <h5>{t.guard.title}</h5>
+            <p className="text-body-secondary mb-0">{t.guard.body}</p>
           </div>
         </div>
       </section>
@@ -56,17 +58,14 @@ export default async function ActivityPage({
   return (
     <section>
       <div className="mb-4">
-        <h4 className="mb-1">Activity</h4>
-        <p className="text-body-secondary mb-0">
-          Who changed what in this workspace. Kept for the record — it cannot be edited or
-          silenced.
-        </p>
+        <h4 className="mb-1">{t.heading}</h4>
+        <p className="text-body-secondary mb-0">{t.subtitle}</p>
       </div>
 
       <div className="card">
         <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
           <h5 className="card-title mb-0">
-            Recent events <span className="badge bg-label-primary ms-1">{rows.length}</span>
+            {t.recentEvents} <span className="badge bg-label-primary ms-1">{rows.length}</span>
           </h5>
           {/* Filtre link'lerle: sunucu bileşeni, JS'siz de çalışır. */}
           <div className="d-flex flex-wrap gap-2">
@@ -87,19 +86,17 @@ export default async function ActivityPage({
         {rows.length === 0 ? (
           <div className="card-body text-center py-5 text-body-secondary">
             <i className="icon-base ti tabler-history icon-26px d-block mx-auto mb-2" />
-            {active
-              ? 'No events of this kind yet.'
-              : 'Nothing recorded yet — publishes, exports and member changes will show up here.'}
+            {active ? t.emptyFiltered : t.emptyAll}
           </div>
         ) : (
           <div className="table-responsive text-nowrap">
             <table className="table table-hover">
               <thead>
                 <tr>
-                  <th>Event</th>
-                  <th>Details</th>
-                  <th>Who</th>
-                  <th>When</th>
+                  <th>{t.colEvent}</th>
+                  <th>{t.colDetails}</th>
+                  <th>{t.colWho}</th>
+                  <th>{t.colWhen}</th>
                 </tr>
               </thead>
               <tbody className="table-border-bottom-0">

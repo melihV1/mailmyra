@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { common } from '../../../../lib/i18n/dict/common';
+import { notifications } from '../../../../lib/i18n/dict/notifications';
 import { useLang } from '../../../../lib/i18n/LangProvider';
 import { NOTIFICATION_LOOKS, timeAgo } from '../../notification-looks';
 import { useToast } from '../../ToastProvider';
@@ -43,6 +45,8 @@ export function InboxClient({
   const router = useRouter();
   const toast = useToast();
   const lang = useLang();
+  const t = notifications[lang].inbox;
+  const c = common[lang];
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +84,7 @@ export function InboxClient({
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        setError('Something went wrong. Please try again.');
+        setError(t.genericError);
         return;
       }
       const body = (await res.json().catch(() => ({}))) as { count?: number };
@@ -89,7 +93,7 @@ export function InboxClient({
       toast('success', done(body.count ?? 0));
       router.refresh();
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(t.genericError);
     } finally {
       setBusy(false);
     }
@@ -97,50 +101,42 @@ export function InboxClient({
 
   const markSelected = (read: boolean) =>
     call('/api/notifications/mark', { ids: selected, read }, (n) =>
-      read
-        ? `${n} notification${n === 1 ? '' : 's'} marked as read.`
-        : `${n} notification${n === 1 ? '' : 's'} marked as unread.`,
+      read ? t.markedReadPlural(n) : t.markedUnreadPlural(n),
     );
 
-  const deleteSelected = () =>
-    call('/api/notifications/delete', { ids: selected }, (n) =>
-      n === 1 ? 'Notification deleted.' : `${n} notifications deleted.`,
-    );
+  const deleteSelected = () => call('/api/notifications/delete', { ids: selected }, t.deletedPlural);
 
   const deleteRead = () =>
-    call('/api/notifications/delete', { readOnly: true }, (n) =>
-      n === 1 ? '1 read notification cleared.' : `${n} read notifications cleared.`,
-    );
+    call('/api/notifications/delete', { readOnly: true }, t.clearedReadPlural);
 
-  const markAll = () =>
-    call('/api/notifications/read-all', {}, () => 'All notifications marked as read.');
+  const markAll = () => call('/api/notifications/read-all', {}, () => t.allMarkedRead);
 
   return (
     <>
       <div className="card">
         <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
           <h5 className="card-title mb-0 d-flex align-items-center gap-2">
-            {unreadOnly ? 'Unread' : 'All notifications'}
+            {unreadOnly ? t.unreadHeading : t.allHeading}
             <span className="badge bg-label-primary">{rows.length}</span>
             {selected.length > 0 && (
-              <span className="badge bg-label-info">{selected.length} selected</span>
+              <span className="badge bg-label-info">{t.selectedBadge(selected.length)}</span>
             )}
           </h5>
 
           <div className="d-flex flex-wrap align-items-center gap-2">
             {/* Filtre link'lerle: sunucu süzer, JS'siz de çalışır. */}
-            <div className="btn-group btn-group-sm" role="group" aria-label="Filter">
+            <div className="btn-group btn-group-sm" role="group" aria-label={t.filterAria}>
               <Link
                 href="/app/notifications"
                 className={`btn ${unreadOnly ? 'btn-label-secondary' : 'btn-primary'}`}
               >
-                All
+                {t.filterAll}
               </Link>
               <Link
                 href="/app/notifications?filter=unread"
                 className={`btn ${unreadOnly ? 'btn-primary' : 'btn-label-secondary'}`}
               >
-                Unread {unreadTotal > 0 && <span className="ms-1">({unreadTotal})</span>}
+                {t.unread} {unreadTotal > 0 && <span className="ms-1">({unreadTotal})</span>}
               </Link>
             </div>
 
@@ -153,7 +149,7 @@ export function InboxClient({
                   disabled={busy}
                 >
                   <i className="icon-base ti tabler-mail-opened me-1" aria-hidden="true" />
-                  Mark read
+                  {t.markRead}
                 </button>
                 <button
                   type="button"
@@ -162,7 +158,7 @@ export function InboxClient({
                   disabled={busy}
                 >
                   <i className="icon-base ti tabler-mail me-1" aria-hidden="true" />
-                  Mark unread
+                  {t.markUnread}
                 </button>
                 <button
                   type="button"
@@ -171,7 +167,7 @@ export function InboxClient({
                   disabled={busy}
                 >
                   <i className="icon-base ti tabler-trash me-1" aria-hidden="true" />
-                  Delete
+                  {c.delete}
                 </button>
               </>
             ) : (
@@ -183,7 +179,7 @@ export function InboxClient({
                   disabled={busy || unreadTotal === 0}
                 >
                   <i className="icon-base ti tabler-mail-opened me-1" aria-hidden="true" />
-                  Mark all read
+                  {t.markAllRead}
                 </button>
                 <button
                   type="button"
@@ -192,7 +188,7 @@ export function InboxClient({
                   disabled={busy || readTotal === 0}
                 >
                   <i className="icon-base ti tabler-trash me-1" aria-hidden="true" />
-                  Clear read
+                  {t.clearRead}
                 </button>
               </>
             )}
@@ -214,11 +210,9 @@ export function InboxClient({
                 <i className="icon-base ti tabler-bell-off icon-26px" aria-hidden="true" />
               </span>
             </div>
-            <h5>{unreadOnly ? 'Nothing unread' : 'No notifications yet'}</h5>
+            <h5>{unreadOnly ? t.noUnreadTitle : t.noneTitle}</h5>
             <p className="text-body-secondary mb-0">
-              {unreadOnly
-                ? 'You are all caught up.'
-                : 'Publishes, invitations and seat warnings will show up here.'}
+              {unreadOnly ? t.allCaughtUp : t.emptyBody}
             </p>
           </div>
         ) : (
@@ -233,15 +227,15 @@ export function InboxClient({
                     <input
                       type="checkbox"
                       className="form-check-input"
-                      aria-label="Select all"
+                      aria-label={t.selectAllAria}
                       checked={rows.length > 0 && selected.length === rows.length}
                       onChange={toggleAll}
                     />
                   </th>
-                  <th>Notification</th>
-                  <th>Details</th>
-                  <th>Received</th>
-                  <th style={{ width: '1%' }}>Actions</th>
+                  <th>{t.colNotification}</th>
+                  <th>{t.colDetails}</th>
+                  <th>{t.colReceived}</th>
+                  <th style={{ width: '1%' }}>{t.colActions}</th>
                 </tr>
               </thead>
               <tbody className="table-border-bottom-0">
@@ -253,7 +247,7 @@ export function InboxClient({
                         <input
                           type="checkbox"
                           className="form-check-input"
-                          aria-label={`Select ${look?.title ?? n.type}`}
+                          aria-label={t.selectRowAria(look?.title ?? n.type)}
                           checked={picked.has(n.id)}
                           onChange={() => toggle(n.id)}
                         />
@@ -274,8 +268,8 @@ export function InboxClient({
                           {!n.readAt && (
                             <span
                               className="badge badge-dot bg-primary"
-                              aria-label="Unread"
-                              data-mm-tip="Unread"
+                              aria-label={t.unread}
+                              data-mm-tip={t.unread}
                             />
                           )}
                         </span>
@@ -297,14 +291,14 @@ export function InboxClient({
                           <button
                             type="button"
                             className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
-                            aria-label={n.readAt ? 'Mark as unread' : 'Mark as read'}
-                            data-mm-tip={n.readAt ? 'Mark as unread' : 'Mark as read'}
+                            aria-label={n.readAt ? t.markAsUnreadAria : t.markAsReadAria}
+                            data-mm-tip={n.readAt ? t.markAsUnreadAria : t.markAsReadAria}
                             disabled={busy}
                             onClick={() =>
                               void call(
                                 '/api/notifications/mark',
                                 { ids: [n.id], read: !n.readAt },
-                                () => (n.readAt ? 'Marked as unread.' : 'Marked as read.'),
+                                () => (n.readAt ? t.markedAsUnread : t.markedAsRead),
                               )
                             }
                           >
@@ -316,12 +310,14 @@ export function InboxClient({
                           <button
                             type="button"
                             className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
-                            aria-label="Delete notification"
-                            data-mm-tip="Delete"
+                            aria-label={t.deleteNotificationAria}
+                            data-mm-tip={c.delete}
                             disabled={busy}
                             onClick={() =>
-                              void call('/api/notifications/delete', { ids: [n.id] }, () =>
-                                'Notification deleted.',
+                              void call(
+                                '/api/notifications/delete',
+                                { ids: [n.id] },
+                                () => t.notificationDeleted,
                               )
                             }
                           >
@@ -340,32 +336,35 @@ export function InboxClient({
 
       {confirming === 'selected' && (
         <ConfirmDialog
-          title={`Delete ${selected.length} notification${selected.length === 1 ? '' : 's'}?`}
+          title={t.deleteSelectedTitle(selected.length)}
           onCancel={() => !busy && setConfirming(null)}
           onConfirm={() => void deleteSelected()}
-          confirmLabel="Delete"
+          confirmLabel={c.delete}
+          cancelLabel={c.cancel}
           tone="danger"
           busy={busy}
         >
           <p className="mb-0">
-            This clears them from your own list. The workspace{' '}
-            <Link href="/app/activity">activity log</Link> keeps the record of what happened.
+            {t.deleteSelectedBodyLead}
+            <Link href="/app/activity">{t.activityLogLink}</Link>
+            {t.deleteSelectedBodyTrail}
           </p>
         </ConfirmDialog>
       )}
       {confirming === 'read' && (
         <ConfirmDialog
-          title="Clear read notifications?"
+          title={t.clearReadTitle}
           onCancel={() => !busy && setConfirming(null)}
           onConfirm={() => void deleteRead()}
-          confirmLabel="Clear"
+          confirmLabel={t.clear}
+          cancelLabel={c.cancel}
           tone="danger"
           busy={busy}
         >
           <p className="mb-0">
-            {readTotal} read notification{readTotal === 1 ? '' : 's'} will be removed from your
-            list. Unread ones stay, and the{' '}
-            <Link href="/app/activity">activity log</Link> is untouched.
+            {t.clearReadBodyLead(readTotal)}
+            <Link href="/app/activity">{t.activityLogLink}</Link>
+            {t.clearReadBodyTrail}
           </p>
         </ConfirmDialog>
       )}
