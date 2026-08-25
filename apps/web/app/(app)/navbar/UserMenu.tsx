@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { nav } from '../../../lib/i18n/dict/nav';
 import { useDropdown } from './useDropdown';
 
 /**
@@ -22,8 +24,11 @@ export function UserMenu({
   avatarUrl?: string | null;
 }) {
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
+  const lang = useLang();
+  const t = nav[lang];
   const initial = email.slice(0, 1).toUpperCase();
-  const roleLabel = role ? role.slice(0, 1).toUpperCase() + role.slice(1) : 'Member';
+  const roleKey = (role ?? 'member') as keyof typeof t.roleLabels;
+  const roleLabel = t.roleLabels[roleKey] ?? role;
 
   const logout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
@@ -36,7 +41,7 @@ export function UserMenu({
       <button
         type="button"
         className="nav-link dropdown-toggle hide-arrow p-0"
-        aria-label="Account menu"
+        aria-label={t.userMenu.accountMenu}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
@@ -79,7 +84,7 @@ export function UserMenu({
         <li>
           <Link href="/app/profile" className="dropdown-item" onClick={() => setOpen(false)}>
             <i className="icon-base ti tabler-user me-3 icon-md" aria-hidden="true" />
-            <span className="align-middle">My Profile</span>
+            <span className="align-middle">{t.userMenu.myProfile}</span>
           </Link>
         </li>
         <li>
@@ -89,7 +94,7 @@ export function UserMenu({
             onClick={() => setOpen(false)}
           >
             <i className="icon-base ti tabler-settings me-3 icon-md" aria-hidden="true" />
-            <span className="align-middle">Security</span>
+            <span className="align-middle">{t.userMenu.security}</span>
           </Link>
         </li>
         <li>
@@ -103,7 +108,7 @@ export function UserMenu({
                 className="flex-shrink-0 icon-base ti tabler-file-dollar me-3 icon-md"
                 aria-hidden="true"
               />
-              <span className="flex-grow-1 align-middle">Billing &amp; Plan</span>
+              <span className="flex-grow-1 align-middle">{t.userMenu.billingPlan}</span>
               {seatsFull && (
                 <span className="flex-shrink-0 badge bg-danger d-flex align-items-center justify-content-center">
                   !
@@ -124,7 +129,7 @@ export function UserMenu({
             onClick={() => setOpen(false)}
           >
             <i className="icon-base ti tabler-currency-dollar me-3 icon-md" aria-hidden="true" />
-            <span className="align-middle">Pricing</span>
+            <span className="align-middle">{t.userMenu.pricing}</span>
           </a>
         </li>
         <li>
@@ -134,7 +139,7 @@ export function UserMenu({
             onClick={() => setOpen(false)}
           >
             <i className="icon-base ti tabler-question-mark me-3 icon-md" aria-hidden="true" />
-            <span className="align-middle">FAQ</span>
+            <span className="align-middle">{t.userMenu.faq}</span>
           </a>
         </li>
         <li>
@@ -144,7 +149,7 @@ export function UserMenu({
               className="btn btn-sm btn-danger d-flex justify-content-center"
               onClick={() => void logout()}
             >
-              <small className="align-middle">Logout</small>
+              <small className="align-middle">{t.userMenu.logout}</small>
               <i className="icon-base ti tabler-logout ms-2 icon-14px" aria-hidden="true" />
             </button>
           </div>

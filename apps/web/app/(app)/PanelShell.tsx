@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useLang } from '../../lib/i18n/LangProvider';
+import { nav } from '../../lib/i18n/dict/nav';
 import { ToastProvider } from './ToastProvider';
 import { LanguageMenu } from './navbar/LanguageMenu';
 import { NotificationsBell } from './navbar/NotificationsBell';
@@ -26,45 +27,55 @@ import { UserMenu } from './navbar/UserMenu';
  * pazarlama rotaları hiç etkilenmez.
  */
 
+/** MENU etiketleri sözlükten gelir — dizi anahtar taşır, render sırasında `t.menu[key]` ile çözülür. */
+type MenuLabelKey = keyof (typeof nav)['en']['menu'];
+
 const MENU: ReadonlyArray<
-  | { type: 'header'; label: string }
-  | { type: 'item'; href: string; label: string; icon: string; exact?: boolean; external?: boolean }
+  | { type: 'header'; labelKey: MenuLabelKey }
+  | {
+      type: 'item';
+      href: string;
+      labelKey: MenuLabelKey;
+      icon: string;
+      exact?: boolean;
+      external?: boolean;
+    }
   | {
       type: 'group';
       id: string;
-      label: string;
+      labelKey: MenuLabelKey;
       icon: string;
-      children: ReadonlyArray<{ href: string; label: string }>;
+      children: ReadonlyArray<{ href: string; labelKey: MenuLabelKey }>;
     }
 > = [
-  { type: 'item', href: '/app', label: 'Dashboard', icon: 'tabler-smart-home', exact: true },
-  { type: 'header', label: 'Workspace' },
-  { type: 'item', href: '/app/signatures', label: 'Signatures', icon: 'tabler-signature' },
-  { type: 'item', href: '/app/senders', label: 'Senders', icon: 'tabler-users' },
-  { type: 'item', href: '/app/members', label: 'Members', icon: 'tabler-user-cog' },
-  { type: 'item', href: '/app/brand', label: 'Brand', icon: 'tabler-palette' },
-  { type: 'item', href: '/app/activity', label: 'Activity', icon: 'tabler-history' },
-  { type: 'header', label: 'Account' },
+  { type: 'item', href: '/app', labelKey: 'dashboard', icon: 'tabler-smart-home', exact: true },
+  { type: 'header', labelKey: 'workspace' },
+  { type: 'item', href: '/app/signatures', labelKey: 'signatures', icon: 'tabler-signature' },
+  { type: 'item', href: '/app/senders', labelKey: 'senders', icon: 'tabler-users' },
+  { type: 'item', href: '/app/members', labelKey: 'members', icon: 'tabler-user-cog' },
+  { type: 'item', href: '/app/brand', labelKey: 'brand', icon: 'tabler-palette' },
+  { type: 'item', href: '/app/activity', labelKey: 'activity', icon: 'tabler-history' },
+  { type: 'header', labelKey: 'account' },
   /* Temanın Authentications grubundaki açılır menü dili (Hüseyin,
      2026-08-14): Account artık chevron'lu grup, alt sayfaları içinde. */
   {
     type: 'group',
     id: 'account',
-    label: 'Account',
+    labelKey: 'account',
     icon: 'tabler-user-circle',
     children: [
-      { href: '/app/account', label: 'Profile' },
-      { href: '/app/account/security', label: 'Security' },
-      { href: '/app/account/billing', label: 'Billing & Plan' },
-      { href: '/app/account/notifications', label: 'Notifications' },
+      { href: '/app/account', labelKey: 'profile' },
+      { href: '/app/account/security', labelKey: 'security' },
+      { href: '/app/account/billing', labelKey: 'billingPlan' },
+      { href: '/app/account/notifications', labelKey: 'notifications' },
     ],
   },
-  { type: 'header', label: 'Tools' },
-  { type: 'item', href: '/app/guides', label: 'Setup guides', icon: 'tabler-book' },
-  { type: 'item', href: '/app/support', label: 'Support', icon: 'tabler-headset' },
+  { type: 'header', labelKey: 'tools' },
+  { type: 'item', href: '/app/guides', labelKey: 'setupGuides', icon: 'tabler-book' },
+  { type: 'item', href: '/app/support', labelKey: 'support', icon: 'tabler-headset' },
   /* Builder BİLEREK tam sayfa (<a>): panel rotasından çıkınca Vuexy
      <link>'leri DOM'dan düşsün, builder'ın CSS dünyası temiz kalsın. */
-  { type: 'item', href: '/builder', label: 'Open builder', icon: 'tabler-edit', external: true },
+  { type: 'item', href: '/builder', labelKey: 'openBuilder', icon: 'tabler-edit', external: true },
 ];
 
 const THEME_KEY = 'mm-panel-theme';
@@ -91,6 +102,7 @@ export function PanelShell({
 }) {
   const pathname = usePathname();
   const lang = useLang();
+  const t = nav[lang];
   const [menuOpen, setMenuOpen] = useState(false); // mobil off-canvas
   const [collapsed, setCollapsed] = useState(false); // masaüstü ray modu
   const [hovered, setHovered] = useState(false); // çökertilmişken imleç üstünde
@@ -273,7 +285,7 @@ export function PanelShell({
               <button
                 type="button"
                 className="layout-menu-toggle menu-link text-large ms-auto"
-                aria-label="Toggle menu"
+                aria-label={t.toggleMenu}
                 onClick={() => {
                   // Masaüstünde raya çökert; mobilde off-canvas'ı kapat.
                   if (window.innerWidth >= 1200) toggleCollapsed();
@@ -294,8 +306,8 @@ export function PanelShell({
               {MENU.map((entry) => {
                 if (entry.type === 'header') {
                   return (
-                    <li key={`h:${entry.label}`} className="menu-header small">
-                      <span className="menu-header-text">{entry.label}</span>
+                    <li key={`h:${entry.labelKey}`} className="menu-header small">
+                      <span className="menu-header-text">{t.menu[entry.labelKey]}</span>
                     </li>
                   );
                 }
@@ -329,7 +341,7 @@ export function PanelShell({
                         }}
                       >
                         <i className={`menu-icon icon-base ti ${entry.icon}`} aria-hidden="true" />
-                        <div>{entry.label}</div>
+                        <div>{t.menu[entry.labelKey]}</div>
                       </a>
                       <ul className="menu-sub">
                         {entry.children.map((child) => (
@@ -338,7 +350,7 @@ export function PanelShell({
                             className={`menu-item${pathname === child.href ? ' active' : ''}`}
                           >
                             <Link href={child.href} className="menu-link">
-                              <div>{child.label}</div>
+                              <div>{t.menu[child.labelKey]}</div>
                             </Link>
                           </li>
                         ))}
@@ -351,12 +363,12 @@ export function PanelShell({
                     {entry.external ? (
                       <a href={entry.href} className="menu-link">
                         <i className={`menu-icon icon-base ti ${entry.icon}`} aria-hidden="true" />
-                        <div>{entry.label}</div>
+                        <div>{t.menu[entry.labelKey]}</div>
                       </a>
                     ) : (
                       <Link href={entry.href} className="menu-link">
                         <i className={`menu-icon icon-base ti ${entry.icon}`} aria-hidden="true" />
-                        <div>{entry.label}</div>
+                        <div>{t.menu[entry.labelKey]}</div>
                         {entry.href === '/app/senders' && seatsBadge && (
                           <div className="badge bg-label-primary rounded-pill ms-auto">
                             {seatsBadge}
@@ -389,13 +401,13 @@ export function PanelShell({
             <nav
               className="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme"
               id="layout-navbar"
-              aria-label="Panel top bar"
+              aria-label={t.topBar}
             >
               <div className="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
                 <button
                   type="button"
                   className="nav-item nav-link px-0 me-xl-6"
-                  aria-label="Open menu"
+                  aria-label={t.openMenu}
                   onClick={() => {
                     animateMenu();
                     setMenuOpen(true);
@@ -427,18 +439,16 @@ export function PanelShell({
               <footer className="content-footer footer bg-footer-theme">
                 <div className="container-xxl">
                   <div className="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
-                    <div className="text-body">
-                      © {new Date().getFullYear()} Mailmyra — a Voldi Creative product
-                    </div>
+                    <div className="text-body">{t.footer.copyright(new Date().getFullYear())}</div>
                     <div className="d-none d-lg-inline-block">
                       <a href="/terms" className="footer-link me-4">
-                        Terms
+                        {t.footer.terms}
                       </a>
                       <a href="/privacy" className="footer-link me-4">
-                        Privacy
+                        {t.footer.privacy}
                       </a>
                       <a href="/kvkk" className="footer-link">
-                        KVKK
+                        {t.footer.kvkk}
                       </a>
                     </div>
                   </div>

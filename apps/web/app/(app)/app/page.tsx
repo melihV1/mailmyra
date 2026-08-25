@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../lib/auth/current';
+import { dashboard } from '../../../lib/i18n/dict/dashboard';
+import { getLang } from '../../../lib/i18n/lang.server';
 import { getBrand } from '../../../lib/repo/brand';
 import { listNotifications } from '../../../lib/repo/notifications';
 import { listSenders, primaryOrgId, seatSummary } from '../../../lib/repo/senders';
@@ -11,28 +13,9 @@ import { BarsChart } from '../charts/BarsChart';
 import { DonutChart } from '../charts/DonutChart';
 import { NOTIFICATION_LOOKS, timeAgo } from '../notification-looks';
 
-export const metadata = { title: 'Dashboard — Mailmyra' };
-
-/** Panel dilinde (EN) kısa tarih — sunucuda render, hydration derdi yok. */
-const shortDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
-
-const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  draft: { label: 'Draft', cls: 'bg-label-secondary' },
-  active: { label: 'Live', cls: 'bg-label-success' },
-  inactive: { label: 'Inactive', cls: 'bg-label-warning' },
-};
-
-/** Marka belgesindeki alan anahtarları → ekranda okunur ad (8 alan, spec §3). */
-const BRAND_FIELD_LABELS: Record<string, string> = {
-  templateId: 'Template',
-  brandColor: 'Brand color',
-  textColor: 'Text color',
-  mutedColor: 'Muted color',
-  fontFamily: 'Font',
-  logoUrl: 'Logo',
-  cta: 'CTA button',
-  disclaimer: 'Disclaimer',
-};
+export async function generateMetadata() {
+  return { title: dashboard[await getLang()].pageTitle };
+}
 
 /**
  * Panelin genel bakış ekranı — Vuexy dashboard dili (karar 2026-08-13/14):
@@ -44,6 +27,23 @@ export default async function DashboardPage() {
   // Layout korumasına GÜVENME (senders/page.tsx'teki sebep — paralel render).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app');
+  const lang = await getLang();
+  const t = dashboard[lang];
+  /* Panel dilinde kısa tarih — sunucuda render, hydration derdi yok.
+     `formatDate` ortak yardımcısının biçimi (gün/ay/yıl) burasıyla
+     eşleşmiyor (yıl yok) — bu yüzden kendi formatter'ı, yalnız yerel dile
+     göre değişir. */
+  const shortDate = new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+  const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
+    draft: { label: t.statusBadge.draft, cls: 'bg-label-secondary' },
+    active: { label: t.statusBadge.active, cls: 'bg-label-success' },
+    inactive: { label: t.statusBadge.inactive, cls: 'bg-label-warning' },
+  };
+  /** Marka belgesindeki alan anahtarları → ekranda okunur ad (8 alan, spec §3). */
+  const BRAND_FIELD_LABELS: Record<string, string> = t.brandFields;
 
   const [seats, senders, signatures, notifications, orgId] = await Promise.all([
     seatSummary(session.user.id),
@@ -68,33 +68,33 @@ export default async function DashboardPage() {
   // Getting started adımları — hepsi gerçek veriden, süs yok.
   const steps = [
     {
-      label: 'Verify your email',
-      note: 'Unlocks exporting',
+      label: t.steps.verifyEmail.label,
+      note: t.steps.verifyEmail.note,
       done: Boolean(session.user.emailVerifiedAt),
       href: '/app/account',
     },
     {
-      label: 'Create a signature',
-      note: 'Design in the builder',
+      label: t.steps.createSignature.label,
+      note: t.steps.createSignature.note,
       done: signatures.length > 0,
       href: '/builder',
       external: true,
     },
     {
-      label: 'Add a sender',
-      note: 'Drafts are free',
+      label: t.steps.addSender.label,
+      note: t.steps.addSender.note,
       done: senders.length > 0,
       href: '/app/senders',
     },
     {
-      label: 'Assign a signature',
-      note: 'Connect person and design',
+      label: t.steps.assignSignature.label,
+      note: t.steps.assignSignature.note,
       done: signatures.some((s) => s.senderId !== null),
       href: '/app/signatures',
     },
     {
-      label: 'Publish a sender',
-      note: 'Uses a seat, enables export',
+      label: t.steps.publishSender.label,
+      note: t.steps.publishSender.note,
       done: senders.some((s) => s.status !== 'draft'),
       href: '/app/senders',
     },
@@ -106,22 +106,22 @@ export default async function DashboardPage() {
   // Her kutucuğun kendi tonu var (Hüseyin, 2026-08-14: "dashboard çok beyaz").
   const actions = [
     {
-      label: 'Builder',
+      label: t.actions.builder,
       icon: 'tabler-edit',
       href: '/builder',
       external: true,
       primary: true,
       tone: 'primary',
     },
-    { label: 'Add sender', icon: 'tabler-user-plus', href: '/app/senders', tone: 'success' },
-    { label: 'Import CSV', icon: 'tabler-upload', href: '/app/senders', tone: 'info' },
-    { label: 'Brand', icon: 'tabler-palette', href: '/app/brand', tone: 'warning' },
-    { label: 'Members', icon: 'tabler-user-cog', href: '/app/members', tone: 'danger' },
-    { label: 'Export zip', icon: 'tabler-file-zip', href: '/app/senders', tone: 'secondary' },
+    { label: t.actions.addSender, icon: 'tabler-user-plus', href: '/app/senders', tone: 'success' },
+    { label: t.actions.importCsv, icon: 'tabler-upload', href: '/app/senders', tone: 'info' },
+    { label: t.actions.brand, icon: 'tabler-palette', href: '/app/brand', tone: 'warning' },
+    { label: t.actions.members, icon: 'tabler-user-cog', href: '/app/members', tone: 'danger' },
+    { label: t.actions.exportZip, icon: 'tabler-file-zip', href: '/app/senders', tone: 'secondary' },
   ];
 
   // Haftalık imza düzenleme aktivitesi — son 7 gün, updatedAt'ten (gerçek veri).
-  const dayFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short' });
+  const dayFmt = new Intl.DateTimeFormat(lang === 'tr' ? 'tr-TR' : 'en-US', { weekday: 'short' });
   const today = new Date();
   const days = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(today);
@@ -146,23 +146,23 @@ export default async function DashboardPage() {
 
   const stats = [
     {
-      label: 'Live senders',
+      label: t.stats.liveSenders.label,
       value: seats.active,
-      note: 'Using a seat right now',
+      note: t.stats.liveSenders.note,
       icon: 'tabler-send',
       tone: 'success',
     },
     {
-      label: 'Draft senders',
+      label: t.stats.draftSenders.label,
       value: drafts,
-      note: 'Free — no seat used',
+      note: t.stats.draftSenders.note,
       icon: 'tabler-users',
       tone: 'warning',
     },
     {
-      label: 'Signatures',
+      label: t.stats.signatures.label,
       value: signatures.length,
-      note: 'In this workspace',
+      note: t.stats.signatures.note,
       icon: 'tabler-signature',
       tone: 'info',
     },
@@ -177,7 +177,7 @@ export default async function DashboardPage() {
             <div className="card-body">
               <div className="d-flex align-items-start justify-content-between mb-2">
                 <div className="content-left">
-                  <span className="text-heading">Seats used</span>
+                  <span className="text-heading">{t.stats.seatsUsed}</span>
                   <div className="d-flex align-items-center my-1">
                     <h4 className="mb-0 me-2">
                       {seats.active}
@@ -200,9 +200,7 @@ export default async function DashboardPage() {
               <small
                 className={full ? 'text-danger d-block mt-2' : 'text-body-secondary d-block mt-2'}
               >
-                {full
-                  ? 'All seats in use — deactivate a sender or contact us.'
-                  : 'A seat is used only when a sender is live.'}
+                {full ? t.stats.seatsFullNote : t.stats.seatsOkNote}
               </small>
             </div>
           </div>
@@ -237,15 +235,12 @@ export default async function DashboardPage() {
         <div className="col-xl-4 col-md-6">
           <div className="card h-100 bg-primary">
             <div className="card-body d-flex flex-column text-white">
-              <h5 className="text-white mb-1">Welcome back 👋</h5>
-              <p className="mb-4 opacity-75">
-                {seats.active} live sender{seats.active === 1 ? '' : 's'} · {signatures.length}{' '}
-                signature{signatures.length === 1 ? '' : 's'} in your workspace.
-              </p>
+              <h5 className="text-white mb-1">{t.welcome.title}</h5>
+              <p className="mb-4 opacity-75">{t.welcome.note(seats.active, signatures.length)}</p>
               <div className="mt-auto">
                 <a href="/builder" className="btn btn-sm btn-light">
                   <i className="icon-base ti tabler-edit me-1" aria-hidden="true" />
-                  Open builder
+                  {t.welcome.openBuilder}
                 </a>
               </div>
             </div>
@@ -256,16 +251,16 @@ export default async function DashboardPage() {
           <div className="card h-100">
             <div className="card-header pb-0">
               <div className="card-title m-0">
-                <h5 className="mb-1">Seats</h5>
-                <p className="card-subtitle">Used vs. available</p>
+                <h5 className="mb-1">{t.seatsCard.title}</h5>
+                <p className="card-subtitle">{t.seatsCard.subtitle}</p>
               </div>
             </div>
             <div className="card-body d-flex align-items-center justify-content-center">
               <DonutChart
-                labels={['In use', 'Available']}
+                labels={[t.seatsCard.inUse, t.seatsCard.available]}
                 series={[seats.active, Math.max(0, seats.entitled - seats.active)]}
                 colors={['#2f66c8', '#c1d1ef']}
-                centerLabel="Seats"
+                centerLabel={t.seatsCard.centerLabel}
                 height={210}
               />
             </div>
@@ -276,14 +271,14 @@ export default async function DashboardPage() {
           <div className="card h-100">
             <div className="card-header pb-0">
               <div className="card-title m-0">
-                <h5 className="mb-1">Weekly activity</h5>
-                <p className="card-subtitle">Signature edits, last 7 days</p>
+                <h5 className="mb-1">{t.weeklyCard.title}</h5>
+                <p className="card-subtitle">{t.weeklyCard.subtitle}</p>
               </div>
             </div>
             <div className="card-body pt-2">
               <BarsChart
                 categories={dayLabels}
-                seriesName="Edits"
+                seriesName={t.weeklyCard.seriesName}
                 data={editsPerDay}
                 color="#7b9fd3"
                 height={200}
@@ -302,11 +297,11 @@ export default async function DashboardPage() {
           <div className={`card${doneCount === steps.length ? '' : ' h-100'}`}>
             <div className="card-header d-flex justify-content-between align-items-start">
               <div className="card-title m-0">
-                <h5 className="mb-1">Getting started</h5>
+                <h5 className="mb-1">{t.gettingStarted.title}</h5>
                 <p className="card-subtitle mb-0">
                   {doneCount === steps.length
-                    ? 'All set — your workspace is fully up and running.'
-                    : `${doneCount} of ${steps.length} steps done`}
+                    ? t.gettingStarted.allDone
+                    : t.gettingStarted.progress(doneCount, steps.length)}
                 </p>
               </div>
               <div className="d-flex align-items-center gap-2">
@@ -350,14 +345,14 @@ export default async function DashboardPage() {
                             href={step.href}
                             className="btn btn-sm btn-label-primary flex-shrink-0"
                           >
-                            Start
+                            {t.gettingStarted.start}
                           </a>
                         ) : (
                           <Link
                             href={step.href}
                             className="btn btn-sm btn-label-primary flex-shrink-0"
                           >
-                            Start
+                            {t.gettingStarted.start}
                           </Link>
                         ))}
                     </li>
@@ -372,8 +367,8 @@ export default async function DashboardPage() {
           <div className="card h-100" id="tour-quick">
             <div className="card-header">
               <div className="card-title m-0">
-                <h5 className="mb-1">Quick actions</h5>
-                <p className="card-subtitle">Jump right in</p>
+                <h5 className="mb-1">{t.quickActions.title}</h5>
+                <p className="card-subtitle">{t.quickActions.subtitle}</p>
               </div>
             </div>
             <div className="card-body">
@@ -416,17 +411,17 @@ export default async function DashboardPage() {
         <div className="col-xxl-8">
           <div className="card h-100">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0">Recent signatures</h5>
+              <h5 className="card-title mb-0">{t.recentSignatures.title}</h5>
               <Link href="/app/signatures" className="fw-medium">
-                View all
+                {t.recentSignatures.viewAll}
               </Link>
             </div>
             {recentSignatures.length === 0 ? (
               <div className="card-body text-center py-5">
-                <p className="text-body-secondary mb-3">No signatures yet.</p>
+                <p className="text-body-secondary mb-3">{t.recentSignatures.empty}</p>
                 <a href="/builder" className="btn btn-primary">
                   <i className="icon-base ti tabler-edit me-1" aria-hidden="true" />
-                  Open builder
+                  {t.recentSignatures.openBuilder}
                 </a>
               </div>
             ) : (
@@ -434,10 +429,10 @@ export default async function DashboardPage() {
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Signature</th>
-                      <th>Assigned to</th>
-                      <th>Status</th>
-                      <th>Updated</th>
+                      <th>{t.recentSignatures.colSignature}</th>
+                      <th>{t.recentSignatures.colAssignedTo}</th>
+                      <th>{t.recentSignatures.colStatus}</th>
+                      <th>{t.recentSignatures.colUpdated}</th>
                     </tr>
                   </thead>
                   <tbody className="table-border-bottom-0">
@@ -450,14 +445,18 @@ export default async function DashboardPage() {
                           </td>
                           <td>
                             {sig.senderName ?? (
-                              <span className="text-body-secondary">Not assigned</span>
+                              <span className="text-body-secondary">
+                                {t.recentSignatures.notAssigned}
+                              </span>
                             )}
                           </td>
                           <td>
                             {badge ? (
                               <span className={`badge ${badge.cls}`}>{badge.label}</span>
                             ) : (
-                              <span className="badge bg-label-secondary">Unassigned</span>
+                              <span className="badge bg-label-secondary">
+                                {t.recentSignatures.unassigned}
+                              </span>
                             )}
                           </td>
                           <td>{shortDate.format(sig.updatedAt)}</td>
@@ -474,14 +473,14 @@ export default async function DashboardPage() {
         <div className="col-xxl-4">
           <div className="card h-100">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0">Senders</h5>
+              <h5 className="card-title mb-0">{t.senders.title}</h5>
               <Link href="/app/senders" className="fw-medium">
-                View all
+                {t.senders.viewAll}
               </Link>
             </div>
             <div className="card-body">
               {recentSenders.length === 0 ? (
-                <p className="text-body-secondary mb-0">No senders yet — drafts are free.</p>
+                <p className="text-body-secondary mb-0">{t.senders.empty}</p>
               ) : (
                 <ul className="list-unstyled mb-0 d-grid gap-3">
                   {recentSenders.map((s) => {
@@ -519,13 +518,11 @@ export default async function DashboardPage() {
         <div className="col-xxl-8">
           <div className="card h-100">
             <div className="card-header">
-              <h5 className="card-title mb-0">Activity</h5>
+              <h5 className="card-title mb-0">{t.activity.title}</h5>
             </div>
             <div className="card-body">
               {recentActivity.length === 0 ? (
-                <p className="text-body-secondary mb-0">
-                  Nothing yet — publishes, invitations and seat warnings will show up here.
-                </p>
+                <p className="text-body-secondary mb-0">{t.activity.empty}</p>
               ) : (
                 <ul className="list-unstyled mb-0 d-grid gap-3">
                   {recentActivity.map((n) => {
@@ -561,17 +558,17 @@ export default async function DashboardPage() {
         <div className="col-xxl-4">
           <div className="card h-100">
             <div className="card-header d-flex align-items-center justify-content-between">
-              <h5 className="card-title mb-0">Brand</h5>
+              <h5 className="card-title mb-0">{t.brandCard.title}</h5>
               <Link href="/app/brand" className="fw-medium">
-                Manage
+                {t.brandCard.manage}
               </Link>
             </div>
             <div className="card-body">
               <div className="d-flex gap-2 mb-3">
-                <span className="badge bg-label-success">{lockedCount} locked</span>
-                <span className="badge bg-label-info">{defaultCount} default</span>
+                <span className="badge bg-label-success">{t.brandCard.locked(lockedCount)}</span>
+                <span className="badge bg-label-info">{t.brandCard.default(defaultCount)}</span>
                 <span className="badge bg-label-secondary">
-                  {brandEntries.length - lockedCount - defaultCount} not managed
+                  {t.brandCard.notManaged(brandEntries.length - lockedCount - defaultCount)}
                 </span>
               </div>
               <ul className="list-unstyled mb-0 d-grid gap-2">
@@ -579,9 +576,9 @@ export default async function DashboardPage() {
                   <li key={e.key} className="d-flex align-items-center justify-content-between">
                     <span className="text-heading">{e.label}</span>
                     {e.mode === 'locked' ? (
-                      <span className="badge bg-label-success">Locked</span>
+                      <span className="badge bg-label-success">{t.brandCard.lockedBadge}</span>
                     ) : e.mode === 'default' ? (
-                      <span className="badge bg-label-info">Default</span>
+                      <span className="badge bg-label-info">{t.brandCard.defaultBadge}</span>
                     ) : (
                       <span className="badge bg-label-secondary">—</span>
                     )}

@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { nav } from '../../../lib/i18n/dict/nav';
 import { NOTIFICATION_LOOKS, timeAgo } from '../notification-looks';
 import { useToast } from '../ToastProvider';
 import { useDropdown } from './useDropdown';
@@ -25,6 +27,8 @@ interface NotificationItem {
 export function NotificationsBell() {
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
   const toast = useToast();
+  const lang = useLang();
+  const t = nav[lang];
   const [unread, setUnread] = useState(0);
   const [items, setItems] = useState<NotificationItem[] | null>(null);
 
@@ -51,7 +55,7 @@ export function NotificationsBell() {
   const markAll = async () => {
     try {
       await fetch('/api/notifications/read-all', { method: 'POST' });
-      toast('success', 'All notifications marked as read.');
+      toast('success', t.notificationsBell.markedAllRead);
       setUnread(0);
       setItems((prev) =>
         prev ? prev.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })) : prev,
@@ -64,9 +68,10 @@ export function NotificationsBell() {
   return (
     <li className="nav-item dropdown me-3 me-xl-2" ref={ref}>
       <button
+        id="tour-notifications"
         type="button"
         className="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill position-relative"
-        aria-label={unread > 0 ? `Notifications (${unread} unread)` : 'Notifications'}
+        aria-label={t.notificationsBell.ariaLabel(unread)}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
@@ -87,14 +92,16 @@ export function NotificationsBell() {
       >
         <div className="dropdown-menu-header border-bottom">
           <div className="dropdown-header d-flex align-items-center py-3">
-            <h6 className="mb-0 me-auto">Notifications</h6>
+            <h6 className="mb-0 me-auto">{t.notificationsBell.header}</h6>
             {unread > 0 && (
               <>
-                <span className="badge bg-label-primary me-2">{unread} new</span>
+                <span className="badge bg-label-primary me-2">
+                  {t.notificationsBell.newBadge(unread)}
+                </span>
                 <button
                   type="button"
                   className="btn btn-sm btn-text-secondary rounded-pill btn-icon"
-                  title="Mark all as read"
+                  title={t.notificationsBell.markAllTitle}
                   onClick={() => void markAll()}
                 >
                   <i className="icon-base ti tabler-mail-opened icon-20px" aria-hidden="true" />
@@ -117,7 +124,7 @@ export function NotificationsBell() {
             ))
           ) : items.length === 0 ? (
             <li className="py-4 px-4 text-center text-body-secondary">
-              You&apos;re all caught up.
+              {t.notificationsBell.caughtUp}
             </li>
           ) : (
             items.map((n) => {
@@ -140,7 +147,7 @@ export function NotificationsBell() {
                   {!n.readAt && (
                     <span
                       className="badge badge-dot bg-primary flex-shrink-0 mt-2"
-                      aria-label="Unread"
+                      aria-label={t.notificationsBell.unread}
                     />
                   )}
                 </li>
@@ -156,7 +163,7 @@ export function NotificationsBell() {
               className="btn btn-primary btn-sm w-100"
               onClick={() => setOpen(false)}
             >
-              View all notifications
+              {t.notificationsBell.viewAll}
             </Link>
           </li>
         </ul>

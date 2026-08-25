@@ -1,13 +1,15 @@
 'use client';
 
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { nav } from '../../../lib/i18n/dict/nav';
 import { useDropdown } from './useDropdown';
 
 export type ThemeChoice = 'light' | 'dark' | 'system';
 
-const OPTIONS: ReadonlyArray<{ value: ThemeChoice; label: string; icon: string }> = [
-  { value: 'light', label: 'Light', icon: 'tabler-sun' },
-  { value: 'dark', label: 'Dark', icon: 'tabler-moon-stars' },
-  { value: 'system', label: 'System', icon: 'tabler-device-desktop' },
+const OPTIONS: ReadonlyArray<{ value: ThemeChoice; icon: string }> = [
+  { value: 'light', icon: 'tabler-sun' },
+  { value: 'dark', icon: 'tabler-moon-stars' },
+  { value: 'system', icon: 'tabler-device-desktop' },
 ];
 
 /** Tema anahtarı — seçim PanelShell'de yaşar (data-bs-theme'i o basar). */
@@ -21,13 +23,15 @@ export function ThemeMenu({
   onChange: (value: ThemeChoice) => void;
 }) {
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
+  const lang = useLang();
+  const t = nav[lang];
 
   return (
     <li className="nav-item dropdown me-2 me-xl-0" ref={ref}>
       <button
         type="button"
         className="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
-        aria-label="Toggle theme"
+        aria-label={t.theme.ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
@@ -48,7 +52,7 @@ export function ThemeMenu({
               }}
             >
               <i className={`icon-base ti ${opt.icon} icon-22px me-3`} aria-hidden="true" />
-              {opt.label}
+              {t.theme[opt.value]}
             </button>
           </li>
         ))}
