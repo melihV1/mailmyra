@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 import { EditSenderDialog } from './EditSenderDialog';
@@ -35,6 +37,8 @@ export function SenderActions({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = sendersDict[lang];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<'publish' | 'deactivate' | 'delete' | null>(null);
@@ -55,12 +59,12 @@ export function SenderActions({
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     setError(
       body.error === 'seat_limit'
-        ? `All ${entitledSeats} seats are in use. Deactivate a sender or contact us for more.`
+        ? t.actions.errors.seat_limit(entitledSeats)
         : body.error === 'not_entitled'
-          ? 'Your workspace cannot publish right now — contact us.'
+          ? t.actions.errors.not_entitled
           : body.error === 'forbidden'
-            ? 'Only owners and admins can manage senders.'
-            : 'Something went wrong. Please try again.',
+            ? t.actions.errors.forbidden
+            : t.actions.errors.generic,
     );
   };
 
@@ -68,17 +72,17 @@ export function SenderActions({
 
   const confirmPublish = () => {
     setConfirming(null);
-    void call(`/api/senders/${id}/publish`, `Published ${name} — a seat is now in use.`);
+    void call(`/api/senders/${id}/publish`, t.actions.publishedToast(name));
   };
 
   const confirmDeactivate = () => {
     setConfirming(null);
-    void call(`/api/senders/${id}/deactivate`, `Deactivated ${name} — the seat is free again.`);
+    void call(`/api/senders/${id}/deactivate`, t.actions.deactivatedToast(name));
   };
 
   const confirmDelete = () => {
     setConfirming(null);
-    void call(`/api/senders/${id}/delete`, `Deleted ${name}.`);
+    void call(`/api/senders/${id}/delete`, t.actions.deletedToast(name));
   };
 
   const afterPublish = activeSeats + 1;
@@ -87,7 +91,7 @@ export function SenderActions({
     <>
       <span className="d-inline-flex align-items-center gap-2">
         {status !== 'active' ? (
-          <span data-mm-tip={capFull ? `All ${entitledSeats} seats are in use.` : undefined}>
+          <span data-mm-tip={capFull ? t.actions.seatsFullTip(entitledSeats) : undefined}>
             <button
               type="button"
               className="btn btn-sm btn-success"
@@ -95,7 +99,7 @@ export function SenderActions({
               disabled={busy || capFull}
             >
               <i className="icon-base ti tabler-send me-1" aria-hidden="true" />
-              Publish
+              {t.actions.publish}
             </button>
           </span>
         ) : (
@@ -106,27 +110,25 @@ export function SenderActions({
             disabled={busy}
           >
             <i className="icon-base ti tabler-player-pause me-1" aria-hidden="true" />
-            Deactivate
+            {t.actions.deactivate}
           </button>
         )}
         <button
           type="button"
           className="btn btn-sm btn-icon btn-label-primary"
-          aria-label={'Edit ' + name}
+          aria-label={t.actions.editAria(name)}
           onClick={() => setEditing(true)}
           disabled={busy}
         >
           <i className="icon-base ti tabler-edit" aria-hidden="true" />
         </button>
         <span
-          data-mm-tip={
-            status === 'active' ? 'Live senders hold a seat — deactivate first.' : undefined
-          }
+          data-mm-tip={status === 'active' ? t.actions.liveHoldsSeatTip : undefined}
         >
           <button
             type="button"
             className="btn btn-sm btn-icon btn-label-danger"
-            aria-label={'Delete ' + name}
+            aria-label={t.actions.deleteAria(name)}
             onClick={() => setConfirming('delete')}
             disabled={busy || status === 'active'}
           >
@@ -149,40 +151,36 @@ export function SenderActions({
       )}
       {confirming === 'publish' && (
         <ConfirmDialog
-          title={`Publish ${name}?`}
+          title={t.actions.publishConfirmTitle(name)}
           onCancel={closeConfirm}
           onConfirm={confirmPublish}
-          confirmLabel="Publish"
+          confirmLabel={t.actions.publish}
         >
-          <p>
-            {`They become active, using ${afterPublish} of your ${entitledSeats} seat${entitledSeats === 1 ? '' : 's'}. Their signature can then be exported.`}
-          </p>
+          <p>{t.actions.seatNote(afterPublish, entitledSeats)}</p>
         </ConfirmDialog>
       )}
       {confirming === 'deactivate' && (
         <ConfirmDialog
-          title={`Deactivate ${name}?`}
+          title={t.actions.deactivateConfirmTitle(name)}
           onCancel={closeConfirm}
           onConfirm={confirmDeactivate}
-          confirmLabel="Deactivate"
+          confirmLabel={t.actions.deactivate}
         >
-          <p>
-            Their seat is freed for someone else this period. Signatures already installed in
-            mail clients keep working.
-          </p>
+          <p>{t.actions.deactivateBody}</p>
         </ConfirmDialog>
       )}
       {confirming === 'delete' && (
         <ConfirmDialog
-          title={`Delete ${name}?`}
+          title={t.actions.deleteConfirmTitle(name)}
           onCancel={closeConfirm}
           onConfirm={confirmDelete}
-          confirmLabel="Delete"
+          confirmLabel={t.actions.delete}
           tone="danger"
         >
           <p className="mb-0">
-            Their signatures are <strong>kept</strong> (just unassigned) and uploaded images
-            stay on the CDN. The sender identity itself cannot be recovered.
+            {t.actions.deleteBodyLead}
+            <strong>{t.actions.deleteBodyKept}</strong>
+            {t.actions.deleteBodyTrail}
           </p>
         </ConfirmDialog>
       )}

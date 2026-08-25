@@ -3,12 +3,16 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
+import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /** Taslak ekler — koltuk yemez; sayaç yayına almada işler. */
 export function AddSenderForm() {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = sendersDict[lang];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,17 +36,17 @@ export function AddSenderForm() {
     setBusy(false);
     if (res.ok) {
       form.reset();
-      toast('success', 'Sender added as a draft — no seat used yet.');
+      toast('success', t.addForm.addedToast);
       router.refresh();
       return;
     }
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     setError(
       body.error === 'email_taken'
-        ? 'This address is already a sender in your workspace. If they were deactivated, publish them again instead.'
+        ? t.addForm.errors.email_taken
         : body.error === 'forbidden'
-          ? 'Only owners and admins can add senders.'
-          : 'Could not add — check the fields and try again.',
+          ? t.addForm.errors.forbidden
+          : t.addForm.errors.generic,
     );
   };
 
@@ -52,8 +56,8 @@ export function AddSenderForm() {
         <input
           className="form-control"
           name="displayName"
-          placeholder="Full name"
-          aria-label="Full name"
+          placeholder={t.addForm.namePlaceholder}
+          aria-label={t.addForm.nameAria}
           required
           maxLength={255}
         />
@@ -63,8 +67,8 @@ export function AddSenderForm() {
           className="form-control"
           name="email"
           type="email"
-          placeholder="email@company.com"
-          aria-label="Email"
+          placeholder={t.addForm.emailPlaceholder}
+          aria-label={t.addForm.emailAria}
           required
         />
       </div>
@@ -72,18 +76,25 @@ export function AddSenderForm() {
         <input
           className="form-control"
           name="jobTitle"
-          placeholder="Job title (optional)"
-          aria-label="Job title (optional)"
+          placeholder={t.addForm.jobTitlePlaceholder}
+          aria-label={t.addForm.jobTitleAria}
         />
       </div>
       <div className="col-sm-6 col-lg-3">
         <button type="submit" className="btn btn-primary" disabled={busy}>
           {busy ? (
-            <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />Adding…</>
+            <>
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+              />
+              {t.addForm.adding}
+            </>
           ) : (
             <>
               <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-              Add sender
+              {t.addForm.submit}
             </>
           )}
         </button>

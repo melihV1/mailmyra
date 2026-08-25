@@ -2,22 +2,15 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { senders as sendersDict } from '../../../../../lib/i18n/dict/senders';
+import { formatDate } from '../../../../../lib/i18n/format';
+import { getLang } from '../../../../../lib/i18n/lang.server';
 import { getSenderAs, seatSummary } from '../../../../../lib/repo/senders';
 import { SenderDetailActions } from './SenderDetailActions';
 
-export const metadata = { title: 'Sender — Mailmyra' };
-
-const longDate = new Intl.DateTimeFormat('en-GB', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
-
-const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  draft: { label: 'Draft', cls: 'bg-label-secondary' },
-  active: { label: 'Live', cls: 'bg-label-success' },
-  inactive: { label: 'Inactive', cls: 'bg-label-warning' },
-};
+export async function generateMetadata() {
+  return { title: sendersDict[await getLang()].detailPageTitle };
+}
 
 /**
  * Gönderici detayı — temanın `app-user-view` düzeni (Hüseyin, 2026-08-15):
@@ -31,6 +24,8 @@ export default async function SenderDetailPage({
 }) {
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/senders');
+  const lang = await getLang();
+  const t = sendersDict[lang];
 
   const { id } = await params;
   const [sender, seats] = await Promise.all([
@@ -40,6 +35,11 @@ export default async function SenderDetailPage({
   // Yabancı org ya da silinmiş kayıt — varlık sızdırmadan listeye dön.
   if (!sender) redirect('/app/senders');
 
+  const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
+    draft: { label: t.statusBadge.draft, cls: 'bg-label-secondary' },
+    active: { label: t.statusBadge.active, cls: 'bg-label-success' },
+    inactive: { label: t.statusBadge.inactive, cls: 'bg-label-warning' },
+  };
   const badge = STATUS_BADGE[sender.status]!;
 
   return (
@@ -48,7 +48,7 @@ export default async function SenderDetailPage({
         <Link href="/app/senders" className="btn btn-sm btn-icon btn-text-secondary rounded-pill">
           <i className="icon-base ti tabler-chevron-left icon-md" aria-hidden="true" />
         </Link>
-        <h4 className="mb-0">Sender</h4>
+        <h4 className="mb-0">{t.detailPage.heading}</h4>
       </div>
 
       <div className="row g-4">
@@ -66,35 +66,43 @@ export default async function SenderDetailPage({
                 <span className={`badge ${badge.cls}`}>{badge.label}</span>
               </div>
 
-              <h6 className="text-uppercase small text-body-secondary">Details</h6>
+              <h6 className="text-uppercase small text-body-secondary">
+                {t.detailPage.detailsHeading}
+              </h6>
               <hr className="mt-1 mb-3" />
               <ul className="list-unstyled d-grid gap-2 mb-0">
                 <li>
-                  <span className="fw-medium text-heading me-1">Email:</span>
+                  <span className="fw-medium text-heading me-1">{t.detailPage.emailLabel}</span>
                   <span className="text-body-secondary">{sender.email}</span>
                 </li>
                 <li>
-                  <span className="fw-medium text-heading me-1">Job title:</span>
+                  <span className="fw-medium text-heading me-1">{t.detailPage.jobTitleLabel}</span>
                   <span className="text-body-secondary">{sender.jobTitle ?? '—'}</span>
                 </li>
                 <li>
-                  <span className="fw-medium text-heading me-1">Added:</span>
-                  <span className="text-body-secondary">{longDate.format(sender.createdAt)}</span>
+                  <span className="fw-medium text-heading me-1">{t.detailPage.addedLabel}</span>
+                  <span className="text-body-secondary">{formatDate(lang, sender.createdAt)}</span>
                 </li>
                 {sender.publishedAt && (
                   <li>
-                    <span className="fw-medium text-heading me-1">First published:</span>
+                    <span className="fw-medium text-heading me-1">
+                      {t.detailPage.firstPublishedLabel}
+                    </span>
                     <span className="text-body-secondary">
-                      {longDate.format(sender.publishedAt)}
+                      {formatDate(lang, sender.publishedAt)}
                     </span>
                   </li>
                 )}
                 {/* GERÇEK export olayı yoksa satır hiç görünmez — "aktarıldı"
                     iddiası ancak kaydı varsa kurulur (dış denetim kuralı). */}
                 <li>
-                  <span className="fw-medium text-heading me-1">Last exported:</span>
+                  <span className="fw-medium text-heading me-1">
+                    {t.detailPage.lastExportedLabel}
+                  </span>
                   <span className="text-body-secondary">
-                    {sender.lastExportedAt ? longDate.format(sender.lastExportedAt) : 'Never'}
+                    {sender.lastExportedAt
+                      ? formatDate(lang, sender.lastExportedAt)
+                      : t.detailPage.never}
                   </span>
                 </li>
               </ul>
@@ -103,7 +111,7 @@ export default async function SenderDetailPage({
 
           <div className="card">
             <div className="card-header pb-2">
-              <h5 className="card-title mb-0">Actions</h5>
+              <h5 className="card-title mb-0">{t.detailPage.actionsHeading}</h5>
             </div>
             <div className="card-body">
               <SenderDetailActions
@@ -125,11 +133,11 @@ export default async function SenderDetailPage({
           <div className="card h-100">
             <div className="card-header d-flex justify-content-between align-items-center">
               <h5 className="card-title mb-0">
-                Assigned signatures{' '}
+                {t.detailPage.assignedSignatures}{' '}
                 <span className="badge bg-label-primary ms-1">{sender.signatures.length}</span>
               </h5>
               <Link href="/app/signatures" className="fw-medium">
-                Manage
+                {t.detailPage.manage}
               </Link>
             </div>
             {sender.signatures.length === 0 ? (
@@ -139,19 +147,16 @@ export default async function SenderDetailPage({
                     <i className="icon-base ti tabler-signature icon-26px" aria-hidden="true" />
                   </span>
                 </div>
-                <p className="text-body-secondary mb-0">
-                  No signature assigned yet — assign one from the Signatures screen so this
-                  sender can go live with it.
-                </p>
+                <p className="text-body-secondary mb-0">{t.detailPage.emptySignatures}</p>
               </div>
             ) : (
               <div className="table-responsive text-nowrap">
                 <table className="table table-hover">
                   <thead>
                     <tr>
-                      <th>Signature</th>
-                      <th>Template</th>
-                      <th>Updated</th>
+                      <th>{t.detailPage.colSignature}</th>
+                      <th>{t.detailPage.colTemplate}</th>
+                      <th>{t.detailPage.colUpdated}</th>
                       <th style={{ width: '1%' }}></th>
                     </tr>
                   </thead>
@@ -164,13 +169,13 @@ export default async function SenderDetailPage({
                         </td>
                         <td>
                           <time dateTime={sig.updatedAt.toISOString()}>
-                            {longDate.format(sig.updatedAt)}
+                            {formatDate(lang, sig.updatedAt)}
                           </time>
                         </td>
                         <td>
                           <a href={`/builder?sig=${sig.id}`} className="btn btn-sm btn-label-primary">
                             <i className="icon-base ti tabler-edit me-1" aria-hidden="true" />
-                            Edit
+                            {t.detailPage.edit}
                           </a>
                         </td>
                       </tr>

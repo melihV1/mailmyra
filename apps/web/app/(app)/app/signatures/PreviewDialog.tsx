@@ -5,6 +5,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { wrapPreviewDoc } from '../../../../components/preview-doc';
 import { useBsPresence } from '../../../../components/ui/useBsPresence';
+import { common } from '../../../../lib/i18n/dict/common';
+import { signatures as signaturesDict } from '../../../../lib/i18n/dict/signatures';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 
 /**
  * "Bu imza gerçekte nasıl görünüyor?" — builder'a girmeden, temanın `modal-lg`
@@ -24,6 +27,9 @@ export function PreviewDialog({
   name: string;
   onClose: () => void;
 }) {
+  const lang = useLang();
+  const t = signaturesDict[lang];
+  const c = common[lang];
   const [html, setHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
@@ -51,11 +57,11 @@ export function PreviewDialog({
         }
         setError(
           body.error === 'render_failed'
-            ? 'This signature uses a template we can no longer render. Open it in the builder and pick a template.'
-            : 'Could not load the preview. Please try again.',
+            ? t.previewDialog.renderFailedError
+            : t.previewDialog.genericError,
         );
       } catch {
-        if (alive) setError('Could not load the preview. Please try again.');
+        if (alive) setError(t.previewDialog.genericError);
       }
     })();
     return () => {
@@ -97,7 +103,7 @@ export function PreviewDialog({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`Preview ${name}`}
+          aria-label={t.previewDialog.ariaLabel(name)}
           className="modal-content"
           ref={panel}
           tabIndex={-1}
@@ -105,7 +111,7 @@ export function PreviewDialog({
         >
           <div className="modal-header">
             <h5 className="modal-title text-truncate">{name}</h5>
-            <button type="button" className="btn-close" aria-label="Close" onClick={requestClose} />
+            <button type="button" className="btn-close" aria-label={c.close} onClick={requestClose} />
           </div>
           <div className="modal-body">
             {error ? (
@@ -115,7 +121,7 @@ export function PreviewDialog({
             ) : html === null ? (
               <div className="text-center py-5">
                 <span className="spinner-border text-primary" role="status" aria-hidden="true" />
-                <p className="text-body-secondary mt-3 mb-0">Rendering…</p>
+                <p className="text-body-secondary mt-3 mb-0">{t.previewDialog.rendering}</p>
               </div>
             ) : (
               <>
@@ -125,7 +131,7 @@ export function PreviewDialog({
                     logo/ikonlar sessizce kırılıyordu. Script yine yasak
                     (allow-scripts YOK); CSS yalıtımı iframe'in doğası. */}
                 <iframe
-                  title={`Preview of ${name}`}
+                  title={t.previewDialog.iframeTitle(name)}
                   sandbox="allow-same-origin"
                   srcDoc={wrapPreviewDoc(html, '#ffffff')}
                   style={{
@@ -136,20 +142,17 @@ export function PreviewDialog({
                     background: '#fff',
                   }}
                 />
-                <p className="text-body-secondary small mb-0 mt-3">
-                  Brand settings are applied here exactly as they are on export — this is what
-                  the downloaded file contains.
-                </p>
+                <p className="text-body-secondary small mb-0 mt-3">{t.previewDialog.brandNote}</p>
               </>
             )}
           </div>
           <div className="modal-footer">
             <Link href={`/builder?sig=${id}`} className="btn btn-primary">
               <i className="icon-base ti tabler-edit me-1" aria-hidden="true" />
-              Edit in builder
+              {t.previewDialog.editInBuilder}
             </Link>
             <button type="button" className="btn btn-outline-secondary" onClick={requestClose}>
-              Close
+              {c.close}
             </button>
           </div>
         </div>

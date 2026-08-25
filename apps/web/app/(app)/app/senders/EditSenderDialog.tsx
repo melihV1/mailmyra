@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { useBsPresence } from '../../../../components/ui/useBsPresence';
+import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -28,6 +30,8 @@ export function EditSenderDialog({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = sendersDict[lang];
   const [displayName, setDisplayName] = useState(sender.displayName);
   const [email, setEmail] = useState(sender.email);
   const [jobTitle, setJobTitle] = useState(sender.jobTitle ?? '');
@@ -80,7 +84,7 @@ export function EditSenderDialog({
     const name = displayName.trim();
     const addr = email.trim();
     if (!name || !addr.includes('@')) {
-      setError('Enter a name and a valid e-mail address.');
+      setError(t.editDialog.validationError);
       return;
     }
     setBusy(true);
@@ -92,7 +96,7 @@ export function EditSenderDialog({
     });
     setBusy(false);
     if (res.ok) {
-      toast('success', `Saved ${name}.`);
+      toast('success', t.editDialog.savedToast(name));
       router.refresh();
       requestClose();
       return;
@@ -100,12 +104,12 @@ export function EditSenderDialog({
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     setError(
       body.error === 'email_taken'
-        ? 'Another sender in this workspace already uses this address.'
+        ? t.editDialog.errors.email_taken
         : body.error === 'email_locked'
-          ? 'Live senders keep their address — deactivate first to change it.'
+          ? t.editDialog.errors.email_locked
           : body.error === 'forbidden'
-            ? 'Only owners and admins can manage senders.'
-            : 'Something went wrong. Please try again.',
+            ? t.editDialog.errors.forbidden
+            : t.editDialog.errors.generic,
     );
   };
 
@@ -119,7 +123,7 @@ export function EditSenderDialog({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`Edit ${sender.displayName}`}
+          aria-label={t.editDialog.ariaLabel(sender.displayName)}
           className="modal-content"
           ref={panel}
           tabIndex={-1}
@@ -129,18 +133,18 @@ export function EditSenderDialog({
             <button
               type="button"
               className="btn-close"
-              aria-label="Cancel"
+              aria-label={t.editDialog.cancel}
               onClick={requestClose}
               disabled={busy}
             />
             <div className="text-center mb-6">
-              <h4 className="mb-2">Edit sender</h4>
-              <p>Signatures and assignments stay put — only the details change.</p>
+              <h4 className="mb-2">{t.editDialog.title}</h4>
+              <p>{t.editDialog.note}</p>
             </div>
             <form className="row g-6" onSubmit={submit}>
               <div className="col-12 col-md-6">
                 <label className="form-label" htmlFor="editSenderName">
-                  Full name
+                  {t.editDialog.fullNameLabel}
                 </label>
                 <input
                   id="editSenderName"
@@ -153,12 +157,12 @@ export function EditSenderDialog({
               </div>
               <div className="col-12 col-md-6">
                 <label className="form-label" htmlFor="editSenderTitle">
-                  Job title
+                  {t.editDialog.jobTitleLabel}
                 </label>
                 <input
                   id="editSenderTitle"
                   className="form-control"
-                  placeholder="Optional"
+                  placeholder={t.editDialog.jobTitlePlaceholder}
                   value={jobTitle}
                   onChange={(e) => setJobTitle(e.target.value)}
                   maxLength={255}
@@ -166,7 +170,7 @@ export function EditSenderDialog({
               </div>
               <div className="col-12">
                 <label className="form-label" htmlFor="editSenderEmail">
-                  E-mail
+                  {t.editDialog.emailLabel}
                 </label>
                 <input
                   id="editSenderEmail"
@@ -178,11 +182,7 @@ export function EditSenderDialog({
                   disabled={live}
                   required
                 />
-                {live && (
-                  <div className="form-text">
-                    Live senders keep their address — deactivate first to change it.
-                  </div>
-                )}
+                {live && <div className="form-text">{t.editDialog.liveEmailNote}</div>}
               </div>
               {error && (
                 <div className="col-12">
@@ -200,7 +200,7 @@ export function EditSenderDialog({
                       aria-hidden="true"
                     />
                   )}
-                  Save changes
+                  {t.editDialog.save}
                 </button>
                 <button
                   type="button"
@@ -208,7 +208,7 @@ export function EditSenderDialog({
                   onClick={requestClose}
                   disabled={busy}
                 >
-                  Cancel
+                  {t.editDialog.cancel}
                 </button>
               </div>
             </form>

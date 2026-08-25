@@ -6,6 +6,9 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
 import { useBsPresence } from '../../../../components/ui/useBsPresence';
+import { common } from '../../../../lib/i18n/dict/common';
+import { signatures as signaturesDict } from '../../../../lib/i18n/dict/signatures';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 import { useDropdown } from '../../navbar/useDropdown';
 import { PreviewDialog } from './PreviewDialog';
@@ -28,6 +31,9 @@ function RenameDialog({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = signaturesDict[lang];
+  const c = common[lang];
   const [value, setValue] = useState(currentName);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +59,7 @@ function RenameDialog({
     e.preventDefault();
     const name = value.trim();
     if (!name) {
-      setError('Enter a name.');
+      setError(t.renameDialog.emptyError);
       return;
     }
     setBusy(true);
@@ -65,12 +71,12 @@ function RenameDialog({
     });
     setBusy(false);
     if (res.ok) {
-      toast('success', `Renamed to “${name}”.`);
+      toast('success', t.renameDialog.renamedToast(name));
       router.refresh();
       requestClose();
       return;
     }
-    setError('Could not rename. Please try again.');
+    setError(t.renameDialog.genericError);
   };
 
   return (
@@ -83,7 +89,7 @@ function RenameDialog({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={`Rename ${currentName}`}
+          aria-label={t.renameDialog.ariaLabel(currentName)}
           className="modal-content"
           onKeyDown={(e) => {
             if (e.key === 'Escape' && !busy) {
@@ -96,18 +102,18 @@ function RenameDialog({
             <button
               type="button"
               className="btn-close"
-              aria-label="Cancel"
+              aria-label={c.cancel}
               onClick={requestClose}
               disabled={busy}
             />
             <div className="text-center mb-6">
-              <h4 className="mb-2">Rename signature</h4>
-              <p>The name is only for your team — it never shows in the signature.</p>
+              <h4 className="mb-2">{t.renameDialog.title}</h4>
+              <p>{t.renameDialog.note}</p>
             </div>
             <form className="row g-6" onSubmit={submit}>
               <div className="col-12">
                 <label className="form-label" htmlFor="renameSignatureName">
-                  Name
+                  {t.renameDialog.nameLabel}
                 </label>
                 <input
                   id="renameSignatureName"
@@ -135,7 +141,7 @@ function RenameDialog({
                       aria-hidden="true"
                     />
                   )}
-                  Rename
+                  {t.renameDialog.rename}
                 </button>
                 <button
                   type="button"
@@ -143,7 +149,7 @@ function RenameDialog({
                   onClick={requestClose}
                   disabled={busy}
                 >
-                  Cancel
+                  {c.cancel}
                 </button>
               </div>
             </form>
@@ -156,6 +162,9 @@ function RenameDialog({
 export function RowActions({ id, name }: { id: string; name: string }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = signaturesDict[lang];
+  const c = common[lang];
   const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -168,7 +177,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
     const res = await fetch(`/api/signatures/${id}/duplicate`, { method: 'POST' });
     setBusy(false);
     if (res.ok) {
-      toast('success', `Duplicated “${name}”.`);
+      toast('success', t.rowActions.duplicatedToast(name));
       router.refresh();
     }
   };
@@ -179,7 +188,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
     setBusy(false);
     setConfirming(false);
     if (res.ok) {
-      toast('success', `Deleted “${name}”. Uploaded images stay on the CDN.`);
+      toast('success', t.rowActions.deletedToast(name));
       router.refresh();
     }
   };
@@ -190,7 +199,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
         <button
           type="button"
           className="btn btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow"
-          aria-label={`Actions for ${name}`}
+          aria-label={t.rowActions.actionsAria(name)}
           aria-expanded={open}
           onClick={() => setOpen(!open)}
           disabled={busy}
@@ -213,13 +222,13 @@ export function RowActions({ id, name }: { id: string; name: string }) {
               }}
             >
               <i className="icon-base ti tabler-eye me-2" aria-hidden="true" />
-              Preview
+              {t.rowActions.preview}
             </button>
           </li>
           <li>
             <Link href={`/builder?sig=${id}`} className="dropdown-item">
               <i className="icon-base ti tabler-edit me-2" aria-hidden="true" />
-              Edit in builder
+              {t.rowActions.editInBuilder}
             </Link>
           </li>
           <li>
@@ -232,13 +241,13 @@ export function RowActions({ id, name }: { id: string; name: string }) {
               }}
             >
               <i className="icon-base ti tabler-cursor-text me-2" aria-hidden="true" />
-              Rename
+              {t.rowActions.rename}
             </button>
           </li>
           <li>
             <button type="button" className="dropdown-item" onClick={() => void duplicate()}>
               <i className="icon-base ti tabler-copy me-2" aria-hidden="true" />
-              Duplicate
+              {t.rowActions.duplicate}
             </button>
           </li>
           <li>
@@ -246,7 +255,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
                 adım (dış denetim: rehber ilgili imzadan açılabilmeli). */}
             <Link href="/app/guides" className="dropdown-item">
               <i className="icon-base ti tabler-book me-2" aria-hidden="true" />
-              How to install
+              {t.rowActions.howToInstall}
             </Link>
           </li>
           <li>
@@ -262,7 +271,7 @@ export function RowActions({ id, name }: { id: string; name: string }) {
               }}
             >
               <i className="icon-base ti tabler-trash me-2" aria-hidden="true" />
-              Delete
+              {c.delete}
             </button>
           </li>
         </ul>
@@ -276,19 +285,16 @@ export function RowActions({ id, name }: { id: string; name: string }) {
       )}
       {confirming && (
         <ConfirmDialog
-          title={`Delete “${name}”?`}
+          title={t.rowActions.deleteConfirmTitle(name)}
           onCancel={() => !busy && setConfirming(false)}
           onConfirm={remove}
-          confirmLabel="Delete"
+          confirmLabel={c.delete}
           tone="danger"
           busy={busy}
         >
           {/* Onay metni CDN gerçeğini açıkça söylüyor (panel-brief §2.4): görsel
               URL'leri kalıcıdır, imzayı silmek sahadaki kopyaları kırmaz. */}
-          <p className="mb-0">
-            Uploaded images stay on the CDN, so copies of this signature already in use keep
-            working. The signature itself cannot be recovered.
-          </p>
+          <p className="mb-0">{t.rowActions.deleteConfirmBody}</p>
         </ConfirmDialog>
       )}
     </>

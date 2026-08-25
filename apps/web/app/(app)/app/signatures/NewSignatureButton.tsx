@@ -5,6 +5,8 @@ import { useState } from 'react';
 
 import type { SignatureData } from '@mailmyra/renderer';
 
+import { signatures as signaturesDict } from '../../../../lib/i18n/dict/signatures';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { createEmptyData } from '../../../builder/reducer';
 
 /**
@@ -22,6 +24,8 @@ export function NewSignatureButton({
   seedData?: SignatureData;
 }) {
   const router = useRouter();
+  const lang = useLang();
+  const t = signaturesDict[lang];
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -32,7 +36,10 @@ export function NewSignatureButton({
       const res = await fetch('/api/signatures', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'Untitled signature', data: seedData ?? createEmptyData() }),
+        body: JSON.stringify({
+          name: t.newButton.untitledName,
+          data: seedData ?? createEmptyData(),
+        }),
       });
       const body = (await res.json()) as { id?: string };
       if (res.ok && body.id) {
@@ -50,9 +57,9 @@ export function NewSignatureButton({
     <span className="d-inline-flex align-items-center gap-2">
       <button type="button" className="btn btn-primary" onClick={create} disabled={busy}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        {busy ? 'Creating…' : 'New signature'}
+        {busy ? t.newButton.creating : t.newButton.label}
       </button>
-      {failed && <small className="text-danger">Could not create — try again.</small>}
+      {failed && <small className="text-danger">{t.newButton.failedError}</small>}
     </span>
   );
 }

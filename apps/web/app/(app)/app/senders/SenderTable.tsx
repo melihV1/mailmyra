@@ -6,23 +6,10 @@ import { useState } from 'react';
 import type { SenderRowData } from '../../../../lib/repo/senders';
 import { exportPlan } from '../../../../lib/export-plan';
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { SenderActions } from './SenderActions';
 import { useToast } from '../../ToastProvider';
-
-/* Vuexy rozet dili: bg-label-* (dolu renk değil, pastel etiket). */
-const BADGE: Record<string, { label: string; cls: string }> = {
-  draft: { label: 'Draft', cls: 'bg-label-secondary' },
-  active: { label: 'Live', cls: 'bg-label-success' },
-  inactive: { label: 'Inactive', cls: 'bg-label-warning' },
-};
-
-/** Hata gövdesi → panel dilinde (İngilizce) açıklama. */
-const ERRORS: Record<string, string> = {
-  too_many: 'Up to 200 senders per export — contact us for larger runs.',
-  not_found: 'The list changed under you — reload the page and try again.',
-  no_exportable: 'No live senders with an assigned signature yet.',
-  forbidden: 'You do not have permission to export.',
-};
 
 /**
  * Satır listesi + (varsa) seçim/dışa aktarma araç çubuğu ve diyaloğu.
@@ -46,6 +33,21 @@ export function SenderTable({
   entitledSeats: number;
 }) {
   const toast = useToast();
+  const lang = useLang();
+  const t = sendersDict[lang];
+  /* Vuexy rozet dili: bg-label-* (dolu renk değil, pastel etiket). */
+  const BADGE: Record<string, { label: string; cls: string }> = {
+    draft: { label: t.statusBadge.draft, cls: 'bg-label-secondary' },
+    active: { label: t.statusBadge.active, cls: 'bg-label-success' },
+    inactive: { label: t.statusBadge.inactive, cls: 'bg-label-warning' },
+  };
+  /** Hata gövdesi → panel dilinde açıklama. */
+  const ERRORS: Record<string, string> = {
+    too_many: t.table.errors.too_many,
+    not_found: t.table.errors.not_found,
+    no_exportable: t.table.errors.no_exportable,
+    forbidden: t.table.errors.forbidden,
+  };
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [dialogOpen, setDialogOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -88,7 +90,7 @@ export function SenderTable({
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(ERRORS[body.error ?? ''] ?? 'Export failed — try again.');
+        setError(ERRORS[body.error ?? ''] ?? t.table.errors.generic);
         return;
       }
       const blob = await res.blob();
@@ -103,45 +105,37 @@ export function SenderTable({
       a.remove();
       URL.revokeObjectURL(url);
       setDialogOpen(false);
-      toast(
-        'success',
-        `Zip downloaded — ${plan.fileCount} signature file${plan.fileCount === 1 ? '' : 's'}.`,
-      );
+      toast('success', t.table.downloadedToast(plan.fileCount));
     } catch {
       // reviewer bulgusu: fetch reddi veya res.blob() hatası önceden
       // yakalanmadan kaçıyordu — kullanıcı diyalog sessizce açık kalırken
       // hiçbir hata görmüyordu.
-      setError('Export failed — try again.');
+      setError(t.table.errors.generic);
     } finally {
       setBusy(false);
     }
   }
 
   const skips: string[] = [];
-  if (plan.unassigned > 0)
-    skips.push(
-      `${plan.unassigned} sender${plan.unassigned === 1 ? ' has' : 's have'} no assigned signature`,
-    );
-  if (plan.unpublished > 0)
-    skips.push(
-      `${plan.unpublished} selected sender${plan.unpublished === 1 ? ' is' : 's are'} not live`,
-    );
+  if (plan.unassigned > 0) skips.push(t.table.skipUnassigned(plan.unassigned));
+  if (plan.unpublished > 0) skips.push(t.table.skipUnpublished(plan.unpublished));
 
   return (
     <div className="card">
       <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-        <h5 className="card-title mb-0">All senders</h5>
+        <h5 className="card-title mb-0">{t.table.allSenders}</h5>
         <div className="d-flex flex-wrap gap-2">
           {/* Liste CSV'si her role açık — ekranda zaten görünen verinin
               dosyası; imza İÇERİĞİ veren zip'in rol kapısına girmez. */}
           <a href="/api/senders/export-csv" className="btn btn-label-info">
             <i className="icon-base ti tabler-file-spreadsheet me-1" aria-hidden="true" />
-            Export CSV
+            {t.table.exportCsv}
           </a>
           {showExport && (
             <button type="button" className="btn btn-primary" onClick={openDialog}>
               <i className="icon-base ti tabler-file-zip me-1" aria-hidden="true" />
-              Export zip{selected.size > 0 ? ` (${selected.size} selected)` : ''}
+              {t.table.exportZip}
+              {selected.size > 0 ? t.table.exportZipSelectedSuffix(selected.size) : ''}
             </button>
           )}
         </div>
@@ -156,17 +150,17 @@ export function SenderTable({
                   <input
                     type="checkbox"
                     className="form-check-input"
-                    aria-label="Select all"
+                    aria-label={t.table.selectAllAria}
                     checked={rows.length > 0 && selected.size === rows.length}
                     onChange={toggleAll}
                   />
                 </th>
               )}
-              <th>Sender</th>
-              <th>Job title</th>
-              <th>Signatures</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>{t.table.colSender}</th>
+              <th>{t.table.colJobTitle}</th>
+              <th>{t.table.colSignatures}</th>
+              <th>{t.table.colStatus}</th>
+              <th>{t.table.colActions}</th>
             </tr>
           </thead>
           <tbody className="table-border-bottom-0">
@@ -179,7 +173,7 @@ export function SenderTable({
                       <input
                         type="checkbox"
                         className="form-check-input"
-                        aria-label={`Select ${s.displayName}`}
+                        aria-label={t.table.selectRowAria(s.displayName)}
                         checked={selected.has(s.id)}
                         onChange={() => toggle(s.id)}
                       />
@@ -218,28 +212,27 @@ export function SenderTable({
 
       {dialogOpen && (
         <ConfirmDialog
-          title="Export zip"
+          title={t.table.exportDialogTitle}
           onCancel={closeDialog}
           onConfirm={plan.fileCount > 0 ? download : undefined}
-          confirmLabel={busy ? 'Preparing…' : 'Download'}
+          confirmLabel={busy ? t.table.preparing : t.table.download}
           busy={busy}
         >
           {plan.fileCount > 0 ? (
             <>
               <p>
-                <strong>
-                  {plan.fileCount} signature file{plan.fileCount === 1 ? '' : 's'}
-                </strong>{' '}
-                will be generated ({plan.senderCount} sender
-                {plan.senderCount === 1 ? '' : 's'}).
+                <strong>{t.table.fileSummaryBold(plan.fileCount)}</strong>
+                {t.table.fileSummaryTrail(plan.senderCount)}
               </p>
-              {skips.length > 0 && <p>Skipped: {skips.join(' · ')}.</p>}
+              {skips.length > 0 && (
+                <p>
+                  {t.table.skippedPrefix}
+                  {skips.join(' · ')}.
+                </p>
+              )}
             </>
           ) : (
-            <p>
-              No live senders with an assigned signature yet — assign a signature and publish
-              first.
-            </p>
+            <p>{t.table.noneExportable}</p>
           )}
           {error && <p className="text-danger mb-0">{error}</p>}
         </ConfirmDialog>

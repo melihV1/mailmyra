@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+import { signatures as signaturesDict } from '../../../../lib/i18n/dict/signatures';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -20,6 +22,8 @@ export function AssignSelect({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = signaturesDict[lang];
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -33,7 +37,7 @@ export function AssignSelect({
     });
     setBusy(false);
     if (res.ok) {
-      toast('success', value === '' ? 'Assignment removed.' : 'Signature assigned.');
+      toast('success', value === '' ? t.assignSelect.removedToast : t.assignSelect.assignedToast);
       router.refresh();
     } else setFailed(true);
   };
@@ -45,16 +49,16 @@ export function AssignSelect({
         value={current ?? ''}
         onChange={(e) => void change(e.target.value)}
         disabled={busy}
-        aria-label="Assign to sender"
+        aria-label={t.assignSelect.ariaLabel}
       >
-        <option value="">Unassigned</option>
+        <option value="">{t.assignSelect.unassignedOption}</option>
         {senders.map((s) => (
           <option key={s.id} value={s.id}>
             {s.displayName}
           </option>
         ))}
       </select>
-      {failed && <small className="text-danger">Could not assign.</small>}
+      {failed && <small className="text-danger">{t.assignSelect.failedError}</small>}
     </span>
   );
 }

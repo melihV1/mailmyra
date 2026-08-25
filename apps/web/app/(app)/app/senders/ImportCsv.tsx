@@ -4,6 +4,8 @@ import { useRouter } from 'next/navigation';
 import { useState, type ChangeEvent } from 'react';
 
 import { guessMapping, parseCsv, validateRows, type ColumnMapping, type ParsedCsv } from '../../../../lib/csv';
+import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import { useToast } from '../../ToastProvider';
 
 /**
@@ -18,6 +20,8 @@ import { useToast } from '../../ToastProvider';
 export function ImportCsv() {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = sendersDict[lang];
   const [open, setOpen] = useState(false);
   const [parsed, setParsed] = useState<ParsedCsv | null>(null);
   const [mapping, setMapping] = useState<ColumnMapping>({ displayName: null, email: null, jobTitle: null });
@@ -51,21 +55,12 @@ export function ImportCsv() {
     const body = (await res.json()) as { created: number; skipped: string[] };
     toast(
       'success',
-      `Added ${body.created} sender${body.created === 1 ? '' : 's'} as drafts` +
-        (body.skipped.length > 0
-          ? ` — ${body.skipped.length} already existed and were skipped.`
-          : '.'),
-      'CSV imported',
+      t.importCsv.importedToast(body.created, body.skipped.length),
+      t.importCsv.importedToastTitle,
     );
     setParsed(null);
     setOpen(false);
     router.refresh();
-  };
-
-  const reasonText: Record<string, string> = {
-    missing_name: 'name is missing',
-    invalid_email: 'email does not look right',
-    duplicate_in_file: 'duplicate of an earlier row',
   };
 
   const fieldPicker = (field: keyof ColumnMapping, label: string) => (
@@ -84,7 +79,7 @@ export function ImportCsv() {
         <option value="">—</option>
         {parsed?.headers.map((h, i) => (
           <option key={i} value={i}>
-            {h || `Column ${i + 1}`}
+            {h || t.importCsv.columnFallback(i + 1)}
           </option>
         ))}
       </select>
@@ -99,7 +94,7 @@ export function ImportCsv() {
         onClick={() => setOpen(!open)}
       >
         <i className="icon-base ti tabler-upload me-1" aria-hidden="true" />
-        {open ? 'Hide CSV import' : 'Import from CSV'}
+        {open ? t.importCsv.hide : t.importCsv.show}
       </button>
 
       {open && (
@@ -107,9 +102,9 @@ export function ImportCsv() {
           {/* Adım çubuğu — Dosya → Eşleme → Önizleme; tamamlanan yeşil ✓ */}
           <div className="d-flex align-items-center flex-wrap gap-2 mb-4">
             {[
-              { n: 1, label: 'Upload file', done: parsed !== null, active: parsed === null },
-              { n: 2, label: 'Map columns', done: ready, active: parsed !== null && !ready },
-              { n: 3, label: 'Preview & import', done: false, active: ready },
+              { n: 1, label: t.importCsv.stepUpload, done: parsed !== null, active: parsed === null },
+              { n: 2, label: t.importCsv.stepMap, done: ready, active: parsed !== null && !ready },
+              { n: 3, label: t.importCsv.stepPreview, done: false, active: ready },
             ].map((step, i) => (
               <span key={step.n} className="d-inline-flex align-items-center gap-2">
                 {i > 0 && (
@@ -144,7 +139,7 @@ export function ImportCsv() {
           <div className="row g-3">
             <div className="col-md-6">
               <label className="form-label" htmlFor="csv-file">
-                CSV file
+                {t.importCsv.fileLabel}
               </label>
               <input
                 id="csv-file"
@@ -153,18 +148,16 @@ export function ImportCsv() {
                 accept=".csv,text/csv"
                 onChange={(e) => void onFile(e)}
               />
-              <div className="form-text">
-                Semicolon or comma separated — Turkish and English headers are recognized.
-              </div>
+              <div className="form-text">{t.importCsv.fileHint}</div>
             </div>
           </div>
 
           {parsed && (
             <>
               <div className="row g-3 mt-1">
-                {fieldPicker('displayName', 'Full name')}
-                {fieldPicker('email', 'Email')}
-                {fieldPicker('jobTitle', 'Job title (optional)')}
+                {fieldPicker('displayName', t.importCsv.nameLabel)}
+                {fieldPicker('email', t.importCsv.emailLabel)}
+                {fieldPicker('jobTitle', t.importCsv.jobTitleLabel)}
               </div>
 
               <div className="table-responsive mt-4">
@@ -180,7 +173,7 @@ export function ImportCsv() {
                             <td key={j}>{cell}</td>
                           ))}
                           {err && (
-                            <td className="text-danger small">{reasonText[err.reason]}</td>
+                            <td className="text-danger small">{t.importCsv.reason[err.reason]}</td>
                           )}
                         </tr>
                       );
@@ -189,18 +182,22 @@ export function ImportCsv() {
                 </table>
                 {parsed.rows.length > 10 && (
                   <small className="text-body-secondary">
-                    …and {parsed.rows.length - 10} more rows
+                    {t.importCsv.moreRows(parsed.rows.length - 10)}
                   </small>
                 )}
               </div>
 
               <p className="mt-3 mb-3">
-                <strong>{valid.length}</strong> sender{valid.length === 1 ? '' : 's'} will be
-                added — all as <strong>drafts</strong>, using no seats.
+                <strong>{valid.length}</strong>
+                {t.importCsv.summarySenderWord(valid.length)}
+                <strong>{t.importCsv.summaryDraftsWord}</strong>
+                {t.importCsv.summaryTrail}
                 {errors.length > 0 && (
                   <span className="text-danger d-block small mt-1">
-                    {errors.length} row{errors.length === 1 ? '' : 's'} will be skipped (
-                    {errors.map((e) => `line ${e.line}: ${reasonText[e.reason]}`).join(' · ')})
+                    {t.importCsv.skippedLead(errors.length)}
+                    {errors
+                      .map((e) => t.importCsv.lineReason(e.line, t.importCsv.reason[e.reason]))
+                      .join(' · ') + ')'}
                   </span>
                 )}
               </p>
@@ -213,14 +210,14 @@ export function ImportCsv() {
                   disabled={busy || !ready}
                 >
                   <i className="icon-base ti tabler-upload me-1" aria-hidden="true" />
-                  {busy ? 'Importing…' : `Import ${valid.length} sender${valid.length === 1 ? '' : 's'}`}
+                  {busy ? t.importCsv.importing : t.importCsv.importLabel(valid.length)}
                 </button>
                 {!ready && (
-                  <small className="text-body-secondary">Map the name and email columns first.</small>
+                  <small className="text-body-secondary">{t.importCsv.mapFirst}</small>
                 )}
                 {failed && (
                   <small className="text-danger" role="alert">
-                    Import failed — try again.
+                    {t.importCsv.failed}
                   </small>
                 )}
               </div>

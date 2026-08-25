@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { ConfirmDialog } from '../../../../../components/ui/ConfirmDialog';
+import { senders as sendersDict } from '../../../../../lib/i18n/dict/senders';
+import { useLang } from '../../../../../lib/i18n/LangProvider';
 import { useToast } from '../../../ToastProvider';
 
 import { EditSenderDialog } from '../EditSenderDialog';
@@ -36,6 +38,8 @@ export function SenderDetailActions({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = sendersDict[lang];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<'publish' | 'deactivate' | 'delete' | null>(null);
@@ -57,7 +61,7 @@ export function SenderDetailActions({
         body: JSON.stringify({ senderIds: [id] }),
       });
       if (!res.ok) {
-        setError('Export failed — try again.');
+        setError(t.detailActions.exportFailed);
         return;
       }
       const blob = await res.blob();
@@ -69,9 +73,9 @@ export function SenderDetailActions({
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      toast('success', `Downloaded ${name}'s signature file${assignedCount === 1 ? '' : 's'}.`);
+      toast('success', t.detailActions.downloadedToast(name, assignedCount));
     } catch {
-      setError('Export failed — try again.');
+      setError(t.detailActions.exportFailed);
     } finally {
       setBusy(false);
     }
@@ -92,12 +96,12 @@ export function SenderDetailActions({
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     setError(
       body.error === 'seat_limit'
-        ? `All ${entitledSeats} seats are in use. Deactivate a sender or contact us for more.`
+        ? t.actions.errors.seat_limit(entitledSeats)
         : body.error === 'is_live'
-          ? 'Live senders cannot be deleted — deactivate first.'
+          ? t.detailActions.errors.is_live
           : body.error === 'forbidden'
-            ? 'Only owners and admins can manage senders.'
-            : 'Something went wrong. Please try again.',
+            ? t.actions.errors.forbidden
+            : t.actions.errors.generic,
     );
   };
 
@@ -111,10 +115,10 @@ export function SenderDetailActions({
           disabled={busy}
         >
           <i className="icon-base ti tabler-edit me-1" aria-hidden="true" />
-          Edit details
+          {t.detailActions.editDetails}
         </button>
         {status !== 'active' ? (
-          <span data-mm-tip={capFull ? `All ${entitledSeats} seats are in use.` : undefined}>
+          <span data-mm-tip={capFull ? t.actions.seatsFullTip(entitledSeats) : undefined}>
             <button
               type="button"
               className="btn btn-success w-100"
@@ -122,7 +126,7 @@ export function SenderDetailActions({
               disabled={busy || capFull}
             >
               <i className="icon-base ti tabler-send me-1" aria-hidden="true" />
-              Publish
+              {t.actions.publish}
             </button>
           </span>
         ) : (
@@ -133,7 +137,7 @@ export function SenderDetailActions({
             disabled={busy}
           >
             <i className="icon-base ti tabler-player-pause me-1" aria-hidden="true" />
-            Deactivate
+            {t.actions.deactivate}
           </button>
         )}
 
@@ -142,8 +146,8 @@ export function SenderDetailActions({
             exportable
               ? undefined
               : status !== 'active'
-                ? 'Only live senders can be exported.'
-                : 'Assign a signature first.'
+                ? t.detailActions.onlyLiveExportableTip
+                : t.detailActions.assignFirstTip
           }
         >
           <button
@@ -153,7 +157,7 @@ export function SenderDetailActions({
             disabled={busy || !exportable}
           >
             <i className="icon-base ti tabler-download me-1" aria-hidden="true" />
-            Download signature
+            {t.detailActions.downloadSignature}
           </button>
         </span>
 
@@ -161,14 +165,10 @@ export function SenderDetailActions({
             kurmak var (dış denetim: rehber ilgili detaydan açılabilmeli). */}
         <Link href="/app/guides?client=outlook-classic" className="btn btn-label-secondary">
           <i className="icon-base ti tabler-book me-1" aria-hidden="true" />
-          Setup guides
+          {t.detailActions.setupGuides}
         </Link>
 
-        <span
-          data-mm-tip={
-            status === 'active' ? 'Live senders hold a seat — deactivate first.' : undefined
-          }
-        >
+        <span data-mm-tip={status === 'active' ? t.actions.liveHoldsSeatTip : undefined}>
           <button
             type="button"
             className="btn btn-label-danger w-100"
@@ -176,7 +176,7 @@ export function SenderDetailActions({
             disabled={busy || status === 'active'}
           >
             <i className="icon-base ti tabler-trash me-1" aria-hidden="true" />
-            Delete sender
+            {t.detailActions.deleteSender}
           </button>
         </span>
 
@@ -195,52 +195,43 @@ export function SenderDetailActions({
       )}
       {confirming === 'publish' && (
         <ConfirmDialog
-          title={`Publish ${name}?`}
+          title={t.actions.publishConfirmTitle(name)}
           onCancel={() => !busy && setConfirming(null)}
           onConfirm={() =>
-            void call(`/api/senders/${id}/publish`, `Published ${name} — a seat is now in use.`)
+            void call(`/api/senders/${id}/publish`, t.actions.publishedToast(name))
           }
-          confirmLabel="Publish"
+          confirmLabel={t.actions.publish}
           busy={busy}
         >
-          <p>
-            {`They become active, using ${activeSeats + 1} of your ${entitledSeats} seat${entitledSeats === 1 ? '' : 's'}. Their signature can then be exported.`}
-          </p>
+          <p>{t.actions.seatNote(activeSeats + 1, entitledSeats)}</p>
         </ConfirmDialog>
       )}
       {confirming === 'deactivate' && (
         <ConfirmDialog
-          title={`Deactivate ${name}?`}
+          title={t.actions.deactivateConfirmTitle(name)}
           onCancel={() => !busy && setConfirming(null)}
           onConfirm={() =>
-            void call(
-              `/api/senders/${id}/deactivate`,
-              `Deactivated ${name} — the seat is free again.`,
-            )
+            void call(`/api/senders/${id}/deactivate`, t.actions.deactivatedToast(name))
           }
-          confirmLabel="Deactivate"
+          confirmLabel={t.actions.deactivate}
           busy={busy}
         >
-          <p>
-            Their seat is freed for someone else this period. Signatures already installed in
-            mail clients keep working.
-          </p>
+          <p>{t.actions.deactivateBody}</p>
         </ConfirmDialog>
       )}
       {confirming === 'delete' && (
         <ConfirmDialog
-          title={`Delete ${name}?`}
+          title={t.actions.deleteConfirmTitle(name)}
           onCancel={() => !busy && setConfirming(null)}
-          onConfirm={() =>
-            void call(`/api/senders/${id}/delete`, `Deleted ${name}.`, true)
-          }
-          confirmLabel="Delete"
+          onConfirm={() => void call(`/api/senders/${id}/delete`, t.actions.deletedToast(name), true)}
+          confirmLabel={t.actions.delete}
           tone="danger"
           busy={busy}
         >
           <p className="mb-0">
-            Their signatures are <strong>kept</strong> (just unassigned) and uploaded images stay
-            on the CDN. The sender identity itself cannot be recovered.
+            {t.actions.deleteBodyLead}
+            <strong>{t.actions.deleteBodyKept}</strong>
+            {t.actions.deleteBodyTrail}
           </p>
         </ConfirmDialog>
       )}

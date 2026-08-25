@@ -2,12 +2,16 @@ import { redirect } from 'next/navigation';
 
 import { can } from '@mailmyra/core';
 import { currentSession } from '../../../../lib/auth/current';
+import { senders as sendersDict } from '../../../../lib/i18n/dict/senders';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { listSenders, primaryOrgId, roleFor, seatSummary } from '../../../../lib/repo/senders';
 import { AddSenderForm } from './AddSenderForm';
 import { ImportCsv } from './ImportCsv';
 import { SenderTable } from './SenderTable';
 
-export const metadata = { title: 'Senders — Mailmyra' };
+export async function generateMetadata() {
+  return { title: sendersDict[await getLang()].pageTitle };
+}
 
 /**
  * Koltuk muhasebesinin görüldüğü yer (panel-brief §2.6). Gösterge her zaman
@@ -21,6 +25,8 @@ export default async function SendersPage() {
   // (canlıda 500 olarak görüldü, 2026-08-11).
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/senders');
+  const lang = await getLang();
+  const t = sendersDict[lang];
   const [seats, senders] = await Promise.all([
     seatSummary(session.user.id),
     listSenders(session.user.id),
@@ -39,23 +45,23 @@ export default async function SendersPage() {
 
   const stats = [
     {
-      label: 'Live senders',
+      label: t.page.liveSenders.label,
       value: String(seats.active),
-      note: 'Using a seat right now',
+      note: t.page.liveSenders.note,
       icon: 'tabler-send',
       tone: 'success',
     },
     {
-      label: 'Drafts',
+      label: t.page.drafts.label,
       value: String(drafts),
-      note: 'Free — no seat used',
+      note: t.page.drafts.note,
       icon: 'tabler-users',
       tone: 'secondary',
     },
     {
-      label: 'Inactive',
+      label: t.page.inactiveStat.label,
       value: String(inactive),
-      note: 'Seat freed, signature kept',
+      note: t.page.inactiveStat.note,
       icon: 'tabler-user-cog',
       tone: 'warning',
     },
@@ -63,7 +69,7 @@ export default async function SendersPage() {
 
   return (
     <section>
-      <h4 className="mb-4">Senders</h4>
+      <h4 className="mb-4">{t.page.heading}</h4>
 
       <div className="row g-4 mb-4">
         {/* Koltuk kartı: sayaç + ilerleme çubuğu — brief'teki gösterge burada yaşıyor */}
@@ -72,7 +78,7 @@ export default async function SendersPage() {
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start">
                 <div>
-                  <p className="text-heading mb-1">Seats used</p>
+                  <p className="text-heading mb-1">{t.page.seatsUsed}</p>
                   <h4 className="mb-2" role="status">
                     {seats.active} <span className="text-body-secondary">/ {seats.entitled}</span>
                   </h4>
@@ -89,11 +95,7 @@ export default async function SendersPage() {
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              {full && (
-                <small className="text-danger d-block mt-2">
-                  All seats are in use — deactivate a sender or contact us for more.
-                </small>
-              )}
+              {full && <small className="text-danger d-block mt-2">{t.page.seatsFullNote}</small>}
             </div>
           </div>
         </div>
@@ -122,10 +124,8 @@ export default async function SendersPage() {
 
       <div className="card mb-4">
         <div className="card-header pb-0">
-          <h5 className="card-title mb-0">Add sender</h5>
-          <p className="card-subtitle text-body-secondary mt-1">
-            Drafts are free — a seat is only used when you publish.
-          </p>
+          <h5 className="card-title mb-0">{t.page.addSenderTitle}</h5>
+          <p className="card-subtitle text-body-secondary mt-1">{t.page.addSenderSubtitle}</p>
         </div>
         <div className="card-body">
           <AddSenderForm />
@@ -136,11 +136,8 @@ export default async function SendersPage() {
       {senders.length === 0 ? (
         <div className="card">
           <div className="card-body text-center py-5">
-            <h5>No senders yet</h5>
-            <p className="text-body-secondary mb-0">
-              A sender is one person whose signature goes live. Drafts are free — a seat is only
-              used when you publish.
-            </p>
+            <h5>{t.page.emptyTitle}</h5>
+            <p className="text-body-secondary mb-0">{t.page.emptyBody}</p>
           </div>
         </div>
       ) : (

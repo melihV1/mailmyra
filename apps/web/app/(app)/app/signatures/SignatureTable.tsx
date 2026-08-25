@@ -6,6 +6,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SignatureData } from '@mailmyra/renderer';
 
 import { ConfirmDialog } from '../../../../components/ui/ConfirmDialog';
+import { common } from '../../../../lib/i18n/dict/common';
+import { signatures as signaturesDict } from '../../../../lib/i18n/dict/signatures';
+import { useLang } from '../../../../lib/i18n/LangProvider';
 import type { SignatureRow } from '../../../../lib/repo/signatures';
 import {
   EMPTY_FILTERS,
@@ -18,13 +21,6 @@ import { useToast } from '../../ToastProvider';
 import { AssignSelect } from './AssignSelect';
 import { NewSignatureButton } from './NewSignatureButton';
 import { RowActions } from './RowActions';
-
-/* Vuexy rozet dili: bg-label-* (dolu renk değil, pastel etiket). */
-const SENDER_BADGE: Record<string, { label: string; cls: string }> = {
-  draft: { label: 'Draft', cls: 'bg-label-secondary' },
-  active: { label: 'Live', cls: 'bg-label-success' },
-  inactive: { label: 'Inactive', cls: 'bg-label-warning' },
-};
 
 /**
  * İmza listesi — temanın `app-user-list` kalıbı: kart başlığında süzgeç
@@ -46,6 +42,14 @@ export function SignatureTable({
 }) {
   const router = useRouter();
   const toast = useToast();
+  const lang = useLang();
+  const t = signaturesDict[lang];
+  /* Vuexy rozet dili: bg-label-* (dolu renk değil, pastel etiket). */
+  const SENDER_BADGE: Record<string, { label: string; cls: string }> = {
+    draft: { label: t.statusBadge.draft, cls: 'bg-label-secondary' },
+    active: { label: t.statusBadge.active, cls: 'bg-label-success' },
+    inactive: { label: t.statusBadge.inactive, cls: 'bg-label-warning' },
+  };
   const [filters, setFilters] = useState<SignatureFilterState>(EMPTY_FILTERS);
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set());
   const [confirming, setConfirming] = useState(false);
@@ -114,15 +118,10 @@ export function SignatureTable({
     // Başarı toast'la geçer, HATA ekranda kalır (proje kuralı) — kısmi
     // başarıda ikisi birden görünür, kullanıcı neyin kaldığını bilir.
     if (done > 0) {
-      toast(
-        'success',
-        `Deleted ${done} signature${done === 1 ? '' : 's'}. Uploaded images stay on the CDN.`,
-      );
+      toast('success', t.table.deletedToast(done));
     }
     if (failed > 0) {
-      setError(
-        `${failed} signature${failed === 1 ? '' : 's'} could not be deleted — reload the page and try again.`,
-      );
+      setError(t.table.deleteFailedError(failed));
     }
     router.refresh();
   }
@@ -132,17 +131,20 @@ export function SignatureTable({
       <div className="card-header border-bottom">
         <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
           <h5 className="card-title mb-0">
-            All signatures{' '}
+            {t.table.allSignatures}{' '}
             <span className="badge bg-label-primary ms-1">{visible.length}</span>
             {visible.length !== rows.length && (
-              <small className="text-body-secondary ms-2">of {rows.length}</small>
+              <small className="text-body-secondary ms-2">
+                {t.table.ofPrefix}
+                {rows.length}
+              </small>
             )}
           </h5>
           <div className="d-flex flex-wrap align-items-center gap-3">
             {selected.length > 0 && (
               <div className="d-flex align-items-center gap-2">
                 <span className="text-body-secondary" role="status">
-                  {selected.length} selected
+                  {t.table.selectedCount(selected.length)}
                 </span>
                 <button
                   type="button"
@@ -153,7 +155,7 @@ export function SignatureTable({
                   }}
                 >
                   <i className="icon-base ti tabler-trash me-1" aria-hidden="true" />
-                  Delete selected
+                  {t.table.deleteSelected}
                 </button>
               </div>
             )}
@@ -173,8 +175,8 @@ export function SignatureTable({
               <input
                 type="search"
                 className="form-control"
-                placeholder="Search signatures"
-                aria-label="Search signatures by name or template"
+                placeholder={t.table.searchPlaceholder}
+                aria-label={t.table.searchAria}
                 aria-describedby="signatureSearchIcon"
                 value={filters.query}
                 onChange={(e) => setFilters({ ...filters, query: e.target.value })}
@@ -184,7 +186,7 @@ export function SignatureTable({
           <div className="col-md-3">
             <select
               className="form-select"
-              aria-label="Filter by assignment"
+              aria-label={t.table.filterAssignmentAria}
               value={filters.assignment}
               onChange={(e) =>
                 setFilters({
@@ -193,22 +195,22 @@ export function SignatureTable({
                 })
               }
             >
-              <option value="all">All assignments</option>
-              <option value="assigned">Assigned</option>
-              <option value="unassigned">Unassigned</option>
+              <option value="all">{t.table.allAssignments}</option>
+              <option value="assigned">{t.table.assigned}</option>
+              <option value="unassigned">{t.table.unassigned}</option>
             </select>
           </div>
           <div className="col-md-3">
             <select
               className="form-select"
-              aria-label="Filter by template"
+              aria-label={t.table.filterTemplateAria}
               value={filters.templateId}
               onChange={(e) => setFilters({ ...filters, templateId: e.target.value })}
             >
-              <option value="">All templates</option>
-              {templates.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              <option value="">{t.table.allTemplates}</option>
+              {templates.map((tpl) => (
+                <option key={tpl} value={tpl}>
+                  {tpl}
                 </option>
               ))}
             </select>
@@ -216,15 +218,15 @@ export function SignatureTable({
           <div className="col-md-3">
             <select
               className="form-select"
-              aria-label="Sort signatures"
+              aria-label={t.table.sortAria}
               value={filters.sort}
               onChange={(e) =>
                 setFilters({ ...filters, sort: e.target.value as SignatureFilterState['sort'] })
               }
             >
-              <option value="recent">Recently updated</option>
-              <option value="oldest">Oldest first</option>
-              <option value="name">Name A–Z</option>
+              <option value="recent">{t.table.sortRecent}</option>
+              <option value="oldest">{t.table.sortOldest}</option>
+              <option value="name">{t.table.sortName}</option>
             </select>
           </div>
         </div>
@@ -240,12 +242,10 @@ export function SignatureTable({
 
       {visible.length === 0 ? (
         <div className="card-body text-center py-5">
-          <h6 className="mb-2">No signatures match these filters</h6>
-          <p className="text-body-secondary mb-4">
-            Try a different search, or widen the assignment and template filters.
-          </p>
+          <h6 className="mb-2">{t.table.noMatchTitle}</h6>
+          <p className="text-body-secondary mb-4">{t.table.noMatchBody}</p>
           <button type="button" className="btn btn-label-primary" onClick={clearFilters}>
-            Clear filters
+            {t.table.clearFilters}
           </button>
         </div>
       ) : (
@@ -258,16 +258,16 @@ export function SignatureTable({
                     ref={allBox}
                     type="checkbox"
                     className="form-check-input"
-                    aria-label={filtered ? 'Select all matching signatures' : 'Select all'}
+                    aria-label={filtered ? t.table.selectAllMatchingAria : t.table.selectAllAria}
                     checked={visible.length > 0 && selected.length === visible.length}
                     onChange={toggleAll}
                   />
                 </th>
-                <th>Signature</th>
-                <th>Assigned to</th>
-                <th>Status</th>
-                <th>Updated</th>
-                <th style={{ width: '1%' }}>Actions</th>
+                <th>{t.table.colSignature}</th>
+                <th>{t.table.colAssignedTo}</th>
+                <th>{t.table.colStatus}</th>
+                <th>{t.table.colUpdated}</th>
+                <th style={{ width: '1%' }}>{t.table.colActions}</th>
               </tr>
             </thead>
             <tbody className="table-border-bottom-0">
@@ -279,7 +279,7 @@ export function SignatureTable({
                       <input
                         type="checkbox"
                         className="form-check-input"
-                        aria-label={`Select ${s.name}`}
+                        aria-label={t.table.selectRowAria(s.name)}
                         checked={picked.has(s.id)}
                         onChange={() => toggle(s.id)}
                       />
@@ -295,12 +295,15 @@ export function SignatureTable({
                       {badge ? (
                         <span className={`badge ${badge.cls}`}>{badge.label}</span>
                       ) : (
-                        <span className="badge bg-label-secondary">Unassigned</span>
+                        <span className="badge bg-label-secondary">{t.table.unassignedBadge}</span>
                       )}
                     </td>
                     <td>
                       <time dateTime={s.updatedAt.toISOString()}>
-                        {s.updatedAt.toLocaleDateString('en-GB')}
+                        {/* EN çıktısı bire bir korunur (`toLocaleDateString('en-GB')`
+                            varsayılan biçimi formatDate'inkiyle eşleşmiyor — yalnız
+                            yerel dil parametreleniyor, bkz. sweep notu). */}
+                        {s.updatedAt.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-GB')}
                       </time>
                     </td>
                     <td>
@@ -316,26 +319,23 @@ export function SignatureTable({
 
       {confirming && (
         <ConfirmDialog
-          title={`Delete ${selected.length} signature${selected.length === 1 ? '' : 's'}?`}
+          title={t.table.deleteConfirmTitle(selected.length)}
           onCancel={() => !busy && setConfirming(false)}
           onConfirm={deleteSelected}
-          confirmLabel={busy ? 'Deleting…' : 'Delete'}
+          confirmLabel={busy ? t.table.deleting : common[lang].delete}
           tone="danger"
           busy={busy}
         >
           {/* Tekil silmedeki CDN gerçeği aynen duruyor (panel-brief §2.4):
               görsel URL'leri kalıcıdır, imzayı silmek sahadaki kopyaları
               kırmaz. */}
-          <p>
-            Uploaded images stay on the CDN, so copies of these signatures already in use keep
-            working. The signatures themselves cannot be recovered.
-          </p>
+          <p>{t.table.deleteConfirmBody}</p>
           <ul className="mb-0 ps-4">
             {selected.slice(0, 5).map((s) => (
               <li key={s.id}>{s.name}</li>
             ))}
             {selected.length > 5 && (
-              <li className="text-body-secondary">and {selected.length - 5} more</li>
+              <li className="text-body-secondary">{t.table.andMore(selected.length - 5)}</li>
             )}
           </ul>
         </ConfirmDialog>
