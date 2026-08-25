@@ -53,7 +53,12 @@ export function MemberActions({
     });
     setBusy(false);
     if (res.ok) {
-      toast('success', t.actions.roleChangedToast(next));
+      // `next` is the raw <select> value (e.g. 'viewer'). `roleOptionLabel`
+      // maps it to the displayed option text; for EN that text IS the raw
+      // key (byte-identical), for TR it's the translated label ("Görüntüleyici")
+      // — this keeps the EN toast unchanged while fixing the TR one.
+      const roleLabel = t.roleOptionLabel[next as keyof typeof t.roleOptionLabel] ?? next;
+      toast('success', t.actions.roleChangedToast(roleLabel));
       router.refresh();
     } else fail((await res.json().catch(() => ({}))) as { error?: string });
   };

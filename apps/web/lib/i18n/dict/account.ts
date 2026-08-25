@@ -393,7 +393,7 @@ const tr: Mirror<typeof en> = {
     accountSettings: 'Hesap ayarları',
     headerLine: (roleLabel: string, workspace: string, date: string) =>
       `${workspace} çalışma alanında ${roleLabel} · katılım ${date}`,
-    yourWorkspace: 'çalışma alanın',
+    yourWorkspace: 'kendi',
     activityTitle: 'Aktivite zaman çizelgesi',
   },
   avatar: {
