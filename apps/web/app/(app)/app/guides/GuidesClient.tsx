@@ -3,7 +3,9 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Fragment, useEffect, useState } from 'react';
 
-import { EXPORT_CHAIN, GUIDES, guideFor, type Fidelity } from './guides.data';
+import { useLang } from '../../../../lib/i18n/LangProvider';
+import { guides as guidesDict } from '../../../../lib/i18n/dict/guides';
+import { getExportChain, getGuides, guideFor, type Fidelity } from './guides.data';
 
 /**
  * Kurulum rehberleri — temanın `pages-faq` düzeni: solda dikey nav-pills,
@@ -17,9 +19,10 @@ import { EXPORT_CHAIN, GUIDES, guideFor, type Fidelity } from './guides.data';
  * çeker.
  */
 
-const FIDELITY: Record<Fidelity, { label: string; cls: string; icon: string }> = {
-  rich: { label: 'Full HTML signature', cls: 'bg-label-success', icon: 'tabler-clipboard-check' },
-  text: { label: 'Plain text only', cls: 'bg-label-warning', icon: 'tabler-alert-triangle' },
+/** Rozet görünümü dilden bağımsız; etiket metni `dict/guides.ts`ten gelir. */
+const FIDELITY_LOOK: Record<Fidelity, { cls: string; icon: string }> = {
+  rich: { cls: 'bg-label-success', icon: 'tabler-clipboard-check' },
+  text: { cls: 'bg-label-warning', icon: 'tabler-alert-triangle' },
 };
 
 /**
@@ -43,7 +46,11 @@ function RichText({ text }: { text: string }) {
 export function GuidesClient() {
   const router = useRouter();
   const params = useSearchParams();
-  const fromUrl = guideFor(params.get('client')).slug;
+  const lang = useLang();
+  const t = guidesDict[lang];
+  const guides = getGuides(lang);
+  const exportChain = getExportChain(lang);
+  const fromUrl = guideFor(lang, params.get('client')).slug;
   const [active, setActive] = useState(fromUrl);
 
   // URL dışarıdan değişti (geri tuşu, paylaşılan link): sekme onu izler.
@@ -58,8 +65,8 @@ export function GuidesClient() {
     router.replace(`/app/guides?client=${slug}`, { scroll: false });
   }
 
-  const guide = guideFor(active);
-  const fidelity = FIDELITY[guide.fidelity];
+  const guide = guideFor(lang, active);
+  const look = FIDELITY_LOOK[guide.fidelity];
   const notes = guide.notes ?? [];
 
   return (
@@ -67,15 +74,12 @@ export function GuidesClient() {
       {/* Özet: taslak → yayında gönderici → kopyala/indir */}
       <div className="card mb-4">
         <div className="card-header pb-2">
-          <h5 className="card-title mb-1">How exporting works</h5>
-          <p className="card-subtitle mb-0">
-            Three steps get a signature out of Mailmyra. Everything after that happens in the mail
-            client.
-          </p>
+          <h5 className="card-title mb-1">{t.exportCard.title}</h5>
+          <p className="card-subtitle mb-0">{t.exportCard.subtitle}</p>
         </div>
         <div className="card-body">
           <div className="row g-4">
-            {EXPORT_CHAIN.map((step, i) => (
+            {exportChain.map((step, i) => (
               <div className="col-md-4" key={step.title}>
                 <div className="d-flex gap-3">
                   <div className="avatar avatar-sm flex-shrink-0">
@@ -95,12 +99,7 @@ export function GuidesClient() {
           {/* Dürüstlük notu — ürün kapsamı (CLAUDE.md §YAPILMAYACAKLAR). */}
           <div className="alert alert-primary d-flex align-items-start gap-3 mt-4 mb-0" role="note">
             <i className="icon-base ti tabler-info-circle icon-md mt-1" aria-hidden="true" />
-            <div>
-              Mailmyra never touches your mail server. There is no directory sync, no Outlook add-in
-              and no server-side rule that rewrites outgoing mail — you send the copied HTML or the
-              exported file to the person, and they install it in their own client. These guides are
-              what you forward to them.
-            </div>
+            <div>{t.exportCard.scopeNote}</div>
           </div>
         </div>
       </div>
@@ -110,7 +109,7 @@ export function GuidesClient() {
         <div className="col-lg-3 col-md-4 col-12 mb-md-0 mb-4">
           <div className="d-flex flex-column nav-align-left mb-4">
             <ul className="nav nav-pills flex-column" role="tablist">
-              {GUIDES.map((g) => (
+              {guides.map((g) => (
                 <li className="nav-item" key={g.slug} role="presentation">
                   {/* Bootstrap JS yok: sekme <button> + React durumu. `w-100
                       text-start` gerekli — temanın markup'ı <a> varsayıyor,
@@ -135,12 +134,9 @@ export function GuidesClient() {
             <div className="card-body">
               <h6 className="mb-1">
                 <i className="icon-base ti tabler-mail-forward icon-sm me-1" aria-hidden="true" />
-                Sharing a guide
+                {t.sharing.title}
               </h6>
-              <p className="mb-0 small text-body-secondary">
-                Every client has its own address. Copy the URL from the address bar and send it to
-                whoever is installing the signature.
-              </p>
+              <p className="mb-0 small text-body-secondary">{t.sharing.body}</p>
             </div>
           </div>
         </div>
@@ -163,13 +159,13 @@ export function GuidesClient() {
             </div>
 
             <div className="d-flex flex-wrap gap-2 mb-4">
-              <span className={`badge ${fidelity.cls}`}>
-                <i className={`icon-base ti ${fidelity.icon} icon-xs me-1`} aria-hidden="true" />
-                {fidelity.label}
+              <span className={`badge ${look.cls}`}>
+                <i className={`icon-base ti ${look.icon} icon-xs me-1`} aria-hidden="true" />
+                {t.fidelity[guide.fidelity]}
               </span>
               <span className="badge bg-label-secondary">
                 <i className="icon-base ti tabler-download icon-xs me-1" aria-hidden="true" />
-                Uses: {guide.uses}
+                {t.uses(guide.uses)}
               </span>
             </div>
 
@@ -199,7 +195,7 @@ export function GuidesClient() {
             {notes.length > 0 ? (
               <div className="card mb-4">
                 <div className="card-header pb-2">
-                  <h6 className="card-title mb-0">Good to know</h6>
+                  <h6 className="card-title mb-0">{t.goodToKnow}</h6>
                 </div>
                 <div className="card-body">
                   <ul className="list-unstyled mb-0">

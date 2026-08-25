@@ -2,9 +2,14 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { common } from '../../../../lib/i18n/dict/common';
+import { guides as guidesDict } from '../../../../lib/i18n/dict/guides';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import { GuidesClient } from './GuidesClient';
 
-export const metadata = { title: 'Setup guides — Mailmyra' };
+export async function generateMetadata() {
+  return { title: guidesDict[await getLang()].pageTitle };
+}
 
 /**
  * E-posta istemcisi kurulum rehberleri (CLAUDE.md §Test matrisi'ndeki 6
@@ -19,14 +24,17 @@ export default async function GuidesPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/app/guides');
 
+  const lang = await getLang();
+  const t = guidesDict[lang];
+
   return (
     <section>
-      <h4 className="mb-1">Setup guides</h4>
-      <p className="text-body-secondary mb-4">
-        How a finished signature gets installed in each mail client we test against.
-      </p>
+      <h4 className="mb-1">{t.page.heading}</h4>
+      <p className="text-body-secondary mb-4">{t.page.subheading}</p>
 
-      <Suspense fallback={<div className="card"><div className="card-body">Loading…</div></div>}>
+      <Suspense
+        fallback={<div className="card"><div className="card-body">{common[lang].loading}</div></div>}
+      >
         <GuidesClient />
       </Suspense>
     </section>
