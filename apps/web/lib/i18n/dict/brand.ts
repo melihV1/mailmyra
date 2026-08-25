@@ -101,7 +101,7 @@ const tr: Mirror<typeof en> = {
     textColor: 'Metin rengi',
     mutedColor: 'İkincil metin rengi',
     logo: 'Logo',
-    cta: 'Harekete geçirici buton',
+    cta: 'Eylem çağrısı',
     disclaimer: 'Yasal metin',
   },
   groups: {

@@ -262,9 +262,8 @@ export function BrandClient({
 
   // Kontrast notları (review bulgusu #2): StyleStep'teki AYNI fonksiyon,
   // bindirilmiş renklere göre — org kilitlediği kötü bir renk burada da
-  // uyarsın. Metinler Türkçe döner (builder ile aynı), çevrilmiyor — dil
-  // göçü bu işin kapsamı dışında.
-  const contrastNotes = useMemo(() => contrastWarnings(overlaid.visuals), [overlaid]);
+  // uyarsın. `lang` sayfanın diline uyar (builder ile aynı davranış).
+  const contrastNotes = useMemo(() => contrastWarnings(overlaid.visuals, lang), [overlaid, lang]);
 
   /**
    * Satır bazlı ipucu (review bulgusu #1, yarı 2): `parseBrandDocument` TEK
