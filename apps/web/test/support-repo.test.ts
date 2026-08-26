@@ -11,7 +11,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const membershipFindFirst = vi.fn();
 const userFindUnique = vi.fn();
 const orgFindUnique = vi.fn();
-const caseCount = vi.fn();
 const caseCreate = vi.fn();
 const caseFindMany = vi.fn();
 const activityCreate = vi.fn();
@@ -25,7 +24,6 @@ vi.mock('../lib/db', () => ({
     user: { findUnique: (...a: unknown[]) => userFindUnique(...a) },
     organization: { findUnique: (...a: unknown[]) => orgFindUnique(...a) },
     supportCase: {
-      count: (...a: unknown[]) => caseCount(...a),
       create: (...a: unknown[]) => caseCreate(...a),
       findMany: (...a: unknown[]) => caseFindMany(...a),
     },
@@ -45,7 +43,8 @@ beforeEach(() => {
   membershipFindFirst.mockResolvedValue({ orgId: 'org1' });
   userFindUnique.mockResolvedValue({ email: 'owner@acme.com' });
   orgFindUnique.mockResolvedValue({ name: 'Acme' });
-  caseCount.mockResolvedValue(6);
+  // En yüksek kuyruk 6 → sıradaki 7 (eski count=6 senaryosuyla eşdeğer).
+  caseFindMany.mockResolvedValue([{ reference: 'SUP-2026-0006' }]);
   caseCreate.mockImplementation(async (args: { data: { reference: string } }) => ({
     id: 'case1',
     reference: args.data.reference,
@@ -78,7 +77,7 @@ describe('openSupportCase', () => {
     expect(caseCreate).not.toHaveBeenCalled();
   });
 
-  it('vakayı sabitler ve oturum verisiyle açar; referans sayımdan türer', async () => {
+  it('vakayı sabitler ve oturum verisiyle açar; referans en yüksek kuyruktan türer', async () => {
     const r = await support.openSupportCase('u1', VALID);
     expect(r).toEqual({ ok: true, id: 'case1', reference: 'SUP-2026-0007' });
     const data = caseCreate.mock.calls[0]![0].data;
@@ -95,6 +94,30 @@ describe('openSupportCase', () => {
     });
     // SLA: normal = 48 saat, now'dan.
     expect(data.slaDueAt).toEqual(new Date(NOW.getTime() + 48 * 60 * 60 * 1000));
+    expect(caseFindMany.mock.calls[0]![0]).toMatchObject({
+      where: { reference: { startsWith: 'SUP-2026-' } },
+      select: { reference: true },
+    });
+  });
+
+  it('sıra boşluklu olsa da (staff elle referans girmiş) en yüksek kuyruktan devam eder', async () => {
+    caseFindMany.mockResolvedValue([
+      { reference: 'SUP-2026-0001' },
+      { reference: 'SUP-2026-0002' },
+      { reference: 'SUP-2026-0010' },
+    ]);
+    const r = await support.openSupportCase('u1', VALID);
+    expect(r).toEqual({ ok: true, id: 'case1', reference: 'SUP-2026-0011' });
+  });
+
+  it('ayrıştırılamayan referans kuyruğu yok sayılır', async () => {
+    caseFindMany.mockResolvedValue([
+      { reference: 'SUP-2026-0001' },
+      { reference: 'SUP-2026-XYZ' },
+      { reference: 'SUP-2026-0010' },
+    ]);
+    const r = await support.openSupportCase('u1', VALID);
+    expect(r).toEqual({ ok: true, id: 'case1', reference: 'SUP-2026-0011' });
   });
 
   it('konu/mesaj kırpılır ve sınırlanır (200/500)', async () => {

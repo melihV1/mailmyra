@@ -59,13 +59,30 @@ export async function openSupportCase(
 
   const now = new Date();
   const prefix = `SUP-${now.getFullYear()}-`;
-  const existing = await prisma.supportCase.count({
+  // Staff aynı ad alanına (SUP-<yıl>-<sıra>) admin diyaloğundan elle
+  // referans girebiliyor, bu yüzden count() ile "sıradaki" hesaplamak
+  // yanıltıcı: yoğun elle girilmiş bir blok count'un üstündeyse
+  // count+1 zaten dolu çıkar ve P2002 yeniden deneme bütçesi
+  // (REFERENCE_ATTEMPTS) sona erip 500'e düşer. Bunun yerine mevcut
+  // referansların EN YÜKSEK sayısal kuyruğundan devam edilir. Hacim
+  // yılda yüzler mertebesinde olduğu için tüm satırları çekmek ucuz;
+  // ayrıca 9999'u aşınca sıfır dolgusu uzar (`00010` > `9999` sayıca
+  // ama `9999` > `00010` sözlüksel sırada) — bu yüzden metin sırasıyla
+  // `orderBy reference desc` almak yerine ayrıştırılmış sayı üstünden
+  // Math.max alınır.
+  const existingRefs = await prisma.supportCase.findMany({
     where: { reference: { startsWith: prefix } },
+    select: { reference: true },
   });
+  let maxTail = 0;
+  for (const row of existingRefs) {
+    const tail = Number(row.reference.slice(prefix.length));
+    if (Number.isInteger(tail) && tail > maxTail) maxTail = tail;
+  }
 
   let created: { id: string; reference: string } | null = null;
   for (let attempt = 0; attempt < REFERENCE_ATTEMPTS && !created; attempt++) {
-    const reference = `${prefix}${String(existing + 1 + attempt).padStart(4, '0')}`;
+    const reference = `${prefix}${String(maxTail + 1 + attempt).padStart(4, '0')}`;
     try {
       created = await prisma.supportCase.create({
         data: {
