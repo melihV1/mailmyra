@@ -6,6 +6,7 @@ import {
   inviteEmail,
   resetEmail,
   seatWarningEmail,
+  supportReplyEmail,
   verifyEmail,
 } from '../lib/mail/templates';
 
@@ -15,6 +16,7 @@ const URL_INVITE = 'https://app.mailmyra.com/invite?token=ghi789';
 const URL_SENDERS = 'https://app.mailmyra.com/app/senders';
 const URL_CHANGE = 'https://app.mailmyra.com/confirm-email-change?token=jkl012';
 const URL_APP = 'https://app.mailmyra.com';
+const URL_SUPPORT = 'https://app.mailmyra.com/app/support/case123';
 
 const seatWarning = () =>
   seatWarningEmail({
@@ -24,6 +26,9 @@ const seatWarning = () =>
     entitledSeats: 5,
   });
 
+const supportReply = () =>
+  supportReplyEmail({ actionUrl: URL_SUPPORT, reference: 'SUP-2026-0001' });
+
 const all = [
   ['verify', verifyEmail({ actionUrl: URL_VERIFY }), URL_VERIFY],
   ['reset', resetEmail({ actionUrl: URL_RESET }), URL_RESET],
@@ -31,6 +36,7 @@ const all = [
   ['seat warning', seatWarning(), URL_SENDERS],
   ['email-change verify', emailChangeVerifyEmail({ actionUrl: URL_CHANGE }), URL_CHANGE],
   ['email-changed notice', emailChangedNoticeEmail({ actionUrl: URL_APP, newEmail: 'yeni@voldi.net' }), URL_APP],
+  ['support reply', supportReply(), URL_SUPPORT],
 ] as const;
 
 /** Tek kullanımlık link taşıyanlar — koltuk uyarısının süresi yok. */
@@ -135,6 +141,25 @@ describe('the seat warning email', () => {
     });
     expect(mail.html).not.toContain('<a href="https://kotu.example"');
     expect(mail.html).toContain('&lt;a href=&quot;https://kotu.example&quot;&gt;');
+  });
+});
+
+describe('the support reply email', () => {
+  it('names the case reference in subject, HTML and text', () => {
+    // Referans SUP-<yıl>-<sıra>, sunucu üretir — kaçırma gerekmez ama
+    // gövdeye üçünde de düşmeli, aksi halde hangi vaka olduğu belirsiz.
+    const mail = supportReply();
+    expect(mail.subject).toContain('SUP-2026-0001');
+    expect(mail.html).toContain('SUP-2026-0001');
+    expect(mail.text).toContain('SUP-2026-0001');
+  });
+
+  it('does not carry the reply text itself (approved decision)', () => {
+    // supportReplyEmail cevap metnini parametre olarak ALMIYOR — bu yüzden
+    // sızdıracağı bir şey yok. Test, imzanın gerçekten `reference` dışında
+    // hiçbir serbest metin taşımadığını doğruluyor.
+    const mail = supportReplyEmail({ actionUrl: URL_SUPPORT, reference: 'SUP-2026-0002' });
+    expect(Object.keys(mail)).toEqual(['subject', 'html', 'text']);
   });
 });
 

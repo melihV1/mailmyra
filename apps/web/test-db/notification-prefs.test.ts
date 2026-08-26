@@ -45,7 +45,7 @@ describe('preferences', () => {
   test('defaults are on when no row exists', async () => {
     const { watcher } = await scene();
     const prefs = await getPreferences(watcher.id);
-    expect(prefs).toHaveLength(3);
+    expect(prefs).toHaveLength(4);
     expect(prefs.every((p) => p.inApp && p.email)).toBe(true);
   });
 

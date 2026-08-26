@@ -11,10 +11,12 @@ import { prisma } from '../lib/db';
 import { MemoryMailer } from '../lib/mail';
 import { hashToken } from '../lib/auth/token';
 import { acceptInvitation } from '../lib/repo/members';
+import { savePreferences } from '../lib/repo/notification-prefs';
 import {
   listNotifications,
   markAllRead,
   notifyOrgManagers,
+  notifyUser,
   unreadCount,
 } from '../lib/repo/notifications';
 import { publishSender } from '../lib/repo/senders';
@@ -58,6 +60,43 @@ describe('notifyOrgManagers', () => {
     expect(rows[0]!.type).toBe('sender_published');
     expect(rows[0]!.payload).toEqual({ senderName: 'Ayşe' });
     expect(rows[0]!.readAt).toBeNull();
+  });
+});
+
+describe('notifyUser', () => {
+  test('writes a single row to the given user, not the whole org', async () => {
+    const o = await org();
+    const owner = await memberOf(o.id, 'sahip@voldi.net', 'owner');
+    const other = await memberOf(o.id, 'digeri@voldi.net', 'editor');
+
+    await notifyUser(owner.id, o.id, 'support_reply', { reference: 'SUP-2026-0001' });
+
+    const rows = await listNotifications(owner.id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.type).toBe('support_reply');
+    expect(rows[0]!.payload).toEqual({ reference: 'SUP-2026-0001' });
+    // Öbür üye hiç dokunulmadı — notifyOrgManagers'ın dağıtımı değil, tek alıcı.
+    expect(await listNotifications(other.id)).toHaveLength(0);
+  });
+
+  test('a user who muted the type gets no row (opt-out respected)', async () => {
+    const o = await org();
+    const owner = await memberOf(o.id, 'sahip@voldi.net', 'owner');
+    await savePreferences(owner.id, [{ type: 'support_reply', inApp: false, email: true }]);
+
+    await notifyUser(owner.id, o.id, 'support_reply', { reference: 'SUP-2026-0002' });
+
+    expect(await listNotifications(owner.id)).toHaveLength(0);
+  });
+
+  test('accepts a null orgId — Notification.orgId allows it', async () => {
+    const o = await org();
+    const owner = await memberOf(o.id, 'sahip@voldi.net', 'owner');
+
+    await notifyUser(owner.id, null, 'support_reply', { reference: 'SUP-2026-0003' });
+
+    const rows = await listNotifications(owner.id);
+    expect(rows).toHaveLength(1);
   });
 });
 

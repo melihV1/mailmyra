@@ -12,6 +12,7 @@ export {
   inviteEmail,
   resetEmail,
   seatWarningEmail,
+  supportReplyEmail,
   verifyEmail,
 } from './templates';
 

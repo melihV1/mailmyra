@@ -25,7 +25,7 @@ import { useToast } from '../../ToastProvider';
 
 interface Row {
   id: string;
-  type: 'sender_published' | 'seat_warning' | 'invitation_accepted';
+  type: 'sender_published' | 'seat_warning' | 'invitation_accepted' | 'support_reply';
   payload: Record<string, unknown>;
   readAt: string | null;
   createdAt: string;

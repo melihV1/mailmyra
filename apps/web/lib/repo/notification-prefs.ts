@@ -15,6 +15,7 @@ export const NOTIFICATION_TYPES = [
   'sender_published',
   'seat_warning',
   'invitation_accepted',
+  'support_reply',
 ] as const satisfies readonly NotificationType[];
 
 /** Bugün gerçekten e-posta gönderen tipler — arayüz gerisini pasif gösterir. */

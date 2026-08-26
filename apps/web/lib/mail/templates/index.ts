@@ -171,6 +171,42 @@ export function emailChangeVerifyEmail({ actionUrl }: ActionInput): MailBody {
   };
 }
 
+export interface SupportReplyInput extends ActionInput {
+  /** Vaka numarası (SUP-<yıl>-<sıra>) — sunucu üretir, kullanıcı yazımı değil. */
+  reference: string;
+}
+
+/**
+ * Staff bir destek talebine cevap bıraktığında müşteriye gider (spec §5,
+ * Ticket v2). Cevabın İÇERİĞİ e-postada YOK (onaylı seçim) — yalnız haber
+ * verir, okuması panelde olur.
+ */
+export function supportReplyEmail({ actionUrl, reference }: SupportReplyInput): MailBody {
+  return {
+    // Konu satırı HTML değil; ham hâliyle gider.
+    subject: `Your support case ${reference} has a new reply`,
+    html: renderLayout({
+      heading: 'You have a new reply',
+      paragraphs: [
+        `There is a new reply on your support case <strong>${escapeHtml(reference)}</strong>.`,
+      ],
+      actionUrl,
+      actionLabel: 'View the reply',
+      footnote:
+        'For your privacy, the reply is not included in this e-mail — open your case to read it.',
+    }),
+    text: renderText(
+      [
+        'You have a new reply',
+        '',
+        `There is a new reply on your support case ${reference}.`,
+      ],
+      actionUrl,
+      'For your privacy, the reply is not included in this e-mail — open your case to read it.',
+    ),
+  };
+}
+
 export interface ChangedNoticeInput extends ActionInput {
   newEmail: string;
 }

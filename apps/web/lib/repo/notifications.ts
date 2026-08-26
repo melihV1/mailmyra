@@ -11,7 +11,11 @@ import { filterByPreference } from './notification-prefs';
  * önemlidir — koltuk uyarı mailinin kuralıyla aynı (senders.ts emsali).
  */
 
-export type NotificationType = 'sender_published' | 'seat_warning' | 'invitation_accepted';
+export type NotificationType =
+  | 'sender_published'
+  | 'seat_warning'
+  | 'invitation_accepted'
+  | 'support_reply';
 
 export interface NotificationRow {
   id: string;
@@ -137,6 +141,41 @@ export async function notifyOrgManagers(input: {
         type: input.type,
         payload: input.payload as Prisma.InputJsonValue,
       })),
+    });
+  } catch (err) {
+    console.error('[notifications] yazılamadı:', err);
+  }
+}
+
+/**
+ * Tek kullanıcıya bildirim yazar — `notifyOrgManagers`in org yöneticisi
+ * dağıtımı DEĞİL, tek alıcı biçimi. İlk kullanan: destek cevabı
+ * (`support_reply`, Ticket v2 spec §5) — org içinde `requesterEmail`e
+ * sahip bir kullanıcı varsa çağıran ona bu fonksiyonla yazar.
+ *
+ * Aynı opt-out süzgeci (`filterByPreference`) geçerli: kullanıcı bu tipte
+ * zili kapattıysa satır hiç YAZILMAZ. `orgId` `null` olabilir — Notification
+ * modelinde de öyle (kullanıcı bağlamı olmayan bildirim ihtiyacına açık).
+ *
+ * Hata yutar ve loglar — `notifyOrgManagers` ile aynı ilke (bildirim,
+ * taşıdığı akıştan daha az önemli).
+ */
+export async function notifyUser(
+  userId: string,
+  orgId: string | null,
+  type: NotificationType,
+  payload: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const allowed = await filterByPreference([userId], type, 'inApp');
+    if (allowed.length === 0) return;
+    await prisma.notification.create({
+      data: {
+        userId,
+        orgId,
+        type,
+        payload: payload as Prisma.InputJsonValue,
+      },
     });
   } catch (err) {
     console.error('[notifications] yazılamadı:', err);

@@ -40,6 +40,12 @@ const en: Record<NotificationType, Look> = {
     title: 'Invitation accepted',
     body: (p) => `${String(p.email ?? 'Someone')} joined as ${String(p.role ?? 'member')}.`,
   },
+  support_reply: {
+    icon: 'tabler-headset',
+    tone: 'info',
+    title: 'Support replied',
+    body: (p) => `Case ${String(p.reference ?? '?')} has a new reply.`,
+  },
 };
 
 const tr: Mirror<typeof en> = {
@@ -63,6 +69,12 @@ const tr: Mirror<typeof en> = {
     tone: 'info',
     title: 'Davet kabul edildi',
     body: (p) => `${String(p.email ?? 'Biri')}, ${String(p.role ?? 'üye')} olarak katıldı.`,
+  },
+  support_reply: {
+    icon: 'tabler-headset',
+    tone: 'info',
+    title: 'Talebine cevap geldi',
+    body: (p) => `${String(p.reference ?? '?')} numaralı talebine yeni bir cevap geldi.`,
   },
 };
 
