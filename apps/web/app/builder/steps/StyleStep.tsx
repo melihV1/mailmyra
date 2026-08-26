@@ -37,6 +37,21 @@ function templateLooks(
       blurb: t.steps.style.template.cardBorderedBlurb,
       icon: 'tabler-layout-board-split',
     },
+    'divider-columns': {
+      name: t.steps.style.template.dividerColumnsName,
+      blurb: t.steps.style.template.dividerColumnsBlurb,
+      icon: 'tabler-layout-columns',
+    },
+    'photo-first': {
+      name: t.steps.style.template.photoFirstName,
+      blurb: t.steps.style.template.photoFirstBlurb,
+      icon: 'tabler-user-circle',
+    },
+    'cta-banner': {
+      name: t.steps.style.template.ctaBannerName,
+      blurb: t.steps.style.template.ctaBannerBlurb,
+      icon: 'tabler-rectangle',
+    },
   };
 }
 

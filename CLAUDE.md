@@ -355,6 +355,12 @@ Kurulum rehberleri öncelikli: hem en çok aranan SEO içeriği hem destek yük�
 - ❌ Onay akışları, public API, AI imza üretimi
 - ❌ Blog yazıları → lansmandan sonra
 - ❌ 3'ten fazla şablon → motor oturunca seri üretilir
+
+> **İstisna (2026-08-26, Hüseyin, sözlü):** motor oturdu sayıldı (3 şablon
+> canlıda, 277 renderer testi); 3 yeni şablon onaylandı (divider-columns,
+> photo-first, cta-banner — toplam 6). Şablon başına 6-istemci test
+> matrisi YAYIN ŞARTI olmaya devam eder.
+
 - ❌ Bootstrap, hazır tema
 
 > **İstisna (2026-08-21, Hüseyin, sözlü):** SÜPER ADMİN PANELİ için bu
