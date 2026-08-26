@@ -6,11 +6,13 @@ import { applyBrand } from '../brand-apply';
 import { prisma } from '../db';
 import { probeCdn, probeSmtp } from '../health-probes';
 import { statutoryDueDate } from '../kvkk';
+import { getMailer, supportReplyEmail } from '../mail';
 import { nextPlannedRun } from '../report-schedule';
 import { REPORT_BUILDERS, TABLELESS_REPORTS } from '../reports/registry';
 import { slaDueDate, type SupportPriority } from '../support-sla';
 import type { ActivityType } from './activity';
 import { getBrand } from './brand';
+import { notifyUser } from './notifications';
 import { countActiveSeats } from './senders';
 
 /**
@@ -181,6 +183,7 @@ async function audit(
       | 'support.case_status_set'
       | 'support.case_owner_set'
       | 'support.case_priority_set'
+      | 'support.replied'
       | 'error.state_set'
       | 'lead.created'
       | 'lead.updated'
@@ -1604,7 +1607,14 @@ const SUPPORT_TRANSITIONS: Record<string, string[]> = {
   resolved: ['open'],
 };
 
-/** Vaka + audit org'unu tek yerden yükler — `loadKvkkForWrite` emsali. */
+/**
+ * Vaka + audit org'unu tek yerden yükler — `loadKvkkForWrite` emsali.
+ *
+ * `reference`/`requesterEmail`/ham `orgId` de taşır (Ticket v2, `addStaffReply`
+ * ihtiyacı): commit SONRASI e-posta + bildirim için gerekiyor — `auditOrg`
+ * tek başına yetmez, çünkü org'suz vakada `PLATFORM_ORG` nöbetçisine düşer
+ * ve gerçek (null) `orgId`'yi gizler.
+ */
 async function loadSupportCaseForWrite(
   tx: Prisma.TransactionClient,
   caseId: string,
@@ -1613,11 +1623,23 @@ async function loadSupportCaseForWrite(
   priority: SupportPriority;
   slaDueAt: Date;
   createdAt: Date;
+  reference: string;
+  requesterEmail: string;
+  orgId: string | null;
   auditOrg: { id: string; name: string };
 }> {
   const row = await tx.supportCase.findUnique({
     where: { id: caseId },
-    select: { status: true, priority: true, slaDueAt: true, createdAt: true, orgId: true, orgName: true },
+    select: {
+      status: true,
+      priority: true,
+      slaDueAt: true,
+      createdAt: true,
+      reference: true,
+      requesterEmail: true,
+      orgId: true,
+      orgName: true,
+    },
   });
   if (!row) throw new Error(`Destek vakası ${caseId} bulunamadı.`);
   return {
@@ -1625,6 +1647,9 @@ async function loadSupportCaseForWrite(
     priority: row.priority as SupportPriority,
     slaDueAt: row.slaDueAt,
     createdAt: row.createdAt,
+    reference: row.reference,
+    requesterEmail: row.requesterEmail,
+    orgId: row.orgId,
     auditOrg: row.orgId ? { id: row.orgId, name: row.orgName } : PLATFORM_ORG,
   };
 }
@@ -1810,6 +1835,105 @@ export async function setSupportCasePriority(
       ctx,
     });
   });
+}
+
+/** Linklerin tabanı — `repo/senders.ts`/`repo/members.ts`/`auth/flows.ts` emsali. */
+function appUrl(): string {
+  return process.env.APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+}
+
+/**
+ * Cevap sebebi SABİT: her destek cevabına elle sebep yazdırmak eziyet olurdu
+ * (spec §8-1, Hüseyin bayrağı — itiraz gelirse zorunlu yapılır). Yine de
+ * `requireReason`den GEÇİYOR, atlanmıyor: sözleşmenin "boş sebeple yazma
+ * yok" kapısı sabit değeri de aynı süzgeçten yollar; sabit boş olmadığı
+ * (ve 500 karakteri aşmadığı) için reddedilmez.
+ */
+const STAFF_REPLY_REASON = 'reply';
+
+/**
+ * Personel cevabı (spec §4 personel, Ticket v2). Mesaj + `waiting_customer`
+ * otomasyonu (her durumdan — zaten öyleyse kalır) + `AdminAction` TEK
+ * transaction. Denetim payload'ında mesaj METNİ ve `requesterEmail` YOKTUR
+ * — yalnız `messageId`/`bodyLength`/durum (`support.case_created`in
+ * requesterEmail dışlaması aynı ilke).
+ *
+ * Commit SONRASI, best-effort (mesaj zaten kalıcı — posta/bildirim hatası
+ * cevabı DEVİRMEZ): ① e-posta (`supportReplyEmail`, UNCONDITIONAL — talep
+ * sahibi panel kullanıcısı olmayabilir) ② panel bildirimi, yalnız org
+ * içinde `requesterEmail`e sahip KULLANICI varsa (yoksa sessizce atlanır,
+ * e-posta yine gider). İkisi ayrı try/catch'te: postanın düşmesi bildirimi
+ * engellemez.
+ */
+export async function addStaffReply(
+  staffUserId: string,
+  caseId: string,
+  body: string,
+  ctx?: StaffContext,
+): Promise<{ id: string }> {
+  const staff = await requireStaff(staffUserId);
+  const trimmed = body.trim().slice(0, 2000);
+  if (!trimmed) throw new Error('Cevap metni zorunlu.');
+  const cleanReason = requireReason(STAFF_REPLY_REASON);
+
+  const result = await prisma.$transaction(async (tx) => {
+    const support = await loadSupportCaseForWrite(tx, caseId);
+
+    const message = await tx.supportMessage.create({
+      data: { caseId, authorType: 'staff', authorEmail: staff.email, body: trimmed },
+      select: { id: true },
+    });
+
+    // Otomasyon değişmiyorsa update hiç çağrılmaz (`addCustomerMessage`
+    // emsali) — gereksiz yazma yok.
+    const nextStatus = support.status === 'waiting_customer' ? support.status : 'waiting_customer';
+    if (nextStatus !== support.status) {
+      await tx.supportCase.update({ where: { id: caseId }, data: { status: nextStatus } });
+    }
+
+    await audit(tx, staff, {
+      org: support.auditOrg,
+      action: 'support.replied',
+      targetId: caseId,
+      before: { status: support.status },
+      after: { messageId: message.id, bodyLength: trimmed.length, status: nextStatus },
+      reason: cleanReason,
+      ctx,
+    });
+
+    return {
+      messageId: message.id,
+      reference: support.reference,
+      requesterEmail: support.requesterEmail,
+      orgId: support.orgId,
+    };
+  });
+
+  try {
+    const emailBody = supportReplyEmail({
+      actionUrl: `${appUrl()}/app/support/${caseId}`,
+      reference: result.reference,
+    });
+    await getMailer().send({ to: result.requesterEmail, kind: 'support', ...emailBody });
+  } catch (err) {
+    console.error('[admin] destek cevap postası gönderilemedi:', err);
+  }
+
+  if (result.orgId) {
+    try {
+      const user = await prisma.user.findFirst({
+        where: { email: result.requesterEmail, memberships: { some: { orgId: result.orgId } } },
+        select: { id: true },
+      });
+      if (user) {
+        await notifyUser(user.id, result.orgId, 'support_reply', { reference: result.reference });
+      }
+    } catch (err) {
+      console.error('[admin] destek cevap bildirimi yazılamadı:', err);
+    }
+  }
+
+  return { id: result.messageId };
 }
 
 // ─── Yönetişim yazmaları: hata grupları ──────────────────────────────────
@@ -2926,6 +3050,43 @@ export async function listSupportCases(
     slaDueAt: r.slaDueAt,
     summary: r.summary,
   }));
+}
+
+export interface AdminSupportMessageRow {
+  id: string;
+  authorType: string;
+  authorEmail: string;
+  body: string;
+  createdAt: Date;
+}
+
+/**
+ * Vakanın gerçek yazışma ipliği (spec §4 personel, Ticket v2) — açılış
+ * balonu (`summary`) burada YOK, yalnız ONDAN SONRAKİ satırlar; açılış
+ * `listSupportCases`/vaka detayında zaten var (tek kaynak, spec §2).
+ *
+ * İplik müşteri içeriği taşır (mesaj metni + gerçek yazar e-postası) —
+ * `listSupportCases` ile AYNI desen (SUPPORT_REGISTER emsali aynen):
+ * erişim kaydı ÖNCE, içerik SONRA. Kayıt yazılamazsa iplik hiç açılmaz
+ * (kapalıya düşme).
+ */
+export async function listSupportMessages(
+  staffUserId: string,
+  caseId: string,
+  ctx?: StaffContext,
+): Promise<AdminSupportMessageRow[]> {
+  const staff = await requireStaff(staffUserId);
+
+  await logAccess(staff, SUPPORT_REGISTER, 'support', ctx, caseId);
+
+  const exists = await prisma.supportCase.findUnique({ where: { id: caseId }, select: { id: true } });
+  if (!exists) throw new Error(`Destek vakası ${caseId} bulunamadı.`);
+
+  return prisma.supportMessage.findMany({
+    where: { caseId },
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, authorType: true, authorEmail: true, body: true, createdAt: true },
+  });
 }
 
 // ─── Security: staff icra kuyruğu ────────────────────────────────────────

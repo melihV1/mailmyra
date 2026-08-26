@@ -147,6 +147,8 @@ const CALLS: Record<string, unknown[]> = {
   listReportSchedules: ['u1'],
   listLeads: ['u1'],
   listSupportCases: ['u1'],
+  listSupportMessages: ['u1', 'case1'],
+  addStaffReply: ['u1', 'case1', 'gövde metni'],
   listStaffChangeRequests: ['u1'],
   getPlatformTelemetry: ['u1'],
   listStaffAccess: ['u1'],
