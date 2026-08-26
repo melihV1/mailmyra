@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { safeNextPath } from '../lib/auth/next-param';
+import { loginRedirectPath, safeNextPath } from '../lib/auth/next-param';
 
 describe('the ?next= parameter', () => {
   it('keeps an ordinary in-app path', () => {
@@ -30,5 +30,25 @@ describe('the ?next= parameter', () => {
   it('refuses anything that does not start with a slash', () => {
     expect(safeNextPath('app/signatures')).toBe('/app/signatures');
     expect(safeNextPath('javascript:alert(1)')).toBe('/app/signatures');
+  });
+});
+
+describe('loginRedirectPath (middleware ön kontrolü)', () => {
+  it('URL-encodes a bare pathname', () => {
+    expect(loginRedirectPath('/app/support', '')).toBe('/login?next=%2Fapp%2Fsupport');
+  });
+
+  it('folds the query string into the encoded next value', () => {
+    const target = loginRedirectPath('/app/guides', '?client=gmail');
+    // `next=` değeri tek parça URL-encode edilmiş olmalı — çözülünce yol +
+    // sorgu birlikte geri gelmeli, ayrı bir `client` parametresi değil.
+    const nextValue = new URL(target, 'http://mailmyra.test').searchParams.get('next');
+    expect(nextValue).toBe('/app/guides?client=gmail');
+  });
+
+  it('round-trips through safeNextPath — the original path survives, not the fallback', () => {
+    const target = loginRedirectPath('/app/guides', '?client=gmail');
+    const nextValue = new URL(target, 'http://mailmyra.test').searchParams.get('next');
+    expect(safeNextPath(nextValue ?? undefined)).toBe('/app/guides?client=gmail');
   });
 });

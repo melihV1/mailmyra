@@ -17,3 +17,22 @@ export function safeNextPath(value: string | undefined): string {
   if (second === '/' || second === '\\') return DEFAULT_AFTER_LOGIN;
   return value;
 }
+
+/**
+ * Middleware'in ön kontrolünde kullandığı, `/login?next=...` hedefini üretir.
+ *
+ * Saf fonksiyon — middleware'de de, testte de aynı kod çalışır. `pathname +
+ * search` tek parça olarak `next=` değerine gömülür (elle string
+ * birleştirme değil, `URLSearchParams` ile) ki `?client=gmail` gibi bir
+ * sorgu kendi `&`/`=` karakterleriyle login formunun sorgu dizesine karışıp
+ * ayrı bir parametre gibi görünmesin — çözülünce yol ve sorgu birlikte geri
+ * gelmeli. `search`, `req.nextUrl.search` gibi baştaki `?` ile de gelebilir,
+ * onsuz da.
+ */
+export function loginRedirectPath(pathname: string, search: string): string {
+  const query = search.startsWith('?') ? search.slice(1) : search;
+  const target = query ? `${pathname}?${query}` : pathname;
+  const params = new URLSearchParams();
+  params.set('next', target);
+  return `/login?${params.toString()}`;
+}
