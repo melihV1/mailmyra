@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
@@ -13,10 +14,14 @@ export async function generateMetadata() {
 }
 
 /**
- * Müşteri ticket v1 (spec 2026-08-24). Panel içi yazışma YOK — yanıt
- * e-postayla döner ve sayfa bunu açıkça söyler. Liste sunucu tarafında
- * repo'dan (GET ucu yok, senders emsali); başka org'un vakası sorguya
- * zaten giremez.
+ * Müşteri ticket v1 (spec 2026-08-24) + v2 (spec 2026-08-26): satırlar artık
+ * `/app/support/[id]`e link — SenderTable'daki satır-link deseni aynen
+ * (linklenen hücre `d-block fw-medium text-heading`, tablo semantiği
+ * değişmez). Liste sunucu tarafında repo'dan (GET ucu yok, senders emsali);
+ * başka org'un vakası sorguya zaten giremez. `page.subheading` metni
+ * bilerek dokunulmadı (görev kapsamı: yeni yüzeye yeni metin, mevcut
+ * metin bayt-korunur) — panel içi yazışma artık var ama e-posta bildirimi
+ * de gidiyor, satır tam yanlış değil; bu cila ayrı bir işe bırakıldı.
  */
 export default async function SupportPage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).
@@ -89,7 +94,14 @@ export default async function SupportPage() {
                       return (
                         <tr key={row.id}>
                           <td><code>{row.reference}</code></td>
-                          <td className="text-heading">{row.subject}</td>
+                          <td>
+                            <Link
+                              href={'/app/support/' + row.id}
+                              className="d-block fw-medium text-heading"
+                            >
+                              {row.subject}
+                            </Link>
+                          </td>
                           <td>{categoryLabel(row.category)}</td>
                           <td>
                             <span className={`badge bg-label-${status.tone}`}>{status.label}</span>

@@ -6,6 +6,13 @@ import type { Mirror } from '../types';
  * (`notification-looks.ts`/`activity-looks.ts` ile aynı kalıp, dosya
  * kendi başına yaşar). Panel içi yazışma YOK — yanıt e-postayla döner,
  * `page.subheading` bunu açıkça söyler (spec 2026-08-24).
+ *
+ * Ticket v2 (spec 2026-08-26, §6 müşteri): `detail` bloğu eklendi —
+ * `/app/support/[id]` sayfası + `ReplyForm`. Bu YENİ bir yüzey; `en`
+ * gövdeleri doğal İngilizce yazıldı (bayt-koruma kuralı yalnız var olan
+ * anahtarlara uygulanır, bkz. görev raporu). Balon etiketi personelde
+ * kişi adı değil "Mailmyra support"/"Mailmyra destek" — dijest/aktivite
+ * emsali (spec §8-2): müşteri ürünü tanır, personeli değil.
  */
 
 const en = {
@@ -35,6 +42,24 @@ const en = {
     errors: {
       generic: 'Could not open the case — check the fields and try again.',
       network: 'Something went wrong — try again.',
+    },
+  },
+  detail: {
+    pageTitle: (reference: string) => `${reference} — Support — Mailmyra`,
+    back: 'Back to support',
+    openedOn: (date: string) => `Opened ${date}`,
+    threadHeading: 'Conversation',
+    youLabel: 'You',
+    staffLabel: 'Mailmyra support',
+    resolvedNote: 'Replying reopens this case.',
+    replyForm: {
+      label: 'Your reply',
+      submit: 'Send reply',
+      sentToast: 'Reply sent.',
+      errors: {
+        generic: 'Could not send your reply — try again.',
+        network: 'Something went wrong — try again.',
+      },
     },
   },
 } as const;
@@ -67,6 +92,24 @@ const tr: Mirror<typeof en> = {
     errors: {
       generic: 'Talep açılamadı — alanları kontrol et ve tekrar dene.',
       network: 'Bir şeyler ters gitti — tekrar dene.',
+    },
+  },
+  detail: {
+    pageTitle: (reference: string) => `${reference} — Destek — Mailmyra`,
+    back: 'Desteğe dön',
+    openedOn: (date: string) => `${date} tarihinde açıldı`,
+    threadHeading: 'Yazışma',
+    youLabel: 'Sen',
+    staffLabel: 'Mailmyra destek',
+    resolvedNote: 'Cevap yazarsan talep yeniden açılır.',
+    replyForm: {
+      label: 'Cevabın',
+      submit: 'Cevabı gönder',
+      sentToast: 'Cevap gönderildi.',
+      errors: {
+        generic: 'Cevabın gönderilemedi — tekrar dene.',
+        network: 'Bir şeyler ters gitti — tekrar dene.',
+      },
     },
   },
 };
