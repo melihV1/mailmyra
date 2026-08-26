@@ -40,7 +40,7 @@ function templateLooks(
     'divider-columns': {
       name: t.steps.style.template.dividerColumnsName,
       blurb: t.steps.style.template.dividerColumnsBlurb,
-      icon: 'tabler-layout-columns',
+      icon: 'tabler-layout-sidebar',
     },
     'photo-first': {
       name: t.steps.style.template.photoFirstName,
