@@ -13,6 +13,10 @@ const setSupportCaseStatus = vi.fn();
 const assignSupportCaseOwner = vi.fn();
 const setSupportCasePriority = vi.fn();
 const setErrorGroupState = vi.fn();
+const listSupportMessages = vi.fn();
+const addStaffReply = vi.fn();
+
+class NotStaffError extends Error {}
 
 vi.mock('../lib/repo/admin', () => ({
   createSupportCase: (...args: unknown[]) => createSupportCase(...args),
@@ -20,15 +24,20 @@ vi.mock('../lib/repo/admin', () => ({
   assignSupportCaseOwner: (...args: unknown[]) => assignSupportCaseOwner(...args),
   setSupportCasePriority: (...args: unknown[]) => setSupportCasePriority(...args),
   setErrorGroupState: (...args: unknown[]) => setErrorGroupState(...args),
-  NotStaffError: class NotStaffError extends Error {},
+  listSupportMessages: (...args: unknown[]) => listSupportMessages(...args),
+  addStaffReply: (...args: unknown[]) => addStaffReply(...args),
+  NotStaffError,
 }));
 
+const STAFF_SESSION = {
+  id: 'sess1',
+  user: { id: 'u1', email: 'staff@voldi.net', emailVerifiedAt: new Date(), avatarUrl: null },
+  expiresAt: new Date(Date.now() + 60_000),
+};
+let session: typeof STAFF_SESSION | null = STAFF_SESSION;
+
 vi.mock('../lib/auth/current', () => ({
-  currentSession: async () => ({
-    id: 'sess1',
-    user: { id: 'u1', email: 'staff@voldi.net', emailVerifiedAt: new Date(), avatarUrl: null },
-    expiresAt: new Date(Date.now() + 60_000),
-  }),
+  currentSession: async () => session,
 }));
 
 const { POST: postCase } = await import('../app/api/admin/support/route');
@@ -36,6 +45,8 @@ const { POST: postStatus } = await import('../app/api/admin/support/[id]/status/
 const { POST: postOwner } = await import('../app/api/admin/support/[id]/owner/route');
 const { POST: postPriority } = await import('../app/api/admin/support/[id]/priority/route');
 const { POST: postErrorState } = await import('../app/api/admin/errors/[id]/state/route');
+const { GET: getMessages } = await import('../app/api/admin/support/[id]/messages/route');
+const { POST: postReply } = await import('../app/api/admin/support/[id]/reply/route');
 
 function jsonReq(url: string, body: unknown): Request {
   return new Request(url, {
@@ -43,6 +54,10 @@ function jsonReq(url: string, body: unknown): Request {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(body),
   });
+}
+
+function getReq(url: string): Request {
+  return new Request(url);
 }
 
 function params(id: string) {
@@ -55,7 +70,10 @@ beforeEach(() => {
   assignSupportCaseOwner.mockReset();
   setSupportCasePriority.mockReset();
   setErrorGroupState.mockReset();
+  listSupportMessages.mockReset();
+  addStaffReply.mockReset();
   createSupportCase.mockResolvedValue({ id: 'case1' });
+  session = STAFF_SESSION;
 });
 
 describe('POST /api/admin/support — gövde → repo argümanı', () => {
@@ -249,5 +267,109 @@ describe('POST /api/admin/errors/[id]/state', () => {
 
     expect(res.status).toBe(400);
     expect(setErrorGroupState).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/admin/support/[id]/messages', () => {
+  it('oturumsuz 401, repo hiç çağrılmaz', async () => {
+    session = null;
+    const res = await getMessages(
+      getReq('https://app.mailmyra.com/api/admin/support/case1/messages'),
+      params('case1'),
+    );
+    expect(res.status).toBe(401);
+    expect(listSupportMessages).not.toHaveBeenCalled();
+  });
+
+  it('kullanıcı + vaka repo çağrısına birebir gider, sonuç ISO tarihle döner', async () => {
+    listSupportMessages.mockResolvedValue([
+      {
+        id: 'msg1',
+        authorType: 'customer',
+        authorEmail: 'musteri@ornek.com',
+        body: 'Merhaba',
+        createdAt: new Date('2026-08-20T10:00:00.000Z'),
+      },
+    ]);
+    const res = await getMessages(
+      getReq('https://app.mailmyra.com/api/admin/support/case1/messages'),
+      params('case1'),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({
+      messages: [
+        {
+          id: 'msg1',
+          authorType: 'customer',
+          authorEmail: 'musteri@ornek.com',
+          body: 'Merhaba',
+          createdAt: '2026-08-20T10:00:00.000Z',
+        },
+      ],
+    });
+    expect(listSupportMessages).toHaveBeenCalledWith('u1', 'case1', expect.anything());
+  });
+
+  it('NotStaffError 404 olur', async () => {
+    listSupportMessages.mockRejectedValue(new NotStaffError('personel değil'));
+    const res = await getMessages(
+      getReq('https://app.mailmyra.com/api/admin/support/case1/messages'),
+      params('case1'),
+    );
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'not_found' });
+  });
+
+  it('vaka bulunamazsa 400 olur (sibling adminError konvansiyonu)', async () => {
+    listSupportMessages.mockRejectedValue(new Error('Destek vakası case1 bulunamadı.'));
+    const res = await getMessages(
+      getReq('https://app.mailmyra.com/api/admin/support/case1/messages'),
+      params('case1'),
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'Destek vakası case1 bulunamadı.' });
+  });
+});
+
+describe('POST /api/admin/support/[id]/reply', () => {
+  it('oturumsuz 401, repo hiç çağrılmaz', async () => {
+    session = null;
+    const res = await postReply(
+      jsonReq('https://app.mailmyra.com/api/admin/support/case1/reply', { body: 'Merhaba, ilgileniyoruz.' }),
+      params('case1'),
+    );
+    expect(res.status).toBe(401);
+    expect(addStaffReply).not.toHaveBeenCalled();
+  });
+
+  it('kullanıcı + vaka + gövde repo çağrısına birebir gider', async () => {
+    addStaffReply.mockResolvedValue({ id: 'msg2' });
+    const res = await postReply(
+      jsonReq('https://app.mailmyra.com/api/admin/support/case1/reply', { body: 'Merhaba, ilgileniyoruz.' }),
+      params('case1'),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, id: 'msg2' });
+    expect(addStaffReply).toHaveBeenCalledWith('u1', 'case1', 'Merhaba, ilgileniyoruz.', expect.anything());
+  });
+
+  it('NotStaffError 404 olur', async () => {
+    addStaffReply.mockRejectedValue(new NotStaffError('personel değil'));
+    const res = await postReply(
+      jsonReq('https://app.mailmyra.com/api/admin/support/case1/reply', { body: 'x' }),
+      params('case1'),
+    );
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'not_found' });
+  });
+
+  it('boş cevap metni 400 olur, repo hatası mesajı taşır', async () => {
+    addStaffReply.mockRejectedValue(new Error('Cevap metni zorunlu.'));
+    const res = await postReply(
+      jsonReq('https://app.mailmyra.com/api/admin/support/case1/reply', { body: '' }),
+      params('case1'),
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'Cevap metni zorunlu.' });
   });
 });
