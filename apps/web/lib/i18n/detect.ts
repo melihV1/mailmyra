@@ -16,13 +16,23 @@ export function preferredLang(acceptLanguage: string): Lang {
     if (!lang) continue;
 
     let q = 1;
+    let rejected = false;
     for (const param of params) {
       const [key, value] = param.trim().split('=');
       if (key === 'q' && value !== undefined) {
         const parsed = Number(value);
-        if (Number.isFinite(parsed)) q = parsed;
+        if (Number.isFinite(parsed)) {
+          // RFC 9110 §12.4.2: q=0 (veya altı) "kabul edilemez" demektir —
+          // sayı olarak en düşük olsa da aday listeye girmez, tamamen elenir.
+          if (parsed <= 0) {
+            rejected = true;
+            break;
+          }
+          q = parsed;
+        }
       }
     }
+    if (rejected) continue;
     if (!best || q > best.q) best = { lang, q };
   }
   return best?.lang ?? 'en';

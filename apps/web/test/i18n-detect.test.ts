@@ -33,4 +33,9 @@ describe('preferredLang', () => {
   it('bozuk q değeri 1 sayılır', () => {
     expect(preferredLang('tr;q=abc,en;q=0.9')).toBe('tr');
   });
+
+  it('q=0 RFC 9110 gereği kabul edilemez sayılır, aday elenir', () => {
+    expect(preferredLang('tr;q=0,en;q=0.5')).toBe('en');
+    expect(preferredLang('tr;q=0')).toBe('en');
+  });
 });
