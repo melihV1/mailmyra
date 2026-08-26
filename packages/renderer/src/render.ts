@@ -4,6 +4,7 @@ import { stackedMinimal } from './templates/stacked-minimal';
 import { cardBordered } from './templates/card-bordered';
 import { dividerColumns } from './templates/divider-columns';
 import { photoFirst } from './templates/photo-first';
+import { ctaBanner } from './templates/cta-banner';
 
 const TEMPLATES: Record<string, (data: SignatureData, opts?: RenderOptions) => string> = {
   'classic-horizontal': classicHorizontal,
@@ -11,6 +12,7 @@ const TEMPLATES: Record<string, (data: SignatureData, opts?: RenderOptions) => s
   'card-bordered': cardBordered,
   'divider-columns': dividerColumns,
   'photo-first': photoFirst,
+  'cta-banner': ctaBanner,
 };
 
 export const TEMPLATE_IDS = Object.keys(TEMPLATES);
