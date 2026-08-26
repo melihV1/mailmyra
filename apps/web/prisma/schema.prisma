@@ -860,7 +860,27 @@ model SupportCase {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  messages SupportMessage[]
+
   @@index([status, slaDueAt])
+}
+
+model SupportMessage {
+  id     String @id @default(cuid())
+  caseId String
+
+  /// 'customer' | 'staff'
+  authorType  String @db.VarChar(16)
+  /// Görünüm kopyası: müşteri için requesterEmail, personel için staff e-postası.
+  authorEmail String @db.VarChar(255)
+  body        String @db.VarChar(2000)
+
+  createdAt DateTime @default(now())
+
+  /// Defter FK'si Restrict — mesajı olan vaka silinemez (governance emsali).
+  case SupportCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+
+  @@index([caseId, createdAt])
 }
 
 // ─── Platform telemetrisi ────────────────────────────────────────────────
