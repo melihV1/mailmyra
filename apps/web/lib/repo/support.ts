@@ -66,8 +66,8 @@ export async function openSupportCase(
   // (REFERENCE_ATTEMPTS) sona erip 500'e düşer. Bunun yerine mevcut
   // referansların EN YÜKSEK sayısal kuyruğundan devam edilir. Hacim
   // yılda yüzler mertebesinde olduğu için tüm satırları çekmek ucuz;
-  // ayrıca 9999'u aşınca sıfır dolgusu uzar (`00010` > `9999` sayıca
-  // ama `9999` > `00010` sözlüksel sırada) — bu yüzden metin sırasıyla
+  // ayrıca 9999'u aşınca sıfır dolgusu uzar (`10000` > `9999` sayıca
+  // ama `"10000"` < `"9999"` sözlüksel sırada) — bu yüzden metin sırasıyla
   // `orderBy reference desc` almak yerine ayrıştırılmış sayı üstünden
   // Math.max alınır.
   const existingRefs = await prisma.supportCase.findMany({
