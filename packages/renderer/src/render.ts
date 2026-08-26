@@ -3,12 +3,14 @@ import { classicHorizontal } from './templates/classic-horizontal';
 import { stackedMinimal } from './templates/stacked-minimal';
 import { cardBordered } from './templates/card-bordered';
 import { dividerColumns } from './templates/divider-columns';
+import { photoFirst } from './templates/photo-first';
 
 const TEMPLATES: Record<string, (data: SignatureData, opts?: RenderOptions) => string> = {
   'classic-horizontal': classicHorizontal,
   'stacked-minimal': stackedMinimal,
   'card-bordered': cardBordered,
   'divider-columns': dividerColumns,
+  'photo-first': photoFirst,
 };
 
 export const TEMPLATE_IDS = Object.keys(TEMPLATES);
