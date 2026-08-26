@@ -18,10 +18,13 @@ export async function generateMetadata() {
  * `/app/support/[id]`e link — SenderTable'daki satır-link deseni aynen
  * (linklenen hücre `d-block fw-medium text-heading`, tablo semantiği
  * değişmez). Liste sunucu tarafında repo'dan (GET ucu yok, senders emsali);
- * başka org'un vakası sorguya zaten giremez. `page.subheading` metni
- * bilerek dokunulmadı (görev kapsamı: yeni yüzeye yeni metin, mevcut
- * metin bayt-korunur) — panel içi yazışma artık var ama e-posta bildirimi
- * de gidiyor, satır tam yanlış değil; bu cila ayrı bir işe bırakıldı.
+ * başka org'un vakası sorguya zaten giremez.
+ *
+ * `page.subheading` / `form.openedToast` v2 lansmanında güncellendi (fix
+ * dalgası, code review bulgusu): "yanıtlar e-postayla gelir" artık YANLIŞ —
+ * v2'de yanıt panelde yaşıyor, e-posta yalnız bildirim. Dalga B'nin "mevcut
+ * anahtarlar bayt-korunur" kuralı ÇEVİRİ PARİTESİ için var (en/tr birebir
+ * eşleşsin diye) — ürünün kendisinin yalanladığı metni korumak için değil.
  */
 export default async function SupportPage() {
   // Layout korumasına GÜVENME (paralel render — canlıda 500 görüldü, 2026-08-11).

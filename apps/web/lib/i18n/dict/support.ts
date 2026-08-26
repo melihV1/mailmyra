@@ -4,22 +4,26 @@ import type { Mirror } from '../types';
  * Müşteri ticket v1 (app/(app)/app/support/): sayfa + NewTicketForm.
  * Durum/kategori etiketleri BURADA değil — `support-labels.ts`te
  * (`notification-looks.ts`/`activity-looks.ts` ile aynı kalıp, dosya
- * kendi başına yaşar). Panel içi yazışma YOK — yanıt e-postayla döner,
- * `page.subheading` bunu açıkça söyler (spec 2026-08-24).
+ * kendi başına yaşar).
  *
- * Ticket v2 (spec 2026-08-26, §6 müşteri): `detail` bloğu eklendi —
- * `/app/support/[id]` sayfası + `ReplyForm`. Bu YENİ bir yüzey; `en`
- * gövdeleri doğal İngilizce yazıldı (bayt-koruma kuralı yalnız var olan
- * anahtarlara uygulanır, bkz. görev raporu). Balon etiketi personelde
- * kişi adı değil "Mailmyra support"/"Mailmyra destek" — dijest/aktivite
- * emsali (spec §8-2): müşteri ürünü tanır, personeli değil.
+ * Ticket v2 (spec 2026-08-26, §6 müşteri): panel içi yazışma GELDİ —
+ * `detail` bloğu eklendi (`/app/support/[id]` sayfası + `ReplyForm`).
+ * `page.subheading` / `form.openedToast` bu yüzden fix dalgasında
+ * güncellendi: "yanıtlar e-postayla gelir" artık yanlış, yanıt panelde
+ * yaşıyor, e-posta yalnız bildirim (code review bulgusu — bkz. görev
+ * raporu "Fix wave"). `detail` YENİ bir yüzey; `en` gövdeleri doğal
+ * İngilizce yazıldı (bayt-koruma kuralı Dalga B'nin çeviri paritesi
+ * için var, ürünün yalanladığı metni korumak için değil). Balon
+ * etiketi personelde kişi adı değil "Mailmyra support"/"Mailmyra
+ * destek" — dijest/aktivite emsali (spec §8-2): müşteri ürünü tanır,
+ * personeli değil.
  */
 
 const en = {
   pageTitle: 'Support — Mailmyra',
   page: {
     heading: 'Support',
-    subheading: 'Replies arrive by email — this page tracks case status.',
+    subheading: "Replies happen right here — you'll get an email when there's a new one.",
     noWorkspaceTitle: 'No workspace yet',
     noWorkspaceBody: 'Join or create a workspace to open a support case.',
     openCaseTitle: 'Open a support case',
@@ -38,7 +42,7 @@ const en = {
     categoryLabel: 'Category',
     messageLabel: 'Message',
     submit: 'Open case',
-    openedToast: (reference: string) => `Case ${reference} opened. We'll reply by email.`,
+    openedToast: (reference: string) => `Case ${reference} opened. We'll email you when there's a reply.`,
     errors: {
       generic: 'Could not open the case — check the fields and try again.',
       network: 'Something went wrong — try again.',
@@ -68,7 +72,7 @@ const tr: Mirror<typeof en> = {
   pageTitle: 'Destek — Mailmyra',
   page: {
     heading: 'Destek',
-    subheading: 'Yanıtlar e-postayla gelir — bu sayfa talebinin durumunu gösterir.',
+    subheading: 'Yanıtlar artık burada, panelde — yeni bir yanıt geldiğinde e-posta ile haberdar edilirsin.',
     noWorkspaceTitle: 'Henüz çalışma alanı yok',
     noWorkspaceBody: 'Destek talebi açmak için bir çalışma alanına katıl ya da oluştur.',
     openCaseTitle: 'Destek talebi aç',
@@ -88,7 +92,7 @@ const tr: Mirror<typeof en> = {
     messageLabel: 'Mesaj',
     submit: 'Talep aç',
     openedToast: (reference: string) =>
-      `${reference} numaralı talep açıldı. Yanıt e-postayla gelecek.`,
+      `${reference} numaralı talep açıldı. Yanıt geldiğinde e-posta ile haberdar edilirsin.`,
     errors: {
       generic: 'Talep açılamadı — alanları kontrol et ve tekrar dene.',
       network: 'Bir şeyler ters gitti — tekrar dene.',
