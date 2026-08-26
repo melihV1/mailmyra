@@ -29,7 +29,7 @@ const TEMPLATE_META: Record<string, { name: string; icon: string; tone: string; 
   'classic-horizontal': { name: 'Classic horizontal', icon: 'tabler-layout-sidebar-right', tone: 'primary', copy: 'Photo-led corporate layout with a strong horizontal information rhythm.' },
   'stacked-minimal': { name: 'Stacked minimal', icon: 'tabler-layout-rows', tone: 'info', copy: 'Compact single-column structure designed for narrow inbox surfaces.' },
   'card-bordered': { name: 'Card bordered', icon: 'tabler-border-all', tone: 'warning', copy: 'Framed identity system with a dedicated CTA and campaign-ready edge.' },
-  'divider-columns': { name: 'Corporate divider', icon: 'tabler-layout-columns', tone: 'primary', copy: 'Logo left, a strong brand rule, contact on the right.' },
+  'divider-columns': { name: 'Corporate divider', icon: 'tabler-layout-sidebar', tone: 'primary', copy: 'Logo left, a strong brand rule, contact on the right.' },
   'photo-first': { name: 'Photo first', icon: 'tabler-user-circle', tone: 'info', copy: 'A big round portrait leads — built for personal brands.' },
   'cta-banner': { name: 'CTA banner', icon: 'tabler-rectangle', tone: 'warning', copy: 'A full-width action bar closes the signature.' },
 };

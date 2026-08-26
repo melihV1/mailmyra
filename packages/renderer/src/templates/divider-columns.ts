@@ -14,15 +14,27 @@ interface SizeScale {
   small: number;
   avatar: number;
   gap: number;
+  /**
+   * Kök tablonun toplam genişliği — SABİT piksel, yüzde DEĞİL.
+   * Sebep (cta-banner.ts'teki `SizeScale.width` gerekçesiyle birebir, bkz.
+   * de card-bordered.ts:23-29): bu şablonun sağ hücresi `width="100%"` iç içe
+   * tablolarla kurulu (yatay ayraç çizgisi VE sosyal ikon tablosu) ve Word
+   * (Outlook Classic) CSS `max-width`'i tanımıyor — dış tabloya piksel
+   * genişlik verilmezse yüzdeler okuma bölmesinin tamamına yayılıyor.
+   * Değerler cta-banner ile birebir aynı (480/540/600), hepsi 600px
+   * sınırının altında/eşit (CLAUDE.md §E-posta HTML Kısıtları).
+   */
+  width: number;
 }
 
 // SIZES classic-horizontal'dan BİREBİR kopyalanır (brief §Yapı, spec §1.1) —
 // iki şablon aynı görsel ölçekte hizalı kalsın, boyut seçimi şablonlar
-// arasında geçişte sürpriz yapmasın.
+// arasında geçişte sürpriz yapmasın. `width` cta-banner emsali (bkz.
+// SizeScale.width yorumu) — 480/540/600.
 const SIZES: Record<Size, SizeScale> = {
-  small: { name: 15, title: 12, body: 12, small: 11, avatar: 64, gap: 12 },
-  medium: { name: 18, title: 13, body: 13, small: 11, avatar: 90, gap: 16 },
-  large: { name: 22, title: 15, body: 14, small: 12, avatar: 110, gap: 20 },
+  small: { name: 15, title: 12, body: 12, small: 11, avatar: 64, gap: 12, width: 480 },
+  medium: { name: 18, title: 13, body: 13, small: 11, avatar: 90, gap: 16, width: 540 },
+  large: { name: 22, title: 15, body: 14, small: 12, avatar: 110, gap: 20, width: 600 },
 };
 
 /**
@@ -40,6 +52,12 @@ const SIZES: Record<Size, SizeScale> = {
  *    dikey ayracın brand renginden bilerek ayrılır, ikisi karışmasın).
  *  - El imzası + feragatname alt iki hücreli deseni classic'ten birebir
  *    (sağ kolonun içinde, en altta).
+ *  - Kök tablo `SIZES.width` ile SABİT PİKSEL genişlik taşır (yalnız
+ *    `max-width` stili DEĞİL — cta-banner.ts'teki `SizeScale.width`
+ *    yorumundaki gerekçeyle birebir: Word/Outlook Classic CSS `max-width`'i
+ *    tanımıyor, bu şablonun sağ hücresi `width="100%"` iç içe tablolarla
+ *    kurulu (yatay ayraç çizgisi + sosyal ikon tablosu), piksel çapa yoksa
+ *    yüzdeler okuma bölmesinin tamamına yayılır).
  */
 export function dividerColumns(data: SignatureData, opts?: RenderOptions): string {
   const s = SIZES[data.layout.size] ?? SIZES.medium;
@@ -356,5 +374,10 @@ export function dividerColumns(data: SignatureData, opts?: RenderOptions): strin
     },
   });
 
-  return table(row(leftCell + rightCell), { style: { 'max-width': '600px' } });
+  // Literal piksel width ZORUNLU (yukarıdaki SizeScale.width yorumu) —
+  // max-width TEK BAŞINA yeterli değil, Word/Outlook Classic onu tanımıyor.
+  return table(row(leftCell + rightCell), {
+    width: s.width,
+    style: { 'max-width': `${s.width}px` },
+  });
 }

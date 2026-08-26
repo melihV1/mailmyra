@@ -15,6 +15,17 @@ interface SizeScale {
   avatar: number;
   logo: number;
   gap: number;
+  /**
+   * Kök tablonun toplam genişliği — SABİT piksel, yüzde DEĞİL.
+   * Sebep (cta-banner.ts'teki `SizeScale.width` gerekçesiyle birebir, bkz.
+   * de card-bordered.ts:23-29): bu şablonun içi `width="100%"` iç içe
+   * tablolarla kurulu (logo satırı VE ikonlu sosyal tablosu) ve Word
+   * (Outlook Classic) CSS `max-width`'i tanımıyor — dış tabloya piksel
+   * genişlik verilmezse yüzdeler okuma bölmesinin tamamına yayılıyor.
+   * Değerler cta-banner ile birebir aynı (480/540/600), hepsi 600px
+   * sınırının altında/eşit (CLAUDE.md §E-posta HTML Kısıtları).
+   */
+  width: number;
 }
 
 // title/body/small/gap classic-horizontal'ın ölçeğinden BİREBİR alınır
@@ -23,11 +34,12 @@ interface SizeScale {
 // ad bir kademe büyük" — photo-first'ün small/medium/large adı, classic'in
 // bir üst kademesinin adıyla eşleşir (15→18, 18→22, 22→26). avatar
 // 88/104/120 brief'te bağlayıcı olarak sabitlenmiş. logo ise avatardan
-// AYRI ve KÜÇÜK — "small bottom row" (brief), avatar'ın ~%70'i.
+// AYRI ve KÜÇÜK — "small bottom row" (brief), avatar'ın ~%70'i. `width`
+// cta-banner emsali (bkz. SizeScale.width yorumu) — 480/540/600.
 const SIZES: Record<Size, SizeScale> = {
-  small: { name: 18, title: 12, body: 12, small: 11, avatar: 88, logo: 64, gap: 12 },
-  medium: { name: 22, title: 13, body: 13, small: 11, avatar: 104, logo: 76, gap: 16 },
-  large: { name: 26, title: 15, body: 14, small: 12, avatar: 120, logo: 88, gap: 20 },
+  small: { name: 18, title: 12, body: 12, small: 11, avatar: 88, logo: 64, gap: 12, width: 480 },
+  medium: { name: 22, title: 13, body: 13, small: 11, avatar: 104, logo: 76, gap: 16, width: 540 },
+  large: { name: 26, title: 15, body: 14, small: 12, avatar: 120, logo: 88, gap: 20, width: 600 },
 };
 
 /**
@@ -58,6 +70,12 @@ const SIZES: Record<Size, SizeScale> = {
  *    saklamıyor, yalnız width ile ölçekleriz — canon kural).
  *  - El imzası + feragatname deseni classic'ten birebir (sağ kolonun içinde,
  *    en altta).
+ *  - Kök tablo `SIZES.width` ile SABİT PİKSEL genişlik taşır (yalnız
+ *    `max-width` stili DEĞİL — cta-banner.ts'teki `SizeScale.width`
+ *    yorumundaki gerekçeyle birebir: Word/Outlook Classic CSS `max-width`'i
+ *    tanımıyor, bu şablonun içi `width="100%"` iç içe tablolarla kurulu
+ *    (logo satırı + sosyal ikon tablosu), piksel çapa yoksa yüzdeler okuma
+ *    bölmesinin tamamına yayılır).
  */
 export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
   const s = SIZES[data.layout.size] ?? SIZES.medium;
@@ -362,5 +380,10 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
       )
     : '';
 
-  return table(mainRow + logoRow, { style: { 'max-width': '600px' } });
+  // Literal piksel width ZORUNLU (yukarıdaki SizeScale.width yorumu) —
+  // max-width TEK BAŞINA yeterli değil, Word/Outlook Classic onu tanımıyor.
+  return table(mainRow + logoRow, {
+    width: s.width,
+    style: { 'max-width': `${s.width}px` },
+  });
 }

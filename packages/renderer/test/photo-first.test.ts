@@ -241,4 +241,22 @@ describe('photoFirst', () => {
     expect(small).toContain('font-size:18px');
     expect(large).toContain('font-size:26px');
   });
+
+  it('root table carries a literal pixel width per size — max-width alone is not enough (Outlook Word engine ignores CSS max-width, and this template wraps the logo row and social-icon table in width="100%" nested content that would expand to the full reading pane without a bounded pixel ancestor)', () => {
+    const rootWidth = (html: string) => html.match(/^<table[^>]*>/i)![0];
+
+    const small = photoFirst({ ...full, layout: { ...full.layout, size: 'small' } });
+    const medium = photoFirst({ ...full, layout: { ...full.layout, size: 'medium' } });
+    const large = photoFirst({ ...full, layout: { ...full.layout, size: 'large' } });
+
+    expect(rootWidth(small)).toContain('width="480"');
+    expect(rootWidth(medium)).toContain('width="540"');
+    expect(rootWidth(large)).toContain('width="600"');
+
+    // max-width stays as a secondary hint for clients that DO honor it —
+    // the literal width attribute is what actually bounds Outlook Classic.
+    expect(rootWidth(small)).toContain('max-width:480px');
+    expect(rootWidth(medium)).toContain('max-width:540px');
+    expect(rootWidth(large)).toContain('max-width:600px');
+  });
 });
