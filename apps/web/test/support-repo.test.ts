@@ -6,6 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
  * channel/priority sabit ('form'/'normal') · slaDueAt kod hesaplar ·
  * requesterEmail/org oturumdan · günlük yazılamazsa vaka YİNE açılır ·
  * listeleme yalnız kendi org'u.
+ *
+ * Ticket v2 (spec 2026-08-26 §3/§4) eklenen sözleşme: detay + mesaj yazma
+ * hâlâ oturum + KENDİ org kapısından geçer (sorguda `{ id, orgId }`, sonradan
+ * filtre değil) · `authorEmail` müşteri tipine SIZMAZ · mesaj + durum
+ * otomasyonu (`waiting_customer|resolved` → `open`, diğerleri değişmez) TEK
+ * transaction'da · gövde trim + 2000'e kırpılır, boşsa `invalid_input`.
  */
 
 const membershipFindFirst = vi.fn();
@@ -13,7 +19,15 @@ const userFindUnique = vi.fn();
 const orgFindUnique = vi.fn();
 const caseCreate = vi.fn();
 const caseFindMany = vi.fn();
+const caseFindFirst = vi.fn();
 const activityCreate = vi.fn();
+const messageFindMany = vi.fn();
+
+const tx = {
+  supportMessage: { create: vi.fn() },
+  supportCase: { update: vi.fn() },
+};
+const transaction = vi.fn(async (fn: (t: typeof tx) => Promise<unknown>) => fn(tx));
 
 vi.mock('../lib/db', () => ({
   prisma: {
@@ -26,8 +40,13 @@ vi.mock('../lib/db', () => ({
     supportCase: {
       create: (...a: unknown[]) => caseCreate(...a),
       findMany: (...a: unknown[]) => caseFindMany(...a),
+      findFirst: (...a: unknown[]) => caseFindFirst(...a),
+    },
+    supportMessage: {
+      findMany: (...a: unknown[]) => messageFindMany(...a),
     },
     activityEvent: { create: (...a: unknown[]) => activityCreate(...a) },
+    $transaction: (...a: unknown[]) => transaction(...(a as [never])),
   },
 }));
 
@@ -50,6 +69,10 @@ beforeEach(() => {
     reference: args.data.reference,
   }));
   activityCreate.mockResolvedValue({});
+  caseFindFirst.mockResolvedValue(null);
+  messageFindMany.mockResolvedValue([]);
+  tx.supportMessage.create.mockResolvedValue({ id: 'msg1' });
+  tx.supportCase.update.mockResolvedValue({});
 });
 
 afterEach(() => {
@@ -200,4 +223,150 @@ describe('listOwnSupportCases', () => {
       },
     ]);
   });
+});
+
+const caseRow = (over: Record<string, unknown> = {}) => ({
+  id: 'case1',
+  reference: 'SUP-2026-0007',
+  subject: 'Export fails',
+  category: 'export',
+  status: 'open',
+  createdAt: NOW,
+  updatedAt: NOW,
+  summary: 'Copy button does nothing.',
+  ...over,
+});
+
+describe('getOwnSupportCase', () => {
+  it('org üyeliği yoksa null döner, vaka sorgulanmaz', async () => {
+    membershipFindFirst.mockResolvedValue(null);
+    const r = await support.getOwnSupportCase('u1', 'case1');
+    expect(r).toBeNull();
+    expect(caseFindFirst).not.toHaveBeenCalled();
+  });
+
+  it('başka org veya bilinmeyen vaka → null (kapı sorguda: { id, orgId })', async () => {
+    caseFindFirst.mockResolvedValue(null);
+    const r = await support.getOwnSupportCase('u1', 'case1');
+    expect(r).toBeNull();
+    expect(caseFindFirst.mock.calls[0]![0]).toMatchObject({
+      where: { id: 'case1', orgId: 'org1' },
+    });
+    expect(messageFindMany).not.toHaveBeenCalled();
+  });
+
+  it('detay: summary taşır, mesajlar createdAt asc, authorEmail SIZMAZ', async () => {
+    caseFindFirst.mockResolvedValue(caseRow());
+    messageFindMany.mockResolvedValue([
+      {
+        id: 'm1',
+        authorType: 'customer',
+        authorEmail: 'owner@acme.com',
+        body: 'Hello',
+        createdAt: new Date(Date.UTC(2026, 7, 24, 9, 5)),
+      },
+      {
+        id: 'm2',
+        authorType: 'staff',
+        authorEmail: 'staff@voldi.net',
+        body: 'Looking into it',
+        createdAt: new Date(Date.UTC(2026, 7, 24, 9, 10)),
+      },
+    ]);
+
+    const r = await support.getOwnSupportCase('u1', 'case1');
+
+    expect(messageFindMany.mock.calls[0]![0]).toMatchObject({
+      where: { caseId: 'case1' },
+      orderBy: { createdAt: 'asc' },
+    });
+    expect(r?.summary).toBe('Copy button does nothing.');
+    expect(r?.messages).toHaveLength(2);
+    expect(r?.messages[0]).toEqual({
+      id: 'm1',
+      authorType: 'customer',
+      body: 'Hello',
+      createdAt: new Date(Date.UTC(2026, 7, 24, 9, 5)),
+    });
+    for (const m of r?.messages ?? []) {
+      expect(Object.prototype.hasOwnProperty.call(m, 'authorEmail')).toBe(false);
+    }
+  });
+});
+
+describe('addCustomerMessage', () => {
+  it('org üyeliği yoksa not_found döner, hiçbir yazma olmaz', async () => {
+    membershipFindFirst.mockResolvedValue(null);
+    const r = await support.addCustomerMessage('u1', 'case1', 'Merhaba');
+    expect(r).toEqual({ ok: false, reason: 'not_found' });
+    expect(transaction).not.toHaveBeenCalled();
+    expect(tx.supportMessage.create).not.toHaveBeenCalled();
+  });
+
+  it('başka org veya bilinmeyen vaka → not_found, create çağrılmaz', async () => {
+    caseFindFirst.mockResolvedValue(null);
+    const r = await support.addCustomerMessage('u1', 'case1', 'Merhaba');
+    expect(r).toEqual({ ok: false, reason: 'not_found' });
+    expect(caseFindFirst.mock.calls[0]![0]).toMatchObject({
+      where: { id: 'case1', orgId: 'org1' },
+    });
+    expect(transaction).not.toHaveBeenCalled();
+    expect(tx.supportMessage.create).not.toHaveBeenCalled();
+  });
+
+  it('boş (yalnız boşluk) gövde → invalid_input, hiçbir sorgu atılmaz', async () => {
+    const r = await support.addCustomerMessage('u1', 'case1', '   ');
+    expect(r).toEqual({ ok: false, reason: 'invalid_input' });
+    expect(membershipFindFirst).not.toHaveBeenCalled();
+    expect(transaction).not.toHaveBeenCalled();
+  });
+
+  it('2001 karakter → saklanan gövde tam olarak 2000 karakter', async () => {
+    caseFindFirst.mockResolvedValue({ id: 'case1', status: 'open' });
+    const long = 'a'.repeat(2001);
+    const r = await support.addCustomerMessage('u1', 'case1', long);
+    expect(r).toEqual({ ok: true, id: 'msg1' });
+    const data = tx.supportMessage.create.mock.calls[0]![0].data;
+    expect(data.body).toHaveLength(2000);
+    expect(data.body).toBe('a'.repeat(2000));
+  });
+
+  it('mesaj yazarı müşterinin kendi e-postasıdır (staff kimliği değil)', async () => {
+    caseFindFirst.mockResolvedValue({ id: 'case1', status: 'open' });
+    await support.addCustomerMessage('u1', 'case1', 'Merhaba');
+    const data = tx.supportMessage.create.mock.calls[0]![0].data;
+    expect(data).toMatchObject({
+      caseId: 'case1',
+      authorType: 'customer',
+      authorEmail: 'owner@acme.com',
+      body: 'Merhaba',
+    });
+  });
+
+  it.each([
+    ['waiting_customer', 'open'],
+    ['resolved', 'open'],
+  ])('otomasyon: %s → %s, tek transaction içinde mesaj + durum', async (from, to) => {
+    caseFindFirst.mockResolvedValue({ id: 'case1', status: from });
+    const r = await support.addCustomerMessage('u1', 'case1', 'Merhaba');
+    expect(r).toEqual({ ok: true, id: 'msg1' });
+    expect(transaction).toHaveBeenCalledTimes(1);
+    expect(tx.supportMessage.create).toHaveBeenCalledTimes(1);
+    expect(tx.supportCase.update).toHaveBeenCalledTimes(1);
+    expect(tx.supportCase.update.mock.calls[0]![0]).toMatchObject({
+      where: { id: 'case1' },
+      data: { status: to },
+    });
+  });
+
+  it.each(['open', 'escalated'])(
+    'otomasyon: %s durumu değişmez — supportCase.update HİÇ çağrılmaz',
+    async (status) => {
+      caseFindFirst.mockResolvedValue({ id: 'case1', status });
+      const r = await support.addCustomerMessage('u1', 'case1', 'Merhaba');
+      expect(r).toEqual({ ok: true, id: 'msg1' });
+      expect(tx.supportMessage.create).toHaveBeenCalledTimes(1);
+      expect(tx.supportCase.update).not.toHaveBeenCalled();
+    },
+  );
 });
