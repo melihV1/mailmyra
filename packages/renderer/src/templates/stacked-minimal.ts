@@ -3,6 +3,7 @@ import { table, row, cell } from '../utils/table';
 import { styleToString } from '../utils/inline-style';
 import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
+import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 
 type Size = SignatureData['layout']['size'];
 
@@ -24,20 +25,6 @@ const SIZES: Record<Size, SizeScale> = {
   small: { name: 16, title: 11, body: 12, small: 10, avatar: 56, logo: 96, handSig: 120, gap: 10, width: 300 },
   medium: { name: 19, title: 12, body: 13, small: 11, avatar: 72, logo: 120, handSig: 150, gap: 12, width: 340 },
   large: { name: 23, title: 14, body: 14, small: 12, avatar: 88, logo: 144, handSig: 170, gap: 14, width: 380 },
-};
-
-const PLATFORM_LABELS: Record<
-  SignatureData['social'][number]['platform'],
-  string
-> = {
-  linkedin: 'LinkedIn',
-  x: 'X',
-  instagram: 'Instagram',
-  facebook: 'Facebook',
-  youtube: 'YouTube',
-  github: 'GitHub',
-  behance: 'Behance',
-  dribbble: 'Dribbble',
 };
 
 /**
@@ -233,17 +220,10 @@ export function stackedMinimal(data: SignatureData, opts?: RenderOptions): strin
     const socialCellStyle = { 'padding-top': `${halfGap}px` };
     if (opts?.iconBaseUrl) {
       const base = opts.iconBaseUrl.replace(/\/$/, '');
-      // filled statiktir (platform renkleri); outline ve mono kullanıcının
-      // iconColor'ına göre üretilir (brandColor'dan bağımsız — karar:
-      // 2026-07-27), bu yüzden yol renge anahtarlanır.
-      const variantPath =
-        data.layout.iconStyle === 'filled'
-          ? 'filled'
-          : `${data.layout.iconStyle}-${iconHex.slice(1)}`;
       const iconCells = data.social
         .map((soc, i) =>
           cell(
-            `<a href="${sanitizeUrl(soc.url)}" style="text-decoration:none"><img src="${base}/icons/${variantPath}/${soc.platform}.png" width="24" height="24" alt="${PLATFORM_LABELS[soc.platform]}" border="0" style="${styleToString(
+            `<a href="${sanitizeUrl(soc.url)}" style="text-decoration:none"><img src="${base}/icons/${socialIconPath(data.layout.iconStyle, iconHex, soc.platform)}" width="24" height="24" alt="${PLATFORM_LABELS[soc.platform]}" border="0" style="${styleToString(
               { border: 'none', display: 'inline-block' },
             )}" /></a>`,
             {

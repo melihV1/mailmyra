@@ -3,6 +3,7 @@ import { table, row, cell } from '../utils/table';
 import { styleToString } from '../utils/inline-style';
 import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
+import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 
 type Size = SignatureData['layout']['size'];
 
@@ -19,20 +20,6 @@ const SIZES: Record<Size, SizeScale> = {
   small: { name: 15, title: 12, body: 12, small: 11, avatar: 64, gap: 12 },
   medium: { name: 18, title: 13, body: 13, small: 11, avatar: 90, gap: 16 },
   large: { name: 22, title: 15, body: 14, small: 12, avatar: 110, gap: 20 },
-};
-
-const PLATFORM_LABELS: Record<
-  SignatureData['social'][number]['platform'],
-  string
-> = {
-  linkedin: 'LinkedIn',
-  x: 'X',
-  instagram: 'Instagram',
-  facebook: 'Facebook',
-  youtube: 'YouTube',
-  github: 'GitHub',
-  behance: 'Behance',
-  dribbble: 'Dribbble',
 };
 
 export function classicHorizontal(data: SignatureData, opts?: RenderOptions): string {
@@ -189,17 +176,10 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
     };
     if (opts?.iconBaseUrl) {
       const base = opts.iconBaseUrl.replace(/\/$/, '');
-      // filled statiktir (platform renkleri); outline ve mono kullanıcının
-      // iconColor'ına göre üretilir (brandColor'dan bağımsız — karar:
-      // 2026-07-27), bu yüzden yol renge anahtarlanır.
-      const variantPath =
-        data.layout.iconStyle === 'filled'
-          ? 'filled'
-          : `${data.layout.iconStyle}-${iconHex.slice(1)}`;
       const iconCells = data.social
         .map((soc, i) =>
           cell(
-            `<a href="${sanitizeUrl(soc.url)}" style="text-decoration:none"><img src="${base}/icons/${variantPath}/${soc.platform}.png" width="24" height="24" alt="${PLATFORM_LABELS[soc.platform]}" border="0" style="${styleToString(
+            `<a href="${sanitizeUrl(soc.url)}" style="text-decoration:none"><img src="${base}/icons/${socialIconPath(data.layout.iconStyle, iconHex, soc.platform)}" width="24" height="24" alt="${PLATFORM_LABELS[soc.platform]}" border="0" style="${styleToString(
               {
                 border: 'none',
                 display: 'inline-block',
