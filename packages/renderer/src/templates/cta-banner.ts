@@ -15,6 +15,19 @@ interface SizeScale {
   avatar: number;
   logo: number;
   gap: number;
+  /**
+   * Kök tablonun toplam genişliği — SABİT piksel, yüzde DEĞİL.
+   * Sebep (card-bordered.ts'teki `width` alanının gerekçesiyle birebir):
+   * bu şablonun içi `width="100%"` iç içe tablolarla kurulu (identity
+   * satırı VE CTA bandı ikisi de) ve Word (Outlook Classic) CSS
+   * `max-width`'i tanımıyor — dış tabloya piksel genişlik verilmezse
+   * yüzdeler okuma bölmesinin tamamına yayılıyor. Bu şablonda bu risk
+   * özellikle kritik: CTA bandı şablonun ANA ÖZELLİĞİ, bant sınırsız
+   * genişlerse "tam genişlik eylem şeridi" hissi tamamen bozulur.
+   * Hepsi 600px sınırının altında/eşit (CLAUDE.md §E-posta HTML
+   * Kısıtları — "Max genişlik ~600px").
+   */
+  width: number;
 }
 
 // title/body/small classic-horizontal'ın ölçeğine yakın kalır; name/avatar/gap
@@ -23,10 +36,12 @@ interface SizeScale {
 // şeridi" kuruyor, classic'in daha büyük dikey kimlik bloğunun aksine.
 // `logo` avatar'dan AYRI bir alan (photo-first emsali): sağ sütunda küçük,
 // height'siz — oranı bilinmeyen bir görsel avatarla aynı genişliği paylaşmaz.
+// `width` stacked-minimal/card-bordered emsali — büyüdükçe 600px'e doğru
+// ölçeklenir (bkz. SizeScale.width yorumu).
 const SIZES: Record<Size, SizeScale> = {
-  small: { name: 14, title: 11, body: 11, small: 10, avatar: 40, logo: 56, gap: 10 },
-  medium: { name: 16, title: 12, body: 12, small: 11, avatar: 48, logo: 68, gap: 12 },
-  large: { name: 19, title: 14, body: 13, small: 12, avatar: 56, logo: 80, gap: 14 },
+  small: { name: 14, title: 11, body: 11, small: 10, avatar: 40, logo: 56, gap: 10, width: 480 },
+  medium: { name: 16, title: 12, body: 12, small: 11, avatar: 48, logo: 68, gap: 12, width: 540 },
+  large: { name: 19, title: 14, body: 13, small: 12, avatar: 56, logo: 80, gap: 14, width: 600 },
 };
 
 /**
@@ -38,6 +53,13 @@ const SIZES: Record<Size, SizeScale> = {
  *    arasında değişken sütun sayısı (avatar/logo bağımsız slot — biri veya
  *    ikisi de yok olabilir) yüzünden colspan uyuşmazlığı riskini tamamen
  *    ortadan kaldırır — bant her zaman kendi tam-genişlik satırında durur.
+ *  - Kök tablo `SIZES.width` ile SABİT PİKSEL genişlik taşır (yalnız
+ *    `max-width` stili DEĞİL — card-bordered.ts'teki `SizeScale.width`
+ *    yorumundaki gerekçeyle birebir: Word/Outlook Classic CSS `max-width`'i
+ *    tanımıyor, bu şablonun içi `width="100%"` iç içe tablolarla kurulu
+ *    (identity satırı + CTA bandı), piksel çapa yoksa yüzdeler okuma
+ *    bölmesinin tamamına yayılır — bu şablonda özellikle kritik, çünkü
+ *    sınırsız genişleyen taraf tam da imzanın ANA ÖZELLİĞİ olan CTA bandı).
  *  - Satır 1 — kompakt yatay kimlik: avatar KÜÇÜK solda (kare, width+height —
  *    diğer şablonlarla aynı "avatar kare" varsayımı) · orta hücre ad/ünvan/
  *    şirket + (showDividers açıksa) ince yatay çizgi + iletişim satırları +
@@ -360,5 +382,10 @@ export function ctaBanner(data: SignatureData, opts?: RenderOptions): string {
     );
   }
 
-  return table(sections.join(''), { style: { 'max-width': '600px' } });
+  // Literal piksel width ZORUNLU (yukarıdaki SizeScale.width yorumu) —
+  // max-width TEK BAŞINA yeterli değil, Word/Outlook Classic onu tanımıyor.
+  return table(sections.join(''), {
+    width: s.width,
+    style: { 'max-width': `${s.width}px` },
+  });
 }
