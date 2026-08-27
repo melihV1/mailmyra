@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 
 import {
   onboardingFacts,
@@ -74,7 +75,7 @@ export function SupportQueueView({ rows, now, preview }: { rows: SupportCaseRow[
       <div className="mm-support-conversation">
         <header className="mm-support-conversation__header"><div className="d-flex align-items-center gap-3 min-w-0"><InitialAvatar label={selected.customer} tone={PRIORITY_TONE[selected.priority]} /><span className="min-w-0"><small className="text-body-secondary">{selected.reference} · {selected.channel}</small><h5 className="mb-0 text-truncate">{selected.subject}</h5></span></div><div className="d-flex gap-2">{!preview && <SupportActionButtons row={selected} onPick={setAction} />}</div></header>
         <div className="mm-support-conversation__body">
-          <div className="row g-4 mb-5"><div className="col-md-8"><div className="mm-support-message"><div className="d-flex align-items-center gap-3 mb-4"><InitialAvatar label={selected.requester} tone="secondary" /><span><strong className="d-block text-heading">{selected.requester}</strong><small className="text-body-secondary">Customer message · {formatCompactDate(selected.createdAt)}</small></span></div><p className="mb-0">{selected.summary}</p></div></div><div className="col-md-4"><SupportSlaCard row={selected} now={now} /></div></div>
+          <div className="row g-4 mb-5"><div className="col-md-8"><div className="mm-support-message"><div className="d-flex align-items-center gap-3 mb-4"><InitialAvatar label={selected.requester} tone="secondary" /><span><strong className="d-block text-heading">{selected.requester}</strong><small className="text-body-secondary">Customer message · {formatCompactDate(selected.createdAt)}</small></span></div><p className="mb-0">{selected.summary}</p></div>{!preview && <SupportThread caseId={selected.id} requesterName={selected.requester} />}</div><div className="col-md-4"><SupportSlaCard row={selected} now={now} /></div></div>
           <OperationsSectionHeader title="Case context" support="Operational metadata only; customer signature content is never shown here." />
           <div className="mm-support-context-grid">{[
             ['Customer', selected.customer, 'tabler-building'],
@@ -93,6 +94,140 @@ export function SupportQueueView({ rows, now, preview }: { rows: SupportCaseRow[
 function SupportSlaCard({ row, now }: { row: SupportCaseRow; now: number }) {
   const sla = slaState(row, now);
   return <div className={`mm-support-sla bg-label-${sla.tone}`}><span className={`avatar mb-4`}><span className={`avatar-initial rounded bg-${sla.tone} text-white`}><i className="icon-base ti tabler-alarm" /></span></span><small className="d-block text-uppercase">Response target</small><h4 className={`text-${sla.tone} mt-1 mb-2`}>{sla.label}</h4><div className="progress"><span className={`progress-bar bg-${sla.tone}`} style={{ width: `${sla.progress}%` }} /></div><small className="d-block mt-3">Priority: <strong>{row.priority}</strong></small></div>;
+}
+
+type SupportThreadMessage = {
+  id: string;
+  authorType: 'customer' | 'staff';
+  authorEmail: string;
+  body: string;
+  createdAt: string;
+};
+
+/**
+ * Gerçek yazışma ipliği + inline Reply composer (spec §6 personel).
+ * StaffDialog DEĞİL — konuşma bölmesinin doğal, hep-açık bir parçası; açılış
+ * balonu (`summary`) burada tekrar EDİLMEZ, yalnız ondan sonraki satırlar
+ * (`listSupportMessages` de aynı sözleşmeyi taşır).
+ *
+ * Vaka seçilince tembel yüklenir; vaka hızla değiştirilirse (veya cevap
+ * gönderiminden sonra kendi tazelemesi) yarışan cevaplar `requestIdRef` ile
+ * elenir — yalnız SON dispatch edilen istek state'e yazar, daha eski bir
+ * cevap `caseId` aynı kalsa bile daha yeni birinin üzerine asla yazmaz.
+ */
+function SupportThread({ caseId, requesterName }: { caseId: string; requesterName: string }) {
+  const router = useRouter();
+  const [thread, setThread] = useState<SupportThreadMessage[] | null>(null);
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [threadError, setThreadError] = useState<string | null>(null);
+  const [refreshNonce, setRefreshNonce] = useState(0);
+  const [body, setBody] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const requestIdRef = useRef(0);
+
+  useEffect(() => {
+    const requestId = ++requestIdRef.current;
+    setThreadLoading(true);
+    setThreadError(null);
+    // Vaka değişince taslak cevap da sıfırlanır — yanlış vakaya yapışmış
+    // metin kalmaz.
+    setBody('');
+    setSendError(null);
+    fetch(`/api/admin/support/${caseId}/messages`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error('failed');
+        const data = (await res.json()) as { messages: SupportThreadMessage[] };
+        if (requestIdRef.current === requestId) setThread(data.messages);
+      })
+      .catch(() => {
+        if (requestIdRef.current === requestId) setThreadError('Could not load replies — try again.');
+      })
+      .finally(() => {
+        if (requestIdRef.current === requestId) setThreadLoading(false);
+      });
+  }, [caseId, refreshNonce]);
+
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    const trimmed = body.trim();
+    if (!trimmed) {
+      setSendError('Write a reply before sending.');
+      return;
+    }
+    setBusy(true);
+    setSendError(null);
+    try {
+      const res = await fetch(`/api/admin/support/${caseId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: trimmed }),
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        setSendError(payload.error ?? 'Could not send — try again.');
+        return;
+      }
+      setBody('');
+      // İplik tazelenir + durum rozeti `waiting_customer`a döner (router.refresh
+      // sayfa seviyesindeki liste satırını yeniden okur).
+      setRefreshNonce((n) => n + 1);
+      router.refresh();
+    } catch {
+      setSendError('Could not send — try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mm-support-thread mt-4">
+      {threadLoading && <p className="text-body-secondary small mb-0">Loading replies…</p>}
+      {!threadLoading && threadError && <div className="alert alert-danger mb-0" role="alert">{threadError}</div>}
+      {!threadLoading && !threadError && thread && thread.length === 0 && (
+        <p className="text-body-secondary small mb-0">No replies yet.</p>
+      )}
+      {!threadLoading && !threadError && thread && thread.length > 0 && (
+        <div className="d-flex flex-column gap-3">
+          {thread.map((m) => {
+            const isStaff = m.authorType === 'staff';
+            return (
+              <div key={m.id} className={`d-flex ${isStaff ? 'justify-content-end' : 'justify-content-start'}`}>
+                <div className={`rounded-3 p-3 ${isStaff ? 'bg-label-primary' : 'bg-label-secondary'}`} style={{ maxWidth: '80%' }}>
+                  <div className={`d-flex align-items-center gap-2 mb-1${isStaff ? ' justify-content-end' : ''}`}>
+                    <strong className="text-heading">{isStaff ? m.authorEmail : requesterName}</strong>
+                    <small className="text-body-secondary">{formatCompactDate(m.createdAt)}</small>
+                  </div>
+                  <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>{m.body}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <form className="mt-4" onSubmit={submit}>
+        <label className="form-label" htmlFor="supportReplyBody">Reply</label>
+        <textarea
+          id="supportReplyBody"
+          className="form-control"
+          rows={3}
+          maxLength={2000}
+          placeholder="Write a reply…"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          disabled={busy}
+        />
+        {sendError && <div className="alert alert-danger mt-2 mb-0" role="alert">{sendError}</div>}
+        <div className="d-flex justify-content-end mt-2">
+          <button type="submit" className="btn btn-primary btn-sm" disabled={busy}>
+            {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
+            Send
+          </button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
 /**
