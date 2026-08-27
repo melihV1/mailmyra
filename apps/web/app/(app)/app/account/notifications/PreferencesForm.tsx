@@ -16,13 +16,21 @@ import type { NotificationType } from '../../../../../lib/repo/notifications';
  * E-posta kutusu yalnız gerçekten mail üreten tiplerde etkin (bugün koltuk
  * uyarısı) — diğerlerinde pasif ve sebebi satırda yazıyor. Satır başlığı
  * (`look.title`) NOTIFICATION_LOOKS'tan, dil-farkında (Task 6).
+ *
+ * `transactionalEmail` (`TRANSACTIONAL_EMAIL_TYPES`, Task 8 final-review
+ * bulgusu): `support_reply` mail'i tercihe bakmadan koşulsuz gider
+ * (`addStaffReply`) — bu satır işaretli+kilitli gösterilir, "In-app only"
+ * demek yalan olurdu. `emailCapable`den AYRI kavram: o "kanalı kullanıcı
+ * yönetebilir mi", bu "e-posta zaten koşulsuz mu gidiyor".
  */
 export function PreferencesForm({
   initial,
   emailCapable,
+  transactionalEmail,
 }: {
   initial: ReadonlyArray<{ type: NotificationType; inApp: boolean; email: boolean }>;
   emailCapable: readonly string[];
+  transactionalEmail: readonly string[];
 }) {
   const toast = useToast();
   const lang = useLang();
@@ -67,12 +75,16 @@ export function PreferencesForm({
             {rows.map((row) => {
               const look = NOTIFICATION_LOOKS[lang][row.type];
               const canEmail = emailCapable.includes(row.type);
+              const isTransactionalEmail = transactionalEmail.includes(row.type);
               return (
                 <tr key={row.type}>
                   <td className="text-nowrap text-heading">
                     <span className="d-block">{look.title}</span>
-                    {!canEmail && (
+                    {!canEmail && !isTransactionalEmail && (
                       <small className="text-body-secondary">{t.inAppOnlyNote}</small>
+                    )}
+                    {isTransactionalEmail && (
+                      <small className="text-body-secondary">{t.alwaysEmailNote}</small>
                     )}
                   </td>
                   <td className="text-center">
@@ -92,8 +104,8 @@ export function PreferencesForm({
                         className="form-check-input"
                         type="checkbox"
                         aria-label={t.emailAria(look.title)}
-                        checked={canEmail && row.email}
-                        disabled={!canEmail}
+                        checked={isTransactionalEmail ? true : canEmail && row.email}
+                        disabled={!canEmail || isTransactionalEmail}
                         onChange={(e) => setValue(row.type, 'email', e.target.checked)}
                       />
                     </div>

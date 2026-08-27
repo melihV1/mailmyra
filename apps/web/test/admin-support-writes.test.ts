@@ -409,6 +409,7 @@ describe('addStaffReply', () => {
     });
     expect(notifyUserMock).toHaveBeenCalledWith('u9', 'org1', 'support_reply', {
       reference: 'SUP-2026-0007',
+      caseId: 'case1',
     });
   });
 

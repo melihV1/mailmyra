@@ -31,6 +31,9 @@ export function ReplyForm({ caseId }: { caseId: string }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    // Boşluk-yalnız gövdeyi burada kes (admin composer'la aynı desen,
+    // final-review bulgusu) — `required` boşluğu geçirir, sunucu 400 verir.
+    if (!body.trim()) return;
     setBusy(true);
     setError(null);
     try {

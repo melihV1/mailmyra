@@ -1926,7 +1926,14 @@ export async function addStaffReply(
         select: { id: true },
       });
       if (user) {
-        await notifyUser(user.id, result.orgId, 'support_reply', { reference: result.reference });
+        // caseId de taşınır (final-review bulgusu, geriye doldurulamaz):
+        // notification-looks bugün yalnız `reference` kullanıyor ama panel
+        // bildirimini doğrudan vakaya bağlayan tek alan bu — eklenmezse
+        // eski satırlar sonradan onarılamaz.
+        await notifyUser(user.id, result.orgId, 'support_reply', {
+          reference: result.reference,
+          caseId,
+        });
       }
     } catch (err) {
       console.error('[admin] destek cevap bildirimi yazılamadı:', err);

@@ -21,6 +21,17 @@ export const NOTIFICATION_TYPES = [
 /** Bugün gerçekten e-posta gönderen tipler — arayüz gerisini pasif gösterir. */
 export const EMAIL_CAPABLE_TYPES: readonly NotificationType[] = ['seat_warning'];
 
+/**
+ * E-postası HER ZAMAN giden tipler: `support_reply` işlemseldir
+ * (`addStaffReply`, `apps/web/lib/repo/admin.ts`) — staff cevabı tercihe
+ * bakmadan e-postayla gider, tercih yalnız PANEL bildirimini susturur.
+ * `EMAIL_CAPABLE_TYPES`ten AYRI: o liste "e-posta kanalını kullanıcı
+ * yönetebilir mi" sorusuna, bu liste "e-posta zaten koşulsuz gidiyor mu"
+ * sorusuna cevap verir. Arayüz bu satırı işaretli+kilitli gösterir — "In-app
+ * only" yazıp yine de mail atmak dürüst değildi (final-review bulgusu).
+ */
+export const TRANSACTIONAL_EMAIL_TYPES: readonly NotificationType[] = ['support_reply'];
+
 export interface PreferenceRow {
   type: NotificationType;
   inApp: boolean;

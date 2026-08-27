@@ -180,6 +180,7 @@ const en = {
     preferencesForm: {
       table: { colType: 'Type', colInApp: 'In-app', colEmail: 'E-mail' },
       inAppOnlyNote: 'In-app only for now',
+      alwaysEmailNote: 'Always sent by e-mail',
       inAppAria: (title: string) => `${title} — in-app`,
       emailAria: (title: string) => `${title} — e-mail`,
       saveChanges: 'Save changes',
@@ -373,6 +374,7 @@ const tr: Mirror<typeof en> = {
     preferencesForm: {
       table: { colType: 'Tür', colInApp: 'Uygulama içi', colEmail: 'E-posta' },
       inAppOnlyNote: 'Şimdilik yalnızca uygulama içi',
+      alwaysEmailNote: 'Her zaman e-posta ile gönderilir',
       inAppAria: (title: string) => `${title} — uygulama içi`,
       emailAria: (title: string) => `${title} — e-posta`,
       saveChanges: 'Değişiklikleri kaydet',

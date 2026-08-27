@@ -4,7 +4,11 @@ import { redirect } from 'next/navigation';
 import { currentSession } from '../../../../../lib/auth/current';
 import { account as accountDict } from '../../../../../lib/i18n/dict/account';
 import { getLang } from '../../../../../lib/i18n/lang.server';
-import { EMAIL_CAPABLE_TYPES, getPreferences } from '../../../../../lib/repo/notification-prefs';
+import {
+  EMAIL_CAPABLE_TYPES,
+  TRANSACTIONAL_EMAIL_TYPES,
+  getPreferences,
+} from '../../../../../lib/repo/notification-prefs';
 import { listNotifications } from '../../../../../lib/repo/notifications';
 import { NOTIFICATION_LOOKS, timeAgo } from '../../../notification-looks';
 import { AccountTabs } from '../AccountTabs';
@@ -43,7 +47,11 @@ export default async function NotificationsPage() {
             <p className="card-subtitle mb-0">{t.notifications.preferencesSubtitle}</p>
           </div>
         </div>
-        <PreferencesForm initial={preferences} emailCapable={EMAIL_CAPABLE_TYPES} />
+        <PreferencesForm
+          initial={preferences}
+          emailCapable={EMAIL_CAPABLE_TYPES}
+          transactionalEmail={TRANSACTIONAL_EMAIL_TYPES}
+        />
       </div>
 
       <div className="row g-4">
