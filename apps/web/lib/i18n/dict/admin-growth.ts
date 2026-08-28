@@ -392,7 +392,7 @@ const tr: Mirror<typeof en> = {
       fallbackLabel: 'sıradaki kilometre taşı',
     },
     readiness: {
-      title: 'Atıf hazırlığı',
+      title: 'İlişkilendirme hazırlığı',
       support: 'Gerçek bir kazanım panosu için gereken kaynaklar.',
       landingSessions: 'İniş sayfası oturumları ve yönlendirenler',
       utm: 'UTM ve kampanya kimliği',

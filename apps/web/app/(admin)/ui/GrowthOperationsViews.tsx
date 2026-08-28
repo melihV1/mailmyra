@@ -105,7 +105,7 @@ export function AcquisitionView({ source, now, preview }: { source: ProductAnaly
       { label: t.acquisition.readiness.utm, status: t.shared.notConnected, tone: 'danger', icon: 'tabler-tags' },
       { label: t.acquisition.readiness.registrations, status: adminCommon[lang].live, tone: 'success', icon: 'tabler-building-plus' },
       { label: t.acquisition.readiness.activation, status: adminCommon[lang].live, tone: 'success', icon: 'tabler-route' },
-    ].map((item) => <div className="d-flex align-items-center gap-3 rounded bg-body-secondary p-3" key={item.label}><span className={`avatar avatar-sm`}><span className={`avatar-initial rounded bg-label-${item.tone}`}><i className={`icon-base ti ${item.icon}`} /></span></span><span className="flex-grow-1 text-heading fw-medium">{item.label}</span><span className={`badge bg-label-${item.tone}`}>{item.status}</span></div>)}</div></div></div></div></div>
+    ].map((item) => <div className="d-flex align-items-center gap-3 rounded bg-body-secondary p-3" key={item.label}><span className={`avatar avatar-sm`}><span className={`avatar-initial rounded bg-label-${item.tone} text-${item.tone}`}><i className={`icon-base ti ${item.icon}`} /></span></span><span className="flex-grow-1 text-heading fw-medium">{item.label}</span><span className={`badge bg-label-${item.tone}`}>{item.status}</span></div>)}</div></div></div></div></div>
     <GrowthSource preview={preview} t={t} warning body={t.acquisition.source} />
   </>;
 }
