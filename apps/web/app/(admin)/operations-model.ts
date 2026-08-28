@@ -189,13 +189,13 @@ const healthSignalLabelsEn = {
 };
 
 const healthSignalLabelsTr: Mirror<typeof healthSignalLabelsEn> = {
-  pastDue: 'Ödemesi gecikti',
+  pastDue: 'Vadesi geçmiş',
   cancelled: 'İptal edildi',
   trialExpired: 'Deneme süresi doldu',
   seatsOver: (delta) => `${delta} koltuk aşımı`,
   noMembers: 'Üye yok',
   noActivity: 'Etkinlik yok',
-  inactiveDays: (days) => `${days} gün hareketsiz`,
+  inactiveDays: (days) => `${days} gün pasif`,
   noActiveSeats: 'Aktif koltuk yok',
 };
 

@@ -842,9 +842,9 @@ const tr: Mirror<typeof en> = {
       rejectSubmit: 'Reddet',
     },
     cancelDialog: {
-      title: (title: string) => `Vazgeç — ${title}`,
+      title: (title: string) => `İptal — ${title}`,
       subtitle: 'Talep defterde kalır; yalnız aktif kuyruktan düşer.',
-      labelledBy: (title: string) => `${title} iptal`,
+      labelledBy: (title: string) => `${title} iptal et`,
       submit: 'Talebi iptal et',
       toast: 'Talep iptal edildi.',
     },
