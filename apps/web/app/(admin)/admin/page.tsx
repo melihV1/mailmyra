@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../lib/auth/current';
+import { getLang } from '../../../lib/i18n/lang.server';
+import { adminNav } from '../../../lib/i18n/dict/admin-nav';
 import {
   listAdminActions,
   listAdminQueues,
@@ -14,7 +16,10 @@ import { buildQueueRows } from '../queue-model';
 import { CommandCenterView } from '../ui/CommandCenterView';
 import { type CustomerRow } from '../ui/CustomerTable';
 
-export const metadata = { title: 'Command center — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.commandCenter} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**

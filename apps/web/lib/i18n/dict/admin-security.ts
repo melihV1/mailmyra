@@ -595,6 +595,43 @@ const en = {
       client: 'Client',
     },
   },
+  /**
+   * Task 12 — altı sayfanın (`security/{overview,approvals,data-requests,
+   * staff}/page.tsx` + `access/page.tsx` + `actions/page.tsx`)
+   * `AdminPageHeader` prop'ları + sekme başlıkları. `overview`/`approvals`/
+   * `dataRequests`/`accessLog`/`actionLog`'un `title`'ı `adminNav[lang].
+   * menu.securityOverview/securityApprovals/securityKvkkRequests/
+   * securityAccessLog/securityActionLog` ile bayt-bayt AYNI — burada tekrar
+   * yazılmaz. `staff.title` AYRIK: sayfadaki "Staff and roles" ile nav
+   * menüsündeki "Staff & roles" aynı METİN DEĞİL ("and" / "&") — bilerek
+   * ayrı anahtar, sessizce nav'a hizalanmadı. `accessLog.metaTitle` da
+   * ayrı: sekme başlığı "Access log" (kısa form), sayfa başlığı "Staff
+   * access log" (nav'dan) — ikisi FARKLI metin.
+   */
+  pages: {
+    overview: {
+      crumbLeaf: 'Overview',
+      support: 'Monitor staff access, privileged change evidence, decision policy and statutory work from one source-aware control surface.',
+    },
+    approvals: {
+      support: 'Controlled decision queue for high-risk administrative changes.',
+    },
+    dataRequests: {
+      support: 'Statutory data-subject work with ownership, due dates and evidence. Opening this register is logged.',
+    },
+    staff: {
+      title: 'Staff and roles',
+      crumbLeaf: 'Staff',
+      support: 'Review control-plane accounts and the current permission boundary.',
+    },
+    accessLog: {
+      metaTitle: 'Access log',
+      support: 'Trace every sensitive customer read without changing the immutable audit record.',
+    },
+    actionLog: {
+      support: 'Review every staff write with its customer, mandatory reason and immutable before/after snapshot.',
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -1107,6 +1144,30 @@ const tr: Mirror<typeof en> = {
       reason: 'Sebep',
       ip: 'IP',
       client: 'İstemci',
+    },
+  },
+  pages: {
+    overview: {
+      crumbLeaf: 'Özet',
+      support: 'Personel erişimini, yetkili değişiklik kanıtını, karar politikasını ve yasal işleri tek bir kaynağa duyarlı kontrol yüzeyinden izle.',
+    },
+    approvals: {
+      support: 'Yüksek riskli yönetimsel değişiklikler için denetimli karar kuyruğu.',
+    },
+    dataRequests: {
+      support: 'Sahiplik, vade tarihi ve kanıt taşıyan yasal veri sahibi işleri. Bu kaydı açmak günlüğe yazılır.',
+    },
+    staff: {
+      title: 'Personel ve roller',
+      crumbLeaf: 'Personel',
+      support: 'Kontrol katmanı hesaplarını ve güncel yetki sınırını incele.',
+    },
+    accessLog: {
+      metaTitle: 'Erişim günlüğü',
+      support: 'Değişmez denetim kaydını değiştirmeden her hassas müşteri okumasını izle.',
+    },
+    actionLog: {
+      support: 'Her personel yazmasını müşterisi, zorunlu sebebi ve değişmez öncesi/sonrası anlık görüntüsüyle incele.',
     },
   },
 };

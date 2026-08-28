@@ -283,6 +283,9 @@ const en = {
       lastExport: 'Last export',
       signatures: 'Signatures',
       empty: 'No senders yet.',
+      statusInactive: 'inactive',
+      statusLive: 'live',
+      statusDraft: 'draft',
     },
     signatures: {
       title: 'Signatures',
@@ -313,6 +316,40 @@ const en = {
       staff: 'Staff',
       scope: 'Scope',
       target: 'Target',
+    },
+  },
+  /**
+   * Task 12 — beş sayfanın (`customers/{health,trials,users}/page.tsx`,
+   * `orgs/page.tsx`, `orgs/[id]/page.tsx`) `AdminPageHeader` prop'ları +
+   * sekme başlıkları. `trials`/`organizations`ın `title`'ı `adminNav[lang].
+   * menu.customersTrials/customersOrganizations` ile bayt-bayt AYNI —
+   * burada tekrar yazılmaz (crumb da tamamen nav'dan). `health.crumbLeaf`
+   * ("Health") nav'daki tam ad ("Customer health") ile aynı METİN DEĞİL —
+   * ayrı anahtar; `title` yine de nav'dan (`customersHealth`) okunur.
+   * `users.title` ("Customer users") nav menü adından ("Users") FARKLI —
+   * ayrı anahtar; crumb yaprağı ise nav'daki `customersUsers` ile aynı,
+   * oradan okunur. `orgDetail.metaTitle` — Task 5'in bilerek dokunmadığı
+   * `orgs/[id]/page.tsx` sekme başlığı ("Customer"); sayfanın kendisi
+   * `AdminPageHeader` KULLANMAZ (kart tabanlı 360 görünüm), yalnız
+   * `generateMetadata` bu anahtarı okur.
+   */
+  pages: {
+    health: {
+      crumbLeaf: 'Health',
+      support: 'Use explainable operational signals to focus intervention work; no opaque churn score.',
+    },
+    trials: {
+      support: 'Follow trial deadlines and seat exceptions without changing customer data from the list.',
+    },
+    users: {
+      title: 'Customer users',
+      support: 'Find customer identities and workspace membership without exposing edit controls.',
+    },
+    organizations: {
+      support: 'Every root billing organization, with search and state filters.',
+    },
+    orgDetail: {
+      metaTitle: 'Customer',
     },
   },
 } as const;
@@ -576,6 +613,9 @@ const tr: Mirror<typeof en> = {
       lastExport: 'Son dışa aktarım',
       signatures: 'İmzalar',
       empty: 'Henüz gönderici yok.',
+      statusInactive: 'pasif',
+      statusLive: 'canlı',
+      statusDraft: 'taslak',
     },
     signatures: {
       title: 'İmzalar',
@@ -606,6 +646,25 @@ const tr: Mirror<typeof en> = {
       staff: 'Personel',
       scope: 'Kapsam',
       target: 'Hedef',
+    },
+  },
+  pages: {
+    health: {
+      crumbLeaf: 'Sağlık',
+      support: 'Müdahale işini odaklamak için açıklanabilir operasyonel sinyaller kullan; gizli bir kayıp skoru yok.',
+    },
+    trials: {
+      support: 'Listeden müşteri verisini değiştirmeden deneme son tarihlerini ve koltuk istisnalarını takip et.',
+    },
+    users: {
+      title: 'Müşteri kullanıcıları',
+      support: 'Düzenleme kontrollerini açığa çıkarmadan müşteri kimliklerini ve çalışma alanı üyeliğini bul.',
+    },
+    organizations: {
+      support: 'Arama ve durum filtreleriyle her kök faturalama organizasyonu.',
+    },
+    orgDetail: {
+      metaTitle: 'Müşteri',
     },
   },
 };

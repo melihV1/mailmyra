@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminSecurity } from '../../../../../lib/i18n/dict/admin-security';
 import { listApprovals, NotStaffError } from '../../../../../lib/repo/admin';
 import type { ApprovalQueueRow } from '../../../operations-model';
 import { NewApprovalButton } from '../../../ui/ApprovalActions';
@@ -8,7 +11,10 @@ import { AdminPageHeader } from '../../../ui/AdminPageHeader';
 import { ApprovalsView } from '../../../ui/GovernanceOperationsViews';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
-export const metadata = { title: 'Approvals — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.securityApprovals} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -21,6 +27,10 @@ export const dynamic = 'force-dynamic';
 export default async function ApprovalsPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/security/approvals');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminSecurity[lang].pages.approvals;
 
   let source;
   try {
@@ -50,9 +60,9 @@ export default async function ApprovalsPage() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Security & governance / Approvals"
-        title="Approvals"
-        support="Controlled decision queue for high-risk administrative changes."
+        crumb={`${nav.security} / ${nav.securityApprovals}`}
+        title={nav.securityApprovals}
+        support={t.support}
         right={
           <>
             <NewApprovalButton />

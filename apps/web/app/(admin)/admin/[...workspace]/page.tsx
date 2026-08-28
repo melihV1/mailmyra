@@ -1,67 +1,65 @@
 import Link from 'next/link';
 
+import { getLang } from '../../../../lib/i18n/lang.server';
+import { adminCommand } from '../../../../lib/i18n/dict/admin-command';
+import { adminNav } from '../../../../lib/i18n/dict/admin-nav';
+import type { Lang } from '../../../../lib/i18n/types';
 import { AdminPageHeader } from '../../ui/AdminPageHeader';
 
 export const dynamic = 'force-dynamic';
 
-const WORKSPACE: Record<string, { label: string; icon: string; source: string; first: string; guardrail: string }> = {
-  customers: {
-    label: 'Customers',
-    icon: 'tabler-building-community',
-    source: 'Organizations, memberships, entitlements and activity events',
-    first: 'Unified user, trial and customer-health views',
-    guardrail: 'Customer personal data reads must create StaffAccess records',
-  },
-  product: {
-    label: 'Product',
-    icon: 'tabler-activity-heartbeat',
-    source: 'A versioned product-event taxonomy and server-side event collector',
-    first: 'Activation, builder, preview and export funnels',
-    guardrail: 'No inferred usage from mutable records; event history is append-only',
-  },
-  revenue: {
-    label: 'Revenue',
-    icon: 'tabler-currency-dollar',
-    source: 'Invoice ledger, entitlement snapshots and pricing versions',
-    first: 'Revenue overview, receivables and seat movement ledger',
-    guardrail: 'Never sum different currencies and never delete invoices',
-  },
-  growth: {
-    label: 'Growth & content',
-    icon: 'tabler-speakerphone',
-    source: 'Consent-aware web analytics, lead capture and a content registry',
-    first: 'Acquisition, leads, pages, SEO and media governance',
-    guardrail: 'Marketing consent and operational email purposes remain separate',
-  },
-  support: {
-    label: 'Support',
-    icon: 'tabler-headset',
-    source: 'Case model, queue ownership and customer activity context',
-    first: 'Support inbox, onboarding queue and reusable playbooks',
-    guardrail: 'No impersonation and no customer-content editing',
-  },
-  platform: {
-    label: 'Platform',
-    icon: 'tabler-server-cog',
-    source: 'Job telemetry, structured errors, delivery probes and release markers',
-    first: 'Health, failures, jobs, releases and feature controls',
-    guardrail: 'Operational controls require confirmation, reason and audit evidence',
-  },
-  security: {
-    label: 'Security & governance',
-    icon: 'tabler-shield-lock',
-    source: 'StaffAccess, AdminAction, staff roles and approval records',
-    first: 'Security overview, approvals, roles and KVKK request workflow',
-    guardrail: 'Least privilege, four-eyes approval and immutable audit records',
-  },
-  reports: {
-    label: 'Reports',
-    icon: 'tabler-report-analytics',
-    source: 'Versioned KPI definitions backed by named source queries',
-    first: 'Report library, schedules and an auditable KPI dictionary',
-    guardrail: 'Every number must expose definition, source, grain and freshness',
-  },
+/** Task 12 backfill — dinamik segment adı bir sekme başlığı taşıyamaz; brief'in izin verdiği statik aile başlığı. */
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminCommand[lang].workspaceFoundation.metaTitle} — Mailmyra staff` };
+}
+
+type WorkspaceKey =
+  | 'customers'
+  | 'product'
+  | 'revenue'
+  | 'growth'
+  | 'support'
+  | 'platform'
+  | 'security'
+  | 'reports';
+
+const ICON: Record<WorkspaceKey, string> = {
+  customers: 'tabler-building-community',
+  product: 'tabler-activity-heartbeat',
+  revenue: 'tabler-currency-dollar',
+  growth: 'tabler-speakerphone',
+  support: 'tabler-headset',
+  platform: 'tabler-server-cog',
+  security: 'tabler-shield-lock',
+  reports: 'tabler-report-analytics',
 };
+
+/**
+ * `label` sabit (`WORKSPACE` haritası) yerine `adminNav[lang].menu`den
+ * gelir — sekiz grup adı nav menüsündeki BÖLÜM adlarıyla bayt-bayt aynı
+ * (bkz. admin-command `workspaceFoundation` dosya başı notu). Yalnız
+ * `source`/`first`/`guardrail` bu görevde çevrilen YENİ metin.
+ */
+function workspaceGroup(lang: Lang, key: WorkspaceKey) {
+  const nav = adminNav[lang].menu;
+  const g = adminCommand[lang].workspaceFoundation.groups[key];
+  const LABEL: Record<WorkspaceKey, string> = {
+    customers: nav.customers,
+    product: nav.product,
+    revenue: nav.revenue,
+    growth: nav.growth,
+    support: nav.support,
+    platform: nav.platform,
+    security: nav.security,
+    reports: nav.reports,
+  };
+  return { label: LABEL[key], icon: ICON[key], source: g.source, first: g.first, guardrail: g.guardrail };
+}
+
+function isWorkspaceKey(v: string): v is WorkspaceKey {
+  return v === 'customers' || v === 'product' || v === 'revenue' || v === 'growth' || v === 'support' || v === 'platform' || v === 'security' || v === 'reports';
+}
 
 export default async function WorkspaceFoundationPage({
   params,
@@ -69,7 +67,10 @@ export default async function WorkspaceFoundationPage({
   params: Promise<{ workspace: string[] }>;
 }) {
   const { workspace } = await params;
-  const group = WORKSPACE[workspace[0] ?? ''] ?? WORKSPACE.reports!;
+  const lang = await getLang();
+  const t = adminCommand[lang].workspaceFoundation;
+  const key = isWorkspaceKey(workspace[0] ?? '') ? (workspace[0] as WorkspaceKey) : 'reports';
+  const group = workspaceGroup(lang, key);
   const pageName = humanize(workspace.at(-1) ?? group.label);
 
   return (
@@ -77,18 +78,15 @@ export default async function WorkspaceFoundationPage({
       <AdminPageHeader
         crumb={group.label}
         title={pageName}
-        support="This control-plane surface is defined and ready for its data contract."
-        right={<span className="badge bg-label-warning">Foundation</span>}
+        support={t.support}
+        right={<span className="badge bg-label-warning">{t.badge}</span>}
       />
 
       <div className="alert alert-warning d-flex align-items-start gap-3 mb-6" role="status">
         <i className="icon-base ti tabler-database-cog icon-26px mt-1" aria-hidden="true" />
         <div>
-          <h6 className="alert-heading mb-1">Source setup required</h6>
-          <p className="mb-0">
-            Navigation and governance are in place. This screen will not display generated or
-            estimated metrics before its authoritative source exists.
-          </p>
+          <h6 className="alert-heading mb-1">{t.sourceSetup.title}</h6>
+          <p className="mb-0">{t.sourceSetup.body}</p>
         </div>
       </div>
 
@@ -102,42 +100,39 @@ export default async function WorkspaceFoundationPage({
                 </span>
               </span>
               <div>
-                <span className="badge bg-label-primary mb-3">{group.label} workspace</span>
-                <h3 className="mb-2">Build the source before the chart.</h3>
-                <p className="text-body-secondary mb-0">
-                  The information architecture is stable, so implementation can progress module by
-                  module without another navigation redesign.
-                </p>
+                <span className="badge bg-label-primary mb-3">{t.workspaceBadge(group.label)}</span>
+                <h3 className="mb-2">{t.buildSource.title}</h3>
+                <p className="text-body-secondary mb-0">{t.buildSource.body}</p>
               </div>
             </div>
           </div>
         </div>
         <div className="col-lg-5">
           <div className="card h-100">
-            <div className="card-header"><h5 className="card-title mb-0">Readiness</h5></div>
+            <div className="card-header"><h5 className="card-title mb-0">{t.readiness.title}</h5></div>
             <div className="card-body pt-2">
-              <Readiness label="Information architecture" state="Ready" tone="success" />
-              <Readiness label="Access boundary" state="Ready" tone="success" />
-              <Readiness label="Authoritative source" state="Required" tone="warning" />
-              <Readiness label="Historical coverage" state="Unavailable" tone="secondary" />
+              <Readiness label={t.readiness.informationArchitecture} state={t.readiness.ready} tone="success" />
+              <Readiness label={t.readiness.accessBoundary} state={t.readiness.ready} tone="success" />
+              <Readiness label={t.readiness.authoritativeSource} state={t.readiness.required} tone="warning" />
+              <Readiness label={t.readiness.historicalCoverage} state={t.readiness.unavailable} tone="secondary" />
             </div>
           </div>
         </div>
       </div>
 
       <div className="row g-6">
-        <FoundationCard number="01" title="Source contract" icon="tabler-database" body={group.source} />
-        <FoundationCard number="02" title="First deliverable" icon="tabler-layout-dashboard" body={group.first} />
-        <FoundationCard number="03" title="Control boundary" icon="tabler-shield-check" body={group.guardrail} />
+        <FoundationCard number="01" title={t.cards.sourceContract} icon="tabler-database" body={group.source} />
+        <FoundationCard number="02" title={t.cards.firstDeliverable} icon="tabler-layout-dashboard" body={group.first} />
+        <FoundationCard number="03" title={t.cards.controlBoundary} icon="tabler-shield-check" body={group.guardrail} />
       </div>
 
       <div className="d-flex justify-content-between align-items-center mt-6">
         <Link href="/admin" className="btn btn-label-secondary">
           <i className="icon-base ti tabler-arrow-left me-2" aria-hidden="true" />
-          Command center
+          {adminNav[lang].menu.commandCenter}
         </Link>
         <Link href="/admin/reports/definitions" className="btn btn-primary">
-          Open measurement plan
+          {adminCommand[lang].view.dataReadiness.action}
           <i className="icon-base ti tabler-arrow-right ms-2" aria-hidden="true" />
         </Link>
       </div>

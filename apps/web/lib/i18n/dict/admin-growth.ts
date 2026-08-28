@@ -312,6 +312,38 @@ const en = {
       toast: 'Lead updated.',
     },
   },
+  /**
+   * Task 12 — altı sayfanın (`growth/{overview,acquisition,leads,content/
+   * pages,content/media,content/legal}/page.tsx`) `AdminPageHeader` prop'ları
+   * + sekme başlıkları. `title` her altısında da `adminNav[lang].menu.
+   * growthOverview/growthAcquisition/growthLeads/growthPagesSeo/
+   * growthMediaLibrary/growthLegalContent` ile bayt-bayt AYNI — burada
+   * tekrar yazılmaz, çağrı yeri doğrudan `adminNav`dan okur (crumb kökü
+   * `adminNav[lang].menu.growth`). Yalnız `overview.crumbLeaf` ayrık: crumb
+   * ibaresi "Overview" iken menü başlığı "Growth overview" — aynı metin
+   * DEĞİL, ayrı anahtar.
+   */
+  pages: {
+    overview: {
+      crumbLeaf: 'Overview',
+      support: 'Read registration, activation and product evidence without inventing traffic attribution.',
+    },
+    acquisition: {
+      support: 'Follow the durable path from workspace creation to export evidence.',
+    },
+    leads: {
+      support: 'Manually curated pipeline — no tracking source is connected.',
+    },
+    pagesSeo: {
+      support: 'Review the source-owned public route and metadata registry.',
+    },
+    mediaLibrary: {
+      support: 'Inventory approved public brand media without exposing customer assets.',
+    },
+    legalContent: {
+      support: 'Compare published policy routes with acceptance evidence capability.',
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -532,6 +564,27 @@ const tr: Mirror<typeof en> = {
       noChanges: 'Değişiklik yok.',
       saveSubmit: 'Değişiklikleri kaydet',
       toast: 'Aday güncellendi.',
+    },
+  },
+  pages: {
+    overview: {
+      crumbLeaf: 'Özet',
+      support: 'Trafik atfı uydurmadan kayıt, aktivasyon ve ürün kanıtını oku.',
+    },
+    acquisition: {
+      support: 'Çalışma alanı oluşturmadan dışa aktarım kanıtına kadar kalıcı yolu takip et.',
+    },
+    leads: {
+      support: 'Elle küratörlüğü yapılan hat — bağlı bir izleme kaynağı yok.',
+    },
+    pagesSeo: {
+      support: 'Kaynağa ait genel rota ve meta veri kaydını incele.',
+    },
+    mediaLibrary: {
+      support: 'Müşteri varlıklarını açığa çıkarmadan onaylı genel marka medyasını envanterle.',
+    },
+    legalContent: {
+      support: 'Yayınlanan politika rotalarını kabul kanıtı yeteneğiyle karşılaştır.',
     },
   },
 };

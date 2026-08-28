@@ -131,9 +131,9 @@ export function CommandCenterView({
   return (
     <section id="admin-command-center">
       <AdminPageHeader
-        crumb="Command center"
-        title="Command center"
-        support="Run customers, revenue, product operations and governance from one source-aware workspace."
+        crumb={adminNav[lang].menu.commandCenter}
+        title={adminNav[lang].menu.commandCenter}
+        support={t.headerSupport}
         right={
           <>
             <DashboardCustomizer />

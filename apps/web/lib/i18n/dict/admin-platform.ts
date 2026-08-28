@@ -295,6 +295,39 @@ const en = {
     resumeToast: 'Schedule resumed.',
     pauseToast: 'Schedule paused.',
   },
+  /**
+   * Task 12 — yedi sayfanın (`platform/{overview,mail,jobs,errors,releases,
+   * exports,feature-flags}/page.tsx`) `AdminPageHeader` prop'ları + backfill
+   * sekme başlıkları (bu yedisinde daha önce hiç `metadata` yoktu). `title`/
+   * crumb her yedisinde de `adminNav[lang].menu.platformSystemHealth/
+   * platformMailDelivery/platformJobs/platformErrors/platformReleases/
+   * platformExportPipeline/platformFeatureFlags` ile bayt-bayt AYNI —
+   * burada tekrar yazılmaz, çağrı yeri doğrudan `adminNav`dan okur (crumb
+   * kökü `adminNav[lang].menu.platform`). Yalnız `support` YENİ.
+   */
+  pages: {
+    overview: {
+      support: 'Monitor service availability, dependency latency and current operating posture.',
+    },
+    mail: {
+      support: 'Review transactional delivery outcomes without exposing message content.',
+    },
+    jobs: {
+      support: 'Operate scheduled work through explicit queue, attempt and terminal states.',
+    },
+    errors: {
+      support: 'Triage scrubbed, deduplicated platform failures by impact and recency.',
+    },
+    releases: {
+      support: 'Bind deployments to version, checks, environment and rollback evidence.',
+    },
+    exports: {
+      support: 'Trace validation, rendering and packaging across signature exports.',
+    },
+    featureFlags: {
+      support: 'Govern staged runtime behavior with rollout scope and auditable controls.',
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -544,6 +577,29 @@ const tr: Mirror<typeof en> = {
     pauseSubtitle: 'Zamanlama, sürdürülene kadar çalışmayı durdurur.',
     resumeToast: 'Zamanlama sürdürüldü.',
     pauseToast: 'Zamanlama duraklatıldı.',
+  },
+  pages: {
+    overview: {
+      support: 'Servis kullanılabilirliğini, bağımlılık gecikmesini ve güncel operasyon duruşunu izle.',
+    },
+    mail: {
+      support: 'Mesaj içeriğini açığa çıkarmadan işlemsel teslim sonuçlarını incele.',
+    },
+    jobs: {
+      support: 'Zamanlanmış işi açık kuyruk, deneme ve sonlanma durumlarıyla yönet.',
+    },
+    errors: {
+      support: 'Temizlenmiş, tekilleştirilmiş platform hatalarını etki ve yakınlığa göre triyaj et.',
+    },
+    releases: {
+      support: 'Dağıtımları sürüm, kontrol, ortam ve geri alma kanıtına bağla.',
+    },
+    exports: {
+      support: 'İmza dışa aktarımları genelinde doğrulama, render ve paketlemeyi izle.',
+    },
+    featureFlags: {
+      support: 'Aşamalı çalışma zamanı davranışını yayılım kapsamı ve denetlenebilir kontrollerle yönet.',
+    },
   },
 };
 

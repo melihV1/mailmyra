@@ -354,8 +354,34 @@ const en = {
     cash: 'Cash',
     other: 'Other',
   },
-  invoicesPage: {
-    issueFromCustomer: 'Issue from customer',
+  /**
+   * Task 12 — beş sayfanın (`revenue/{overview,receivables,seats,pricing-
+   * versions}/page.tsx` + `invoices/page.tsx`) `AdminPageHeader` prop'ları +
+   * sekme başlıkları. `title` her beşinde de `adminNav[lang].menu.
+   * revenueOverview/revenueInvoices/revenueReceivables/revenueSeatLedger/
+   * revenuePricingVersions` ile bayt-bayt AYNI — burada tekrar yazılmaz.
+   * Eski `invoicesPage` (Task 7'nin tek satırlık kroması) bu bloğa
+   * TAŞINDI — tek çağrı yeri (`invoices/page.tsx`) güncellendi, ayrı
+   * anahtar tutmanın gerekçesi kalmadı.
+   */
+  pages: {
+    overview: {
+      crumbLeaf: 'Overview',
+      support: 'Read recorded billing performance by currency, customer and invoice status.',
+    },
+    invoices: {
+      issueFromCustomer: 'Issue from customer',
+      support: 'Track authoritative billing records, collection windows and overdue balances by currency.',
+    },
+    receivables: {
+      support: 'Prioritize open balances by due date and aging without mixing currency ledgers.',
+    },
+    seatLedger: {
+      support: 'Compare authoritative active seats with the entitlement assigned to each billing organization.',
+    },
+    pricingVersions: {
+      support: 'Review the live sender policy, grandfathered customers and the exact version stored on every billing organization.',
+    },
   },
 } as const;
 
@@ -673,8 +699,24 @@ const tr: Mirror<typeof en> = {
     cash: 'Nakit',
     other: 'Diğer',
   },
-  invoicesPage: {
-    issueFromCustomer: 'Müşteriden fatura kes',
+  pages: {
+    overview: {
+      crumbLeaf: 'Özet',
+      support: 'Kayıtlı faturalama performansını para birimi, müşteri ve fatura durumuna göre oku.',
+    },
+    invoices: {
+      issueFromCustomer: 'Müşteriden fatura kes',
+      support: 'Yetkili faturalama kayıtlarını, tahsilat pencerelerini ve para birimine göre gecikmiş bakiyeleri takip et.',
+    },
+    receivables: {
+      support: 'Para birimi defterlerini karıştırmadan açık bakiyeleri vade tarihine ve yaşlanmaya göre önceliklendir.',
+    },
+    seatLedger: {
+      support: 'Yetkili aktif koltukları her faturalama organizasyonuna atanan tahsisle karşılaştır.',
+    },
+    pricingVersions: {
+      support: 'Canlı gönderici politikasını, kazanılmış hak sahibi müşterileri ve her faturalama organizasyonunda saklanan tam sürümü incele.',
+    },
   },
 };
 

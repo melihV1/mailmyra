@@ -270,6 +270,32 @@ const en = {
       toast: 'Support case created.',
     },
   },
+  /**
+   * Task 12 — dört sayfanın (`support/{cases,queue,onboarding,playbooks}/
+   * page.tsx`) `AdminPageHeader` prop'ları + sekme başlıkları. `title` alanı
+   * her dördünde de `adminNav[lang].menu.supportCases/supportQueue/
+   * supportOnboarding/supportPlaybooks` ile bayt-bayt AYNI olduğu için
+   * burada TEKRAR yazılmaz — çağrı yeri doğrudan `adminNav`dan okur, crumb
+   * kökü de aynı şekilde `adminNav[lang].menu.support`dan gelir. Yalnız
+   * `queue.crumbLeaf` ayrık: crumb'daki kısa "Queue" ibaresi, menüdeki
+   * "Support queue" ile aynı METİN değil (nav header'da tam ad, crumb'da
+   * kısaltma) — bu yüzden ayrı anahtar.
+   */
+  pages: {
+    cases: {
+      support: 'Durable support portfolio. Opening this register is logged.',
+    },
+    queue: {
+      crumbLeaf: 'Queue',
+      support: 'Inbound customer work by SLA, ownership and state. Opening this register is logged.',
+    },
+    onboarding: {
+      support: 'Guide workspaces toward first export using observable product milestones.',
+    },
+    playbooks: {
+      support: 'Use consistent, auditable procedures for recurring support work.',
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -470,6 +496,21 @@ const tr: Mirror<typeof en> = {
       summaryLabel: 'Özet',
       submit: 'Vaka oluştur',
       toast: 'Destek vakası oluşturuldu.',
+    },
+  },
+  pages: {
+    cases: {
+      support: 'Kalıcı destek portföyü. Bu kaydı açmak günlüğe yazılır.',
+    },
+    queue: {
+      crumbLeaf: 'Kuyruk',
+      support: 'SLA, sahiplik ve duruma göre gelen müşteri işi. Bu kaydı açmak günlüğe yazılır.',
+    },
+    onboarding: {
+      support: 'Çalışma alanlarını gözlemlenebilir ürün kilometre taşlarıyla ilk dışa aktarıma yönlendir.',
+    },
+    playbooks: {
+      support: 'Tekrarlayan destek işleri için tutarlı, denetlenebilir prosedürler kullan.',
     },
   },
 };

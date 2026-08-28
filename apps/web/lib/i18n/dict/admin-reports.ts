@@ -174,6 +174,29 @@ const en = {
       grain: 'Grain',
     },
   },
+  /**
+   * Task 12 — üç sayfanın (`reports/{definitions,library,scheduled}/
+   * page.tsx`) `AdminPageHeader` prop'ları + sekme başlıkları (dosya başı
+   * notunda "Task 12'nin kapsamı, dokunulmadı" diye işaretlenmişti — bu
+   * görev o notu kapatır). `title` üçünde de `adminNav[lang].menu.
+   * reportsKpiDefinitions/reportsLibrary/reportsScheduled` ile bayt-bayt
+   * AYNI — burada tekrar yazılmaz. `library`/`scheduled` crumb yaprağı
+   * kısa form ("Library"/"Scheduled") kullanır, nav'daki tam ad ("Report
+   * library"/"Scheduled reports") ile aynı METİN değil — ayrı anahtar.
+   */
+  pages: {
+    definitions: {
+      support: 'Keep formulas, denominators, sources, grain, freshness and interpretation guardrails in one shared dictionary.',
+    },
+    library: {
+      crumbLeaf: 'Library',
+      support: 'Use a governed catalog of operating reports with explicit owners, sources and metric contracts.',
+    },
+    scheduled: {
+      crumbLeaf: 'Scheduled',
+      support: 'Cadence, recipients and delivery format — executions and deliveries are written by the scheduled runner (npm run reports, daily Plesk task); schedules are opened and paused from this page.',
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -283,6 +306,19 @@ const tr: Mirror<typeof en> = {
       interpretationGuardrail: 'Yorumlama uyarısı',
       source: 'Kaynak',
       grain: 'Ayrıntı düzeyi',
+    },
+  },
+  pages: {
+    definitions: {
+      support: 'Formülleri, paydaları, kaynakları, ayrıntı düzeyini, güncelliği ve yorumlama uyarılarını tek bir paylaşılan sözlükte tut.',
+    },
+    library: {
+      crumbLeaf: 'Kütüphane',
+      support: 'Açık sahipleri, kaynakları ve metrik sözleşmeleriyle denetimli bir operasyon rapor kataloğu kullan.',
+    },
+    scheduled: {
+      crumbLeaf: 'Zamanlanmış',
+      support: 'Kadans, alıcılar ve teslim biçimi — çalıştırmalar ve teslimler zamanlanmış çalıştırıcı (npm run reports, günlük Plesk görevi) tarafından yazılır; zamanlamalar bu sayfadan açılır ve duraklatılır.',
     },
   },
 };

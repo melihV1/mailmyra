@@ -1,18 +1,28 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { getLang } from '../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../lib/i18n/dict/admin-nav';
+import { adminSecurity } from '../../../../lib/i18n/dict/admin-security';
 import { listAdminActions, NotStaffError } from '../../../../lib/repo/admin';
 import type { AdminActionLogRow } from '../../action-log-model';
 import { AdminActionLogView } from '../../ui/AdminActionLogView';
 import { AdminPageHeader } from '../../ui/AdminPageHeader';
 import { RefreshButton } from '../../ui/RefreshButton';
 
-export const metadata = { title: 'Admin action log — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.securityActionLog} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function ActionLogPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/actions');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminSecurity[lang].pages.actionLog;
 
   let actions;
   try {
@@ -30,9 +40,9 @@ export default async function ActionLogPage() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Security & governance / Admin action log"
-        title="Admin action log"
-        support="Review every staff write with its customer, mandatory reason and immutable before/after snapshot."
+        crumb={`${nav.security} / ${nav.securityActionLog}`}
+        title={nav.securityActionLog}
+        support={t.support}
         right={<RefreshButton />}
       />
       <AdminActionLogView rows={rows} now={Date.now()} />

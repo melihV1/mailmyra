@@ -1,13 +1,19 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminReports } from '../../../../../lib/i18n/dict/admin-reports';
 import { listReportSchedules, NotStaffError } from '../../../../../lib/repo/admin';
 import { REPORT_LIBRARY, type ReportSchedule } from '../../../reporting-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
 import { ScheduledReportsView } from '../../../ui/ReportingOperationsViews';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
-export const metadata = { title: 'Scheduled reports — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.reportsScheduled} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -25,6 +31,10 @@ export const dynamic = 'force-dynamic';
 export default async function Page() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/reports/scheduled');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminReports[lang].pages.scheduled;
 
   let source;
   try {
@@ -64,9 +74,9 @@ export default async function Page() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Reports / Scheduled"
-        title="Scheduled reports"
-        support="Cadence, recipients and delivery format — executions and deliveries are written by the scheduled runner (npm run reports, daily Plesk task); schedules are opened and paused from this page."
+        crumb={`${nav.reports} / ${t.crumbLeaf}`}
+        title={nav.reportsScheduled}
+        support={t.support}
         right={<RefreshButton />}
       />
       <ScheduledReportsView rows={rows} now={Date.now()} />

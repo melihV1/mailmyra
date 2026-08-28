@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminSupport } from '../../../../../lib/i18n/dict/admin-support';
 import { listSupportCases, NotStaffError } from '../../../../../lib/repo/admin';
 import type { SupportCaseRow } from '../../../support-operations-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
@@ -10,7 +13,10 @@ import { SupportQueueView } from '../../../ui/SupportOperationsViews';
 import { NewSupportCaseButton } from '../../../ui/SupportActions';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
-export const metadata = { title: 'Support queue — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.supportQueue} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -24,6 +30,10 @@ export const dynamic = 'force-dynamic';
 export default async function Page() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/support/queue');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminSupport[lang].pages.queue;
 
   const h = await headers();
   const ctx = {
@@ -67,9 +77,9 @@ export default async function Page() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Support / Queue"
-        title="Support queue"
-        support="Inbound customer work by SLA, ownership and state. Opening this register is logged."
+        crumb={`${nav.support} / ${t.crumbLeaf}`}
+        title={nav.supportQueue}
+        support={t.support}
         right={
           <>
             <Suspense fallback={null}>

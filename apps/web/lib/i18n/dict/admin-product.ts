@@ -268,6 +268,45 @@ const en = {
         'This operational heuristic is appropriate for support and adoption review. It is not DAU/WAU, session retention or a recipient-engagement metric.',
     },
   },
+  /**
+   * Task 12 — altı sayfanın (`product/{overview,activation,builder,exports,
+   * templates,cohorts}/page.tsx`) `AdminPageHeader` prop'ları + sekme
+   * başlıkları. `exports`/`templates` DIŞINDA `title` `adminNav[lang].menu.
+   * productOverview/productActivation/productBuilder/productCohorts` ile
+   * bayt-bayt AYNI — burada tekrar yazılmaz. `exports.title`/`templates.
+   * title` AYRIK: sayfa başlığı ("Export analytics"/"Template portfolio")
+   * hem sekme başlığından ("Exports"/"Templates", nav'dan gelir) HEM menü
+   * adından FARKLI metin — bu ikisi TEK ayrı anahtar (crumb yaprağı yine
+   * nav'dan, `productExports`/`productTemplates` birebir eşleşiyor).
+   * Diğer dördünün crumb yaprağı da (`crumbLeaf`) nav'daki tam ad ("Product
+   * overview" vb.) ile aynı DEĞİL (crumb kısa form kullanır) — ayrı anahtar.
+   */
+  pages: {
+    overview: {
+      crumbLeaf: 'Overview',
+      support: 'Monitor durable adoption, activation and export evidence across Mailmyra.',
+    },
+    activation: {
+      crumbLeaf: 'Activation',
+      support: 'Find the largest observable gaps from workspace creation to evidenced export.',
+    },
+    builder: {
+      crumbLeaf: 'Builder',
+      support: 'Inspect saved design configuration, assignment and recent editing activity.',
+    },
+    cohorts: {
+      crumbLeaf: 'Cohorts',
+      support: 'Compare registration cohorts with current activation and recent operational return.',
+    },
+    exports: {
+      title: 'Export analytics',
+      support: 'Review completed export evidence and active-sender coverage without inferring installation.',
+    },
+    templates: {
+      title: 'Template portfolio',
+      support: 'Compare current template adoption, assignment and recent editing signals.',
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -490,6 +529,32 @@ const tr: Mirror<typeof en> = {
       returnedRest: ' sayılır.',
       footnote:
         'Bu operasyonel sezgisel değer, destek ve benimseme incelemesi için uygundur. DAU/WAU, oturum elde tutma veya alıcı-etkileşim metriği değildir.',
+    },
+  },
+  pages: {
+    overview: {
+      crumbLeaf: 'Özet',
+      support: 'Mailmyra genelinde kalıcı benimseme, aktivasyon ve dışa aktarım kanıtını izle.',
+    },
+    activation: {
+      crumbLeaf: 'Aktivasyon',
+      support: 'Çalışma alanı oluşturmadan kanıtlanmış dışa aktarıma kadar en büyük gözlemlenebilir boşlukları bul.',
+    },
+    builder: {
+      crumbLeaf: 'Builder',
+      support: 'Kayıtlı tasarım yapılandırmasını, atamayı ve son düzenleme etkinliğini incele.',
+    },
+    cohorts: {
+      crumbLeaf: 'Kohortlar',
+      support: 'Kayıt kohortlarını güncel aktivasyon ve son operasyonel geri dönüşle karşılaştır.',
+    },
+    exports: {
+      title: 'Dışa aktarım analitiği',
+      support: 'Kurulum çıkarmadan tamamlanmış dışa aktarım kanıtını ve aktif-gönderici kapsamını incele.',
+    },
+    templates: {
+      title: 'Şablon portföyü',
+      support: 'Güncel şablon benimsemesini, atamayı ve son düzenleme sinyallerini karşılaştır.',
     },
   },
 };

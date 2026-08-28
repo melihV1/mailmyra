@@ -4,18 +4,23 @@ import { redirect } from 'next/navigation';
 import { currentSession } from '../../../../lib/auth/current';
 import { listInvoicesAdmin, NotStaffError } from '../../../../lib/repo/admin';
 import { getLang } from '../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../lib/i18n/dict/admin-nav';
 import { adminRevenue } from '../../../../lib/i18n/dict/admin-revenue';
 import type { InvoiceWorkbenchRow } from '../../invoice-workbench-model';
 import { AdminPageHeader } from '../../ui/AdminPageHeader';
 import { InvoiceWorkbenchView } from '../../ui/InvoiceWorkbenchView';
 import { RefreshButton } from '../../ui/RefreshButton';
 
-export const metadata = { title: 'Invoices — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.revenueInvoices} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function AdminInvoicesPage() {
   const lang = await getLang();
-  const t = adminRevenue[lang].invoicesPage;
+  const nav = adminNav[lang].menu;
+  const t = adminRevenue[lang].pages.invoices;
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/invoices');
 
@@ -47,9 +52,9 @@ export default async function AdminInvoicesPage() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Revenue / Invoices"
-        title="Invoices"
-        support="Track authoritative billing records, collection windows and overdue balances by currency."
+        crumb={`${nav.revenue} / ${nav.revenueInvoices}`}
+        title={nav.revenueInvoices}
+        support={t.support}
         right={
           <>
             <Link href="/admin/orgs" className="btn btn-primary btn-sm">

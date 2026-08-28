@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminGrowth } from '../../../../../lib/i18n/dict/admin-growth';
 import { listLeads, NotStaffError } from '../../../../../lib/repo/admin';
 import type { GrowthLeadRow } from '../../../growth-analytics-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
@@ -8,7 +11,10 @@ import { LeadsView } from '../../../ui/GrowthOperationsViews';
 import { NewLeadButton } from '../../../ui/LeadActions';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
-export const metadata = { title: 'Leads — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.growthLeads} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -19,6 +25,10 @@ export const dynamic = 'force-dynamic';
 export default async function Page() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/growth/leads');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminGrowth[lang].pages.leads;
 
   let source;
   try {
@@ -44,9 +54,9 @@ export default async function Page() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Growth & content / Leads"
-        title="Leads"
-        support="Manually curated pipeline — no tracking source is connected."
+        crumb={`${nav.growth} / ${nav.growthLeads}`}
+        title={nav.growthLeads}
+        support={t.support}
         right={
           <>
             <NewLeadButton />

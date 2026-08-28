@@ -1,9 +1,26 @@
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminGrowth } from '../../../../../lib/i18n/dict/admin-growth';
 import { AcquisitionView } from '../../../ui/GrowthOperationsViews';
 import { GrowthPage } from '../GrowthPage';
 
-export const metadata = { title: 'Acquisition — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.growthAcquisition} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
-export default function Page() {
-  return <GrowthPage path="/admin/growth/acquisition" crumb="Growth & content / Acquisition" title="Acquisition" support="Follow the durable path from workspace creation to export evidence." render={(source, now) => <AcquisitionView source={source} now={now} />} />;
+export default async function Page() {
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminGrowth[lang].pages.acquisition;
+  return (
+    <GrowthPage
+      path="/admin/growth/acquisition"
+      crumb={`${nav.growth} / ${nav.growthAcquisition}`}
+      title={nav.growthAcquisition}
+      support={t.support}
+      render={(source, now) => <AcquisitionView source={source} now={now} />}
+    />
+  );
 }

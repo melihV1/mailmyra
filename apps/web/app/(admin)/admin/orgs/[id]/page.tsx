@@ -18,7 +18,15 @@ import { InvoiceCreateDialog } from './InvoiceCreateDialog';
 import { InvoiceRowActions } from './InvoiceRowActions';
 import { SignaturePreviewButton } from './SignaturePreviewButton';
 
-export const metadata = { title: 'Customer — Mailmyra staff' };
+/**
+ * Task 12: sekme başlığı statik ("Customer") — org adına göre dinamikleştirme
+ * bu görevin kapsamı DIŞI (Task 5'in orijinal notu: elle dokunulmadı bırakılmıştı,
+ * burada yalnız `generateMetadata`'ya çevrildi, metin AYNI kaldı).
+ */
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminCustomers[lang].pages.orgDetail.metaTitle} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -27,8 +35,6 @@ export const dynamic = 'force-dynamic';
  * kartları. Bu sayfayı AÇMAK `StaffAccess`e üç satır düşürür (org + senders
  * + signatures); günlük yazılamazsa repo fırlatır, sayfa açılmaz.
  *
- * `metadata` (sekme başlığı) bu görevin DIŞI — Task 12, 44 sayfanın
- * `generateMetadata`'sını tek seferde çevirir; burada elle dokunulmadı.
  * Sunucu bileşeni olduğu için `useLang()` değil `getLang()` kullanır
  * (sweep-method §3 — "sunucu sayfa parçaları getLang() ile").
  */
@@ -279,11 +285,11 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                       <td>{s.email}</td>
                       <td>
                         {s.deactivatedAt ? (
-                          <span className="badge bg-label-secondary">inactive</span>
+                          <span className="badge bg-label-secondary">{t.senders.statusInactive}</span>
                         ) : s.publishedAt ? (
-                          <span className="badge bg-label-success">live</span>
+                          <span className="badge bg-label-success">{t.senders.statusLive}</span>
                         ) : (
-                          <span className="badge bg-label-info">draft</span>
+                          <span className="badge bg-label-info">{t.senders.statusDraft}</span>
                         )}
                       </td>
                       <td className="text-body-secondary">{fmtDate(s.lastExportedAt)}</td>

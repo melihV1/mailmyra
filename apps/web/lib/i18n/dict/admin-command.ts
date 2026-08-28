@@ -19,6 +19,13 @@ import type { Mirror } from '../types';
 const en = {
   view: {
     headerCustomersLink: 'Customers',
+    /**
+     * Task 12 — `AdminPageHeader` prop'ları. `crumb`/`title` çağrı yerinde
+     * `adminNav[lang].menu.commandCenter` ile bayt-bayt AYNI olduğu için
+     * burada tekrar yazılmaz (`CommandCenterView.tsx` zaten `adminNav`
+     * import ediyor — `metaStateLabel`'in `sourceState.connect`i).
+     */
+    headerSupport: 'Run customers, revenue, product operations and governance from one source-aware workspace.',
     quickActions: {
       title: 'Control shortcuts',
       subtitle: 'Jump directly into the operating task, not another summary page.',
@@ -226,11 +233,94 @@ const en = {
       },
     },
   },
+  /**
+   * Task 12 backfill — `[...workspace]/page.tsx`in yakalayıcı "temel" sayfası
+   * (henüz gerçek sayfası olmayan sekiz çalışma alanı grubu için — bkz.
+   * dosyanın kendi `WORKSPACE` haritası). Sekme başlığı DİNAMİK içerik
+   * taşıyamaz (segment insan-okur adına çevrilir ama tek bir sabit soneke
+   * ihtiyaç var) — brief'in izin verdiği "statik aile başlığı" burada
+   * `metaTitle`. `groups.*.label` YOK: sekiz grup adı (`Customers`/`Product`/…)
+   * `adminNav[lang].menu.customers/product/…` ile bayt-bayt AYNI, çağrı
+   * yeri doğrudan oradan okur — yalnız `source`/`first`/`guardrail` (grup
+   * başına üç YENİ cümle) burada.
+   */
+  workspaceFoundation: {
+    metaTitle: 'Workspace',
+    badge: 'Foundation',
+    support: 'This control-plane surface is defined and ready for its data contract.',
+    sourceSetup: {
+      title: 'Source setup required',
+      body: 'Navigation and governance are in place. This screen will not display generated or estimated metrics before its authoritative source exists.',
+    },
+    workspaceBadge: (label: string) => `${label} workspace`,
+    buildSource: {
+      title: 'Build the source before the chart.',
+      body: 'The information architecture is stable, so implementation can progress module by module without another navigation redesign.',
+    },
+    readiness: {
+      title: 'Readiness',
+      informationArchitecture: 'Information architecture',
+      accessBoundary: 'Access boundary',
+      authoritativeSource: 'Authoritative source',
+      historicalCoverage: 'Historical coverage',
+      ready: 'Ready',
+      required: 'Required',
+      unavailable: 'Unavailable',
+    },
+    cards: {
+      sourceContract: 'Source contract',
+      firstDeliverable: 'First deliverable',
+      controlBoundary: 'Control boundary',
+    },
+    groups: {
+      customers: {
+        source: 'Organizations, memberships, entitlements and activity events',
+        first: 'Unified user, trial and customer-health views',
+        guardrail: 'Customer personal data reads must create StaffAccess records',
+      },
+      product: {
+        source: 'A versioned product-event taxonomy and server-side event collector',
+        first: 'Activation, builder, preview and export funnels',
+        guardrail: 'No inferred usage from mutable records; event history is append-only',
+      },
+      revenue: {
+        source: 'Invoice ledger, entitlement snapshots and pricing versions',
+        first: 'Revenue overview, receivables and seat movement ledger',
+        guardrail: 'Never sum different currencies and never delete invoices',
+      },
+      growth: {
+        source: 'Consent-aware web analytics, lead capture and a content registry',
+        first: 'Acquisition, leads, pages, SEO and media governance',
+        guardrail: 'Marketing consent and operational email purposes remain separate',
+      },
+      support: {
+        source: 'Case model, queue ownership and customer activity context',
+        first: 'Support inbox, onboarding queue and reusable playbooks',
+        guardrail: 'No impersonation and no customer-content editing',
+      },
+      platform: {
+        source: 'Job telemetry, structured errors, delivery probes and release markers',
+        first: 'Health, failures, jobs, releases and feature controls',
+        guardrail: 'Operational controls require confirmation, reason and audit evidence',
+      },
+      security: {
+        source: 'StaffAccess, AdminAction, staff roles and approval records',
+        first: 'Security overview, approvals, roles and KVKK request workflow',
+        guardrail: 'Least privilege, four-eyes approval and immutable audit records',
+      },
+      reports: {
+        source: 'Versioned KPI definitions backed by named source queries',
+        first: 'Report library, schedules and an auditable KPI dictionary',
+        guardrail: 'Every number must expose definition, source, grain and freshness',
+      },
+    },
+  },
 } as const;
 
 const tr: Mirror<typeof en> = {
   view: {
     headerCustomersLink: 'Müşteriler',
+    headerSupport: 'Müşterileri, geliri, ürün operasyonlarını ve yönetişimi tek bir kaynağa duyarlı çalışma alanından yürüt.',
     quickActions: {
       title: 'Kontrol kısayolları',
       subtitle: 'Doğrudan yapılacak işe atla, başka bir özet sayfasına değil.',
@@ -435,6 +525,77 @@ const tr: Mirror<typeof en> = {
         operations: 'Operasyon merkezi',
         audit: 'Yönetişim ve denetim',
         customers: 'Müşteri tablosu',
+      },
+    },
+  },
+  workspaceFoundation: {
+    metaTitle: 'Çalışma alanı',
+    badge: 'Temel',
+    support: 'Bu kontrol katmanı yüzeyi tanımlıdır ve veri sözleşmesi için hazırdır.',
+    sourceSetup: {
+      title: 'Kaynak kurulumu gerekli',
+      body: 'Gezinme ve yönetişim hazır. Bu ekran, yetkili kaynağı var olmadan üretilmiş veya tahmini metrik göstermez.',
+    },
+    workspaceBadge: (label: string) => `${label} çalışma alanı`,
+    buildSource: {
+      title: 'Grafikten önce kaynağı kur.',
+      body: 'Bilgi mimarisi kararlı, bu yüzden uygulama başka bir gezinme yeniden tasarımı olmadan modül modül ilerleyebilir.',
+    },
+    readiness: {
+      title: 'Hazırlık',
+      informationArchitecture: 'Bilgi mimarisi',
+      accessBoundary: 'Erişim sınırı',
+      authoritativeSource: 'Yetkili kaynak',
+      historicalCoverage: 'Geçmiş kapsam',
+      ready: 'Hazır',
+      required: 'Gerekli',
+      unavailable: 'Kullanılamaz',
+    },
+    cards: {
+      sourceContract: 'Kaynak sözleşmesi',
+      firstDeliverable: 'İlk teslim',
+      controlBoundary: 'Kontrol sınırı',
+    },
+    groups: {
+      customers: {
+        source: 'Organizasyonlar, üyelikler, tahsisler ve etkinlik kayıtları',
+        first: 'Birleşik kullanıcı, deneme ve müşteri sağlığı görünümleri',
+        guardrail: 'Müşteri kişisel verisi okumaları StaffAccess kaydı oluşturmalı',
+      },
+      product: {
+        source: 'Sürümlenmiş bir ürün olayı taksonomisi ve sunucu taraflı olay toplayıcı',
+        first: 'Aktivasyon, builder, önizleme ve dışa aktarım hunileri',
+        guardrail: 'Değişebilir kayıtlardan çıkarılan kullanım yok; olay geçmişi yalnız-ekleme',
+      },
+      revenue: {
+        source: 'Fatura defteri, tahsis anlık görüntüleri ve fiyatlandırma sürümleri',
+        first: 'Gelir özeti, alacaklar ve koltuk hareket defteri',
+        guardrail: 'Farklı para birimlerini asla toplama, faturaları asla silme',
+      },
+      growth: {
+        source: 'Onay-duyarlı web analitiği, aday yakalama ve bir içerik kaydı',
+        first: 'Kazanım, adaylar, sayfalar, SEO ve medya yönetişimi',
+        guardrail: 'Pazarlama onayı ve işlemsel e-posta amaçları ayrı kalır',
+      },
+      support: {
+        source: 'Vaka modeli, kuyruk sahipliği ve müşteri etkinlik bağlamı',
+        first: "Destek gelen kutusu, katılım kuyruğu ve yeniden kullanılabilir playbook'lar",
+        guardrail: 'Kimliğe bürünme yok, müşteri içeriği düzenlemesi yok',
+      },
+      platform: {
+        source: 'İş telemetrisi, yapılandırılmış hatalar, teslim sondaları ve dağıtım işaretleri',
+        first: 'Sağlık, hatalar, işler, dağıtımlar ve özellik kontrolleri',
+        guardrail: 'Operasyonel kontroller onay, sebep ve denetim kanıtı gerektirir',
+      },
+      security: {
+        source: 'StaffAccess, AdminAction, personel rolleri ve onay kayıtları',
+        first: 'Güvenlik özeti, onaylar, roller ve KVKK talep iş akışı',
+        guardrail: 'En az yetki, dört göz onayı ve değişmez denetim kayıtları',
+      },
+      reports: {
+        source: 'Adlandırılmış kaynak sorgularına dayanan sürümlenmiş KPI tanımları',
+        first: 'Rapor kütüphanesi, zamanlamalar ve denetlenebilir bir KPI sözlüğü',
+        guardrail: 'Her sayı tanımını, kaynağını, ayrıntı düzeyini ve güncelliğini göstermeli',
       },
     },
   },

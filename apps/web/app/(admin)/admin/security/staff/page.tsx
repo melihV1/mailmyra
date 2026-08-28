@@ -1,5 +1,8 @@
 import { redirect } from 'next/navigation';
 import { currentSession } from '../../../../../lib/auth/current';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminSecurity } from '../../../../../lib/i18n/dict/admin-security';
 import { listStaffAccounts, listStaffChangeRequests, NotStaffError } from '../../../../../lib/repo/admin';
 import type { StaffAccountRow, StaffChangeRequestRow } from '../../../operations-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
@@ -7,7 +10,10 @@ import { StaffRolesView } from '../../../ui/GovernanceOperationsViews';
 import { RefreshButton } from '../../../ui/RefreshButton';
 import { RequestStaffChangeButton } from '../../../ui/StaffFlagActions';
 
-export const metadata = { title: 'Staff and roles — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminSecurity[lang].pages.staff.title} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -20,6 +26,9 @@ export const dynamic = 'force-dynamic';
 export default async function StaffRolesPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/security/staff');
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminSecurity[lang].pages.staff;
   let source, requestSource;
   try {
     source = await listStaffAccounts(session.user.id);
@@ -33,9 +42,9 @@ export default async function StaffRolesPage() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Security & governance / Staff"
-        title="Staff and roles"
-        support="Review control-plane accounts and the current permission boundary."
+        crumb={`${nav.security} / ${t.crumbLeaf}`}
+        title={t.title}
+        support={t.support}
         right={
           <>
             <RequestStaffChangeButton />

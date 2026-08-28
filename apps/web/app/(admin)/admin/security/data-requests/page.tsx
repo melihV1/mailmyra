@@ -3,6 +3,9 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 
 import { currentSession } from '../../../../../lib/auth/current';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminSecurity } from '../../../../../lib/i18n/dict/admin-security';
 import { listKvkkRequests, NotStaffError } from '../../../../../lib/repo/admin';
 import type { DataRequestRow } from '../../../operations-model';
 import { AdminPageHeader } from '../../../ui/AdminPageHeader';
@@ -10,7 +13,10 @@ import { DataRequestsView } from '../../../ui/GovernanceOperationsViews';
 import { NewKvkkButton } from '../../../ui/KvkkActions';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
-export const metadata = { title: 'KVKK requests — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.securityKvkkRequests} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /**
@@ -25,6 +31,10 @@ export const dynamic = 'force-dynamic';
 export default async function DataRequestsPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/security/data-requests');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminSecurity[lang].pages.dataRequests;
 
   const h = await headers();
   const ctx = {
@@ -63,9 +73,9 @@ export default async function DataRequestsPage() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Security & governance / KVKK requests"
-        title="KVKK requests"
-        support="Statutory data-subject work with ownership, due dates and evidence. Opening this register is logged."
+        crumb={`${nav.security} / ${nav.securityKvkkRequests}`}
+        title={nav.securityKvkkRequests}
+        support={t.support}
         right={
           <>
             <Suspense fallback={null}>

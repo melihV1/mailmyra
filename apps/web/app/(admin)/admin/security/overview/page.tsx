@@ -2,6 +2,9 @@ import { redirect } from 'next/navigation';
 import { currentSession } from '../../../../../lib/auth/current';
 import { headers } from 'next/headers';
 
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../../lib/i18n/dict/admin-nav';
+import { adminSecurity } from '../../../../../lib/i18n/dict/admin-security';
 import { listAdminActions, listApprovals, listKvkkRequests, listStaffAccess, listStaffAccounts, NotStaffError } from '../../../../../lib/repo/admin';
 import type { StaffAccessLogRow } from '../../../access-log-model';
 import type { AdminActionLogRow } from '../../../action-log-model';
@@ -11,12 +14,18 @@ import { AdminPageHeader } from '../../../ui/AdminPageHeader';
 import { SecurityOverviewView } from '../../../ui/GovernanceOperationsViews';
 import { RefreshButton } from '../../../ui/RefreshButton';
 
-export const metadata = { title: 'Security overview — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.securityOverview} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 export default async function SecurityOverviewPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/security/overview');
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminSecurity[lang].pages.overview;
   const h = await headers();
   const ctx = {
     ip: h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? undefined,
@@ -79,5 +88,5 @@ export default async function SecurityOverviewPage() {
     identityVerified: r.identityVerified,
   }));
   const snapshot = buildGovernanceOverview({ staff, access, actions, approvals, requests, now: Date.now(), sources: { staff: true, access: true, actions: true, approvals: true, requests: true } });
-  return <section><AdminPageHeader crumb="Security & governance / Overview" title="Security overview" support="Monitor staff access, privileged change evidence, decision policy and statutory work from one source-aware control surface." right={<RefreshButton />} /><SecurityOverviewView snapshot={snapshot} /></section>;
+  return <section><AdminPageHeader crumb={`${nav.security} / ${t.crumbLeaf}`} title={nav.securityOverview} support={t.support} right={<RefreshButton />} /><SecurityOverviewView snapshot={snapshot} /></section>;
 }

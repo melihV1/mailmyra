@@ -1,18 +1,28 @@
 import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
+import { getLang } from '../../../../lib/i18n/lang.server';
+import { adminNav } from '../../../../lib/i18n/dict/admin-nav';
+import { adminCustomers } from '../../../../lib/i18n/dict/admin-customers';
 import { listOrganizations, NotStaffError } from '../../../../lib/repo/admin';
 import { fmtDate } from '../../format';
 import { AdminPageHeader } from '../../ui/AdminPageHeader';
 import { CustomerTable, type CustomerRow } from '../../ui/CustomerTable';
 
-export const metadata = { title: 'Organizations — Mailmyra staff' };
+export async function generateMetadata() {
+  const lang = await getLang();
+  return { title: `${adminNav[lang].menu.customersOrganizations} — Mailmyra staff` };
+}
 export const dynamic = 'force-dynamic';
 
 /** Müşteri dizini — komuta merkezindeki tabloyla AYNI bileşen, tam sayfa. */
 export default async function OrganizationsPage() {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/orgs');
+
+  const lang = await getLang();
+  const nav = adminNav[lang].menu;
+  const t = adminCustomers[lang].pages.organizations;
 
   let orgs;
   try {
@@ -38,9 +48,9 @@ export default async function OrganizationsPage() {
   return (
     <section>
       <AdminPageHeader
-        crumb="Organizations"
-        title="Organizations"
-        support="Every root billing organization, with search and state filters."
+        crumb={nav.customersOrganizations}
+        title={nav.customersOrganizations}
+        support={t.support}
       />
       <CustomerTable rows={rows} now={Date.now()} />
     </section>
