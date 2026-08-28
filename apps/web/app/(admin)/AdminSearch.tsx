@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
+import { useLang } from '../../lib/i18n/LangProvider';
+import { adminNav } from '../../lib/i18n/dict/admin-nav';
+
 interface Result {
   orgs: Array<{ id: string; name: string; entitlementState: string }>;
   invoices: Array<{ id: string; number: string; orgId: string; orgName: string; status: string }>;
@@ -15,6 +18,8 @@ interface Result {
  * detayına götürür; kişisel veri günlüğü orada devreye girer.
  */
 export function AdminSearch() {
+  const lang = useLang();
+  const t = adminNav[lang].search;
   const [q, setQ] = useState('');
   const [result, setResult] = useState<Result | null>(null);
   const [open, setOpen] = useState(false);
@@ -51,8 +56,8 @@ export function AdminSearch() {
         <input
           type="search"
           className="form-control"
-          placeholder="Org, invoice or email"
-          aria-label="Search customers"
+          placeholder={t.placeholder}
+          aria-label={t.ariaLabel}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => result && setOpen(true)}
@@ -110,7 +115,7 @@ export function AdminSearch() {
               )),
             )}
             {total === 0 && (
-              <div className="list-group-item text-body-secondary small">No matches.</div>
+              <div className="list-group-item text-body-secondary small">{t.noMatches}</div>
             )}
           </div>
         </div>

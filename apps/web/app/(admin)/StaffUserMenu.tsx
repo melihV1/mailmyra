@@ -1,12 +1,17 @@
 'use client';
 
 import { useDropdown } from '../(app)/navbar/useDropdown';
+import { useLang } from '../../lib/i18n/LangProvider';
+import { adminCommon } from '../../lib/i18n/dict/admin-common';
+import { adminNav } from '../../lib/i18n/dict/admin-nav';
 
 /**
  * Personel avatar menüsü — markup müşteri panelindeki UserMenu'dan BİREBİR
  * (tema dropdown-user); yalnız personel kimliği ve güvenli çıkış gösterilir.
  */
 export function StaffUserMenu({ email }: { email: string }) {
+  const lang = useLang();
+  const t = adminNav[lang].userMenu;
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
   const initial = email.slice(0, 1).toUpperCase();
 
@@ -20,7 +25,7 @@ export function StaffUserMenu({ email }: { email: string }) {
       <button
         type="button"
         className="nav-link dropdown-toggle hide-arrow p-0"
-        aria-label="Staff menu"
+        aria-label={t.ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
@@ -40,7 +45,7 @@ export function StaffUserMenu({ email }: { email: string }) {
               </div>
               <div className="flex-grow-1">
                 <h6 className="mb-0">{email}</h6>
-                <small className="text-body-secondary">Staff</small>
+                <small className="text-body-secondary">{adminCommon[lang].staffCrumb}</small>
               </div>
             </div>
           </div>
@@ -51,7 +56,7 @@ export function StaffUserMenu({ email }: { email: string }) {
         <li>
           <button type="button" className="dropdown-item" onClick={() => void logout()}>
             <i className="icon-base ti tabler-logout me-3 icon-md" aria-hidden="true" />
-            <span className="align-middle">Log out</span>
+            <span className="align-middle">{t.logOut}</span>
           </button>
         </li>
       </ul>

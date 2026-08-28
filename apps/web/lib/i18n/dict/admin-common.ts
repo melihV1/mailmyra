@@ -18,6 +18,7 @@ const en = {
   unassigned: 'Unassigned',
   notRecorded: 'Not recorded',
   unknownTime: 'Unknown time',
+  refresh: 'Refresh',
 } as const;
 
 const tr: Mirror<typeof en> = {
@@ -31,6 +32,7 @@ const tr: Mirror<typeof en> = {
   unassigned: 'Atanmamış',
   notRecorded: 'Kayıt yok',
   unknownTime: 'Bilinmeyen zaman',
+  refresh: 'Yenile',
 };
 
 export const adminCommon = { en, tr } as const;

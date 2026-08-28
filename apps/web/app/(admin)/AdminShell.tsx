@@ -8,6 +8,8 @@ import { ToastProvider } from '../(app)/ToastProvider';
 import { ThemeMenu, type ThemeChoice } from '../(app)/navbar/ThemeMenu';
 import { useDropdown } from '../(app)/navbar/useDropdown';
 import { useLang } from '../../lib/i18n/LangProvider';
+import { adminCommon } from '../../lib/i18n/dict/admin-common';
+import { adminNav } from '../../lib/i18n/dict/admin-nav';
 import { AdminLanguageMenu } from './AdminLanguageMenu';
 import { AdminSearch } from './AdminSearch';
 import { AdminNotifications, QuickCreateMenu, SnapshotMenu } from './AdminNavbarTools';
@@ -27,18 +29,21 @@ import { StaffUserMenu } from './StaffUserMenu';
  * 28px'lik ortam rayı (brief §4.1) — hiçbir sayfada kaybolmaz.
  */
 
+/** MENU etiketleri sözlükten gelir — PanelShell'in labelKey deseni birebir. */
+type MenuLabelKey = keyof (typeof adminNav)['en']['menu'];
+
 type MenuChild = {
   href: string;
-  label: string;
+  labelKey: MenuLabelKey;
   status?: 'live' | 'setup';
 };
 
 type MenuEntry =
-  | { type: 'header'; label: string }
+  | { type: 'header'; labelKey: MenuLabelKey }
   | {
       type: 'item';
       href: string;
-      label: string;
+      labelKey: MenuLabelKey;
       icon: string;
       exact?: boolean;
       badge?: string;
@@ -46,7 +51,7 @@ type MenuEntry =
   | {
       type: 'group';
       id: string;
-      label: string;
+      labelKey: MenuLabelKey;
       icon: string;
       children: ReadonlyArray<MenuChild>;
     };
@@ -58,11 +63,11 @@ type MenuEntry =
  * olmayan bir yeteneği varmış gibi davranmaz.
  */
 const MENU: ReadonlyArray<MenuEntry> = [
-  { type: 'header', label: 'Control plane' },
+  { type: 'header', labelKey: 'controlPlane' },
   {
     type: 'item',
     href: '/admin',
-    label: 'Command center',
+    labelKey: 'commandCenter',
     icon: 'tabler-layout-dashboard',
     exact: true,
     badge: 'Live',
@@ -70,124 +75,130 @@ const MENU: ReadonlyArray<MenuEntry> = [
   {
     type: 'group',
     id: 'customers',
-    label: 'Customers',
+    labelKey: 'customers',
     icon: 'tabler-building-community',
     children: [
-      { href: '/admin/orgs', label: 'Organizations', status: 'live' },
-      { href: '/admin/customers/users', label: 'Users', status: 'live' },
-      { href: '/admin/customers/trials', label: 'Trials & entitlements', status: 'live' },
-      { href: '/admin/customers/health', label: 'Customer health', status: 'live' },
+      { href: '/admin/orgs', labelKey: 'customersOrganizations', status: 'live' },
+      { href: '/admin/customers/users', labelKey: 'customersUsers', status: 'live' },
+      { href: '/admin/customers/trials', labelKey: 'customersTrials', status: 'live' },
+      { href: '/admin/customers/health', labelKey: 'customersHealth', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'product',
-    label: 'Product',
+    labelKey: 'product',
     icon: 'tabler-activity-heartbeat',
     children: [
-      { href: '/admin/product/overview', label: 'Product overview', status: 'live' },
-      { href: '/admin/product/activation', label: 'Activation funnel', status: 'live' },
-      { href: '/admin/product/builder', label: 'Builder usage', status: 'live' },
-      { href: '/admin/product/exports', label: 'Exports', status: 'live' },
-      { href: '/admin/product/templates', label: 'Templates', status: 'live' },
-      { href: '/admin/product/cohorts', label: 'Cohorts & retention', status: 'live' },
+      { href: '/admin/product/overview', labelKey: 'productOverview', status: 'live' },
+      { href: '/admin/product/activation', labelKey: 'productActivation', status: 'live' },
+      { href: '/admin/product/builder', labelKey: 'productBuilder', status: 'live' },
+      { href: '/admin/product/exports', labelKey: 'productExports', status: 'live' },
+      { href: '/admin/product/templates', labelKey: 'productTemplates', status: 'live' },
+      { href: '/admin/product/cohorts', labelKey: 'productCohorts', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'revenue',
-    label: 'Revenue',
+    labelKey: 'revenue',
     icon: 'tabler-currency-dollar',
     children: [
-      { href: '/admin/revenue/overview', label: 'Revenue overview', status: 'live' },
-      { href: '/admin/invoices', label: 'Invoices', status: 'live' },
-      { href: '/admin/revenue/receivables', label: 'Receivables', status: 'live' },
-      { href: '/admin/revenue/seats', label: 'Seat ledger', status: 'live' },
-      { href: '/admin/revenue/pricing-versions', label: 'Pricing versions', status: 'live' },
+      { href: '/admin/revenue/overview', labelKey: 'revenueOverview', status: 'live' },
+      { href: '/admin/invoices', labelKey: 'revenueInvoices', status: 'live' },
+      { href: '/admin/revenue/receivables', labelKey: 'revenueReceivables', status: 'live' },
+      { href: '/admin/revenue/seats', labelKey: 'revenueSeatLedger', status: 'live' },
+      { href: '/admin/revenue/pricing-versions', labelKey: 'revenuePricingVersions', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'growth',
-    label: 'Growth & content',
+    labelKey: 'growth',
     icon: 'tabler-speakerphone',
     children: [
-      { href: '/admin/growth/overview', label: 'Growth overview', status: 'live' },
-      { href: '/admin/growth/acquisition', label: 'Acquisition', status: 'live' },
-      { href: '/admin/growth/leads', label: 'Leads', status: 'live' },
-      { href: '/admin/growth/content/pages', label: 'Pages & SEO', status: 'live' },
-      { href: '/admin/growth/content/media', label: 'Media library', status: 'live' },
-      { href: '/admin/growth/content/legal', label: 'Legal content', status: 'live' },
+      { href: '/admin/growth/overview', labelKey: 'growthOverview', status: 'live' },
+      { href: '/admin/growth/acquisition', labelKey: 'growthAcquisition', status: 'live' },
+      { href: '/admin/growth/leads', labelKey: 'growthLeads', status: 'live' },
+      { href: '/admin/growth/content/pages', labelKey: 'growthPagesSeo', status: 'live' },
+      { href: '/admin/growth/content/media', labelKey: 'growthMediaLibrary', status: 'live' },
+      { href: '/admin/growth/content/legal', labelKey: 'growthLegalContent', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'support',
-    label: 'Support',
+    labelKey: 'support',
     icon: 'tabler-headset',
     children: [
-      { href: '/admin/support/queue', label: 'Support queue', status: 'live' },
-      { href: '/admin/support/cases', label: 'Cases', status: 'live' },
-      { href: '/admin/support/onboarding', label: 'Onboarding', status: 'live' },
-      { href: '/admin/support/playbooks', label: 'Playbooks', status: 'live' },
+      { href: '/admin/support/queue', labelKey: 'supportQueue', status: 'live' },
+      { href: '/admin/support/cases', labelKey: 'supportCases', status: 'live' },
+      { href: '/admin/support/onboarding', labelKey: 'supportOnboarding', status: 'live' },
+      { href: '/admin/support/playbooks', labelKey: 'supportPlaybooks', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'platform',
-    label: 'Platform',
+    labelKey: 'platform',
     icon: 'tabler-server-cog',
     children: [
-      { href: '/admin/platform/overview', label: 'System health', status: 'live' },
-      { href: '/admin/platform/mail', label: 'Mail delivery', status: 'live' },
-      { href: '/admin/platform/exports', label: 'Export pipeline', status: 'live' },
-      { href: '/admin/platform/jobs', label: 'Jobs', status: 'live' },
-      { href: '/admin/platform/errors', label: 'Errors', status: 'live' },
-      { href: '/admin/platform/releases', label: 'Releases', status: 'live' },
-      { href: '/admin/platform/feature-flags', label: 'Feature flags', status: 'live' },
+      { href: '/admin/platform/overview', labelKey: 'platformSystemHealth', status: 'live' },
+      { href: '/admin/platform/mail', labelKey: 'platformMailDelivery', status: 'live' },
+      { href: '/admin/platform/exports', labelKey: 'platformExportPipeline', status: 'live' },
+      { href: '/admin/platform/jobs', labelKey: 'platformJobs', status: 'live' },
+      { href: '/admin/platform/errors', labelKey: 'platformErrors', status: 'live' },
+      { href: '/admin/platform/releases', labelKey: 'platformReleases', status: 'live' },
+      { href: '/admin/platform/feature-flags', labelKey: 'platformFeatureFlags', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'security',
-    label: 'Security & governance',
+    labelKey: 'security',
     icon: 'tabler-shield-lock',
     children: [
-      { href: '/admin/security/overview', label: 'Security overview', status: 'live' },
-      { href: '/admin/access', label: 'Staff access log', status: 'live' },
-      { href: '/admin/actions', label: 'Admin action log', status: 'live' },
-      { href: '/admin/security/staff', label: 'Staff & roles', status: 'live' },
-      { href: '/admin/security/approvals', label: 'Approvals', status: 'live' },
-      { href: '/admin/security/data-requests', label: 'KVKK requests', status: 'live' },
+      { href: '/admin/security/overview', labelKey: 'securityOverview', status: 'live' },
+      { href: '/admin/access', labelKey: 'securityAccessLog', status: 'live' },
+      { href: '/admin/actions', labelKey: 'securityActionLog', status: 'live' },
+      { href: '/admin/security/staff', labelKey: 'securityStaffRoles', status: 'live' },
+      { href: '/admin/security/approvals', labelKey: 'securityApprovals', status: 'live' },
+      { href: '/admin/security/data-requests', labelKey: 'securityKvkkRequests', status: 'live' },
     ],
   },
   {
     type: 'group',
     id: 'reports',
-    label: 'Reports',
+    labelKey: 'reports',
     icon: 'tabler-report-analytics',
     children: [
-      { href: '/admin/reports/library', label: 'Report library', status: 'live' },
-      { href: '/admin/reports/scheduled', label: 'Scheduled reports', status: 'live' },
-      { href: '/admin/reports/definitions', label: 'KPI definitions', status: 'live' },
+      { href: '/admin/reports/library', labelKey: 'reportsLibrary', status: 'live' },
+      { href: '/admin/reports/scheduled', labelKey: 'reportsScheduled', status: 'live' },
+      { href: '/admin/reports/definitions', labelKey: 'reportsKpiDefinitions', status: 'live' },
     ],
   },
 ];
 
-const WORKSPACE_SHORTCUTS = [
-  { href: '/admin/orgs', label: 'Customers', icon: 'tabler-building-community', tone: 'primary' },
-  { href: '/admin/product/overview', label: 'Product', icon: 'tabler-activity-heartbeat', tone: 'info' },
-  { href: '/admin/invoices', label: 'Revenue', icon: 'tabler-file-dollar', tone: 'success' },
-  { href: '/admin/growth/overview', label: 'Growth', icon: 'tabler-speakerphone', tone: 'warning' },
-  { href: '/admin/platform/overview', label: 'Platform', icon: 'tabler-server-cog', tone: 'secondary' },
-  { href: '/admin/security/overview', label: 'Security', icon: 'tabler-shield-lock', tone: 'danger' },
-] as const;
+const WORKSPACE_SHORTCUTS: ReadonlyArray<{
+  href: string;
+  labelKey: keyof (typeof adminNav)['en']['shortcuts'];
+  icon: string;
+  tone: string;
+}> = [
+  { href: '/admin/orgs', labelKey: 'customers', icon: 'tabler-building-community', tone: 'primary' },
+  { href: '/admin/product/overview', labelKey: 'product', icon: 'tabler-activity-heartbeat', tone: 'info' },
+  { href: '/admin/invoices', labelKey: 'revenue', icon: 'tabler-file-dollar', tone: 'success' },
+  { href: '/admin/growth/overview', labelKey: 'growth', icon: 'tabler-speakerphone', tone: 'warning' },
+  { href: '/admin/platform/overview', labelKey: 'platform', icon: 'tabler-server-cog', tone: 'secondary' },
+  { href: '/admin/security/overview', labelKey: 'security', icon: 'tabler-shield-lock', tone: 'danger' },
+];
 
 const THEME_KEY = 'mm-admin-theme-v2';
 const COLLAPSE_KEY = 'mm-admin-menu-collapsed';
 
 export function AdminShell({ email, children }: { email: string; children: ReactNode }) {
   const lang = useLang();
+  const t = adminNav[lang];
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false); // mobil off-canvas
   const [collapsed, setCollapsed] = useState(false); // masaüstü ray modu
@@ -298,7 +309,7 @@ export function AdminShell({ email, children }: { email: string; children: React
                 <button
                   type="button"
                   className="layout-menu-toggle menu-link text-large ms-auto"
-                  aria-label="Toggle menu"
+                  aria-label={t.shell.toggleMenu}
                   onClick={() => {
                     if (window.innerWidth >= 1200) toggleCollapsed();
                     else {
@@ -315,17 +326,17 @@ export function AdminShell({ email, children }: { email: string; children: React
                 </button>
               </div>
 
-              <div className="mm-admin-staff-context mm-logo-full" aria-label="Staff production console">
+              <div className="mm-admin-staff-context mm-logo-full" aria-label={t.shell.staffContextAria}>
                 <span className="mm-admin-staff-context__icon" aria-hidden="true">
                   <i className="icon-base ti tabler-shield-check" />
                 </span>
                 <span className="mm-admin-staff-context__copy">
-                  <strong>Staff console</strong>
-                  <small>Production control</small>
+                  <strong>{t.shell.staffConsole}</strong>
+                  <small>{t.shell.productionControl}</small>
                 </span>
                 <span className="mm-admin-staff-context__status">
                   <span aria-hidden="true" />
-                  Live
+                  {adminCommon[lang].live}
                 </span>
               </div>
 
@@ -335,8 +346,8 @@ export function AdminShell({ email, children }: { email: string; children: React
                 {MENU.map((entry) => {
                   if (entry.type === 'header') {
                     return (
-                    <li key={`h:${entry.label}`} className="menu-header small">
-                      <span className="menu-header-text">{entry.label}</span>
+                    <li key={`h:${entry.labelKey}`} className="menu-header small">
+                      <span className="menu-header-text">{t.menu[entry.labelKey]}</span>
                     </li>
                     );
                   }
@@ -365,7 +376,7 @@ export function AdminShell({ email, children }: { email: string; children: React
                             className={`menu-icon icon-base ti ${entry.icon}`}
                             aria-hidden="true"
                           />
-                          <div className="text-truncate">{entry.label}</div>
+                          <div className="text-truncate">{t.menu[entry.labelKey]}</div>
                         </button>
                         <ul className="menu-sub">
                           {entry.children.map((child) => (
@@ -374,7 +385,7 @@ export function AdminShell({ email, children }: { email: string; children: React
                               className={`menu-item${pathname.startsWith(child.href) ? ' active' : ''}`}
                             >
                               <Link href={child.href} className="menu-link">
-                                <div className="text-truncate">{child.label}</div>
+                                <div className="text-truncate">{t.menu[child.labelKey]}</div>
                               </Link>
                             </li>
                           ))}
@@ -393,7 +404,7 @@ export function AdminShell({ email, children }: { email: string; children: React
                           className={`menu-icon icon-base ti ${entry.icon}`}
                           aria-hidden="true"
                         />
-                        <div>{entry.label}</div>
+                        <div>{t.menu[entry.labelKey]}</div>
                       </Link>
                     </li>
                   );
@@ -405,13 +416,13 @@ export function AdminShell({ email, children }: { email: string; children: React
               <nav
                 className="layout-navbar container-xxl navbar-detached navbar navbar-expand-xl align-items-center bg-navbar-theme mm-admin-navbar"
                 id="layout-navbar"
-                aria-label="Staff top bar"
+                aria-label={t.shell.topBar}
               >
                 <div className="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
                   <button
                     type="button"
                     className="nav-item nav-link px-0 me-xl-6"
-                    aria-label="Open menu"
+                    aria-label={t.shell.openMenu}
                     onClick={() => {
                       animateMenu();
                       setMenuOpen(true);
@@ -445,9 +456,9 @@ export function AdminShell({ email, children }: { email: string; children: React
                     className="mm-admin-env-rail d-flex align-items-center gap-2 px-3"
                   >
                     <i className="icon-base ti tabler-shield-lock icon-sm" aria-hidden="true" />
-                    <strong>STAFF · PRODUCTION</strong>
+                    <strong>{t.shell.envRailLabel}</strong>
                     <span className="d-none d-sm-inline mm-admin-env-copy">
-                      customer data — every sensitive view is logged
+                      {t.shell.envRailCopy}
                     </span>
                   </div>
                 </div>
@@ -458,11 +469,11 @@ export function AdminShell({ email, children }: { email: string; children: React
                   <div className="container-xxl">
                     <div className="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
                       <div className="text-body">
-                        © {new Date().getFullYear()} Mailmyra staff operations — Voldi Creative
+                        {t.shell.footerCopyright(new Date().getFullYear())}
                       </div>
                       <div className="d-none d-lg-inline-block">
                         <span className="footer-link text-body-secondary">
-                          All access is recorded
+                          {t.shell.footerAllAccessRecorded}
                         </span>
                       </div>
                     </div>
@@ -488,6 +499,8 @@ export function AdminShell({ email, children }: { email: string; children: React
 }
 
 function WorkspaceSwitcher() {
+  const lang = useLang();
+  const t = adminNav[lang];
   const { open, setOpen, ref } = useDropdown<HTMLLIElement>();
 
   return (
@@ -495,7 +508,7 @@ function WorkspaceSwitcher() {
       <button
         type="button"
         className="nav-link btn btn-text-secondary rounded-pill btn-icon"
-        aria-label="Open workspaces"
+        aria-label={t.workspaceSwitcher.ariaLabel}
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
@@ -507,8 +520,8 @@ function WorkspaceSwitcher() {
       >
         <div className="dropdown-menu-header border-bottom">
           <div className="dropdown-header d-flex align-items-center py-3">
-            <h6 className="mb-0 me-auto">Control plane</h6>
-            <span className="badge rounded-pill bg-label-primary">9 workspaces</span>
+            <h6 className="mb-0 me-auto">{t.workspaceSwitcher.heading}</h6>
+            <span className="badge rounded-pill bg-label-primary">{t.workspaceSwitcher.badge(9)}</span>
           </div>
         </div>
         <div className="row row-bordered g-0">
@@ -522,14 +535,14 @@ function WorkspaceSwitcher() {
                 <span className={`avatar-initial rounded bg-label-${item.tone} p-2 mb-2`}>
                   <i className={`icon-base ti ${item.icon} icon-26px`} aria-hidden="true" />
                 </span>
-                <small className="text-heading fw-medium">{item.label}</small>
+                <small className="text-heading fw-medium">{t.shortcuts[item.labelKey]}</small>
               </Link>
             </div>
           ))}
         </div>
         <div className="border-top p-2 text-center">
           <Link href="/admin/reports/definitions" className="btn btn-sm btn-text-secondary">
-            KPI definitions
+            {t.workspaceSwitcher.kpiDefinitions}
             <i className="icon-base ti tabler-arrow-right ms-1" aria-hidden="true" />
           </Link>
         </div>

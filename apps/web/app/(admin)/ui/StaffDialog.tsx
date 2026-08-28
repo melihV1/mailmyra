@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { useBsPresence } from '../../../components/ui/useBsPresence';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { common } from '../../../lib/i18n/dict/common';
 
 /**
  * Admin modallarının ortak kabuğu — markup RowActions'taki RenameDialog'dan
@@ -28,6 +30,7 @@ export function StaffDialog({
   /** İmza önizlemesi gibi geniş içerik için modal-lg. */
   wide?: boolean;
 }) {
+  const lang = useLang();
   const [leaving, setLeaving] = useState(false);
   const { shown } = useBsPresence(!leaving);
   const closeTimer = useRef<number | null>(null);
@@ -71,7 +74,7 @@ export function StaffDialog({
             <button
               type="button"
               className="btn-close"
-              aria-label="Cancel"
+              aria-label={common[lang].cancel}
               onClick={requestClose}
               disabled={busy}
             />

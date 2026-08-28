@@ -5,11 +5,16 @@ import { useState } from 'react';
 
 import { filterQueue, QUEUE_SEGMENTS, type QueueRow, type QueueSegment } from '../queue-model';
 import { AdminEmptyState } from './AdminEmptyState';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminNav } from '../../../lib/i18n/dict/admin-nav';
+import type { Lang } from '../../../lib/i18n/types';
 
 /**
  * TEK kuyruk yüzeyi (redesign brief §5.3): dört ayrı kart yerine önem +
  * vade sıralı tek liste, üstte temanın nav-pills segment kontrolü.
  * Sıralama/segment kuralı `queue-model.ts`te — burada yalnız görünüm.
+ * `QUEUE_SEGMENTS`in kendi `label`'ları `queue-model.ts`te kalır (Task 3
+ * kapsamı bu dosyanın DIŞI — o dosya başka bir süpürme görevinin işi).
  */
 const SEVERITY_DOT: Record<QueueRow['severity'], string> = {
   3: 'bg-danger',
@@ -17,15 +22,27 @@ const SEVERITY_DOT: Record<QueueRow['severity'], string> = {
   1: 'bg-info',
 };
 
-const EMPTY_TEXT: Record<QueueSegment, string> = {
-  all: 'Nothing needs action right now.',
-  trial: 'No trial needs attention.',
-  entitlement: 'Nobody is over their seats.',
-  billing: 'Nothing overdue.',
-  activation: 'No customer is stuck onboarding.',
+/** Wave B `notification-looks.ts` emsali: dil-anahtarlı, Mirror'lı, dosyada yaşar. */
+const EMPTY_TEXT: Record<Lang, Record<QueueSegment, string>> = {
+  en: {
+    all: 'Nothing needs action right now.',
+    trial: 'No trial needs attention.',
+    entitlement: 'Nobody is over their seats.',
+    billing: 'Nothing overdue.',
+    activation: 'No customer is stuck onboarding.',
+  },
+  tr: {
+    all: 'Şu anda eylem gerektiren bir şey yok.',
+    trial: 'Dikkat gereken bir deneme yok.',
+    entitlement: 'Koltuğunu aşan kimse yok.',
+    billing: 'Gecikmiş bir şey yok.',
+    activation: "Onboarding'de takılan bir müşteri yok.",
+  },
 };
 
 export function AdminQueue({ rows }: { rows: QueueRow[] }) {
+  const lang = useLang();
+  const t = adminNav[lang].queue;
   const [segment, setSegment] = useState<QueueSegment>('all');
   const visible = filterQueue(rows, segment);
 
@@ -35,9 +52,9 @@ export function AdminQueue({ rows }: { rows: QueueRow[] }) {
     <div className="card">
       <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-          <h5 className="card-title mb-0">Action queue</h5>
+          <h5 className="card-title mb-0">{t.title}</h5>
           <p className="card-subtitle text-body-secondary mt-1 mb-0">
-            Sorted by severity and deadline.
+            {t.subtitle}
           </p>
         </div>
         <ul className="nav nav-pills flex-nowrap overflow-x-auto" role="tablist">
@@ -63,7 +80,7 @@ export function AdminQueue({ rows }: { rows: QueueRow[] }) {
       </div>
 
       {visible.length === 0 ? (
-        <AdminEmptyState icon="tabler-circle-check" text={EMPTY_TEXT[segment]} />
+        <AdminEmptyState icon="tabler-circle-check" text={EMPTY_TEXT[lang][segment]} />
       ) : (
         <div className="table-responsive">
           <table className="table table-sm align-middle mb-0">
@@ -74,7 +91,7 @@ export function AdminQueue({ rows }: { rows: QueueRow[] }) {
                     <span
                       className={`d-inline-block rounded-circle ${SEVERITY_DOT[row.severity]}`}
                       style={{ width: 8, height: 8 }}
-                      aria-label={`severity ${row.severity}`}
+                      aria-label={t.severityAria(row.severity)}
                     />
                   </td>
                   <td>
@@ -98,7 +115,7 @@ export function AdminQueue({ rows }: { rows: QueueRow[] }) {
                     <Link
                       href={`/admin/orgs/${row.orgId}`}
                       className="btn btn-icon btn-text-secondary rounded-pill btn-sm"
-                      aria-label={`Open ${row.orgName}`}
+                      aria-label={t.openOrgAria(row.orgName)}
                     >
                       <i className="icon-base ti tabler-chevron-right" aria-hidden="true" />
                     </Link>
