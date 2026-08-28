@@ -4,6 +4,10 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useState, useEffect, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { common } from '../../../lib/i18n/dict/common';
+import { adminSupport } from '../../../lib/i18n/dict/admin-support';
 import type { SupportCasePriority, SupportCaseRow, SupportCaseStatus } from '../support-operations-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -41,19 +45,21 @@ export function SupportActionButtons({
   row: SupportCaseRow;
   onPick: (action: SupportAction) => void;
 }) {
+  const lang = useLang();
+  const t = adminSupport[lang];
   return (
     <>
       <button type="button" className="btn btn-label-info btn-sm" onClick={() => onPick('status')}>
-        Change status
+        {t.actions.buttons.changeStatus}
       </button>
       {row.status !== 'resolved' && (
         <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('owner')}>
-          Assign owner
+          {t.actions.buttons.assignOwner}
         </button>
       )}
       {row.status !== 'resolved' && (
         <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('priority')}>
-          Set priority
+          {t.actions.buttons.setPriority}
         </button>
       )}
     </>
@@ -91,6 +97,8 @@ function StatusDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSupport[lang];
   const router = useRouter();
   const toast = useToast();
   const targets = SUPPORT_STATUS_TARGETS[row.status];
@@ -111,10 +119,10 @@ function StatusDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', `Status moved to ${status.replace('_', ' ')}.`);
+    toast('success', t.actions.statusDialog.toast(status.replace('_', ' ')));
     onClose();
     onDone?.();
     router.refresh();
@@ -122,15 +130,15 @@ function StatusDialog({
 
   return (
     <StaffDialog
-      title={`Change status — ${row.reference}`}
-      subtitle="Only the statuses reachable from the current one are offered."
-      labelledBy={`Change status ${row.reference}`}
+      title={t.actions.statusDialog.title(row.reference)}
+      subtitle={t.actions.onlyReachable}
+      labelledBy={t.actions.statusDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
-          <label className="form-label" htmlFor="supportStatusTarget">Target status</label>
+          <label className="form-label" htmlFor="supportStatusTarget">{t.actions.targetStatusLabel}</label>
           <select
             id="supportStatusTarget"
             className="form-select"
@@ -144,7 +152,7 @@ function StatusDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="supportStatusReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="supportStatusReason"
@@ -162,10 +170,10 @@ function StatusDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Change status
+            {t.actions.buttons.changeStatus}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -182,6 +190,8 @@ function OwnerDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSupport[lang];
   const router = useRouter();
   const toast = useToast();
   const [ownerEmail, setOwnerEmail] = useState('');
@@ -201,10 +211,10 @@ function OwnerDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Owner assigned.');
+    toast('success', t.actions.ownerDialog.toast);
     onClose();
     onDone?.();
     router.refresh();
@@ -212,16 +222,16 @@ function OwnerDialog({
 
   return (
     <StaffDialog
-      title={`Assign owner — ${row.reference}`}
-      subtitle="The owner must already be a staff account."
-      labelledBy={`Assign owner ${row.reference}`}
+      title={t.actions.ownerDialog.title(row.reference)}
+      subtitle={t.actions.ownerDialog.subtitle}
+      labelledBy={t.actions.ownerDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="supportOwnerEmail">
-            Owner email <span className="text-danger">*</span>
+            {t.actions.ownerDialog.ownerEmailLabel} <span className="text-danger">*</span>
           </label>
           <input
             id="supportOwnerEmail"
@@ -234,7 +244,7 @@ function OwnerDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="supportOwnerReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="supportOwnerReason"
@@ -252,10 +262,10 @@ function OwnerDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Assign owner
+            {t.actions.buttons.assignOwner}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -273,6 +283,8 @@ function PriorityDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSupport[lang];
   const router = useRouter();
   const toast = useToast();
   const [priority, setPriority] = useState<SupportCasePriority>(row.priority);
@@ -292,10 +304,10 @@ function PriorityDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', `Priority set to ${priority}.`);
+    toast('success', t.actions.priorityDialog.toast(priority));
     onClose();
     onDone?.();
     router.refresh();
@@ -303,30 +315,30 @@ function PriorityDialog({
 
   return (
     <StaffDialog
-      title={`Set priority — ${row.reference}`}
-      subtitle="SLA due date is recalculated from the case's creation time."
-      labelledBy={`Set priority ${row.reference}`}
+      title={t.actions.priorityDialog.title(row.reference)}
+      subtitle={t.actions.priorityDialog.subtitle}
+      labelledBy={t.actions.priorityDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
-          <label className="form-label" htmlFor="supportPriorityTarget">Priority</label>
+          <label className="form-label" htmlFor="supportPriorityTarget">{t.fields.priority}</label>
           <select
             id="supportPriorityTarget"
             className="form-select"
             value={priority}
             onChange={(e) => setPriority(e.target.value as SupportCasePriority)}
           >
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="normal">Normal</option>
-            <option value="low">Low</option>
+            <option value="urgent">{t.actions.priorityOptions.urgent}</option>
+            <option value="high">{t.actions.priorityOptions.high}</option>
+            <option value="normal">{t.actions.priorityOptions.normal}</option>
+            <option value="low">{t.actions.priorityOptions.low}</option>
           </select>
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="supportPriorityReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="supportPriorityReason"
@@ -344,10 +356,10 @@ function PriorityDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Set priority
+            {t.actions.buttons.setPriority}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -362,6 +374,8 @@ function PriorityDialog({
  * — burada elle girilmez.
  */
 export function NewSupportCaseButton() {
+  const lang = useLang();
+  const t = adminSupport[lang];
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -423,10 +437,10 @@ export function NewSupportCaseButton() {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Support case created.');
+    toast('success', t.actions.newCase.toast);
     setOpen(false);
     reset();
     router.refresh();
@@ -436,21 +450,21 @@ export function NewSupportCaseButton() {
     <>
       <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        New case
+        {t.actions.newCase.button}
       </button>
 
       {open && (
         <StaffDialog
-          title="New support case"
-          subtitle="Opens a durable support case record with its own SLA clock."
-          labelledBy="New support case"
+          title={t.actions.newCase.dialogTitle}
+          subtitle={t.actions.newCase.subtitle}
+          labelledBy={t.actions.newCase.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
               <label className="form-label" htmlFor="supportNewReference">
-                Reference <span className="text-danger">*</span>
+                {t.actions.newCase.referenceLabel} <span className="text-danger">*</span>
               </label>
               <input
                 id="supportNewReference"
@@ -463,7 +477,7 @@ export function NewSupportCaseButton() {
             </div>
             <div className="col-md-6">
               <label className="form-label" htmlFor="supportNewRequesterEmail">
-                Requester email <span className="text-danger">*</span>
+                {t.actions.newCase.requesterEmailLabel} <span className="text-danger">*</span>
               </label>
               <input
                 id="supportNewRequesterEmail"
@@ -476,7 +490,7 @@ export function NewSupportCaseButton() {
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="supportNewSubject">
-                Subject <span className="text-danger">*</span>
+                {t.actions.newCase.subjectLabel} <span className="text-danger">*</span>
               </label>
               <input
                 id="supportNewSubject"
@@ -487,59 +501,59 @@ export function NewSupportCaseButton() {
               />
             </div>
             <div className="col-md-4">
-              <label className="form-label" htmlFor="supportNewChannel">Channel</label>
+              <label className="form-label" htmlFor="supportNewChannel">{t.actions.newCase.channelLabel}</label>
               <select
                 id="supportNewChannel"
                 className="form-select"
                 value={channel}
                 onChange={(e) => setChannel(e.target.value as typeof channel)}
               >
-                <option value="email">Email</option>
-                <option value="form">Form</option>
-                <option value="staff">Staff</option>
+                <option value="email">{t.actions.newCase.channelOptions.email}</option>
+                <option value="form">{t.actions.newCase.channelOptions.form}</option>
+                <option value="staff">{t.actions.newCase.channelOptions.staff}</option>
               </select>
             </div>
             <div className="col-md-4">
-              <label className="form-label" htmlFor="supportNewCategory">Category</label>
+              <label className="form-label" htmlFor="supportNewCategory">{t.fields.category}</label>
               <select
                 id="supportNewCategory"
                 className="form-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value as typeof category)}
               >
-                <option value="billing">Billing</option>
-                <option value="builder">Builder</option>
-                <option value="export">Export</option>
-                <option value="access">Access</option>
-                <option value="account">Account</option>
+                <option value="billing">{t.actions.newCase.categoryOptions.billing}</option>
+                <option value="builder">{t.actions.newCase.categoryOptions.builder}</option>
+                <option value="export">{t.actions.newCase.categoryOptions.export}</option>
+                <option value="access">{t.actions.newCase.categoryOptions.access}</option>
+                <option value="account">{t.actions.newCase.categoryOptions.account}</option>
               </select>
             </div>
             <div className="col-md-4">
-              <label className="form-label" htmlFor="supportNewPriority">Priority</label>
+              <label className="form-label" htmlFor="supportNewPriority">{t.fields.priority}</label>
               <select
                 id="supportNewPriority"
                 className="form-select"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as SupportCasePriority)}
               >
-                <option value="urgent">Urgent</option>
-                <option value="high">High</option>
-                <option value="normal">Normal</option>
-                <option value="low">Low</option>
+                <option value="urgent">{t.actions.priorityOptions.urgent}</option>
+                <option value="high">{t.actions.priorityOptions.high}</option>
+                <option value="normal">{t.actions.priorityOptions.normal}</option>
+                <option value="low">{t.actions.priorityOptions.low}</option>
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="supportNewOrgId">Org id</label>
+              <label className="form-label" htmlFor="supportNewOrgId">{t.actions.newCase.orgIdLabel}</label>
               <input
                 id="supportNewOrgId"
                 className="form-control"
                 value={orgId}
                 onChange={(e) => setOrgId(e.target.value)}
               />
-              <small className="text-body-secondary">Org id — leave blank if the requester is not tied to a customer.</small>
+              <small className="text-body-secondary">{t.actions.newCase.orgIdHelp}</small>
             </div>
             <div className="col-12">
-              <label className="form-label" htmlFor="supportNewSummary">Summary</label>
+              <label className="form-label" htmlFor="supportNewSummary">{t.actions.newCase.summaryLabel}</label>
               <textarea
                 id="supportNewSummary"
                 className="form-control"
@@ -550,7 +564,7 @@ export function NewSupportCaseButton() {
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="supportNewReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id="supportNewReason"
@@ -568,10 +582,10 @@ export function NewSupportCaseButton() {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Create case
+                {t.actions.newCase.submit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>

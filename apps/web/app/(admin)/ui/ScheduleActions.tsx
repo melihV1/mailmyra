@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminPlatform } from '../../../lib/i18n/dict/admin-platform';
+import { common } from '../../../lib/i18n/dict/common';
+import { useLang } from '../../../lib/i18n/LangProvider';
 import { REPORT_LIBRARY, RUNNABLE_REPORTS, TABLELESS_REPORT_IDS, type ReportSchedule } from '../reporting-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -20,8 +24,14 @@ const TABLELESS_IDS: readonly string[] = TABLELESS_REPORT_IDS;
  * bkz. `report-import-guard.test.ts`). `recipients` textarea'da satır satır
  * girilir, gönderimde diziye çevrilir; ham gövdeye JSON DİZİ olarak gider
  * (`Array.isArray` kontrolü uçta, `field()` yalnız string döner).
+ *
+ * Rapor ADLARI (`REPORT_LIBRARY[].name`) VERİ — paylaşılan model dosyası bu
+ * görevin dosya listesinde DEĞİL (Task 11 `ReportingOperationsViews.tsx`'e
+ * bakacak), İngilizce literal olarak KALIR.
  */
 export function NewScheduleButton() {
+  const lang = useLang();
+  const t = adminPlatform[lang];
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -59,10 +69,10 @@ export function NewScheduleButton() {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Schedule created.');
+    toast('success', t.scheduleActions.toast);
     setOpen(false);
     reset();
     router.refresh();
@@ -72,20 +82,20 @@ export function NewScheduleButton() {
     <>
       <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        New schedule
+        {t.scheduleActions.newSchedule}
       </button>
 
       {open && (
         <StaffDialog
-          title="New schedule"
-          subtitle="Opens a delivery schedule — the daily runner picks it up on its next planned run."
-          labelledBy="New schedule"
+          title={t.scheduleActions.dialogTitle}
+          subtitle={t.scheduleActions.subtitle}
+          labelledBy={t.scheduleActions.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="scheduleNewReport">Report</label>
+              <label className="form-label" htmlFor="scheduleNewReport">{t.scheduleActions.reportLabel}</label>
               <select
                 id="scheduleNewReport"
                 className="form-select"
@@ -103,23 +113,23 @@ export function NewScheduleButton() {
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="scheduleNewCadence">Cadence</label>
+              <label className="form-label" htmlFor="scheduleNewCadence">{t.scheduleActions.cadenceLabel}</label>
               <select id="scheduleNewCadence" className="form-select" value={cadence} onChange={(e) => setCadence(e.target.value as Cadence)}>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                <option value="daily">{t.scheduleActions.cadenceOptions.daily}</option>
+                <option value="weekly">{t.scheduleActions.cadenceOptions.weekly}</option>
+                <option value="monthly">{t.scheduleActions.cadenceOptions.monthly}</option>
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="scheduleNewFormat">Format</label>
+              <label className="form-label" htmlFor="scheduleNewFormat">{t.scheduleActions.formatLabel}</label>
               <select id="scheduleNewFormat" className="form-select" value={format} onChange={(e) => setFormat(e.target.value as Format)}>
-                <option value="digest">Email digest</option>
-                <option value="csv" disabled={csvDisabled}>{csvDisabled ? 'CSV (no table output)' : 'CSV'}</option>
+                <option value="digest">{t.scheduleActions.formatOptions.digest}</option>
+                <option value="csv" disabled={csvDisabled}>{csvDisabled ? t.scheduleActions.formatOptions.csvDisabled : t.scheduleActions.formatOptions.csv}</option>
               </select>
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="scheduleNewRecipients">
-                Recipients <span className="text-danger">*</span>
+                {t.scheduleActions.recipientsLabel} <span className="text-danger">*</span>
               </label>
               <textarea
                 id="scheduleNewRecipients"
@@ -130,11 +140,11 @@ export function NewScheduleButton() {
                 onChange={(e) => setRecipients(e.target.value)}
                 required
               />
-              <small className="text-body-secondary">One email per line — 1 to 10 recipients.</small>
+              <small className="text-body-secondary">{t.scheduleActions.recipientsHelp}</small>
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="scheduleNewReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input id="scheduleNewReason" className="form-control" value={reason} onChange={(e) => setReason(e.target.value)} required />
             </div>
@@ -146,10 +156,10 @@ export function NewScheduleButton() {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Create schedule
+                {t.scheduleActions.submit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>
@@ -168,9 +178,11 @@ export type ScheduleAction = 'status';
  * ikinci diyalog onun YERİNE (kardeş) açılır.
  */
 export function ScheduleActionButtons({ row, onPick }: { row: ReportSchedule; onPick: (action: ScheduleAction) => void }) {
+  const lang = useLang();
+  const t = adminPlatform[lang];
   return (
     <button type="button" className={`btn btn-sm ${row.status === 'paused' ? 'btn-label-success' : 'btn-label-warning'}`} onClick={() => onPick('status')}>
-      {row.status === 'paused' ? 'Resume' : 'Pause'}
+      {row.status === 'paused' ? t.scheduleActions.resume : t.scheduleActions.pause}
     </button>
   );
 }
@@ -191,6 +203,8 @@ export function ScheduleActionDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminPlatform[lang];
   const router = useRouter();
   const toast = useToast();
   const target: 'active' | 'paused' = row.status === 'paused' ? 'active' : 'paused';
@@ -210,10 +224,10 @@ export function ScheduleActionDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', target === 'active' ? 'Schedule resumed.' : 'Schedule paused.');
+    toast('success', target === 'active' ? t.scheduleActions.resumeToast : t.scheduleActions.pauseToast);
     onClose();
     onDone?.();
     router.refresh();
@@ -221,16 +235,16 @@ export function ScheduleActionDialog({
 
   return (
     <StaffDialog
-      title={target === 'active' ? `Resume — ${row.reportName}` : `Pause — ${row.reportName}`}
-      subtitle={target === 'active' ? 'The schedule becomes eligible for its next planned run.' : 'The schedule stops running until it is resumed.'}
-      labelledBy={`${target === 'active' ? 'Resume' : 'Pause'} ${row.reportName}`}
+      title={target === 'active' ? t.scheduleActions.resumeTitle(row.reportName) : t.scheduleActions.pauseTitle(row.reportName)}
+      subtitle={target === 'active' ? t.scheduleActions.resumeSubtitle : t.scheduleActions.pauseSubtitle}
+      labelledBy={target === 'active' ? t.scheduleActions.resumeLabelledBy(row.reportName) : t.scheduleActions.pauseLabelledBy(row.reportName)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="scheduleStatusReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input id="scheduleStatusReason" className="form-control" value={reason} onChange={(e) => setReason(e.target.value)} required />
         </div>
@@ -242,10 +256,10 @@ export function ScheduleActionDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            {target === 'active' ? 'Resume' : 'Pause'}
+            {target === 'active' ? t.scheduleActions.resume : t.scheduleActions.pause}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>

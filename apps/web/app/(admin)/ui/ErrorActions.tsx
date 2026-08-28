@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminPlatform } from '../../../lib/i18n/dict/admin-platform';
+import { common } from '../../../lib/i18n/dict/common';
+import { useLang } from '../../../lib/i18n/LangProvider';
 import type { ErrorGroupRow } from '../platform-operations-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -26,9 +30,11 @@ export type ErrorAction = 'state';
  * (ApprovalActions/SupportActions emsali).
  */
 export function ErrorActionButtons({ onPick }: { onPick: (action: ErrorAction) => void }) {
+  const lang = useLang();
+  const t = adminPlatform[lang];
   return (
     <button type="button" className="btn btn-sm btn-label-info" onClick={() => onPick('state')}>
-      Change status
+      {t.errorActions.changeStatus}
     </button>
   );
 }
@@ -44,6 +50,8 @@ export function ErrorActionDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminPlatform[lang];
   const router = useRouter();
   const toast = useToast();
   const targets = ERROR_STATE_TARGETS[row.state];
@@ -64,10 +72,10 @@ export function ErrorActionDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', `Status moved to ${state}.`);
+    toast('success', t.errorActions.toast(state));
     onClose();
     onDone?.();
     router.refresh();
@@ -75,15 +83,15 @@ export function ErrorActionDialog({
 
   return (
     <StaffDialog
-      title={`Change status — ${row.title}`}
-      subtitle="Only the statuses reachable from the current one are offered."
-      labelledBy={`Change status ${row.title}`}
+      title={t.errorActions.title(row.title)}
+      subtitle={t.errorActions.onlyReachable}
+      labelledBy={t.errorActions.labelledBy(row.title)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
-          <label className="form-label" htmlFor="errorStateTarget">Target status</label>
+          <label className="form-label" htmlFor="errorStateTarget">{t.errorActions.targetStatusLabel}</label>
           <select
             id="errorStateTarget"
             className="form-select"
@@ -97,7 +105,7 @@ export function ErrorActionDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="errorStateReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="errorStateReason"
@@ -115,10 +123,10 @@ export function ErrorActionDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Change status
+            {t.errorActions.changeStatus}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
