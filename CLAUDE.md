@@ -359,7 +359,6 @@ Kurulum rehberleri öncelikli: hem en çok aranan SEO içeriği hem destek yük�
 - ❌ Kampanya/kupon motoru → kademeli fiyat elle uygulanır
 - ❌ Google Workspace / Entra ID directory sync
 - ❌ Outlook eklentisi, server-side transport rule
-- ❌ İmza analitiği, tıklama takibi, banner kampanyaları
 - ❌ Onay akışları, public API, AI imza üretimi
 - ❌ Blog yazıları → lansmandan sonra
 - ❌ 3'ten fazla şablon → motor oturunca seri üretilir
@@ -377,6 +376,28 @@ Kurulum rehberleri öncelikli: hem en çok aranan SEO içeriği hem destek yük�
 > defteri taşıyor. İstisna YALNIZ personel panelini kapsar: müşteriye dönük
 > analitik/tıklama takibi ve müşteri onay akışları hâlâ yasak. Directory
 > sync yine yapılmadı (veri kaynağı yok).
+
+> **Revizyon (2026-08-28, Hüseyin, sözlü):** "İmza analitiği, tıklama takibi,
+> banner kampanyaları" maddesi bu listeden **ÇIKARILDI ve roadmap'e alındı**
+> (backend oturduktan sonra). Gerekçe: pazarlama sitesi bu üçünü zaten baştan
+> vaat ediyor ve satışın istediği yer orası — yasak tutmak, siteyi kalıcı
+> olarak yalancı bırakıyordu. Sitede bu bölümler **görünür biçimde "Yakında"**
+> işaretlenir; **fiyat tablosunda "Included" YAZILMAZ** (orası pazarlama değil,
+> satın alma vaadidir — ya satır çıkar ya "Yakında" olarak ayrılır).
+>
+> **Directory sync (Google Workspace / Entra ID) yasak listesinde KALIR** —
+> veri kaynağı yok, kapsam dışı. Sitede "Yakında" bile denmez; o bölümler
+> kaldırılır, yerine gerçek olan **CSV içe aktarma** anlatılır.
+>
+> ⚠️ Bu revizyon, 2026-08-21 istisnasının *"müşteriye dönük analitik/tıklama
+> takibi ... hâlâ yasak"* cümlesini geçersiz kılar. O istisna artık yalnız
+> **onay akışları** için geçerliliğini korur.
+>
+> **Takip sözü (kalıcı):** *"gönderdiğin imzanın içine gizli piksel veya sayacı
+> BİZ koymayız"* — bu söz bozulmaz. Gelecekteki CTA ölçümü ancak **açık
+> opt-in** ve kullanıcının gördüğü bir özellik olarak gelebilir. Gizli takip
+> hiçbir zaman. Sitedeki "No tracking" bölümleri bu kapsamla yeniden yazılır,
+> kaldırılmaz.
 
 Kapsam şişmesi bu projenin bir numaralı ölüm sebebidir. Yeni özellik önerisi gelirse bu listeye bak.
 
