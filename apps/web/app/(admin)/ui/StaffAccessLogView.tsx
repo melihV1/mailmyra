@@ -16,6 +16,9 @@ import {
   type AccessSort,
   type StaffAccessLogRow,
 } from '../access-log-model';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminSecurity } from '../../../lib/i18n/dict/admin-security';
 import type { Lang } from '../../../lib/i18n/types';
 import { AdminEmptyState } from './AdminEmptyState';
 import { StaffDialog } from './StaffDialog';
@@ -27,6 +30,8 @@ export function StaffAccessLogView({
   rows: StaffAccessLogRow[];
   now: number;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].accessLog;
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState('all');
   const [orgId, setOrgId] = useState('all');
@@ -98,7 +103,17 @@ export function StaffAccessLogView({
   };
 
   const exportCsv = () => {
-    const header = ['Event ID', 'Timestamp UTC', 'Staff', 'Customer', 'Scope', 'Target', 'IP', 'Client', 'Review signal'];
+    const header = [
+      t.csvHeaders.eventId,
+      t.csvHeaders.timestampUtc,
+      t.csvHeaders.staff,
+      t.csvHeaders.customer,
+      t.csvHeaders.scope,
+      t.csvHeaders.target,
+      t.csvHeaders.ip,
+      t.csvHeaders.client,
+      t.csvHeaders.reviewSignal,
+    ];
     const lines = visible.map((row) => {
       const review = getAccessReviewFacts(row, rows);
       return [
@@ -126,42 +141,42 @@ export function StaffAccessLogView({
 
   return (
     <>
-      <section className="card mb-6 mm-access-summary" aria-label="Access log summary">
+      <section className="card mb-6 mm-access-summary" aria-label={t.summaryAria}>
         <div className="card-widget-separator-wrapper">
           <div className="card-body card-widget-separator">
             <div className="row gy-4 gy-sm-1">
-              <SummaryWidget icon="tabler-eye" label="Sensitive reads" value={summary.reads} support="Loaded audit window" />
-              <SummaryWidget icon="tabler-calendar-event" label="Reads today" value={summary.readsToday} support="Since local midnight" tone="info" />
-              <SummaryWidget icon="tabler-user-shield" label="Active staff" value={summary.activeStaff} support="Distinct staff identities" tone="success" />
-              <SummaryWidget icon="tabler-building" label="Customers viewed" value={summary.customersAccessed} support={`${summary.reviewSignals} review ${summary.reviewSignals === 1 ? 'signal' : 'signals'}`} tone={summary.reviewSignals ? 'warning' : 'secondary'} last />
+              <SummaryWidget icon="tabler-eye" label={t.summary.sensitiveReads.label} value={summary.reads} support={t.summary.sensitiveReads.support} lang={lang} />
+              <SummaryWidget icon="tabler-calendar-event" label={t.summary.readsToday.label} value={summary.readsToday} support={t.summary.readsToday.support} tone="info" lang={lang} />
+              <SummaryWidget icon="tabler-user-shield" label={t.summary.activeStaff.label} value={summary.activeStaff} support={t.summary.activeStaff.support} tone="success" lang={lang} />
+              <SummaryWidget icon="tabler-building" label={t.summary.customersViewed.label} value={summary.customersAccessed} support={t.summary.customersViewed.support(summary.reviewSignals)} tone={summary.reviewSignals ? 'warning' : 'secondary'} last lang={lang} />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="card mb-6 mm-access-context" aria-label="Access context">
+      <section className="card mb-6 mm-access-context" aria-label={t.contextAria}>
         <div className="card-body py-4">
           <div className="row g-4 align-items-center">
             <ContextItem
               icon="tabler-shield-lock"
               tone="primary"
-              label="Immutable ledger"
-              value="Read-only audit trail"
-              support="No edit or delete controls are exposed."
+              label={t.context.immutableLedger.label}
+              value={t.context.immutableLedger.value}
+              support={adminSecurity[lang].shared.readOnlyLedgerNote}
             />
             <ContextItem
               icon={getAccessScopeIcon(topScope?.scope ?? '')}
               tone="info"
-              label="Most read scope"
-              value={topScope ? getAccessScopeLabel(topScope.scope) : 'No reads yet'}
-              support={topScope ? `${topScope.count} events in the loaded window` : 'Waiting for the first event'}
+              label={t.context.mostReadScope.label}
+              value={topScope ? getAccessScopeLabel(topScope.scope) : t.context.mostReadScope.emptyValue}
+              support={topScope ? t.context.mostReadScope.support(topScope.count) : t.context.mostReadScope.emptySupport}
             />
             <ContextItem
               icon="tabler-building-skyscraper"
               tone="warning"
-              label="Most viewed customer"
-              value={topCustomer?.name ?? 'No customer yet'}
-              support={topCustomer ? `${topCustomer.count} sensitive reads` : 'Waiting for the first event'}
+              label={t.context.mostViewedCustomer.label}
+              value={topCustomer?.name ?? t.context.mostViewedCustomer.emptyValue}
+              support={topCustomer ? t.context.mostViewedCustomer.support(topCustomer.count) : t.context.mostViewedCustomer.emptySupport}
             />
           </div>
         </div>
@@ -172,101 +187,101 @@ export function StaffAccessLogView({
           <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-5">
             <div>
               <div className="d-flex flex-wrap align-items-center gap-2">
-                <h5 className="card-title mb-0">Sensitive read ledger</h5>
-                <span className="badge bg-label-secondary">{visible.length} results</span>
+                <h5 className="card-title mb-0">{t.ledger.title}</h5>
+                <span className="badge bg-label-secondary">{t.ledger.resultsBadge(visible.length)}</span>
               </div>
               <p className="card-subtitle text-body-secondary mt-1 mb-0">
-                Review who opened customer data, what they viewed and when it happened.
+                {t.ledger.subtitle}
               </p>
             </div>
             <div className="d-flex flex-wrap gap-2">
               {hasFilters && (
                 <button type="button" className="btn btn-sm btn-label-secondary" onClick={resetFilters}>
                   <i className="icon-base ti tabler-filter-x me-1" aria-hidden="true" />
-                  Reset
+                  {t.ledger.reset}
                 </button>
               )}
               <button type="button" className="btn btn-sm btn-primary" onClick={exportCsv} disabled={visible.length === 0}>
                 <i className="icon-base ti tabler-file-download me-2" aria-hidden="true" />
-                Export CSV
+                {t.ledger.exportCsv}
               </button>
             </div>
           </div>
 
           <div className="nav-align-top mb-5">
-            <div className="nav nav-pills mm-access-focus" role="group" aria-label="Review focus">
-              <button type="button" className={`nav-link${signal === 'all' ? ' active' : ''}`} onClick={() => setSignal('all')}>All reads</button>
+            <div className="nav nav-pills mm-access-focus" role="group" aria-label={t.ledger.focusAria}>
+              <button type="button" className={`nav-link${signal === 'all' ? ' active' : ''}`} onClick={() => setSignal('all')}>{t.ledger.allReads}</button>
               <button type="button" className={`nav-link${signal === 'review' ? ' active' : ''}`} onClick={() => setSignal('review')}>
-                Review signals
+                {t.ledger.reviewSignals}
                 {summary.reviewSignals > 0 && <span className="badge rounded-pill bg-warning ms-2">{summary.reviewSignals}</span>}
               </button>
-              <button type="button" className={`nav-link${signal === 'routine' ? ' active' : ''}`} onClick={() => setSignal('routine')}>Routine reads</button>
+              <button type="button" className={`nav-link${signal === 'routine' ? ' active' : ''}`} onClick={() => setSignal('routine')}>{t.ledger.routineReads}</button>
             </div>
           </div>
 
           <div className="row g-3">
             <div className="col-12 col-xl-4">
-              <label className="form-label" htmlFor="access-search">Search audit trail</label>
+              <label className="form-label" htmlFor="access-search">{t.ledger.searchLabel}</label>
               <div className="input-group input-group-merge">
                 <span className="input-group-text"><i className="icon-base ti tabler-search" aria-hidden="true" /></span>
-                <input id="access-search" type="search" className="form-control" placeholder="Staff, customer, target or IP" value={query} onChange={(event) => setQuery(event.target.value)} />
+                <input id="access-search" type="search" className="form-control" placeholder={t.ledger.searchPlaceholder} value={query} onChange={(event) => setQuery(event.target.value)} />
               </div>
             </div>
-            <FilterSelect id="access-period" label="Period" value={period} onChange={(value) => setPeriod(value as AccessPeriod)} options={[
-              ['today', 'Today'], ['7', 'Last 7 days'], ['30', 'Last 30 days'], ['all', 'Loaded history'],
+            <FilterSelect id="access-period" label={t.ledger.periodLabel} value={period} onChange={(value) => setPeriod(value as AccessPeriod)} options={[
+              ['today', t.ledger.periodOptions.today], ['7', t.ledger.periodOptions.d7], ['30', t.ledger.periodOptions.d30], ['all', t.ledger.periodOptions.all],
             ]} />
-            <FilterSelect id="access-scope" label="Scope" value={scope} onChange={setScope} options={[
-              ['all', 'All scopes'], ...scopes.map((item) => [item, getAccessScopeLabel(item)] as [string, string]),
+            <FilterSelect id="access-scope" label={t.ledger.scopeLabel} value={scope} onChange={setScope} options={[
+              ['all', t.ledger.allScopes], ...scopes.map((item) => [item, getAccessScopeLabel(item)] as [string, string]),
             ]} />
-            <FilterSelect id="access-customer" label="Customer" value={orgId} onChange={setOrgId} options={[
-              ['all', 'All customers'], ...organizations,
+            <FilterSelect id="access-customer" label={t.ledger.customerLabel} value={orgId} onChange={setOrgId} options={[
+              ['all', t.ledger.allCustomers], ...organizations,
             ]} />
-            <FilterSelect id="access-staff" label="Staff" value={staff} onChange={setStaff} options={[
-              ['all', 'All staff'], ...staffMembers.map((item) => [item, item] as [string, string]),
+            <FilterSelect id="access-staff" label={t.ledger.staffLabel} value={staff} onChange={setStaff} options={[
+              ['all', t.ledger.allStaff], ...staffMembers.map((item) => [item, item] as [string, string]),
             ]} />
-            <FilterSelect id="access-sort" label="Sort by" value={sort} onChange={(value) => setSort(value as AccessSort)} options={[
-              ['newest', 'Newest first'], ['oldest', 'Oldest first'], ['customer', 'Customer'], ['staff', 'Staff member'],
+            <FilterSelect id="access-sort" label={t.ledger.sortLabel} value={sort} onChange={(value) => setSort(value as AccessSort)} options={[
+              ['newest', t.ledger.sortOptions.newest], ['oldest', t.ledger.sortOptions.oldest], ['customer', t.ledger.sortOptions.customer], ['staff', t.ledger.sortOptions.staff],
             ]} />
           </div>
         </div>
 
         {visible.length === 0 ? (
-          <AdminEmptyState icon="tabler-shield-off" text={rows.length === 0 ? 'No sensitive reads have been recorded yet.' : 'No access event matches these filters.'} />
+          <AdminEmptyState icon="tabler-shield-off" text={rows.length === 0 ? t.ledger.emptyNoRows : t.ledger.emptyNoMatch} />
         ) : (
           <>
             <div className="table-responsive mm-access-desktop-table">
               <table className="table table-hover mm-access-table">
                 <thead>
                   <tr>
-                    <th>When</th>
-                    <th>Staff member</th>
-                    <th>Customer</th>
-                    <th>Scope</th>
-                    <th>Target</th>
-                    <th>Review signal</th>
-                    <th className="text-end">Actions</th>
+                    <th>{t.ledger.tableHeaders.when}</th>
+                    <th>{t.ledger.tableHeaders.staffMember}</th>
+                    <th>{t.ledger.tableHeaders.customer}</th>
+                    <th>{t.ledger.tableHeaders.scope}</th>
+                    <th>{t.ledger.tableHeaders.target}</th>
+                    <th>{t.ledger.tableHeaders.reviewSignal}</th>
+                    <th className="text-end">{t.ledger.tableHeaders.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((row) => <AccessTableRow key={row.id} row={row} rows={rows} now={now} onPreview={setPreviewRow} />)}
+                  {visible.map((row) => <AccessTableRow key={row.id} row={row} rows={rows} now={now} onPreview={setPreviewRow} lang={lang} />)}
                 </tbody>
               </table>
             </div>
             <div className="mm-access-responsive-cards p-4">
               <div className="row g-4">
-                {visible.map((row) => <AccessMobileCard key={row.id} row={row} rows={rows} now={now} onPreview={setPreviewRow} />)}
+                {visible.map((row) => <AccessMobileCard key={row.id} row={row} rows={rows} now={now} onPreview={setPreviewRow} lang={lang} />)}
               </div>
             </div>
           </>
         )}
 
         <div className="card-footer d-flex flex-wrap justify-content-between gap-2 text-body-secondary small">
-          <span>Showing {visible.length} of {rows.length} loaded events</span>
-          <span><i className="icon-base ti tabler-lock me-1" aria-hidden="true" />Append-only audit data</span>
+          <span>{t.ledger.footerShowing(visible.length, rows.length)}</span>
+          <span><i className="icon-base ti tabler-lock me-1" aria-hidden="true" />{t.ledger.footerAppendOnly}</span>
         </div>
       </section>
 
-      {previewRow && <AccessDetailDialog row={previewRow} rows={rows} onClose={() => setPreviewRow(null)} />}
+      {previewRow && <AccessDetailDialog row={previewRow} rows={rows} onClose={() => setPreviewRow(null)} lang={lang} />}
     </>
   );
 }
@@ -330,27 +345,28 @@ function FilterSelect({ id, label, value, onChange, options }: {
   );
 }
 
-function AccessTableRow({ row, rows, now, onPreview }: {
-  row: StaffAccessLogRow; rows: StaffAccessLogRow[]; now: number; onPreview: (row: StaffAccessLogRow) => void;
+function AccessTableRow({ row, rows, now, onPreview, lang }: {
+  row: StaffAccessLogRow; rows: StaffAccessLogRow[]; now: number; onPreview: (row: StaffAccessLogRow) => void; lang: Lang;
 }) {
+  const t = adminSecurity[lang].accessLog;
   const review = getAccessReviewFacts(row, rows);
   return (
     <tr>
-      <td><TimeCell value={row.createdAt} now={now} /></td>
+      <td><TimeCell value={row.createdAt} now={now} lang={lang} /></td>
       <td><StaffIdentity email={row.staffEmail} /></td>
       <td>
         <Link href={`/admin/orgs/${row.orgId}`} className="fw-medium text-heading">{row.orgName}</Link>
         <small className="d-block text-body-secondary">{getClientLabel(row.userAgent)}</small>
       </td>
       <td><ScopeBadge scope={row.scope} /></td>
-      <td><code className="small text-body-secondary">{shortTarget(row.targetId)}</code></td>
+      <td><code className="small text-body-secondary">{shortTarget(row.targetId, lang)}</code></td>
       <td><ReviewBadge review={review} /></td>
       <td className="text-end">
         <div className="d-inline-flex mm-access-action-cluster">
-          <button type="button" className="btn btn-sm btn-icon btn-label-primary" aria-label={`View access event for ${row.orgName}`} title="View event" onClick={() => onPreview(row)}>
+          <button type="button" className="btn btn-sm btn-icon btn-label-primary" aria-label={t.ledger.viewEventFor(row.orgName)} title={t.ledger.viewEvent} onClick={() => onPreview(row)}>
             <i className="icon-base ti tabler-eye" aria-hidden="true" />
           </button>
-          <Link href={`/admin/orgs/${row.orgId}`} className="btn btn-sm btn-icon btn-label-secondary" aria-label={`Open ${row.orgName}`} title="Open customer">
+          <Link href={`/admin/orgs/${row.orgId}`} className="btn btn-sm btn-icon btn-label-secondary" aria-label={t.ledger.openFor(row.orgName)} title={t.ledger.openCustomer}>
             <i className="icon-base ti tabler-arrow-up-right" aria-hidden="true" />
           </Link>
         </div>
@@ -359,64 +375,66 @@ function AccessTableRow({ row, rows, now, onPreview }: {
   );
 }
 
-function AccessMobileCard({ row, rows, now, onPreview }: {
-  row: StaffAccessLogRow; rows: StaffAccessLogRow[]; now: number; onPreview: (row: StaffAccessLogRow) => void;
+function AccessMobileCard({ row, rows, now, onPreview, lang }: {
+  row: StaffAccessLogRow; rows: StaffAccessLogRow[]; now: number; onPreview: (row: StaffAccessLogRow) => void; lang: Lang;
 }) {
+  const t = adminSecurity[lang].accessLog;
   const review = getAccessReviewFacts(row, rows);
   return (
     <div className="col-12 col-md-6">
       <article className="border rounded p-4 h-100 mm-access-mobile-card">
         <div className="d-flex justify-content-between gap-3 mb-4">
           <StaffIdentity email={row.staffEmail} />
-          <button type="button" className="btn btn-sm btn-icon btn-label-primary" aria-label="View access event" onClick={() => onPreview(row)}>
+          <button type="button" className="btn btn-sm btn-icon btn-label-primary" aria-label={t.ledger.viewEventAria} onClick={() => onPreview(row)}>
             <i className="icon-base ti tabler-eye" aria-hidden="true" />
           </button>
         </div>
         <Link href={`/admin/orgs/${row.orgId}`} className="h6 d-block mb-1">{row.orgName}</Link>
-        <TimeCell value={row.createdAt} now={now} />
+        <TimeCell value={row.createdAt} now={now} lang={lang} />
         <div className="d-flex flex-wrap gap-2 mt-4 mb-3"><ScopeBadge scope={row.scope} /><ReviewBadge review={review} /></div>
         <div className="d-flex justify-content-between gap-3 pt-3 border-top small">
-          <span className="text-body-secondary">Target</span>
-          <code className="text-body-secondary text-end">{shortTarget(row.targetId)}</code>
+          <span className="text-body-secondary">{t.ledger.target}</span>
+          <code className="text-body-secondary text-end">{shortTarget(row.targetId, lang)}</code>
         </div>
       </article>
     </div>
   );
 }
 
-function AccessDetailDialog({ row, rows, onClose }: { row: StaffAccessLogRow; rows: StaffAccessLogRow[]; onClose: () => void }) {
+function AccessDetailDialog({ row, rows, onClose, lang }: { row: StaffAccessLogRow; rows: StaffAccessLogRow[]; onClose: () => void; lang: Lang }) {
+  const t = adminSecurity[lang].accessLog;
   const review = getAccessReviewFacts(row, rows);
   return (
-    <StaffDialog title="Sensitive read event" subtitle="Immutable staff access record" labelledBy="Sensitive read event details" busy={false} onClose={onClose} wide>
+    <StaffDialog title={t.detail.title} subtitle={t.detail.subtitle} labelledBy={t.detail.labelledBy} busy={false} onClose={onClose} wide>
       <div className="alert alert-outline-primary d-flex align-items-start gap-3 mb-5" role="note">
         <i className="icon-base ti tabler-shield-lock mt-1" aria-hidden="true" />
-        <div><strong>Read-only evidence.</strong><div className="small">This record cannot be edited or deleted from the control plane.</div></div>
+        <div><strong>{t.detail.readOnlyHeading}</strong><div className="small">{t.detail.readOnlyBody}</div></div>
       </div>
       <div className="row g-4">
-        <DetailItem label="Event ID" value={row.id} mono />
-        <DetailItem label="Timestamp (UTC)" value={formatUtc(row.createdAt)} />
-        <DetailItem label="Staff member" value={row.staffEmail} />
-        <DetailItem label="Customer" value={row.orgName} />
-        <DetailItem label="Scope" value={getAccessScopeLabel(row.scope)} />
-        <DetailItem label="Target ID" value={row.targetId ?? 'Not a single-record read'} mono />
-        <DetailItem label="IP address" value={row.ip ?? 'Not recorded'} mono />
-        <DetailItem label="Client" value={getClientLabel(row.userAgent)} />
+        <DetailItem label={t.detail.fields.eventId} value={row.id} mono />
+        <DetailItem label={t.detail.fields.timestampUtc} value={formatUtc(row.createdAt, lang)} />
+        <DetailItem label={t.detail.fields.staffMember} value={row.staffEmail} />
+        <DetailItem label={t.detail.fields.customer} value={row.orgName} />
+        <DetailItem label={t.detail.fields.scope} value={getAccessScopeLabel(row.scope)} />
+        <DetailItem label={t.detail.fields.targetId} value={row.targetId ?? t.detail.notSingleRecordRead} mono />
+        <DetailItem label={t.detail.fields.ipAddress} value={row.ip ?? adminCommon[lang].notRecorded} mono />
+        <DetailItem label={t.detail.fields.client} value={getClientLabel(row.userAgent)} />
       </div>
       <div className={`alert ${review.signal === 'review' ? 'alert-warning' : 'alert-secondary'} mt-5 mb-0`}>
         <div className="d-flex gap-3">
           <i className={`icon-base ti ${review.signal === 'review' ? 'tabler-alert-triangle' : 'tabler-circle-check'} mt-1`} aria-hidden="true" />
-          <div><strong>{review.label}</strong><div className="small mt-1">{review.detail}</div><div className="small mt-2">A review signal is a workload heuristic, not a confirmed security incident.</div></div>
+          <div><strong>{review.label}</strong><div className="small mt-1">{review.detail}</div><div className="small mt-2">{t.detail.reviewSignalNote}</div></div>
         </div>
       </div>
       {row.userAgent && (
         <div className="mt-5">
-          <label className="form-label">Raw user agent</label>
+          <label className="form-label">{t.detail.rawUserAgent}</label>
           <div className="bg-body-secondary rounded p-3 small text-break font-monospace">{row.userAgent}</div>
         </div>
       )}
       <div className="d-flex justify-content-end gap-2 mt-6">
-        <Link href={`/admin/orgs/${row.orgId}`} className="btn btn-label-primary">Open customer</Link>
-        <button type="button" className="btn btn-primary" onClick={onClose}>Close</button>
+        <Link href={`/admin/orgs/${row.orgId}`} className="btn btn-label-primary">{t.detail.openCustomer}</Link>
+        <button type="button" className="btn btn-primary" onClick={onClose}>{t.detail.close}</button>
       </div>
     </StaffDialog>
   );
@@ -445,8 +463,8 @@ function ReviewBadge({ review }: { review: ReturnType<typeof getAccessReviewFact
   return <span className={`badge bg-label-${review.signal === 'review' ? 'warning' : 'secondary'}`} title={review.detail}><i className={`icon-base ti ${review.signal === 'review' ? 'tabler-alert-triangle' : 'tabler-circle-check'} me-1`} aria-hidden="true" />{review.label}</span>;
 }
 
-function TimeCell({ value, now }: { value: string; now: number }) {
-  return <div><span className="fw-medium text-heading d-block">{formatRelative(value, now)}</span><small className="text-body-secondary">{formatUtc(value)}</small></div>;
+function TimeCell({ value, now, lang }: { value: string; now: number; lang: Lang }) {
+  return <div><span className="fw-medium text-heading d-block">{formatRelative(value, now, lang)}</span><small className="text-body-secondary">{formatUtc(value, lang)}</small></div>;
 }
 
 // StaffAccessLogView'a özgü UTC damgası ('en'/'tr' + sabit timeZone: 'UTC') — option
@@ -456,18 +474,19 @@ function formatUtc(value: string, lang: Lang = 'en'): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value));
 }
 
-function formatRelative(value: string, now: number): string {
+function formatRelative(value: string, now: number, lang: Lang = 'en'): string {
+  const t = adminSecurity[lang].accessLog.time;
   const minutes = Math.max(0, Math.floor((now - Date.parse(value)) / 60000));
-  if (minutes < 1) return 'Just now';
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 1) return t.justNow;
+  if (minutes < 60) return t.minutesAgo(minutes);
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return t.hoursAgo(hours);
   const days = Math.floor(hours / 24);
-  return days === 1 ? 'Yesterday' : `${days}d ago`;
+  return days === 1 ? t.yesterday : t.daysAgo(days);
 }
 
-function shortTarget(value: string | null): string {
-  if (!value) return 'Whole scope';
+function shortTarget(value: string | null, lang: Lang = 'en'): string {
+  if (!value) return adminSecurity[lang].accessLog.wholeScope;
   return value.length > 18 ? `${value.slice(0, 8)}…${value.slice(-6)}` : value;
 }
 

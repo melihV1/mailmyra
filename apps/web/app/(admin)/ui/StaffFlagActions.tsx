@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminSecurity } from '../../../lib/i18n/dict/admin-security';
+import { common } from '../../../lib/i18n/dict/common';
 import type { StaffChangeRequestRow } from '../operations-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -27,6 +31,8 @@ function normalizeStaffEmail(email: string): string {
  * (İLKE: talep → karar → icra, üçü ayrı adım).
  */
 export function RequestStaffChangeButton() {
+  const lang = useLang();
+  const t = adminSecurity[lang].staffFlagActions;
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -42,6 +48,9 @@ export function RequestStaffChangeButton() {
     setError(null);
     const targetId = normalizeStaffEmail(email);
     const targetType = action === 'grant' ? 'staff_grant' : 'staff_revoke';
+    // Bu başlık kalıcı olarak saklanan bir VERİDİR (ApprovalQueueRow.title
+    // serbest metin alanı — NewApprovalButton'daki elle yazılan Title'ın
+    // otomatik-üretilmiş eşdeğeri), bilerek İngilizce literal kaldı.
     const title = `${action === 'grant' ? 'Grant staff' : 'Revoke staff'} — ${targetId}`;
     const res = await fetch('/api/admin/approvals', {
       method: 'POST',
@@ -51,10 +60,10 @@ export function RequestStaffChangeButton() {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Request opened — decide it from Security → Approvals.');
+    toast('success', t.request.toast);
     setOpen(false);
     setEmail('');
     setAction('grant');
@@ -66,21 +75,21 @@ export function RequestStaffChangeButton() {
     <>
       <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-shield-plus me-1" aria-hidden="true" />
-        Request staff change
+        {t.request.button}
       </button>
 
       {open && (
         <StaffDialog
-          title="Request staff change"
-          subtitle="Opens a decision-ledger entry. Nothing is granted or revoked until it is approved and executed."
-          labelledBy="Request staff change"
+          title={t.request.dialogTitle}
+          subtitle={t.request.subtitle}
+          labelledBy={t.request.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
               <label className="form-label" htmlFor="staffRequestEmail">
-                Target email <span className="text-danger">*</span>
+                {t.request.emailLabel} <span className="text-danger">*</span>
               </label>
               <input
                 id="staffRequestEmail"
@@ -92,20 +101,20 @@ export function RequestStaffChangeButton() {
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="staffRequestAction">Action</label>
+              <label className="form-label" htmlFor="staffRequestAction">{t.request.actionLabel}</label>
               <select
                 id="staffRequestAction"
                 className="form-select"
                 value={action}
                 onChange={(e) => setAction(e.target.value as typeof action)}
               >
-                <option value="grant">Grant staff access</option>
-                <option value="revoke">Revoke staff access</option>
+                <option value="grant">{t.request.actionOptions.grant}</option>
+                <option value="revoke">{t.request.actionOptions.revoke}</option>
               </select>
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="staffRequestReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id="staffRequestReason"
@@ -123,10 +132,10 @@ export function RequestStaffChangeButton() {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Create request
+                {t.request.submit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>
@@ -146,6 +155,8 @@ export function RequestStaffChangeButton() {
  * değil, satırın kendisinde duruyor).
  */
 export function ExecuteStaffChangeButton({ request }: { request: StaffChangeRequestRow }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].staffFlagActions;
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -166,10 +177,10 @@ export function ExecuteStaffChangeButton({ request }: { request: StaffChangeRequ
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', grant ? 'Staff access granted.' : 'Staff access revoked.');
+    toast('success', grant ? t.execute.grantToast : t.execute.revokeToast);
     setOpen(false);
     setReason('');
     router.refresh();
@@ -178,21 +189,21 @@ export function ExecuteStaffChangeButton({ request }: { request: StaffChangeRequ
   return (
     <>
       <button type="button" className={`btn btn-sm ${grant ? 'btn-success' : 'btn-danger'}`} onClick={() => setOpen(true)}>
-        Execute
+        {t.execute.button}
       </button>
 
       {open && (
         <StaffDialog
-          title={`${grant ? 'Grant' : 'Revoke'} staff access — ${request.targetId}`}
-          subtitle="Executes the approved request. It can only be spent once."
-          labelledBy={`Execute staff change ${request.targetId}`}
+          title={grant ? t.execute.grantTitle(request.targetId) : t.execute.revokeTitle(request.targetId)}
+          subtitle={t.execute.subtitle}
+          labelledBy={t.execute.labelledBy(request.targetId)}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-12">
               <label className="form-label" htmlFor={`staffExecuteReason-${request.id}`}>
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id={`staffExecuteReason-${request.id}`}
@@ -210,10 +221,10 @@ export function ExecuteStaffChangeButton({ request }: { request: StaffChangeRequ
             <div className="col-12 text-center">
               <button type="submit" className={`btn me-3 ${grant ? 'btn-success' : 'btn-danger'}`} disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                {grant ? 'Grant access' : 'Revoke access'}
+                {grant ? t.execute.grantSubmit : t.execute.revokeSubmit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>

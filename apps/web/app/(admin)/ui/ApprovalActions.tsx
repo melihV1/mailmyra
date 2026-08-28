@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminSecurity } from '../../../lib/i18n/dict/admin-security';
+import { common } from '../../../lib/i18n/dict/common';
 import type { ApprovalQueueRow } from '../operations-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -27,18 +31,20 @@ export function ApprovalActionButtons({
   row: ApprovalQueueRow;
   onPick: (action: ApprovalAction) => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].approvalActions;
   if (row.status !== 'pending') return null;
 
   return (
     <>
       <button type="button" className="btn btn-success btn-sm" onClick={() => onPick('approve')}>
-        Approve
+        {t.buttons.approve}
       </button>
       <button type="button" className="btn btn-danger btn-sm" onClick={() => onPick('reject')}>
-        Reject
+        {t.buttons.reject}
       </button>
       <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('cancel')}>
-        Cancel
+        {t.buttons.cancel}
       </button>
     </>
   );
@@ -79,6 +85,8 @@ function DecisionDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].approvalActions;
   const router = useRouter();
   const toast = useToast();
   const [reason, setReason] = useState('');
@@ -97,7 +105,7 @@ function DecisionDialog({
     const body = (await res.json().catch(() => ({}))) as { error?: string; status?: string };
     setBusy(false);
     if (!res.ok) {
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
     // Karar 'approve' olsa da eşik dolmadıysa API 'pending' döner — talep
@@ -105,10 +113,10 @@ function DecisionDialog({
     toast(
       'success',
       body.status === 'pending'
-        ? 'Decision recorded — still pending.'
+        ? t.decisionDialog.pendingToast
         : decision === 'approve'
-          ? 'Request approved.'
-          : 'Request rejected.',
+          ? t.decisionDialog.approvedToast
+          : t.decisionDialog.rejectedToast,
     );
     onClose();
     onDone?.();
@@ -117,20 +125,22 @@ function DecisionDialog({
 
   return (
     <StaffDialog
-      title={decision === 'approve' ? `Approve — ${row.title}` : `Reject — ${row.title}`}
+      title={decision === 'approve' ? t.decisionDialog.approveTitle(row.title) : t.decisionDialog.rejectTitle(row.title)}
       subtitle={
         decision === 'approve'
-          ? `${row.approvals + 1}/${row.requiredApprovals} approvals once this decision is recorded.`
-          : 'A single rejection closes the request.'
+          ? t.decisionDialog.approveSubtitle(row.approvals + 1, row.requiredApprovals)
+          : t.decisionDialog.rejectSubtitle
       }
-      labelledBy={`${decision === 'approve' ? 'Approve' : 'Reject'} ${row.title}`}
+      labelledBy={
+        decision === 'approve' ? t.decisionDialog.approveLabelledBy(row.title) : t.decisionDialog.rejectLabelledBy(row.title)
+      }
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="apprDecisionReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="apprDecisionReason"
@@ -152,10 +162,10 @@ function DecisionDialog({
             disabled={busy}
           >
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            {decision === 'approve' ? 'Approve' : 'Reject'}
+            {decision === 'approve' ? t.decisionDialog.approveSubmit : t.decisionDialog.rejectSubmit}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -172,6 +182,8 @@ function CancelDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].approvalActions;
   const router = useRouter();
   const toast = useToast();
   const [reason, setReason] = useState('');
@@ -190,10 +202,10 @@ function CancelDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Request cancelled.');
+    toast('success', t.cancelDialog.toast);
     onClose();
     onDone?.();
     router.refresh();
@@ -201,16 +213,16 @@ function CancelDialog({
 
   return (
     <StaffDialog
-      title={`Cancel — ${row.title}`}
-      subtitle="The request stays in the ledger; it only drops out of the active queue."
-      labelledBy={`Cancel ${row.title}`}
+      title={t.cancelDialog.title(row.title)}
+      subtitle={t.cancelDialog.subtitle}
+      labelledBy={t.cancelDialog.labelledBy(row.title)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="apprCancelReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="apprCancelReason"
@@ -228,10 +240,10 @@ function CancelDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-danger me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Cancel request
+            {t.cancelDialog.submit}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Close
+            {common[lang].close}
           </button>
         </div>
       </form>
@@ -246,6 +258,8 @@ function CancelDialog({
  * açar.
  */
 export function NewApprovalButton() {
+  const lang = useLang();
+  const t = adminSecurity[lang].approvalActions;
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -277,10 +291,10 @@ export function NewApprovalButton() {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Approval request created.');
+    toast('success', t.newApproval.toast);
     setOpen(false);
     setTitle('');
     setDomain('entitlement');
@@ -295,20 +309,20 @@ export function NewApprovalButton() {
     <>
       <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        New approval request
+        {t.newApproval.button}
       </button>
 
       {open && (
         <StaffDialog
-          title="New approval request"
-          subtitle="Opens a decision-ledger entry — nothing is applied automatically."
-          labelledBy="New approval request"
+          title={t.newApproval.dialogTitle}
+          subtitle={t.newApproval.subtitle}
+          labelledBy={t.newApproval.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-12">
-              <label className="form-label" htmlFor="apprTitle">Title</label>
+              <label className="form-label" htmlFor="apprTitle">{t.newApproval.titleLabel}</label>
               <input
                 id="apprTitle"
                 className="form-control"
@@ -318,44 +332,44 @@ export function NewApprovalButton() {
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="apprDomain">Domain</label>
+              <label className="form-label" htmlFor="apprDomain">{t.newApproval.domainLabel}</label>
               <select
                 id="apprDomain"
                 className="form-select"
                 value={domain}
                 onChange={(e) => setDomain(e.target.value as typeof domain)}
               >
-                <option value="entitlement">Entitlement</option>
-                <option value="billing">Billing</option>
-                <option value="security">Security</option>
-                <option value="platform">Platform</option>
+                <option value="entitlement">{t.newApproval.domainOptions.entitlement}</option>
+                <option value="billing">{t.newApproval.domainOptions.billing}</option>
+                <option value="security">{t.newApproval.domainOptions.security}</option>
+                <option value="platform">{t.newApproval.domainOptions.platform}</option>
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="apprRisk">Risk level</label>
+              <label className="form-label" htmlFor="apprRisk">{t.newApproval.riskLabel}</label>
               <select
                 id="apprRisk"
                 className="form-select"
                 value={riskLevel}
                 onChange={(e) => setRiskLevel(e.target.value as typeof riskLevel)}
               >
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="critical">Critical</option>
+                <option value="medium">{t.newApproval.riskOptions.medium}</option>
+                <option value="high">{t.newApproval.riskOptions.high}</option>
+                <option value="critical">{t.newApproval.riskOptions.critical}</option>
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="apprOrgId">Org id</label>
+              <label className="form-label" htmlFor="apprOrgId">{t.newApproval.orgIdLabel}</label>
               <input
                 id="apprOrgId"
                 className="form-control"
                 value={orgId}
                 onChange={(e) => setOrgId(e.target.value)}
               />
-              <small className="text-body-secondary">Org id — leave blank for a platform-wide record.</small>
+              <small className="text-body-secondary">{t.newApproval.orgIdHelp}</small>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="apprRequired">Required approvals</label>
+              <label className="form-label" htmlFor="apprRequired">{t.newApproval.requiredApprovalsLabel}</label>
               <input
                 id="apprRequired"
                 type="number"
@@ -368,7 +382,7 @@ export function NewApprovalButton() {
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="apprReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id="apprReason"
@@ -386,10 +400,10 @@ export function NewApprovalButton() {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Create request
+                {t.newApproval.submit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>

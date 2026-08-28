@@ -4,6 +4,10 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useState, useEffect, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminSecurity } from '../../../lib/i18n/dict/admin-security';
+import { common } from '../../../lib/i18n/dict/common';
 import type { DataRequestRow } from '../operations-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -60,6 +64,8 @@ export function KvkkActionButtons({
   row: DataRequestRow;
   onPick: (action: KvkkAction) => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   if (row.status === 'completed') return null;
 
   const statusTargets = kvkkStatusTargets(row);
@@ -70,23 +76,23 @@ export function KvkkActionButtons({
     <>
       {canVerifyIdentity && (
         <button type="button" className="btn btn-primary btn-sm" onClick={() => onPick('identity')}>
-          Verify identity
+          {t.buttons.verifyIdentity}
         </button>
       )}
       <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('owner')}>
-        Assign owner
+        {t.buttons.assignOwner}
       </button>
       <button type="button" className="btn btn-label-secondary btn-sm" onClick={() => onPick('evidence')}>
-        Add evidence
+        {t.buttons.addEvidence}
       </button>
       {statusTargets.length > 0 && (
         <button type="button" className="btn btn-label-info btn-sm" onClick={() => onPick('status')}>
-          Move status
+          {t.buttons.moveStatus}
         </button>
       )}
       {canComplete && (
         <button type="button" className="btn btn-success btn-sm" onClick={() => onPick('complete')}>
-          Respond &amp; close
+          {t.buttons.respondClose}
         </button>
       )}
     </>
@@ -130,6 +136,8 @@ function IdentityDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   const router = useRouter();
   const toast = useToast();
   const [method, setMethod] = useState('');
@@ -149,10 +157,10 @@ function IdentityDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Identity verified.');
+    toast('success', t.identityDialog.toast);
     onClose();
     onDone?.();
     router.refresh();
@@ -160,21 +168,21 @@ function IdentityDialog({
 
   return (
     <StaffDialog
-      title={`Verify identity — ${row.reference}`}
-      subtitle="Confirms the data subject's identity and moves the request into progress."
-      labelledBy={`Verify identity ${row.reference}`}
+      title={t.identityDialog.title(row.reference)}
+      subtitle={t.identityDialog.subtitle}
+      labelledBy={t.identityDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkIdentityMethod">
-            Verification method <span className="text-danger">*</span>
+            {t.identityDialog.methodLabel} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkIdentityMethod"
             className="form-control"
-            placeholder="e.g. video call, ID document, portal login"
+            placeholder={t.identityDialog.methodPlaceholder}
             value={method}
             onChange={(e) => setMethod(e.target.value)}
             required
@@ -182,7 +190,7 @@ function IdentityDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkIdentityReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkIdentityReason"
@@ -200,10 +208,10 @@ function IdentityDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Verify identity
+            {t.buttons.verifyIdentity}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -220,6 +228,8 @@ function OwnerDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   const router = useRouter();
   const toast = useToast();
   const [ownerEmail, setOwnerEmail] = useState('');
@@ -239,10 +249,10 @@ function OwnerDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Owner assigned.');
+    toast('success', t.ownerDialog.toast);
     onClose();
     onDone?.();
     router.refresh();
@@ -250,16 +260,16 @@ function OwnerDialog({
 
   return (
     <StaffDialog
-      title={`Assign owner — ${row.reference}`}
-      subtitle="The owner must already be a staff account."
-      labelledBy={`Assign owner ${row.reference}`}
+      title={t.ownerDialog.title(row.reference)}
+      subtitle={t.ownerDialog.subtitle}
+      labelledBy={t.ownerDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkOwnerEmail">
-            Owner email <span className="text-danger">*</span>
+            {t.ownerDialog.ownerEmailLabel} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkOwnerEmail"
@@ -272,7 +282,7 @@ function OwnerDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkOwnerReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkOwnerReason"
@@ -290,10 +300,10 @@ function OwnerDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Assign owner
+            {t.buttons.assignOwner}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -310,6 +320,8 @@ function EvidenceDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   const router = useRouter();
   const toast = useToast();
   const [label, setLabel] = useState('');
@@ -330,10 +342,10 @@ function EvidenceDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Evidence added.');
+    toast('success', t.evidenceDialog.toast);
     onClose();
     onDone?.();
     router.refresh();
@@ -341,21 +353,21 @@ function EvidenceDialog({
 
   return (
     <StaffDialog
-      title={`Add evidence — ${row.reference}`}
-      subtitle="The location is stored with the evidence record only — it never appears in the event trail."
-      labelledBy={`Add evidence ${row.reference}`}
+      title={t.evidenceDialog.title(row.reference)}
+      subtitle={t.evidenceDialog.subtitle}
+      labelledBy={t.evidenceDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkEvidenceLabel">
-            Label <span className="text-danger">*</span>
+            {t.evidenceDialog.labelLabel} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkEvidenceLabel"
             className="form-control"
-            placeholder="e.g. CRM export, mailbox search"
+            placeholder={t.evidenceDialog.labelPlaceholder}
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             required
@@ -363,12 +375,12 @@ function EvidenceDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkEvidenceLocation">
-            Location <span className="text-danger">*</span>
+            {t.evidenceDialog.locationLabel} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkEvidenceLocation"
             className="form-control"
-            placeholder="e.g. /evidence/kvkk-2026-0001/crm-export.csv"
+            placeholder={t.evidenceDialog.locationPlaceholder}
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             required
@@ -376,7 +388,7 @@ function EvidenceDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkEvidenceReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkEvidenceReason"
@@ -394,10 +406,10 @@ function EvidenceDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Add evidence
+            {t.buttons.addEvidence}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -416,6 +428,8 @@ function StatusDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   const router = useRouter();
   const toast = useToast();
   const [status, setStatus] = useState<DataRequestRow['status']>(targets[0] ?? row.status);
@@ -435,10 +449,10 @@ function StatusDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', `Status moved to ${status.replace('_', ' ')}.`);
+    toast('success', t.statusDialog.toast(status.replace('_', ' ')));
     onClose();
     onDone?.();
     router.refresh();
@@ -446,15 +460,15 @@ function StatusDialog({
 
   return (
     <StaffDialog
-      title={`Move status — ${row.reference}`}
-      subtitle="Only the statuses reachable from the current one are offered."
-      labelledBy={`Move status ${row.reference}`}
+      title={t.statusDialog.title(row.reference)}
+      subtitle={t.statusDialog.subtitle}
+      labelledBy={t.statusDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
-          <label className="form-label" htmlFor="kvkkStatusTarget">Target status</label>
+          <label className="form-label" htmlFor="kvkkStatusTarget">{t.statusDialog.targetLabel}</label>
           <select
             id="kvkkStatusTarget"
             className="form-select"
@@ -468,7 +482,7 @@ function StatusDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkStatusReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkStatusReason"
@@ -486,10 +500,10 @@ function StatusDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Move status
+            {t.buttons.moveStatus}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -506,6 +520,8 @@ function CompleteDialog({
   onClose: () => void;
   onDone?: () => void;
 }) {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   const router = useRouter();
   const toast = useToast();
   const [responseSummary, setResponseSummary] = useState('');
@@ -525,10 +541,10 @@ function CompleteDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Request closed.');
+    toast('success', t.completeDialog.toast);
     onClose();
     onDone?.();
     router.refresh();
@@ -536,16 +552,16 @@ function CompleteDialog({
 
   return (
     <StaffDialog
-      title={`Respond & close — ${row.reference}`}
-      subtitle="Closes the request. This cannot be reopened."
-      labelledBy={`Respond and close ${row.reference}`}
+      title={t.completeDialog.title(row.reference)}
+      subtitle={t.completeDialog.subtitle}
+      labelledBy={t.completeDialog.labelledBy(row.reference)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkCompleteSummary">
-            Response summary <span className="text-danger">*</span>
+            {t.completeDialog.summaryLabel} <span className="text-danger">*</span>
           </label>
           <textarea
             id="kvkkCompleteSummary"
@@ -558,7 +574,7 @@ function CompleteDialog({
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="kvkkCompleteReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input
             id="kvkkCompleteReason"
@@ -576,10 +592,10 @@ function CompleteDialog({
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-success me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Respond &amp; close
+            {t.buttons.respondClose}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -594,6 +610,8 @@ function CompleteDialog({
  * `createKvkkRequest`) — burada elle girilmez.
  */
 export function NewKvkkButton() {
+  const lang = useLang();
+  const t = adminSecurity[lang].kvkkActions;
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -640,10 +658,10 @@ export function NewKvkkButton() {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'KVKK request created.');
+    toast('success', t.newRequest.toast);
     setOpen(false);
     setReference('');
     setSubjectEmail('');
@@ -659,21 +677,21 @@ export function NewKvkkButton() {
     <>
       <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        New KVKK request
+        {t.newRequest.button}
       </button>
 
       {open && (
         <StaffDialog
-          title="New KVKK request"
-          subtitle="Opens a statutory data-subject request record."
-          labelledBy="New KVKK request"
+          title={t.newRequest.dialogTitle}
+          subtitle={t.newRequest.subtitle}
+          labelledBy={t.newRequest.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
               <label className="form-label" htmlFor="kvkkNewReference">
-                Reference <span className="text-danger">*</span>
+                {t.newRequest.referenceLabel} <span className="text-danger">*</span>
               </label>
               <input
                 id="kvkkNewReference"
@@ -686,7 +704,7 @@ export function NewKvkkButton() {
             </div>
             <div className="col-md-6">
               <label className="form-label" htmlFor="kvkkNewSubjectEmail">
-                Subject email <span className="text-danger">*</span>
+                {t.newRequest.subjectEmailLabel} <span className="text-danger">*</span>
               </label>
               <input
                 id="kvkkNewSubjectEmail"
@@ -698,31 +716,31 @@ export function NewKvkkButton() {
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="kvkkNewType">Request type</label>
+              <label className="form-label" htmlFor="kvkkNewType">{t.newRequest.typeLabel}</label>
               <select
                 id="kvkkNewType"
                 className="form-select"
                 value={type}
                 onChange={(e) => setType(e.target.value as typeof type)}
               >
-                <option value="access">Access</option>
-                <option value="erasure">Erasure</option>
-                <option value="correction">Correction</option>
-                <option value="portability">Portability</option>
+                <option value="access">{t.newRequest.typeOptions.access}</option>
+                <option value="erasure">{t.newRequest.typeOptions.erasure}</option>
+                <option value="correction">{t.newRequest.typeOptions.correction}</option>
+                <option value="portability">{t.newRequest.typeOptions.portability}</option>
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="kvkkNewOrgId">Org id</label>
+              <label className="form-label" htmlFor="kvkkNewOrgId">{t.newRequest.orgIdLabel}</label>
               <input
                 id="kvkkNewOrgId"
                 className="form-control"
                 value={orgId}
                 onChange={(e) => setOrgId(e.target.value)}
               />
-              <small className="text-body-secondary">Org id — leave blank if the subject is not tied to a customer.</small>
+              <small className="text-body-secondary">{t.newRequest.orgIdHelp}</small>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="kvkkNewReceivedAt">Received on</label>
+              <label className="form-label" htmlFor="kvkkNewReceivedAt">{t.newRequest.receivedOnLabel}</label>
               <input
                 id="kvkkNewReceivedAt"
                 type="date"
@@ -731,21 +749,21 @@ export function NewKvkkButton() {
                 onChange={(e) => setReceivedAt(e.target.value)}
                 required
               />
-              <small className="text-body-secondary">The statutory 30-day clock starts from this date.</small>
+              <small className="text-body-secondary">{t.newRequest.receivedOnHelp}</small>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="kvkkNewReceivedVia">Received via</label>
+              <label className="form-label" htmlFor="kvkkNewReceivedVia">{t.newRequest.receivedViaLabel}</label>
               <input
                 id="kvkkNewReceivedVia"
                 className="form-control"
-                placeholder="e.g. email, portal, mail"
+                placeholder={t.newRequest.receivedViaPlaceholder}
                 value={receivedVia}
                 onChange={(e) => setReceivedVia(e.target.value)}
               />
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="kvkkNewReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id="kvkkNewReason"
@@ -763,10 +781,10 @@ export function NewKvkkButton() {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Create request
+                {t.newRequest.submit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>
