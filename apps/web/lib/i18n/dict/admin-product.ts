@@ -25,11 +25,17 @@ import type { Mirror } from '../types';
  * cümleler — bu üçü tamamen bağımsız Mirror çevirisi.
  *
  * `templateMeta`/`eventMeta` dinamik string anahtarla (templateId / event
- * `type`, ikisi de model tarafında düz `string`) okunur — çağrı yerinde
- * `Record<string, …>` cast'i gerekir (bkz. ProductOperationsViews.tsx
- * `templateLook`/`eventMeta` yardımcıları). İkon/ton (`TEMPLATE_LOOKS`,
- * event ikon haritası) dil-bağımsız veri — görünüm dosyasında yaşamaya
- * devam eder, sözlüğe girmez.
+ * `type`, ikisi de model tarafında düz `string`) okunur — ama BURADA
+ * (dict bildiriminde) `Record<string, …>` cast'i YOK: `en`in altı/dört
+ * bilinen anahtarı literal kalır, `Mirror<T>` bu yüzden `tr`de AYNI
+ * anahtar kümesini zorunlu kılar (fazla/eksik anahtar derlemede kırılır
+ * — bekçi test değil derleyicidir kuralı burada da geçerli). Dinamik
+ * cast SADECE çağrı yerinde yaşar (bkz. ProductOperationsViews.tsx
+ * `templateDisplay`/`eventMeta` yardımcıları: `(t.templateMeta as
+ * Record<string, …>)[id]`) — sözlük tablosunun kendisi hâlâ EN/TR
+ * paritesiyle korunur, yalnız OKUMA tarafı geniş anahtarla esner. İkon/
+ * ton (`TEMPLATE_LOOKS`, event ikon haritası) dil-bağımsız veri —
+ * görünüm dosyasında yaşamaya devam eder, sözlüğe girmez.
  *
  * `activationStages()`'ın (`product-analytics-model.ts`) ürettiği
  * `stage.label` alanı BİLEREK dokunulmadı — Task 5'in `getCustomerHealth`
@@ -72,14 +78,14 @@ const en = {
       name: 'CTA banner',
       copy: 'A full-width action bar closes the signature.',
     },
-  } as Record<string, { name: string; copy: string }>,
+  },
   templateFallbackCopy: 'Saved signature layout.',
   eventMeta: {
     'sender.published': 'Sender published',
     'sender.deactivated': 'Sender deactivated',
     'export.zip': 'Export completed',
     'brand.saved': 'Brand rules saved',
-  } as Record<string, string>,
+  },
   eventStream: {
     emptyDefault: 'No product events in the loaded window.',
     detail: (files: number, senders: number) => ` · ${files} files / ${senders} senders`,
@@ -341,7 +347,7 @@ const tr: Mirror<typeof en> = {
       title: 'Aktivasyon yolu',
       support: 'Gözlemlenebilir ürün durumları boyunca çalışma alanı düzeyinde ilerleme.',
       openFunnel: 'Huniyi aç',
-      ratePct: (n: number) => `Çalışma alanlarının %${n}'i`,
+      ratePct: (n: number) => `Çalışma alanlarının %${n} kadarı`,
     },
     evidenceCard: {
       title: 'Ürün kanıtı',

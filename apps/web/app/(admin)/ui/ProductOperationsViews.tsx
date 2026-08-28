@@ -46,7 +46,9 @@ const TEMPLATE_LOOKS: Record<string, { icon: string; tone: string }> = {
 };
 
 function templateDisplay(t: AdminProductDict, id: string) {
-  const text = t.templateMeta[id];
+  // Cast lives HERE, at the lookup — never on the dict declaration, so Mirror<T> still
+  // enforces en/tr key parity on `t.templateMeta` itself (a template added en-only breaks typecheck).
+  const text = (t.templateMeta as Record<string, { name: string; copy: string }>)[id];
   const look = TEMPLATE_LOOKS[id] ?? { icon: 'tabler-template', tone: 'secondary' };
   return { name: text?.name ?? id, copy: text?.copy ?? t.templateFallbackCopy, icon: look.icon, tone: look.tone };
 }
@@ -59,8 +61,10 @@ const EVENT_LOOKS: Record<string, { icon: string; tone: string }> = {
 };
 
 function eventMeta(t: AdminProductDict, type: string) {
+  // Same rule as templateDisplay: cast only at the lookup, dict declaration stays Mirror-guarded.
+  const label = (t.eventMeta as Record<string, string>)[type];
   const look = EVENT_LOOKS[type] ?? { icon: 'tabler-activity', tone: 'secondary' };
-  return { label: t.eventMeta[type] ?? type, icon: look.icon, tone: look.tone };
+  return { label: label ?? type, icon: look.icon, tone: look.tone };
 }
 
 const PRODUCT_WORKBENCHES = [
