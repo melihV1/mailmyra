@@ -16,6 +16,7 @@ import {
   type AccessSort,
   type StaffAccessLogRow,
 } from '../access-log-model';
+import type { Lang } from '../../../lib/i18n/types';
 import { AdminEmptyState } from './AdminEmptyState';
 import { StaffDialog } from './StaffDialog';
 
@@ -270,19 +271,20 @@ export function StaffAccessLogView({
   );
 }
 
-function SummaryWidget({ icon, label, value, support, tone = 'primary', last = false }: {
+function SummaryWidget({ icon, label, value, support, tone = 'primary', last = false, lang = 'en' }: {
   icon: string;
   label: string;
   value: number;
   support: string;
   tone?: 'primary' | 'info' | 'success' | 'warning' | 'secondary';
   last?: boolean;
+  lang?: Lang;
 }) {
   return (
     <div className="col-6 col-lg-3">
       <div className={`d-flex justify-content-between align-items-center pb-4 pb-sm-0${last ? '' : ' border-end mm-access-widget'}`}>
         <div className="min-w-0">
-          <h4 className="mb-1 text-truncate">{value.toLocaleString('en-US')}</h4>
+          <h4 className="mb-1 text-truncate">{value.toLocaleString(lang === 'tr' ? 'tr-TR' : 'en-US')}</h4>
           <p className="mb-1">{label}</p>
           <small className="text-body-secondary">{support}</small>
         </div>
@@ -447,8 +449,11 @@ function TimeCell({ value, now }: { value: string; now: number }) {
   return <div><span className="fw-medium text-heading d-block">{formatRelative(value, now)}</span><small className="text-body-secondary">{formatUtc(value)}</small></div>;
 }
 
-function formatUtc(value: string): string {
-  return new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value));
+// StaffAccessLogView'a özgü UTC damgası ('en'/'tr' + sabit timeZone: 'UTC') — option
+// seti OperationsShared.formatDateTime'dan farklı olduğu için ayrı tutuldu (Task 2, davranış önce).
+function formatUtc(value: string, lang: Lang = 'en'): string {
+  const locale = lang === 'tr' ? 'tr-TR' : 'en-GB';
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value));
 }
 
 function formatRelative(value: string, now: number): string {

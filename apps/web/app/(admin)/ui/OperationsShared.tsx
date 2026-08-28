@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import type { Lang } from '../../../lib/i18n/types';
+
 export function OperationsKpiStrip({ children }: { children: ReactNode }) {
   return <div className="card mb-6"><div className="card-body"><div className="row g-0">{children}</div></div></div>;
 }
@@ -51,9 +54,18 @@ export function formatMoney(cents: number, currency: string): string {
   return new Intl.NumberFormat('en', { style: 'currency', currency, minimumFractionDigits: 2 }).format(cents / 100);
 }
 
-export function formatCompactDate(value: string | null): string {
-  if (!value) return 'Not recorded';
+export function formatCompactDate(value: string | null, lang: Lang = 'en'): string {
+  if (!value) return adminCommon[lang].notRecorded;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Not recorded';
-  return date.toLocaleDateString('en', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (Number.isNaN(date.getTime())) return adminCommon[lang].notRecorded;
+  return date.toLocaleDateString(lang, { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/** AdminActionLogView emsali: 'en' → en-GB dateStyle-medium/timeStyle-short, 'tr' → tr-TR aynı stiller. */
+export function formatDateTime(value: string | null, lang: Lang = 'en'): string {
+  if (!value) return adminCommon[lang].notRecorded;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return adminCommon[lang].unknownTime;
+  const locale = lang === 'tr' ? 'tr-TR' : 'en-GB';
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }

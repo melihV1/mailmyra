@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 
 import { BarsChart } from '../../(app)/charts/BarsChart';
 import { DonutChart } from '../../(app)/charts/DonutChart';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import type { Lang } from '../../../lib/i18n/types';
 import { ErrorActionButtons, ErrorActionDialog, type ErrorAction } from './ErrorActions';
 import {
   errorFacts,
@@ -78,9 +80,11 @@ function PlatformSource({ preview, body, warning = false }: { preview?: boolean;
   return <SourceNotice title={preview ? 'Demonstration telemetry' : 'Platform source boundary'} body={preview ? `This preview uses representative platform telemetry. ${body}` : body} tone={tone} icon={preview ? 'tabler-flask' : 'tabler-database-cog'} />;
 }
 
-function formatTime(value: string | null) {
-  if (!value) return 'Not recorded';
-  return new Date(value).toLocaleString('en', { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+// Option seti (month/day/hour/minute parçaları) OperationsShared.formatDateTime'ın
+// dateStyle/timeStyle kombinasyonundan farklı — konsolide edilmedi, lokal kaldı (Task 2).
+function formatTime(value: string | null, lang: Lang = 'en') {
+  if (!value) return adminCommon[lang].notRecorded;
+  return new Date(value).toLocaleString(lang, { month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
 function EmptyTelemetry({ title, body, icon }: { title: string; body: string; icon: string }) {

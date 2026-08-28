@@ -1,3 +1,5 @@
+import type { Lang } from '../../lib/i18n/types';
+
 export interface ProductOrgRow {
   id: string;
   name: string;
@@ -109,7 +111,7 @@ export function templateFacts(source: ProductAnalyticsSnapshot, now: number) {
   });
 }
 
-export function monthlyEventSeries(source: ProductAnalyticsSnapshot, now: number, months = 6) {
+export function monthlyEventSeries(source: ProductAnalyticsSnapshot, now: number, months = 6, lang: Lang = 'en') {
   const points = Array.from({ length: months }, (_, index) => {
     const date = new Date(now);
     date.setUTCDate(1);
@@ -117,7 +119,7 @@ export function monthlyEventSeries(source: ProductAnalyticsSnapshot, now: number
     date.setUTCMonth(date.getUTCMonth() - (months - 1 - index));
     const end = new Date(date);
     end.setUTCMonth(end.getUTCMonth() + 1);
-    return { start: date.getTime(), end: end.getTime(), label: date.toLocaleDateString('en', { month: 'short', timeZone: 'UTC' }) };
+    return { start: date.getTime(), end: end.getTime(), label: date.toLocaleDateString(lang, { month: 'short', timeZone: 'UTC' }) };
   });
   return points.map((point) => {
     const events = source.events.filter((row) => dateMs(row.createdAt) >= point.start && dateMs(row.createdAt) < point.end);
@@ -130,7 +132,7 @@ export function monthlyEventSeries(source: ProductAnalyticsSnapshot, now: number
   });
 }
 
-export function cohortRows(source: ProductAnalyticsSnapshot, now: number, months = 6) {
+export function cohortRows(source: ProductAnalyticsSnapshot, now: number, months = 6, lang: Lang = 'en') {
   const points = Array.from({ length: months }, (_, index) => {
     const date = new Date(now);
     date.setUTCDate(1);
@@ -138,7 +140,7 @@ export function cohortRows(source: ProductAnalyticsSnapshot, now: number, months
     date.setUTCMonth(date.getUTCMonth() - (months - 1 - index));
     const end = new Date(date);
     end.setUTCMonth(end.getUTCMonth() + 1);
-    return { start: date.getTime(), end: end.getTime(), label: date.toLocaleDateString('en', { month: 'short', year: '2-digit', timeZone: 'UTC' }) };
+    return { start: date.getTime(), end: end.getTime(), label: date.toLocaleDateString(lang, { month: 'short', year: '2-digit', timeZone: 'UTC' }) };
   });
   return points.map((point) => {
     const orgs = source.organizations.filter((row) => dateMs(row.createdAt) >= point.start && dateMs(row.createdAt) < point.end);

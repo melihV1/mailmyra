@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
+import type { Lang } from '../../../lib/i18n/types';
 import { getReportCoverage, summarizeSchedules, type KpiDefinition, type ReportCategory, type ReportDefinition, type ReportSchedule } from '../reporting-model';
 import { formatCompactDate, OperationsKpi, OperationsKpiStrip, OperationsSectionHeader, SourceNotice } from './OperationsShared';
 import { NewScheduleButton, ScheduleActionButtons, ScheduleActionDialog, type ScheduleAction } from './ScheduleActions';
@@ -10,6 +11,16 @@ import { StaffDialog } from './StaffDialog';
 const categories: Array<{ value: 'all' | ReportCategory; label: string }> = [
   { value: 'all', label: 'All reports' }, { value: 'executive', label: 'Executive' }, { value: 'revenue', label: 'Revenue' }, { value: 'product', label: 'Product' }, { value: 'customer', label: 'Customer' }, { value: 'security', label: 'Security' }, { value: 'support', label: 'Support' },
 ];
+
+// Next-run tarih/saat parçaları OperationsShared.formatDateTime'ın dateStyle/timeStyle
+// kombinasyonuna uymuyor (ayrı gün+ay / saat+dakika biçimleri) — lokal yardımcı kaldı (Task 2).
+function formatScheduleDate(value: string, lang: Lang = 'en'): string {
+  return new Date(value).toLocaleDateString(lang, { day: '2-digit', month: 'short' });
+}
+
+function formatScheduleTime(value: string, lang: Lang = 'en'): string {
+  return new Date(value).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+}
 
 export function ReportLibraryView({ rows }: { rows: ReportDefinition[] }) {
   const [category, setCategory] = useState<'all' | ReportCategory>('all');
@@ -58,7 +69,7 @@ export function ScheduledReportsView({ rows, now, preview = false }: { rows: Rep
     <div className="card mm-report-scheduler">
       <div className="card-body"><OperationsSectionHeader title="Delivery calendar" support="Cadence, owner, recipients and execution state without hiding failed runs." action={!preview ? <NewScheduleButton /> : undefined} />
         <div className="btn-group mb-5" role="group" aria-label="Schedule status">{(['all', 'active', 'paused', 'attention'] as const).map((value) => <button type="button" className={`btn btn-sm ${focus === value ? 'btn-primary' : 'btn-outline-secondary'}`} key={value} onClick={() => setFocus(value)}>{value}</button>)}</div>
-        <div className="mm-report-schedule-list">{visible.map((row) => <button type="button" className={`mm-report-schedule mm-report-schedule--${row.status}`} key={row.id} onClick={() => setSelected(row)}><span className="mm-report-schedule__date"><small>Next run</small><strong>{new Date(row.nextRunAt).toLocaleDateString('en', { day: '2-digit', month: 'short' })}</strong><span>{new Date(row.nextRunAt).toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })}</span></span><span className="min-w-0 flex-grow-1"><span className="d-flex flex-wrap align-items-center gap-2 mb-2"><span className={`badge bg-label-${row.status === 'active' ? 'success' : row.status === 'attention' ? 'danger' : 'secondary'}`}>{row.status}</span><span className="badge bg-label-primary">{row.cadence}</span><span className="badge bg-label-info">{row.format}</span></span><strong className="text-heading d-block mb-1">{row.reportName}</strong><small className="text-body-secondary d-block text-truncate">{row.recipients.join(', ')}</small></span><span className="mm-report-schedule__run"><small>Last run</small><strong className={`text-${row.lastRunStatus === 'failed' ? 'danger' : row.lastRunStatus === 'success' ? 'success' : 'secondary'}`}>{row.lastRunStatus ?? 'Never'}</strong><span>{formatCompactDate(row.lastRunAt)}</span></span><i className="icon-base ti tabler-chevron-right" /></button>)}</div>
+        <div className="mm-report-schedule-list">{visible.map((row) => <button type="button" className={`mm-report-schedule mm-report-schedule--${row.status}`} key={row.id} onClick={() => setSelected(row)}><span className="mm-report-schedule__date"><small>Next run</small><strong>{formatScheduleDate(row.nextRunAt)}</strong><span>{formatScheduleTime(row.nextRunAt)}</span></span><span className="min-w-0 flex-grow-1"><span className="d-flex flex-wrap align-items-center gap-2 mb-2"><span className={`badge bg-label-${row.status === 'active' ? 'success' : row.status === 'attention' ? 'danger' : 'secondary'}`}>{row.status}</span><span className="badge bg-label-primary">{row.cadence}</span><span className="badge bg-label-info">{row.format}</span></span><strong className="text-heading d-block mb-1">{row.reportName}</strong><small className="text-body-secondary d-block text-truncate">{row.recipients.join(', ')}</small></span><span className="mm-report-schedule__run"><small>Last run</small><strong className={`text-${row.lastRunStatus === 'failed' ? 'danger' : row.lastRunStatus === 'success' ? 'success' : 'secondary'}`}>{row.lastRunStatus ?? 'Never'}</strong><span>{formatCompactDate(row.lastRunAt)}</span></span><i className="icon-base ti tabler-chevron-right" /></button>)}</div>
       </div>
     </div>
     {/* onDone İKİSİNİ de temizler: yalnız `action`ı sıfırlamak `selected`i

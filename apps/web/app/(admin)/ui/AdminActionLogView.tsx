@@ -18,6 +18,7 @@ import {
   type AdminActionLogRow,
 } from '../action-log-model';
 import { AdminEmptyState } from './AdminEmptyState';
+import { formatDateTime } from './OperationsShared';
 import { StaffDialog } from './StaffDialog';
 
 const FOCUS_OPTIONS: ReadonlyArray<{ value: ActionFocus; label: string }> = [
@@ -292,11 +293,6 @@ function getInitials(value: string): string {
   const parts = value.split(/[^a-z0-9&]+/i).filter(Boolean);
   if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
   return parts.slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-}
-
-function formatDateTime(value: string): string {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 'Unknown time' : new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
 
 function relativeTime(value: string): string {

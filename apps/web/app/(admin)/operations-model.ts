@@ -1,3 +1,4 @@
+import type { Lang } from '../../lib/i18n/types';
 import type { InvoiceWorkbenchRow } from './invoice-workbench-model';
 
 export const OPERATIONS_DAY_MS = 24 * 60 * 60 * 1000;
@@ -123,14 +124,14 @@ export function getCurrencySummary(rows: readonly InvoiceWorkbenchRow[], currenc
   );
 }
 
-export function getMonthlyRevenue(rows: readonly InvoiceWorkbenchRow[], currency: string, now: number) {
+export function getMonthlyRevenue(rows: readonly InvoiceWorkbenchRow[], currency: string, now: number, lang: Lang = 'en') {
   const points = Array.from({ length: 6 }, (_, index) => {
     const date = new Date(now);
     date.setUTCDate(1);
     date.setUTCMonth(date.getUTCMonth() - (5 - index));
     return {
       key: `${date.getUTCFullYear()}-${date.getUTCMonth()}`,
-      label: date.toLocaleDateString('en', { month: 'short', timeZone: 'UTC' }),
+      label: date.toLocaleDateString(lang, { month: 'short', timeZone: 'UTC' }),
       billed: 0,
       collected: 0,
     };

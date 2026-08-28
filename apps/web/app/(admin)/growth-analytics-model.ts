@@ -1,3 +1,4 @@
+import type { Lang } from '../../lib/i18n/types';
 import type { ProductAnalyticsSnapshot } from './product-analytics-model';
 
 const DAY = 86_400_000;
@@ -71,19 +72,19 @@ function monthKey(value: string) {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
-function monthLabel(key: string) {
+function monthLabel(key: string, lang: Lang = 'en') {
   const [year, month] = key.split('-').map(Number);
-  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, 1)).toLocaleDateString('en', { month: 'short', year: '2-digit', timeZone: 'UTC' });
+  return new Date(Date.UTC(year ?? 1970, (month ?? 1) - 1, 1)).toLocaleDateString(lang, { month: 'short', year: '2-digit', timeZone: 'UTC' });
 }
 
-export function registrationSeries(source: ProductAnalyticsSnapshot, now: number, months = 8) {
+export function registrationSeries(source: ProductAnalyticsSnapshot, now: number, months = 8, lang: Lang = 'en') {
   const rows = Array.from({ length: months }, (_, index) => {
     const date = new Date(now);
     date.setUTCDate(1);
     date.setUTCHours(0, 0, 0, 0);
     date.setUTCMonth(date.getUTCMonth() - (months - index - 1));
     const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-    return { key, label: monthLabel(key), value: 0 };
+    return { key, label: monthLabel(key, lang), value: 0 };
   });
   const map = new Map(rows.map((row) => [row.key, row]));
   source.organizations.forEach((org) => {
