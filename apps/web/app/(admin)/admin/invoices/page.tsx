@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 
 import { currentSession } from '../../../../lib/auth/current';
 import { listInvoicesAdmin, NotStaffError } from '../../../../lib/repo/admin';
+import { getLang } from '../../../../lib/i18n/lang.server';
+import { adminRevenue } from '../../../../lib/i18n/dict/admin-revenue';
 import type { InvoiceWorkbenchRow } from '../../invoice-workbench-model';
 import { AdminPageHeader } from '../../ui/AdminPageHeader';
 import { InvoiceWorkbenchView } from '../../ui/InvoiceWorkbenchView';
@@ -12,6 +14,8 @@ export const metadata = { title: 'Invoices — Mailmyra staff' };
 export const dynamic = 'force-dynamic';
 
 export default async function AdminInvoicesPage() {
+  const lang = await getLang();
+  const t = adminRevenue[lang].invoicesPage;
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin/invoices');
 
@@ -50,7 +54,7 @@ export default async function AdminInvoicesPage() {
           <>
             <Link href="/admin/orgs" className="btn btn-primary btn-sm">
               <i className="icon-base ti tabler-file-plus me-2" aria-hidden="true" />
-              Issue from customer
+              {t.issueFromCustomer}
             </Link>
             <RefreshButton />
           </>

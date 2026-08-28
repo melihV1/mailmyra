@@ -17,16 +17,12 @@ import { InvoiceRowActions } from '../admin/orgs/[id]/InvoiceRowActions';
 import { AdminEmptyState } from './AdminEmptyState';
 import { AdminStatusBadge } from './AdminStatusBadge';
 import { StaffDialog } from './StaffDialog';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminRevenue, type AdminRevenueDict } from '../../../lib/i18n/dict/admin-revenue';
+import { common } from '../../../lib/i18n/dict/common';
+import type { Lang } from '../../../lib/i18n/types';
 
 type DateScope = 'all' | '30' | '90' | 'year';
-
-const FOCUS_OPTIONS: ReadonlyArray<{ value: InvoiceFocus; label: string }> = [
-  { value: 'all', label: 'All invoices' },
-  { value: 'due', label: 'Outstanding' },
-  { value: 'overdue', label: 'Overdue' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'void', label: 'Void' },
-];
 
 export function InvoiceWorkbenchView({
   rows,
@@ -37,6 +33,8 @@ export function InvoiceWorkbenchView({
   now: number;
   mutationsEnabled?: boolean;
 }) {
+  const lang = useLang();
+  const t = adminRevenue[lang].invoiceWorkbench;
   const currencies = useMemo(
     () => [...new Set(rows.map((row) => row.currency))].sort(),
     [rows],
@@ -47,6 +45,14 @@ export function InvoiceWorkbenchView({
   const [dateScope, setDateScope] = useState<DateScope>('all');
   const [sort, setSort] = useState<InvoiceSort>('attention');
   const [previewRow, setPreviewRow] = useState<InvoiceWorkbenchRow | null>(null);
+
+  const focusOptions: ReadonlyArray<{ value: InvoiceFocus; label: string }> = [
+    { value: 'all', label: t.focusOptions.all },
+    { value: 'due', label: t.focusOptions.due },
+    { value: 'overdue', label: t.focusOptions.overdue },
+    { value: 'paid', label: t.focusOptions.paid },
+    { value: 'void', label: t.focusOptions.void },
+  ];
 
   const currencyRows = useMemo(
     () => rows.filter((row) => row.currency === currency),
@@ -81,35 +87,35 @@ export function InvoiceWorkbenchView({
 
   return (
     <>
-      <section className="card mb-6 mm-invoice-summary" aria-label="Invoice summary">
+      <section className="card mb-6 mm-invoice-summary" aria-label={t.header.summaryAria}>
         <div className="card-widget-separator-wrapper">
           <div className="card-body card-widget-separator">
             <div className="row gy-4 gy-sm-1">
               <SummaryWidget
                 icon="tabler-file-invoice"
-                label="Billed"
+                label={t.summary.billed.label}
                 value={formatMoney(summary.billedCents, currency)}
-                support={`${summary.invoiceCount} recorded invoices`}
+                support={t.summary.billed.support(summary.invoiceCount)}
               />
               <SummaryWidget
                 icon="tabler-circle-check"
-                label="Collected"
+                label={t.summary.collected.label}
                 value={formatMoney(summary.collectedCents, currency)}
-                support={`${collectionRate}% of billed amount`}
+                support={t.summary.collected.support(collectionRate)}
                 tone="success"
               />
               <SummaryWidget
                 icon="tabler-clock-dollar"
-                label="Outstanding"
+                label={t.summary.outstanding.label}
                 value={formatMoney(summary.outstandingCents, currency)}
-                support={`${summary.customerCount} billing customers`}
+                support={t.summary.outstanding.support(summary.customerCount)}
                 tone="warning"
               />
               <SummaryWidget
                 icon="tabler-alert-circle"
-                label="Overdue"
+                label={t.summary.overdue.label}
                 value={formatMoney(summary.overdueCents, currency)}
-                support={`${summary.overdueCount} need attention`}
+                support={t.summary.overdue.support(summary.overdueCount)}
                 tone="danger"
                 last
               />
@@ -123,18 +129,18 @@ export function InvoiceWorkbenchView({
           <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-5">
             <div>
               <div className="d-flex flex-wrap align-items-center gap-2">
-                <h5 className="card-title mb-0">Invoice ledger</h5>
+                <h5 className="card-title mb-0">{t.header.title}</h5>
                 <span className="badge bg-label-secondary">
-                  {visible.length} {visible.length === 1 ? 'result' : 'results'}
+                  {t.header.results(visible.length)}
                 </span>
               </div>
               <p className="card-subtitle text-body-secondary mt-1 mb-0">
-                Authoritative amounts only. Currency ledgers are never added together.
+                {t.header.subtitle}
               </p>
             </div>
             <div className="d-flex flex-wrap align-items-center gap-2">
               {currencies.length > 1 && (
-                <div className="btn-group btn-group-sm" role="group" aria-label="Currency ledger">
+                <div className="btn-group btn-group-sm" role="group" aria-label={adminRevenue[lang].currencyControl.ariaLabel}>
                   {currencies.map((item) => (
                     <button
                       key={item}
@@ -160,15 +166,15 @@ export function InvoiceWorkbenchView({
                   }}
                 >
                   <i className="icon-base ti tabler-filter-x me-1" aria-hidden="true" />
-                  Reset filters
+                  {t.header.resetFilters}
                 </button>
               )}
             </div>
           </div>
 
           <div className="nav-align-top mb-5">
-            <div className="nav nav-pills mm-invoice-focus" role="group" aria-label="Invoice focus">
-              {FOCUS_OPTIONS.map((option) => (
+            <div className="nav nav-pills mm-invoice-focus" role="group" aria-label={t.header.focusAria}>
+              {focusOptions.map((option) => (
                 <button
                   key={option.value}
                   type="button"
@@ -187,7 +193,7 @@ export function InvoiceWorkbenchView({
 
           <div className="row g-3">
             <div className="col-12 col-lg-5">
-              <label className="form-label" htmlFor="invoice-search">Search ledger</label>
+              <label className="form-label" htmlFor="invoice-search">{t.search.label}</label>
               <div className="input-group input-group-merge">
                 <span className="input-group-text">
                   <i className="icon-base ti tabler-search" aria-hidden="true" />
@@ -196,38 +202,38 @@ export function InvoiceWorkbenchView({
                   id="invoice-search"
                   type="search"
                   className="form-control"
-                  placeholder="Invoice #, customer or payment reference"
+                  placeholder={t.search.placeholder}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                 />
               </div>
             </div>
             <div className="col-12 col-sm-6 col-lg-3">
-              <label className="form-label" htmlFor="invoice-period">Issued period</label>
+              <label className="form-label" htmlFor="invoice-period">{t.period.label}</label>
               <select
                 id="invoice-period"
                 className="form-select"
                 value={dateScope}
                 onChange={(event) => setDateScope(event.target.value as DateScope)}
               >
-                <option value="all">All time</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
-                <option value="year">This year</option>
+                <option value="all">{t.period.allTime}</option>
+                <option value="30">{t.period.last30}</option>
+                <option value="90">{t.period.last90}</option>
+                <option value="year">{t.period.thisYear}</option>
               </select>
             </div>
             <div className="col-12 col-sm-6 col-lg-4">
-              <label className="form-label" htmlFor="invoice-sort">Sort by</label>
+              <label className="form-label" htmlFor="invoice-sort">{t.sortBy.label}</label>
               <select
                 id="invoice-sort"
                 className="form-select"
                 value={sort}
                 onChange={(event) => setSort(event.target.value as InvoiceSort)}
               >
-                <option value="attention">Attention first</option>
-                <option value="issued">Newest issued</option>
-                <option value="due">Due date</option>
-                <option value="amount">Highest amount</option>
+                <option value="attention">{t.sortBy.attention}</option>
+                <option value="issued">{t.sortBy.newestIssued}</option>
+                <option value="due">{t.sortBy.dueDate}</option>
+                <option value="amount">{t.sortBy.highestAmount}</option>
               </select>
             </div>
           </div>
@@ -236,7 +242,7 @@ export function InvoiceWorkbenchView({
         {visible.length === 0 ? (
           <AdminEmptyState
             icon="tabler-file-off"
-            text={rows.length === 0 ? 'No invoices have been issued yet.' : 'No invoice matches these filters.'}
+            text={rows.length === 0 ? t.empty.noInvoices : t.empty.noMatches}
           />
         ) : (
           <>
@@ -244,13 +250,13 @@ export function InvoiceWorkbenchView({
               <table className="table table-hover border-top mm-invoice-table">
                 <thead>
                   <tr>
-                    <th>Invoice</th>
-                    <th>Customer</th>
-                    <th style={{ minWidth: 210 }}>Billing window</th>
-                    <th>Seats</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th className="text-end" aria-label="Actions" />
+                    <th>{t.table.headers.invoice}</th>
+                    <th>{t.table.headers.customer}</th>
+                    <th style={{ minWidth: 210 }}>{t.table.headers.billingWindow}</th>
+                    <th>{t.datum.seats}</th>
+                    <th>{t.datum.amount}</th>
+                    <th>{t.table.headers.status}</th>
+                    <th className="text-end" aria-label={t.table.headers.actions} />
                   </tr>
                 </thead>
                 <tbody>
@@ -259,6 +265,7 @@ export function InvoiceWorkbenchView({
                       key={row.id}
                       row={row}
                       now={now}
+                      lang={lang}
                       mutationsEnabled={mutationsEnabled}
                       onPreview={setPreviewRow}
                     />
@@ -273,6 +280,7 @@ export function InvoiceWorkbenchView({
                     key={row.id}
                     row={row}
                     now={now}
+                    lang={lang}
                     mutationsEnabled={mutationsEnabled}
                     onPreview={setPreviewRow}
                   />
@@ -284,7 +292,7 @@ export function InvoiceWorkbenchView({
       </section>
 
       {previewRow && (
-        <InvoicePreviewDialog row={previewRow} now={now} onClose={() => setPreviewRow(null)} />
+        <InvoicePreviewDialog row={previewRow} now={now} lang={lang} onClose={() => setPreviewRow(null)} />
       )}
     </>
   );
@@ -326,14 +334,17 @@ function SummaryWidget({
 function InvoiceTableRow({
   row,
   now,
+  lang,
   mutationsEnabled,
   onPreview,
 }: {
   row: InvoiceWorkbenchRow;
   now: number;
+  lang: Lang;
   mutationsEnabled: boolean;
   onPreview: (row: InvoiceWorkbenchRow) => void;
 }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   const facts = getInvoiceFacts(row, now);
 
   return (
@@ -342,23 +353,23 @@ function InvoiceTableRow({
         <button type="button" className="btn btn-link p-0 fw-medium text-heading" onClick={() => onPreview(row)}>
           {row.number}
         </button>
-        <small className="text-body-secondary d-block">Issued {formatDate(row.issuedAt)}</small>
+        <small className="text-body-secondary d-block">{t.table.issued(formatDate(row.issuedAt, lang))}</small>
       </td>
-      <td><OrganizationIdentity row={row} /></td>
-      <td><InvoiceTimelineCell row={row} now={now} /></td>
+      <td><OrganizationIdentity row={row} lang={lang} /></td>
+      <td><InvoiceTimelineCell row={row} now={now} lang={lang} /></td>
       <td>
         <span className="fw-medium text-heading">{row.seats}</span>
-        <small className="text-body-secondary d-block">active seats</small>
+        <small className="text-body-secondary d-block">{t.datum.activeSeatsSmall}</small>
       </td>
       <td>
         <span className="fw-medium text-heading">{formatMoney(row.amountCents, row.currency)}</span>
         <small className={`d-block ${facts.isDue ? 'text-warning' : 'text-body-secondary'}`}>
-          {facts.isDue ? `${formatMoney(row.amountCents, row.currency)} balance` : 'No balance'}
+          {facts.isDue ? t.table.balance(formatMoney(row.amountCents, row.currency)) : t.table.noBalance}
         </small>
       </td>
-      <td><InvoiceStatus row={row} now={now} /></td>
+      <td><InvoiceStatus row={row} now={now} lang={lang} /></td>
       <td className="text-end">
-        <InvoiceActions row={row} mutationsEnabled={mutationsEnabled} onPreview={onPreview} />
+        <InvoiceActions row={row} lang={lang} mutationsEnabled={mutationsEnabled} onPreview={onPreview} />
       </td>
     </tr>
   );
@@ -367,34 +378,37 @@ function InvoiceTableRow({
 function InvoiceMobileCard({
   row,
   now,
+  lang,
   mutationsEnabled,
   onPreview,
 }: {
   row: InvoiceWorkbenchRow;
   now: number;
+  lang: Lang;
   mutationsEnabled: boolean;
   onPreview: (row: InvoiceWorkbenchRow) => void;
 }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   return (
     <article className="card border-0 shadow-sm mm-invoice-mobile-card">
       <div className="card-body">
         <div className="d-flex align-items-start justify-content-between gap-3 mb-4">
           <div>
             <small className="text-body-secondary d-block mb-1">{row.number}</small>
-            <OrganizationIdentity row={row} />
+            <OrganizationIdentity row={row} lang={lang} />
           </div>
-          <InvoiceStatus row={row} now={now} />
+          <InvoiceStatus row={row} now={now} lang={lang} />
         </div>
-        <InvoiceTimelineCell row={row} now={now} />
+        <InvoiceTimelineCell row={row} now={now} lang={lang} />
         <div className="row g-3 my-4">
-          <PreviewDatum className="col-4" label="Amount" value={formatMoney(row.amountCents, row.currency)} />
-          <PreviewDatum className="col-4" label="Seats" value={String(row.seats)} />
-          <PreviewDatum className="col-4" label="Issued" value={formatDate(row.issuedAt)} />
+          <PreviewDatum className="col-4" label={t.datum.amount} value={formatMoney(row.amountCents, row.currency)} />
+          <PreviewDatum className="col-4" label={t.datum.seats} value={String(row.seats)} />
+          <PreviewDatum className="col-4" label={t.datum.issued} value={formatDate(row.issuedAt, lang)} />
         </div>
         <div className="d-flex gap-2">
           <button type="button" className="btn btn-label-primary flex-grow-1" onClick={() => onPreview(row)}>
             <i className="icon-base ti tabler-eye me-2" aria-hidden="true" />
-            Preview invoice
+            {t.mobile.previewInvoice}
           </button>
           {mutationsEnabled && (
             <InvoiceRowActions
@@ -410,18 +424,19 @@ function InvoiceMobileCard({
   );
 }
 
-function InvoiceTimelineCell({ row, now }: { row: InvoiceWorkbenchRow; now: number }) {
+function InvoiceTimelineCell({ row, now, lang }: { row: InvoiceWorkbenchRow; now: number; lang: Lang }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   const facts = getInvoiceFacts(row, now);
   const timeline = getInvoiceTimeline(row, now);
 
   if (facts.isVoid) {
-    return <small className="text-body-secondary">Voided record · no active collection window</small>;
+    return <small className="text-body-secondary">{t.timeline.voided}</small>;
   }
   if (!timeline) {
     return (
       <div>
-        <span className="text-heading fw-medium">No due date</span>
-        <small className="text-body-secondary d-block">Issued {formatDate(row.issuedAt)}</small>
+        <span className="text-heading fw-medium">{t.timeline.noDueDate}</span>
+        <small className="text-body-secondary d-block">{t.table.issued(formatDate(row.issuedAt, lang))}</small>
       </div>
     );
   }
@@ -431,17 +446,17 @@ function InvoiceTimelineCell({ row, now }: { row: InvoiceWorkbenchRow; now: numb
       <div className="d-flex align-items-center justify-content-between gap-3 mb-2">
         <small className={`text-${timeline.tone} fw-medium`}>
           {facts.isPaid
-            ? `Paid ${formatDate(row.paidAt)}`
+            ? t.timeline.paid(formatDate(row.paidAt, lang))
             : facts.isOverdue
-              ? `${facts.daysOverdue}d overdue`
-              : `${timeline.remainingDays}d remaining`}
+              ? t.timeline.overdueDays(facts.daysOverdue)
+              : t.timeline.remainingDays(timeline.remainingDays)}
         </small>
-        <small className="text-body-secondary">Due {formatDate(row.dueAt)}</small>
+        <small className="text-body-secondary">{t.timeline.due(formatDate(row.dueAt, lang))}</small>
       </div>
       <div
         className="progress mm-invoice-progress"
         role="progressbar"
-        aria-label={`${row.number} billing window`}
+        aria-label={t.timeline.windowAria(row.number)}
         aria-valuenow={timeline.percent}
         aria-valuemin={0}
         aria-valuemax={100}
@@ -452,28 +467,32 @@ function InvoiceTimelineCell({ row, now }: { row: InvoiceWorkbenchRow; now: numb
   );
 }
 
-function InvoiceStatus({ row, now }: { row: InvoiceWorkbenchRow; now: number }) {
+function InvoiceStatus({ row, now, lang }: { row: InvoiceWorkbenchRow; now: number; lang: Lang }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   const facts = getInvoiceFacts(row, now);
-  if (facts.isOverdue) return <span className="badge bg-label-danger">overdue</span>;
+  if (facts.isOverdue) return <span className="badge bg-label-danger">{t.status.overdue}</span>;
   return <AdminStatusBadge value={row.status} />;
 }
 
 function InvoiceActions({
   row,
+  lang,
   mutationsEnabled,
   onPreview,
 }: {
   row: InvoiceWorkbenchRow;
+  lang: Lang;
   mutationsEnabled: boolean;
   onPreview: (row: InvoiceWorkbenchRow) => void;
 }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   return (
     <div className="d-inline-flex align-items-center mm-invoice-action-cluster">
       <button
         type="button"
         className="btn btn-icon btn-label-primary rounded btn-sm"
-        aria-label={`Preview ${row.number}`}
-        title={`Preview ${row.number}`}
+        aria-label={t.actions.previewAria(row.number)}
+        title={t.actions.previewAria(row.number)}
         onClick={() => onPreview(row)}
       >
         <i className="icon-base ti tabler-eye" aria-hidden="true" />
@@ -489,7 +508,7 @@ function InvoiceActions({
         <Link
           href={`/admin/orgs/${row.orgId}`}
           className="btn btn-icon btn-label-secondary rounded btn-sm"
-          aria-label={`Open ${row.orgName}`}
+          aria-label={t.actions.openAria(row.orgName)}
         >
           <i className="icon-base ti tabler-building" aria-hidden="true" />
         </Link>
@@ -501,19 +520,22 @@ function InvoiceActions({
 function InvoicePreviewDialog({
   row,
   now,
+  lang,
   onClose,
 }: {
   row: InvoiceWorkbenchRow;
   now: number;
+  lang: Lang;
   onClose: () => void;
 }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   const facts = getInvoiceFacts(row, now);
 
   return (
     <StaffDialog
-      title={`Invoice ${row.number}`}
-      subtitle="Read-only commercial record. The stored amount remains the source of truth."
-      labelledBy={`Invoice preview for ${row.number}`}
+      title={t.preview.titlePrefix(row.number)}
+      subtitle={t.preview.subtitle}
+      labelledBy={t.preview.labelledBy(row.number)}
       busy={false}
       onClose={onClose}
       wide
@@ -527,31 +549,31 @@ function InvoicePreviewDialog({
                   <i className="icon-base ti tabler-file-invoice icon-28px" aria-hidden="true" />
                 </span>
               </span>
-              <h5 className="mb-1">Mailmyra invoice record</h5>
-              <small className="text-body-secondary">Annual active-sender billing</small>
+              <h5 className="mb-1">{t.preview.recordTitle}</h5>
+              <small className="text-body-secondary">{t.preview.recordSubtitle}</small>
             </div>
             <div className="text-sm-end">
-              <InvoiceStatus row={row} now={now} />
+              <InvoiceStatus row={row} now={now} lang={lang} />
               <h4 className="mt-3 mb-0">{formatMoney(row.amountCents, row.currency)}</h4>
-              <small className="text-body-secondary">Authoritative total</small>
+              <small className="text-body-secondary">{t.preview.authoritativeTotal}</small>
             </div>
           </div>
 
           <div className="row g-5 mb-6">
             <div className="col-md-6">
-              <small className="text-uppercase text-body-secondary d-block mb-2">Bill to</small>
+              <small className="text-uppercase text-body-secondary d-block mb-2">{t.preview.billTo}</small>
               <h5 className="mb-1">{row.orgName}</h5>
               <Link href={`/admin/orgs/${row.orgId}`} className="small">
-                Open customer record
+                {t.preview.openCustomerRecord}
                 <i className="icon-base ti tabler-external-link ms-1" aria-hidden="true" />
               </Link>
             </div>
             <div className="col-md-6">
               <div className="row g-3">
-                <PreviewDatum className="col-6" label="Issued" value={formatDate(row.issuedAt)} />
-                <PreviewDatum className="col-6" label="Due" value={formatDate(row.dueAt)} />
-                <PreviewDatum className="col-6" label="Active seats" value={String(row.seats)} />
-                <PreviewDatum className="col-6" label="Currency" value={row.currency} />
+                <PreviewDatum className="col-6" label={t.datum.issued} value={formatDate(row.issuedAt, lang)} />
+                <PreviewDatum className="col-6" label={t.datum.due} value={formatDate(row.dueAt, lang)} />
+                <PreviewDatum className="col-6" label={t.datum.activeSeats} value={String(row.seats)} />
+                <PreviewDatum className="col-6" label={t.datum.currency} value={row.currency} />
               </div>
             </div>
           </div>
@@ -560,16 +582,16 @@ function InvoicePreviewDialog({
             <table className="table table-borderless align-middle mb-0 mm-invoice-preview-table">
               <thead>
                 <tr>
-                  <th>Billing item</th>
-                  <th className="text-center">Quantity</th>
-                  <th className="text-end">Recorded total</th>
+                  <th>{t.preview.tableHeaders.billingItem}</th>
+                  <th className="text-center">{t.preview.tableHeaders.quantity}</th>
+                  <th className="text-end">{t.preview.tableHeaders.recordedTotal}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>
-                    <span className="fw-medium text-heading">Active sender entitlement</span>
-                    <small className="text-body-secondary d-block">Annual Mailmyra workspace billing</small>
+                    <span className="fw-medium text-heading">{t.preview.lineItem}</span>
+                    <small className="text-body-secondary d-block">{t.preview.lineItemDetail}</small>
                   </td>
                   <td className="text-center">{row.seats}</td>
                   <td className="text-end fw-semibold">{formatMoney(row.amountCents, row.currency)}</td>
@@ -577,7 +599,7 @@ function InvoicePreviewDialog({
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={2} className="text-end fw-medium">Amount due</td>
+                  <td colSpan={2} className="text-end fw-medium">{t.preview.amountDue}</td>
                   <td className="text-end"><h5 className="mb-0">{formatMoney(facts.isDue ? row.amountCents : 0, row.currency)}</h5></td>
                 </tr>
               </tfoot>
@@ -586,17 +608,17 @@ function InvoicePreviewDialog({
 
           {(row.note || row.paymentMethod || row.paymentReference) && (
             <div className="row g-4 mm-invoice-meta-strip rounded p-4">
-              {row.note && <PreviewDatum className="col-12 col-md-6" label="Internal note" value={row.note} />}
-              {row.paymentMethod && <PreviewDatum className="col-6 col-md-3" label="Payment method" value={humanize(row.paymentMethod)} />}
-              {row.paymentReference && <PreviewDatum className="col-6 col-md-3" label="Reference" value={row.paymentReference} />}
+              {row.note && <PreviewDatum className="col-12 col-md-6" label={t.preview.internalNote} value={row.note} />}
+              {row.paymentMethod && <PreviewDatum className="col-6 col-md-3" label={t.preview.paymentMethodLabel} value={paymentMethodLabel(row.paymentMethod, lang)} />}
+              {row.paymentReference && <PreviewDatum className="col-6 col-md-3" label={t.preview.referenceLabel} value={row.paymentReference} />}
             </div>
           )}
         </section>
 
         <div className="d-flex flex-wrap justify-content-center gap-3 mt-6">
-          <button type="button" className="btn btn-label-secondary" onClick={onClose}>Close</button>
+          <button type="button" className="btn btn-label-secondary" onClick={onClose}>{common[lang].close}</button>
           <Link href={`/admin/orgs/${row.orgId}`} className="btn btn-primary">
-            Open customer detail
+            {t.preview.openCustomerDetail}
             <i className="icon-base ti tabler-external-link ms-2" aria-hidden="true" />
           </Link>
         </div>
@@ -605,7 +627,8 @@ function InvoicePreviewDialog({
   );
 }
 
-function OrganizationIdentity({ row }: { row: InvoiceWorkbenchRow }) {
+function OrganizationIdentity({ row, lang }: { row: InvoiceWorkbenchRow; lang: Lang }) {
+  const t = adminRevenue[lang].invoiceWorkbench;
   return (
     <div className="d-flex align-items-center gap-3 min-w-0">
       <span className="avatar avatar-sm flex-shrink-0">
@@ -617,7 +640,7 @@ function OrganizationIdentity({ row }: { row: InvoiceWorkbenchRow }) {
         <Link href={`/admin/orgs/${row.orgId}`} className="fw-medium text-heading d-block text-truncate">
           {row.orgName}
         </Link>
-        <small className="text-body-secondary d-block text-truncate">Billing organization</small>
+        <small className="text-body-secondary d-block text-truncate">{t.table.billingOrg}</small>
       </div>
     </div>
   );
@@ -650,8 +673,8 @@ function getOldestDate(scope: DateScope, now: number): number | null {
   return null;
 }
 
-function formatDate(value: string | null): string {
-  return value ? value.slice(0, 10) : 'Not set';
+function formatDate(value: string | null, lang: Lang): string {
+  return value ? value.slice(0, 10) : adminRevenue[lang].invoiceWorkbench.table.notSet;
 }
 
 function formatMoney(cents: number, currency: string): string {
@@ -672,6 +695,18 @@ function getInitials(value: string): string {
     .toUpperCase();
 }
 
+/** Ödeme yöntemi bilinen üç değerden biri değilse ham kodu insanlaştırır — savunmacı geri düşüş. */
 function humanize(value: string): string {
   return value.replaceAll('_', ' ').replace(/^./, (letter) => letter.toUpperCase());
+}
+
+const PAYMENT_METHOD_KEYS: Record<string, keyof AdminRevenueDict['paymentMethod']> = {
+  bank_transfer: 'bankTransfer',
+  cash: 'cash',
+  other: 'other',
+};
+
+function paymentMethodLabel(value: string, lang: Lang): string {
+  const key = PAYMENT_METHOD_KEYS[value];
+  return key ? adminRevenue[lang].paymentMethod[key] : humanize(value);
 }

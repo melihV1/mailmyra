@@ -6,11 +6,19 @@ import { useState, type FormEvent } from 'react';
 import { useToast } from '../../../../(app)/ToastProvider';
 import { useDropdown } from '../../../../(app)/navbar/useDropdown';
 import { StaffDialog } from '../../../ui/StaffDialog';
+import { useLang } from '../../../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../../../lib/i18n/dict/admin-common';
+import { adminRevenue } from '../../../../../lib/i18n/dict/admin-revenue';
+import { common } from '../../../../../lib/i18n/dict/common';
 
 /**
  * Fatura satır eylemleri — signatures RowActions deseni: üç-nokta dropdown,
  * her eylem kendi modalında. `paid` ayrı diyalog: muhasebe kaydı (tarih +
  * yöntem + dekont) ister; void/geri açma yalnız sebep. Silme YOK.
+ *
+ * `method` `<select>` seçenekleri (bank_transfer/cash/other) hem burada
+ * hem InvoiceWorkbenchView'in salt-okunur önizlemesinde aynı üç insan-okur
+ * etiketle görünür — paylaşılan `adminRevenue.paymentMethod` tablosu.
  */
 export function InvoiceRowActions({
   id,
@@ -23,6 +31,8 @@ export function InvoiceRowActions({
   status: string;
   buttonClassName?: string;
 }) {
+  const lang = useLang();
+  const t = adminRevenue[lang].invoiceRowActions;
   const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
   const [dialog, setDialog] = useState<'paid' | 'void' | 'due' | null>(null);
 
@@ -32,7 +42,7 @@ export function InvoiceRowActions({
         <button
           type="button"
           className={buttonClassName}
-          aria-label={`Actions for ${number}`}
+          aria-label={t.actionsAria(number)}
           aria-expanded={open}
           onClick={() => setOpen(!open)}
         >
@@ -47,14 +57,14 @@ export function InvoiceRowActions({
               <li>
                 <button type="button" className="dropdown-item" onClick={() => { setOpen(false); setDialog('paid'); }}>
                   <i className="icon-base ti tabler-cash me-2" aria-hidden="true" />
-                  Record payment
+                  {t.menu.recordPayment}
                 </button>
               </li>
               <li><hr className="dropdown-divider" /></li>
               <li>
                 <button type="button" className="dropdown-item text-danger" onClick={() => { setOpen(false); setDialog('void'); }}>
                   <i className="icon-base ti tabler-file-x me-2" aria-hidden="true" />
-                  Void invoice
+                  {t.menu.voidInvoice}
                 </button>
               </li>
             </>
@@ -63,7 +73,7 @@ export function InvoiceRowActions({
             <li>
               <button type="button" className="dropdown-item" onClick={() => { setOpen(false); setDialog('due'); }}>
                 <i className="icon-base ti tabler-rotate me-2" aria-hidden="true" />
-                Reopen as due
+                {t.menu.reopenAsDue}
               </button>
             </li>
           )}
@@ -79,6 +89,10 @@ export function InvoiceRowActions({
 }
 
 function PaidDialog({ id, number, onClose }: { id: string; number: string; onClose: () => void }) {
+  const lang = useLang();
+  const t = adminRevenue[lang].invoiceRowActions.paidDialog;
+  const tm = adminRevenue[lang].invoiceRowActions.menu;
+  const tp = adminRevenue[lang].paymentMethod;
   const router = useRouter();
   const toast = useToast();
   const [paidAt, setPaidAt] = useState(new Date().toISOString().slice(0, 10));
@@ -100,44 +114,44 @@ function PaidDialog({ id, number, onClose }: { id: string; number: string; onClo
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', `${number} marked paid.`);
+    toast('success', t.toast(number));
     onClose();
     router.refresh();
   };
 
   return (
     <StaffDialog
-      title={`Record payment — ${number}`}
-      subtitle="This is a bookkeeping entry: when, how, and under which reference."
-      labelledBy={`Record payment for ${number}`}
+      title={t.titlePrefix(number)}
+      subtitle={t.subtitle}
+      labelledBy={t.labelledBy(number)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-md-6">
-          <label className="form-label" htmlFor="paidAt">Paid on</label>
+          <label className="form-label" htmlFor="paidAt">{t.fields.paidOn}</label>
           <input id="paidAt" type="date" className="form-control" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} required />
         </div>
         <div className="col-md-6">
-          <label className="form-label" htmlFor="paidMethod">Method</label>
+          <label className="form-label" htmlFor="paidMethod">{t.fields.method}</label>
           <select id="paidMethod" className="form-select" value={method} onChange={(e) => setMethod(e.target.value)}>
-            <option value="bank_transfer">Bank transfer</option>
-            <option value="cash">Cash</option>
-            <option value="other">Other</option>
+            <option value="bank_transfer">{tp.bankTransfer}</option>
+            <option value="cash">{tp.cash}</option>
+            <option value="other">{tp.other}</option>
           </select>
         </div>
         <div className="col-12">
-          <label className="form-label" htmlFor="paidRef">Bank / payment reference</label>
+          <label className="form-label" htmlFor="paidRef">{t.fields.reference}</label>
           <input id="paidRef" className="form-control" value={reference} onChange={(e) => setReference(e.target.value)} />
         </div>
         <div className="col-12">
           <label className="form-label" htmlFor="paidReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
-          <input id="paidReason" className="form-control" placeholder="e.g. transfer received, receipt attached to email" value={reason} onChange={(e) => setReason(e.target.value)} required />
+          <input id="paidReason" className="form-control" placeholder={t.fields.reasonPlaceholder} value={reason} onChange={(e) => setReason(e.target.value)} required />
         </div>
         {error && (
           <div className="col-12">
@@ -147,10 +161,10 @@ function PaidDialog({ id, number, onClose }: { id: string; number: string; onClo
         <div className="col-12 text-center">
           <button type="submit" className="btn btn-primary me-3" disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            Record payment
+            {tm.recordPayment}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>
@@ -169,6 +183,8 @@ function StatusDialog({
   target: 'void' | 'due';
   onClose: () => void;
 }) {
+  const lang = useLang();
+  const t = adminRevenue[lang].invoiceRowActions;
   const router = useRouter();
   const toast = useToast();
   const [reason, setReason] = useState('');
@@ -187,30 +203,30 @@ function StatusDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', target === 'void' ? `${number} voided.` : `${number} reopened as due.`);
+    toast('success', target === 'void' ? t.statusDialog.voidToast(number) : t.statusDialog.reopenToast(number));
     onClose();
     router.refresh();
   };
 
   return (
     <StaffDialog
-      title={target === 'void' ? `Void ${number}?` : `Reopen ${number}?`}
+      title={target === 'void' ? t.statusDialog.voidTitle(number) : t.statusDialog.reopenTitle(number)}
       subtitle={
         target === 'void'
-          ? 'The invoice is kept, never deleted. Any payment record on it is cleared.'
-          : 'The invoice returns to due; its payment record is cleared.'
+          ? t.statusDialog.voidSubtitle
+          : t.statusDialog.reopenSubtitle
       }
-      labelledBy={`${target} ${number}`}
+      labelledBy={target === 'void' ? t.statusDialog.voidLabelledBy(number) : t.statusDialog.reopenLabelledBy(number)}
       busy={busy}
       onClose={onClose}
     >
       <form className="row g-6" onSubmit={submit}>
         <div className="col-12">
           <label className="form-label" htmlFor="stReason">
-            Reason <span className="text-danger">*</span>
+            {adminCommon[lang].reason} <span className="text-danger">*</span>
           </label>
           <input id="stReason" className="form-control" value={reason} onChange={(e) => setReason(e.target.value)} required />
         </div>
@@ -222,10 +238,10 @@ function StatusDialog({
         <div className="col-12 text-center">
           <button type="submit" className={`btn me-3 ${target === 'void' ? 'btn-danger' : 'btn-primary'}`} disabled={busy}>
             {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-            {target === 'void' ? 'Void invoice' : 'Reopen'}
+            {target === 'void' ? t.menu.voidInvoice : t.statusDialog.reopenSubmit}
           </button>
           <button type="button" className="btn btn-label-secondary" onClick={onClose} disabled={busy}>
-            Cancel
+            {common[lang].cancel}
           </button>
         </div>
       </form>

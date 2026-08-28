@@ -5,6 +5,10 @@ import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../../../(app)/ToastProvider';
 import { StaffDialog } from '../../../ui/StaffDialog';
+import { useLang } from '../../../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../../../lib/i18n/dict/admin-common';
+import { adminRevenue } from '../../../../../lib/i18n/dict/admin-revenue';
+import { common } from '../../../../../lib/i18n/dict/common';
 
 /**
  * Fatura kesme diyaloğu. Tutar elle — seats×unit yalnız öneri (repo
@@ -19,6 +23,8 @@ export function InvoiceCreateDialog({
   suggestedSeats: number;
   nextNumber: string;
 }) {
+  const lang = useLang();
+  const t = adminRevenue[lang].invoiceCreateDialog;
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -54,10 +60,10 @@ export function InvoiceCreateDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', `Invoice ${number} issued.`);
+    toast('success', t.toastIssued(number));
     setOpen(false);
     setAmount('');
     setReason('');
@@ -68,20 +74,20 @@ export function InvoiceCreateDialog({
     <>
       <button type="button" className="btn btn-primary" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        New invoice
+        {t.newInvoice}
       </button>
 
       {open && (
         <StaffDialog
-          title="Issue invoice"
-          subtitle="The amount is authoritative — the seat suggestion is only a starting point."
-          labelledBy="Issue invoice"
+          title={t.dialogTitle}
+          subtitle={t.subtitle}
+          labelledBy={t.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="invNumber">Number</label>
+              <label className="form-label" htmlFor="invNumber">{t.fields.number}</label>
               <input
                 id="invNumber"
                 className="form-control"
@@ -91,7 +97,7 @@ export function InvoiceCreateDialog({
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="invDue">Due date</label>
+              <label className="form-label" htmlFor="invDue">{t.fields.dueDate}</label>
               <input
                 id="invDue"
                 type="date"
@@ -101,7 +107,7 @@ export function InvoiceCreateDialog({
               />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="invSeats">Seats</label>
+              <label className="form-label" htmlFor="invSeats">{t.fields.seats}</label>
               <input
                 id="invSeats"
                 type="number"
@@ -114,7 +120,7 @@ export function InvoiceCreateDialog({
             </div>
             <div className="col-md-6">
               <label className="form-label" htmlFor="invAmount">
-                Amount (USD) <span className="text-body-secondary">— suggested {suggested}</span>
+                {t.fields.amountLabel} <span className="text-body-secondary">{t.fields.suggestedPrefix(suggested)}</span>
               </label>
               <input
                 id="invAmount"
@@ -128,23 +134,23 @@ export function InvoiceCreateDialog({
               />
             </div>
             <div className="col-12">
-              <label className="form-label" htmlFor="invNote">Note on the invoice</label>
+              <label className="form-label" htmlFor="invNote">{t.fields.note}</label>
               <input
                 id="invNote"
                 className="form-control"
-                placeholder="Billing period, bank details…"
+                placeholder={t.fields.notePlaceholder}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
               />
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="invReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id="invReason"
                 className="form-control"
-                placeholder="Internal — action log only"
+                placeholder={t.fields.reasonPlaceholder}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 required
@@ -160,7 +166,7 @@ export function InvoiceCreateDialog({
                 {busy && (
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                 )}
-                Issue invoice
+                {t.dialogTitle}
               </button>
               <button
                 type="button"
@@ -168,7 +174,7 @@ export function InvoiceCreateDialog({
                 onClick={() => setOpen(false)}
                 disabled={busy}
               >
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>
