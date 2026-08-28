@@ -7,6 +7,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { ToastProvider } from '../(app)/ToastProvider';
 import { ThemeMenu, type ThemeChoice } from '../(app)/navbar/ThemeMenu';
 import { useDropdown } from '../(app)/navbar/useDropdown';
+import { useLang } from '../../lib/i18n/LangProvider';
+import { AdminLanguageMenu } from './AdminLanguageMenu';
 import { AdminSearch } from './AdminSearch';
 import { AdminNotifications, QuickCreateMenu, SnapshotMenu } from './AdminNavbarTools';
 import { StaffUserMenu } from './StaffUserMenu';
@@ -185,6 +187,7 @@ const THEME_KEY = 'mm-admin-theme-v2';
 const COLLAPSE_KEY = 'mm-admin-menu-collapsed';
 
 export function AdminShell({ email, children }: { email: string; children: ReactNode }) {
+  const lang = useLang();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false); // mobil off-canvas
   const [collapsed, setCollapsed] = useState(false); // masaüstü ray modu
@@ -260,6 +263,7 @@ export function AdminShell({ email, children }: { email: string; children: React
       ]
         .filter(Boolean)
         .join(' ')}
+      lang={lang}
       data-skin="default"
       data-bs-theme={dark ? 'dark' : 'light'}
     >
@@ -427,6 +431,7 @@ export function AdminShell({ email, children }: { email: string; children: React
                     <SnapshotMenu />
                     <WorkspaceSwitcher />
                     <AdminNotifications />
+                    <AdminLanguageMenu />
                     <ThemeMenu choice={theme} dark={dark} onChange={setTheme} />
                     <StaffUserMenu email={email} />
                   </ul>

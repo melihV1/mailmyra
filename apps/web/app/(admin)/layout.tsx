@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 import { currentSession } from '../../lib/auth/current';
+import { LangProvider } from '../../lib/i18n/LangProvider';
+import { getLang } from '../../lib/i18n/lang.server';
 import { isStaff } from '../../lib/repo/admin';
 import { AdminShell } from './AdminShell';
 // Temanın fontu (Public Sans), zemin boyası ve logo çökertme kuralları —
@@ -29,13 +31,16 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin');
   if (!(await isStaff(session.user.id))) redirect('/app');
+  const lang = await getLang();
 
   return (
     <>
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
-      <AdminShell email={session.user.email}>{children}</AdminShell>
+      <LangProvider lang={lang}>
+        <AdminShell email={session.user.email}>{children}</AdminShell>
+      </LangProvider>
     </>
   );
 }

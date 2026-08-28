@@ -29,6 +29,14 @@ paneli ve işlemsel e-postalar. Kullanıcı siteden panele geçerken dil değiş
 > KALIR. Tasarım: `docs/superpowers/specs/2026-08-24-customer-panel-
 > builder-tr-en-design.md`.
 
+> **Revizyon (2026-08-27, Hüseyin, sözlü):** üstteki "Süper admin paneli bu
+> karardan bağımsızdır (iç yüzey)" ifadesi değişti — **süper admin de
+> TR/EN olur**, aynı `mm-lang` çerezi ve aynı i18n çekirdeği üzerinden
+> (müşteri panelinde TR seçen personel admin'i de TR görür). İşlemsel
+> e-postalar, pazarlama sitesi ve personel digest e-postaları yine
+> İngilizce KALIR. Tasarım: `docs/superpowers/specs/2026-08-27-
+> superadmin-tr-en-design.md`.
+
 ---
 
 ## Kilitli Kararlar (tartışmaya kapalı)
