@@ -10,6 +10,8 @@ import {
   listStaffAccess,
   NotStaffError,
 } from '../../../../../lib/repo/admin';
+import { getLang } from '../../../../../lib/i18n/lang.server';
+import { adminCustomers } from '../../../../../lib/i18n/dict/admin-customers';
 import { fmtDate, fmtMoney, INVOICE_BADGE, STATE_BADGE } from '../../../format';
 import { EntitlementDialog } from './EntitlementDialog';
 import { InvoiceCreateDialog } from './InvoiceCreateDialog';
@@ -24,11 +26,18 @@ export const dynamic = 'force-dynamic';
  * plan kartı (Current Plan bileşeninin karşılığı) + aktivasyon; sağda tablo
  * kartları. Bu sayfayı AÇMAK `StaffAccess`e üç satır düşürür (org + senders
  * + signatures); günlük yazılamazsa repo fırlatır, sayfa açılmaz.
+ *
+ * `metadata` (sekme başlığı) bu görevin DIŞI — Task 12, 44 sayfanın
+ * `generateMetadata`'sını tek seferde çevirir; burada elle dokunulmadı.
+ * Sunucu bileşeni olduğu için `useLang()` değil `getLang()` kullanır
+ * (sweep-method §3 — "sunucu sayfa parçaları getLang() ile").
  */
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await currentSession();
   if (!session) redirect('/login?next=/admin');
   const { id } = await params;
+  const lang = await getLang();
+  const t = adminCustomers[lang].orgDetail;
 
   const h = await headers();
   const ctx = {
@@ -55,11 +64,11 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
     org.entitledSeats > 0 ? Math.min(100, (org.activeSeats / org.entitledSeats) * 100) : 0;
 
   const ACTIVATION: Array<{ label: string; done: boolean }> = [
-    { label: 'E-mail verified', done: org.activation.emailVerified },
-    { label: 'Signature created', done: org.activation.signatureCreated },
-    { label: 'Sender created', done: org.activation.senderCreated },
-    { label: 'Sender published', done: org.activation.senderPublished },
-    { label: 'First export', done: org.activation.exported },
+    { label: t.activation.emailVerified, done: org.activation.emailVerified },
+    { label: t.activation.signatureCreated, done: org.activation.signatureCreated },
+    { label: t.activation.senderCreated, done: org.activation.senderCreated },
+    { label: t.activation.senderPublished, done: org.activation.senderPublished },
+    { label: t.activation.firstExport, done: org.activation.exported },
   ];
   const stuckAt = ACTIVATION.find((s) => !s.done);
 
@@ -99,7 +108,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                     <h5 className="mb-0">
                       {org.activeSeats}/{org.entitledSeats}
                     </h5>
-                    <span>Seats</span>
+                    <span>{t.identity.seats}</span>
                   </div>
                 </div>
                 <div className="d-flex align-items-center gap-3">
@@ -110,29 +119,29 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   </div>
                   <div>
                     <h5 className="mb-0">{org.memberCount}</h5>
-                    <span>Members</span>
+                    <span>{t.identity.members}</span>
                   </div>
                 </div>
               </div>
 
-              <h5 className="pb-4 border-bottom mb-4">Details</h5>
+              <h5 className="pb-4 border-bottom mb-4">{t.identity.detailsTitle}</h5>
               <div className="info-container">
                 <ul className="list-unstyled mb-6">
                   <li className="mb-2">
-                    <span className="h6 me-1">Customer since:</span>
+                    <span className="h6 me-1">{t.identity.customerSince}</span>
                     <span>{fmtDate(org.createdAt)}</span>
                   </li>
                   <li className="mb-2">
-                    <span className="h6 me-1">Trial ends:</span>
+                    <span className="h6 me-1">{t.identity.trialEnds}</span>
                     <span>{fmtDate(org.trialEndsAt)}</span>
                   </li>
                   <li className="mb-2">
-                    <span className="h6 me-1">Org ID:</span>
+                    <span className="h6 me-1">{t.identity.orgId}</span>
                     <code className="small">{org.id}</code>
                   </li>
                   {org.childCount > 0 && (
                     <li className="mb-2">
-                      <span className="h6 me-1">Agency workspaces:</span>
+                      <span className="h6 me-1">{t.identity.agencyWorkspaces}</span>
                       <span>{org.childCount}</span>
                     </li>
                   )}
@@ -146,20 +155,20 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start mb-4">
                 <span className="badge bg-label-primary">
-                  {org.entitlementState === 'trial' ? 'Trial' : 'Standard'}
+                  {org.entitlementState === 'trial' ? t.plan.trial : t.plan.standard}
                 </span>
                 <div className="d-flex justify-content-center">
                   <sup className="h6 pricing-currency mt-2 mb-0 me-1 text-primary fw-normal">$</sup>
                   <h1 className="mb-0 text-primary">1</h1>
                   <sub className="h6 pricing-duration mt-auto mb-1 text-body fw-normal">
-                    /seat/yr
+                    {t.plan.perSeatYear}
                   </sub>
                 </div>
               </div>
               <div className="d-flex justify-content-between mb-1">
-                <span className="h6 mb-0">Seats</span>
+                <span className="h6 mb-0">{t.plan.seats}</span>
                 <span className="h6 mb-0">
-                  {org.activeSeats} of {org.entitledSeats}
+                  {t.plan.seatsOf(org.activeSeats, org.entitledSeats)}
                 </span>
               </div>
               <div className="progress mb-4" style={{ height: 8 }} aria-hidden="true">
@@ -181,9 +190,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
 
           <div className="card mb-6">
             <div className="card-header">
-              <h5 className="card-title mb-0">Activation</h5>
+              <h5 className="card-title mb-0">{t.activation.title}</h5>
               <p className="card-subtitle text-body-secondary mt-1 mb-0">
-                {stuckAt ? `Stuck at: ${stuckAt.label}` : 'Fully activated'}
+                {stuckAt ? t.activation.stuckAt(stuckAt.label) : t.activation.fullyActivated}
               </p>
             </div>
             <div className="card-body">
@@ -210,16 +219,16 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         <div className="col-xl-8 col-lg-7">
           <div className="card mb-6">
             <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-              <h5 className="card-title mb-0">Members</h5>
+              <h5 className="card-title mb-0">{t.members.title}</h5>
               <span className="badge bg-label-secondary rounded-pill">{org.members.length}</span>
             </div>
             <div className="table-responsive text-nowrap">
               <table className="table table-hover">
                 <thead>
                   <tr>
-                    <th>E-mail</th>
-                    <th>Role</th>
-                    <th>Joined</th>
+                    <th>{t.members.email}</th>
+                    <th>{t.members.role}</th>
+                    <th>{t.members.joined}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -240,8 +249,8 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <div className="card mb-6">
             <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
               <div>
-                <h5 className="card-title mb-0">Senders</h5>
-                <p className="card-subtitle text-body-secondary mt-1 mb-0">Read only.</p>
+                <h5 className="card-title mb-0">{t.senders.title}</h5>
+                <p className="card-subtitle text-body-secondary mt-1 mb-0">{t.senders.readOnly}</p>
               </div>
               <span className="badge bg-label-secondary rounded-pill">{senders.length}</span>
             </div>
@@ -249,18 +258,18 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               <table className="table table-hover">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>E-mail</th>
-                    <th>Status</th>
-                    <th>Last export</th>
-                    <th>Signatures</th>
+                    <th>{t.senders.name}</th>
+                    <th>{t.senders.email}</th>
+                    <th>{t.senders.status}</th>
+                    <th>{t.senders.lastExport}</th>
+                    <th>{t.senders.signatures}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {senders.length === 0 && (
                     <tr>
                       <td colSpan={5} className="text-body-secondary">
-                        No senders yet.
+                        {t.senders.empty}
                       </td>
                     </tr>
                   )}
@@ -289,9 +298,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <div className="card mb-6">
             <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
               <div>
-                <h5 className="card-title mb-0">Signatures</h5>
+                <h5 className="card-title mb-0">{t.signatures.title}</h5>
                 <p className="card-subtitle text-body-secondary mt-1 mb-0">
-                  Read only — previews open one at a time and are individually logged.
+                  {t.signatures.subtitle}
                 </p>
               </div>
               <span className="badge bg-label-secondary rounded-pill">{signatures.length}</span>
@@ -300,18 +309,18 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               <table className="table table-hover">
                 <thead>
                   <tr>
-                    <th>Name</th>
-                    <th>Template</th>
-                    <th>Sender</th>
-                    <th>Updated</th>
-                    <th className="text-end">Preview</th>
+                    <th>{t.signatures.name}</th>
+                    <th>{t.signatures.template}</th>
+                    <th>{t.signatures.sender}</th>
+                    <th>{t.signatures.updated}</th>
+                    <th className="text-end">{t.signatures.preview}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {signatures.length === 0 && (
                     <tr>
                       <td colSpan={5} className="text-body-secondary">
-                        No signatures yet.
+                        {t.signatures.empty}
                       </td>
                     </tr>
                   )}
@@ -336,9 +345,9 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <div className="card mb-6">
             <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
               <div>
-                <h5 className="card-title mb-0">Invoices</h5>
+                <h5 className="card-title mb-0">{t.invoices.title}</h5>
                 <p className="card-subtitle text-body-secondary mt-1 mb-0">
-                  Amount is authoritative — seats × unit is only the suggestion.
+                  {t.invoices.subtitle}
                 </p>
               </div>
               <InvoiceCreateDialog
@@ -351,20 +360,20 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
               <table className="table table-hover">
                 <thead>
                   <tr>
-                    <th>Number</th>
-                    <th>Issued</th>
-                    <th>Due</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Payment</th>
-                    <th className="text-end">Actions</th>
+                    <th>{t.invoices.number}</th>
+                    <th>{t.invoices.issued}</th>
+                    <th>{t.invoices.due}</th>
+                    <th>{t.invoices.amount}</th>
+                    <th>{t.invoices.status}</th>
+                    <th>{t.invoices.payment}</th>
+                    <th className="text-end">{t.invoices.actions}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {invoices.length === 0 && (
                     <tr>
                       <td colSpan={7} className="text-body-secondary">
-                        No invoices yet.
+                        {t.invoices.empty}
                       </td>
                     </tr>
                   )}
@@ -400,19 +409,19 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
 
           <div className="card mb-6">
             <div className="card-header">
-              <h5 className="card-title mb-0">Staff access to this customer</h5>
+              <h5 className="card-title mb-0">{t.staffAccess.title}</h5>
               <p className="card-subtitle text-body-secondary mt-1 mb-0">
-                Who looked at this customer&apos;s data, most recent first.
+                {t.staffAccess.subtitle}
               </p>
             </div>
             <div className="table-responsive text-nowrap">
               <table className="table table-hover">
                 <thead>
                   <tr>
-                    <th>When (UTC)</th>
-                    <th>Staff</th>
-                    <th>Scope</th>
-                    <th>Target</th>
+                    <th>{t.staffAccess.whenUtc}</th>
+                    <th>{t.staffAccess.staff}</th>
+                    <th>{t.staffAccess.scope}</th>
+                    <th>{t.staffAccess.target}</th>
                   </tr>
                 </thead>
                 <tbody>

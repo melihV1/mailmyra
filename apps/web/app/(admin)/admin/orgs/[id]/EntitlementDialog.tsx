@@ -5,11 +5,19 @@ import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../../../(app)/ToastProvider';
 import { StaffDialog } from '../../../ui/StaffDialog';
+import { useLang } from '../../../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../../../lib/i18n/dict/admin-common';
+import { adminCustomers } from '../../../../../lib/i18n/dict/admin-customers';
+import { common } from '../../../../../lib/i18n/dict/common';
 
 /**
  * Hak ediş düzeltme — RenameDialog'un akışıyla aynı: düğme → modal → kaydet
  * → toast + refresh. Sebep zorunlu (repo da reddediyor); müşterinin bunu
  * kendi akışında GÖRECEĞİ modalda açıkça yazıyor.
+ *
+ * State `<select>` seçenekleri (trial/active/past_due/cancelled) ham durum
+ * KODU — veri, sözlüğe girmez (CustomerTable'ın aynı seçenekleriyle
+ * tutarlı, bkz. Task 5 raporu).
  */
 export function EntitlementDialog({
   orgId,
@@ -18,6 +26,8 @@ export function EntitlementDialog({
   orgId: string;
   current: { entitledSeats: number; entitlementState: string; trialEndsAt: string };
 }) {
+  const lang = useLang();
+  const t = adminCustomers[lang].entitlementDialog;
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -45,10 +55,10 @@ export function EntitlementDialog({
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Entitlement updated — the customer sees this in their activity.');
+    toast('success', t.toastSuccess);
     setReason('');
     setOpen(false);
     router.refresh();
@@ -58,20 +68,20 @@ export function EntitlementDialog({
     <>
       <button type="button" className="btn btn-primary w-100" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-adjustments me-1" aria-hidden="true" />
-        Edit entitlement
+        {t.editButton}
       </button>
 
       {open && (
         <StaffDialog
-          title="Edit entitlement"
-          subtitle="The customer sees this change in their activity stream, attributed to Mailmyra support."
-          labelledBy="Edit entitlement"
+          title={t.title}
+          subtitle={t.subtitle}
+          labelledBy={t.title}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-4">
-              <label className="form-label" htmlFor="entSeats">Seats</label>
+              <label className="form-label" htmlFor="entSeats">{t.seatsLabel}</label>
               <input
                 id="entSeats"
                 type="number"
@@ -83,7 +93,7 @@ export function EntitlementDialog({
               />
             </div>
             <div className="col-8">
-              <label className="form-label" htmlFor="entState">State</label>
+              <label className="form-label" htmlFor="entState">{t.stateLabel}</label>
               <select
                 id="entState"
                 className="form-select"
@@ -97,7 +107,7 @@ export function EntitlementDialog({
               </select>
             </div>
             <div className="col-12">
-              <label className="form-label" htmlFor="entTrial">Trial ends</label>
+              <label className="form-label" htmlFor="entTrial">{t.trialEndsLabel}</label>
               <input
                 id="entTrial"
                 type="date"
@@ -108,12 +118,12 @@ export function EntitlementDialog({
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="entReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id="entReason"
                 className="form-control"
-                placeholder="Goes into the immutable action log"
+                placeholder={t.reasonPlaceholder}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 required
@@ -129,7 +139,7 @@ export function EntitlementDialog({
                 {busy && (
                   <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                 )}
-                Save
+                {common[lang].save}
               </button>
               <button
                 type="button"
@@ -137,7 +147,7 @@ export function EntitlementDialog({
                 onClick={() => setOpen(false)}
                 disabled={busy}
               >
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>

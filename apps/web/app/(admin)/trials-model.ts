@@ -1,3 +1,6 @@
+import { adminCustomers } from '../../lib/i18n/dict/admin-customers';
+import type { Lang } from '../../lib/i18n/types';
+
 export const TRIAL_WINDOW_DAYS = 7;
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -142,18 +145,20 @@ export function sortTrialRows(
 export function describeTrialWindow(
   row: TrialEntitlementRow,
   now: number,
+  lang: Lang = 'en',
 ): { label: string; tone: 'info' | 'warning' | 'danger' | 'secondary'; date: string | null } {
+  const t = adminCustomers[lang].trialWindow;
   const facts = getTrialFacts(row, now);
   const date = row.trialEndsAt?.slice(0, 10) ?? null;
 
-  if (!facts.isTrial) return { label: 'Not a trial', tone: 'secondary', date: null };
-  if (facts.hasMissingEndDate) return { label: 'End date missing', tone: 'warning', date: null };
+  if (!facts.isTrial) return { label: t.notATrial, tone: 'secondary', date: null };
+  if (facts.hasMissingEndDate) return { label: t.endDateMissing, tone: 'warning', date: null };
 
   const end = facts.trialEndMs ?? now;
   if (facts.isExpired) {
     const elapsed = Math.floor((now - end) / DAY_MS);
     return {
-      label: elapsed === 0 ? 'Expired today' : `Expired ${elapsed}d ago`,
+      label: elapsed === 0 ? t.expiredToday : t.expiredDaysAgo(elapsed),
       tone: 'danger',
       date,
     };
@@ -161,7 +166,7 @@ export function describeTrialWindow(
 
   const remaining = Math.max(1, Math.ceil((end - now) / DAY_MS));
   return {
-    label: remaining === 1 ? 'Ends within 24h' : `Ends in ${remaining}d`,
+    label: remaining === 1 ? t.endsWithin24h : t.endsInDays(remaining),
     tone: facts.isEndingSoon ? 'warning' : 'info',
     date,
   };

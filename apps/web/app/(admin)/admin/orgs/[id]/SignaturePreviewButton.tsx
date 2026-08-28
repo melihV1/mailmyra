@@ -3,14 +3,21 @@
 import { useState } from 'react';
 
 import { StaffDialog } from '../../../ui/StaffDialog';
+import { useLang } from '../../../../../lib/i18n/LangProvider';
+import { adminCustomers } from '../../../../../lib/i18n/dict/admin-customers';
 
 /**
  * Tıkla-aç imza önizlemesi — müşteri panelindeki PreviewDialog'un personel
  * karşılığı: modal + sandbox iframe. Otomatik render YOK; açmak bilinçli
  * eylem ve uç tekil loglar (`scope='signature'` + targetId).
  * sandbox İZİNSİZ: içerik salt HTML, panelin DOM'una/çerezine yol yok.
+ *
+ * YALNIZ KROM çevrilir — `srcDoc` içine giren imza HTML'i müşteri
+ * İÇERİĞİ, dokunulmaz (Task 5 brief).
  */
 export function SignaturePreviewButton({ id, name }: { id: string; name: string }) {
+  const lang = useLang();
+  const t = adminCustomers[lang].signaturePreview;
   const [open, setOpen] = useState(false);
   const [html, setHtml] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -26,7 +33,7 @@ export function SignaturePreviewButton({ id, name }: { id: string; name: string 
     const res = await fetch(`/api/admin/signatures/${id}/preview`);
     setBusy(false);
     if (!res.ok) {
-      setError('Preview failed.');
+      setError(t.loadFailed);
       return;
     }
     const body = (await res.json()) as { html: string };
@@ -39,7 +46,7 @@ export function SignaturePreviewButton({ id, name }: { id: string; name: string 
       <button
         type="button"
         className="btn btn-icon btn-text-secondary rounded-pill"
-        aria-label={`Preview ${name}`}
+        aria-label={t.previewAria(name)}
         disabled={busy}
         onClick={() => void load()}
       >
@@ -50,15 +57,15 @@ export function SignaturePreviewButton({ id, name }: { id: string; name: string 
       {open && html && (
         <StaffDialog
           title={name}
-          subtitle="Read-only staff preview — this view was logged."
-          labelledBy={`Preview of ${name}`}
+          subtitle={t.subtitle}
+          labelledBy={t.labelledBy(name)}
           busy={false}
           onClose={() => setOpen(false)}
           wide
         >
           <div className="border rounded bg-white p-2">
             <iframe
-              title={`Preview of ${name}`}
+              title={t.labelledBy(name)}
               sandbox=""
               srcDoc={`<!doctype html><html><body style="margin:12px;background:#fff">${html}</body></html>`}
               style={{ width: '100%', minHeight: 320, border: 0 }}

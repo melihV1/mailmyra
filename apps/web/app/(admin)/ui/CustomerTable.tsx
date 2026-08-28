@@ -6,6 +6,9 @@ import { useMemo, useState } from 'react';
 import { useDropdown } from '../../(app)/navbar/useDropdown';
 import { AdminEmptyState } from './AdminEmptyState';
 import { AdminStatusBadge } from './AdminStatusBadge';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCustomers } from '../../../lib/i18n/dict/admin-customers';
+import type { Mirror } from '../../../lib/i18n/types';
 
 /**
  * Müşteri tablosu (redesign brief §5.4) — kabuk temanın
@@ -13,6 +16,10 @@ import { AdminStatusBadge } from './AdminStatusBadge';
  * çubuğu, altta `card-datatable > table border-top`. DataTables JS'i YOK;
  * arama/süzgeç React state. Satırın tamamı tıklanabilir DEĞİL — bağlantı
  * org adında, eylemler üç-nokta menüsünde.
+ *
+ * State süzgeci seçenekleri (`<option value="trial">trial</option>` vb.)
+ * `AdminStatusBadge`nin bastığı ham kolon değerleriyle BİREBİR — durum
+ * KODU, veri, sözlüğe girmez (Global Constraint).
  */
 
 export interface CustomerRow {
@@ -31,6 +38,8 @@ export interface CustomerRow {
 type StateFilter = '' | 'trial' | 'active' | 'past_due' | 'cancelled';
 
 export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number }) {
+  const lang = useLang();
+  const t = adminCustomers[lang].table;
   const [q, setQ] = useState('');
   const [state, setState] = useState<StateFilter>('');
   const [onlyExpiring, setOnlyExpiring] = useState(false);
@@ -55,9 +64,9 @@ export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number 
     <div className="card">
       <div className="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-          <h5 className="card-title mb-0">Customers</h5>
+          <h5 className="card-title mb-0">{t.title}</h5>
           <p className="card-subtitle text-body-secondary mt-1 mb-0">
-            Root billing organizations — agency workspaces live inside their root.
+            {t.subtitle}
           </p>
         </div>
         {/* Süzgeç çubuğu — customer-all'ın filtre başlığı */}
@@ -69,19 +78,19 @@ export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number 
             <input
               type="search"
               className="form-control form-control-sm"
-              placeholder="Search customer"
-              aria-label="Search customer"
+              placeholder={t.searchPlaceholder}
+              aria-label={t.searchAria}
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
           <select
             className="form-select form-select-sm w-auto"
-            aria-label="Filter by state"
+            aria-label={t.stateFilterAria}
             value={state}
             onChange={(e) => setState(e.target.value as StateFilter)}
           >
-            <option value="">All states</option>
+            <option value="">{t.allStates}</option>
             <option value="trial">trial</option>
             <option value="active">active</option>
             <option value="past_due">past_due</option>
@@ -93,7 +102,7 @@ export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number 
             aria-pressed={onlyExpiring}
             onClick={() => setOnlyExpiring((v) => !v)}
           >
-            Trial ending
+            {t.trialEndingButton}
           </button>
           <button
             type="button"
@@ -101,7 +110,7 @@ export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number 
             aria-pressed={onlyOver}
             onClick={() => setOnlyOver((v) => !v)}
           >
-            Over seats
+            {t.overSeatsButton}
           </button>
         </div>
       </div>
@@ -109,31 +118,27 @@ export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number 
       {visible.length === 0 ? (
         <AdminEmptyState
           icon="tabler-building"
-          text={
-            rows.length === 0
-              ? 'No customers yet — the first registration shows up here.'
-              : 'No customer matches these filters.'
-          }
+          text={rows.length === 0 ? t.emptyNoCustomers : t.emptyNoMatches}
         />
       ) : (
         <div className="card-datatable table-responsive">
           <table className="table border-top">
             <thead style={{ position: 'sticky', top: 0, zIndex: 1 }}>
               <tr>
-                <th>Organization</th>
-                <th>State</th>
-                <th style={{ minWidth: 120 }}>Seats</th>
-                <th>Trial</th>
-                <th>Members</th>
-                <th>Children</th>
-                <th>Last activity</th>
-                <th>Created</th>
-                <th className="text-end" aria-label="Actions" />
+                <th>{t.headers.organization}</th>
+                <th>{t.headers.state}</th>
+                <th style={{ minWidth: 120 }}>{t.headers.seats}</th>
+                <th>{t.headers.trial}</th>
+                <th>{t.headers.members}</th>
+                <th>{t.headers.children}</th>
+                <th>{t.headers.lastActivity}</th>
+                <th>{t.headers.created}</th>
+                <th className="text-end" aria-label={t.headers.actionsColumn} />
               </tr>
             </thead>
             <tbody>
               {visible.map((r) => (
-                <CustomerRowView key={r.id} row={r} />
+                <CustomerRowView key={r.id} row={r} t={t} />
               ))}
             </tbody>
           </table>
@@ -143,7 +148,7 @@ export function CustomerTable({ rows, now }: { rows: CustomerRow[]; now: number 
   );
 }
 
-function CustomerRowView({ row }: { row: CustomerRow }) {
+function CustomerRowView({ row, t }: { row: CustomerRow; t: Mirror<(typeof adminCustomers)['en']['table']> }) {
   const { open, setOpen, ref } = useDropdown<HTMLDivElement>();
   const pct =
     row.entitledSeats > 0 ? Math.min(100, (row.activeSeats / row.entitledSeats) * 100) : 0;
@@ -164,7 +169,7 @@ function CustomerRowView({ row }: { row: CustomerRow }) {
               {row.name}
             </Link>
             <small className="text-body-secondary">
-              {row.childCount > 0 ? `Agency root · ${row.childCount} workspaces` : 'Root'}
+              {row.childCount > 0 ? t.agencyRoot(row.childCount) : t.root}
             </small>
           </div>
         </div>
@@ -196,7 +201,7 @@ function CustomerRowView({ row }: { row: CustomerRow }) {
           <button
             type="button"
             className="btn btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow btn-sm"
-            aria-label={`Actions for ${row.name}`}
+            aria-label={t.actionsAria(row.name)}
             aria-expanded={open}
             onClick={() => setOpen(!open)}
           >
@@ -209,7 +214,7 @@ function CustomerRowView({ row }: { row: CustomerRow }) {
             <li>
               <Link href={`/admin/orgs/${row.id}`} className="dropdown-item">
                 <i className="icon-base ti tabler-eye me-2" aria-hidden="true" />
-                Open customer
+                {t.openCustomer}
               </Link>
             </li>
           </ul>
