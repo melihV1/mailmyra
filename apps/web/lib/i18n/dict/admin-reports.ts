@@ -50,10 +50,14 @@ import type { Mirror } from '../types';
  * kendi görünümü İÇİNDE iki kez (liste + detay) kullanıldığı için tek
  * anahtar altında birleşti.
  *
- * `library.statusBadge.ready`/`.partial` HEM KPI şeridi etiketi HEM
- * satır rozeti için tek kaynak — aynı durumun iki farklı yüzeyde aynı
- * kelimeyle görünmesi (KPI'nin "kaç tanım Source ready" sayması ile
- * satırın "bu tanım Source ready" demesi aynı gerçeğin iki görünümü).
+ * `library.statusBadge.ready` HEM KPI şeridi etiketi HEM satır rozeti için
+ * tek kaynak — aynı durumun iki farklı yüzeyde aynı kelimeyle görünmesi
+ * (KPI'nin "kaç tanım Source ready" sayması ile satırın "bu tanım Source
+ * ready" demesi aynı gerçeğin iki görünümü). `.partial` bu ikiliyi
+ * PAYLAŞMAZ: satır rozetinin ham metni "Partial" iken KPI şeridi kartının
+ * orijinal EN metni "Partial source" idi (review düzeltmesi — ilk
+ * sürümde ikisi yanlışlıkla aynı anahtara bağlanmıştı) — bu yüzden KPI
+ * etiketi kendi anahtarına ayrıldı: `library.kpis.partialSource.label`.
  *
  * Glossary: zamanlama→zamanlama (schedule) · koşu→run · teslim→delivery
  * (`scheduled` bölümü) · digest→digest (ürün terimi, TR'de de "digest"
@@ -82,7 +86,7 @@ const en = {
     kpis: {
       definitions: { label: 'Report definitions', support: 'Reusable operating views' },
       sourceReady: { support: (percent: number) => `${percent}% catalog coverage` },
-      partialSource: { support: 'Definition exists; feed pending' },
+      partialSource: { label: 'Partial source', support: 'Definition exists; feed pending' },
       domains: { label: 'Domains', support: 'Cross-functional catalog' },
     },
     header: {
@@ -193,8 +197,8 @@ const tr: Mirror<typeof en> = {
     kpis: {
       definitions: { label: 'Rapor tanımları', support: 'Yeniden kullanılabilir operasyon görünümleri' },
       sourceReady: { support: (percent: number) => `%${percent} katalog kapsamı` },
-      partialSource: { support: 'Tanım var; beslemesi bekleniyor' },
-      domains: { label: 'Alanlar', support: 'İşlevler-arası katalog' },
+      partialSource: { label: 'Kısmi kaynak', support: 'Tanım var; beslemesi bekleniyor' },
+      domains: { label: 'Alanlar', support: 'İşlevler arası katalog' },
     },
     header: {
       title: 'Operasyon rapor kataloğu',
@@ -232,7 +236,7 @@ const tr: Mirror<typeof en> = {
     kpis: {
       schedules: { label: 'Zamanlamalar', support: 'Yapılandırılmış teslimler' },
       active: { label: 'Aktif', support: 'Sıradaki koşu için uygun' },
-      next24h: { label: 'Sonraki 24 saat', support: 'Yaklaşan çalıştırmalar' },
+      next24h: { label: 'Sıradaki 24 saat', support: 'Yaklaşan çalıştırmalar' },
       needsAttention: { label: 'Dikkat gerekiyor', support: 'Hata veya elle inceleme' },
     },
     header: {
@@ -261,7 +265,7 @@ const tr: Mirror<typeof en> = {
     },
     header: {
       title: 'Metrik sözlüğü',
-      support: 'Her sayı formülünü, paydasını, kaynağını, ayrıntı düzeyini, güncelliğini ve yorumlama korkuluğunu taşır.',
+      support: 'Her sayı formülünü, paydasını, kaynağını, ayrıntı düzeyini, güncelliğini ve yorumlama uyarısını taşır.',
       badge: 'Sürümlü sözleşme',
     },
     searchPlaceholder: 'Metrik veya kaynak ara',
@@ -276,7 +280,7 @@ const tr: Mirror<typeof en> = {
     detail: {
       subtitleSuffix: (domain: string) => `${domain} KPI tanımı`,
       businessDefinition: 'İş tanımı',
-      interpretationGuardrail: 'Yorumlama korkuluğu',
+      interpretationGuardrail: 'Yorumlama uyarısı',
       source: 'Kaynak',
       grain: 'Ayrıntı düzeyi',
     },

@@ -38,7 +38,7 @@ export function ReportLibraryView({ rows }: { rows: ReportDefinition[] }) {
     <OperationsKpiStrip>
       <OperationsKpi label={t.library.kpis.definitions.label} value={String(rows.length)} support={t.library.kpis.definitions.support} icon="tabler-report-analytics" tone="primary" />
       <OperationsKpi label={t.library.statusBadge.ready} value={String(coverage.ready)} support={t.library.kpis.sourceReady.support(coverage.percent)} icon="tabler-database-check" tone="success" />
-      <OperationsKpi label={t.library.statusBadge.partial} value={String(coverage.partial)} support={t.library.kpis.partialSource.support} icon="tabler-database-exclamation" tone="warning" />
+      <OperationsKpi label={t.library.kpis.partialSource.label} value={String(coverage.partial)} support={t.library.kpis.partialSource.support} icon="tabler-database-exclamation" tone="warning" />
       <OperationsKpi label={t.library.kpis.domains.label} value={String(new Set(rows.map((row) => row.category)).size)} support={t.library.kpis.domains.support} icon="tabler-folders" tone="info" last />
     </OperationsKpiStrip>
     <div className="card mb-6 mm-report-library">
