@@ -4,6 +4,10 @@ import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 
 import { useToast } from '../../(app)/ToastProvider';
+import { useLang } from '../../../lib/i18n/LangProvider';
+import { adminCommon } from '../../../lib/i18n/dict/admin-common';
+import { adminGrowth } from '../../../lib/i18n/dict/admin-growth';
+import { common } from '../../../lib/i18n/dict/common';
 import type { GrowthLeadRow, GrowthLeadStage } from '../growth-analytics-model';
 import { StaffDialog } from './StaffDialog';
 
@@ -14,8 +18,15 @@ const LEAD_STAGES: readonly GrowthLeadStage[] = ['new', 'qualified', 'scheduled'
  * sabit buton, form gönderiminde diyalog kapanır ve sayfa yenilenir.
  * `seats` ham gövdeye SAYI olarak gider (`typeof body.seats === 'number'`
  * kontrolü uçta) — `Number(seats)` burada tip düzeyinde de sayı üretir.
+ *
+ * `<option>` metinleri (`new`/`qualified`/…) BİLEREK ham durum KODU
+ * olarak kalır — admin-revenue `row.status` emsali (VERİ, sözlüğe
+ * girmez). İnsan-okur etiket `GrowthOperationsViews.tsx`'teki
+ * `LEAD_META`/`leads.meta`'dan gelir, bu form o etiketi kullanmaz.
  */
 export function NewLeadButton() {
+  const lang = useLang();
+  const t = adminGrowth[lang];
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -59,10 +70,10 @@ export function NewLeadButton() {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Lead created.');
+    toast('success', t.leadActions.newLead.toast);
     setOpen(false);
     reset();
     router.refresh();
@@ -72,53 +83,53 @@ export function NewLeadButton() {
     <>
       <button type="button" className="btn btn-primary btn-sm" onClick={() => setOpen(true)}>
         <i className="icon-base ti tabler-plus me-1" aria-hidden="true" />
-        New lead
+        {t.leadActions.newLead.dialogTitle}
       </button>
 
       {open && (
         <StaffDialog
-          title="New lead"
-          subtitle="Opens a pipeline entry in the manually curated lead board."
-          labelledBy="New lead"
+          title={t.leadActions.newLead.dialogTitle}
+          subtitle={t.leadActions.newLead.subtitle}
+          labelledBy={t.leadActions.newLead.dialogTitle}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
               <label className="form-label" htmlFor="leadNewCompany">
-                Company <span className="text-danger">*</span>
+                {t.leadActions.fields.company} <span className="text-danger">*</span>
               </label>
               <input id="leadNewCompany" className="form-control" value={company} onChange={(e) => setCompany(e.target.value)} required />
             </div>
             <div className="col-md-6">
               <label className="form-label" htmlFor="leadNewContact">
-                Contact <span className="text-danger">*</span>
+                {t.leadActions.fields.contact} <span className="text-danger">*</span>
               </label>
               <input id="leadNewContact" className="form-control" value={contact} onChange={(e) => setContact(e.target.value)} required />
             </div>
             <div className="col-md-6">
               <label className="form-label" htmlFor="leadNewSource">
-                Source <span className="text-danger">*</span>
+                {t.shared.sourceLabel} <span className="text-danger">*</span>
               </label>
-              <input id="leadNewSource" className="form-control" placeholder="e.g. referral, outbound, event" value={source} onChange={(e) => setSource(e.target.value)} required />
+              <input id="leadNewSource" className="form-control" placeholder={t.leadActions.fields.sourcePlaceholder} value={source} onChange={(e) => setSource(e.target.value)} required />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="leadNewSeats">Seats</label>
+              <label className="form-label" htmlFor="leadNewSeats">{t.leadActions.fields.seats}</label>
               <input id="leadNewSeats" type="number" min={1} className="form-control" value={seats} onChange={(e) => setSeats(e.target.value)} />
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="leadNewStage">Stage</label>
+              <label className="form-label" htmlFor="leadNewStage">{t.leadActions.fields.stage}</label>
               <select id="leadNewStage" className="form-select" value={stage} onChange={(e) => setStage(e.target.value as GrowthLeadStage)}>
                 {LEAD_STAGES.map((value) => <option key={value} value={value}>{value}</option>)}
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor="leadNewNextStep">Next step</label>
+              <label className="form-label" htmlFor="leadNewNextStep">{t.shared.nextStepFieldLabel}</label>
               <input id="leadNewNextStep" className="form-control" value={nextStep} onChange={(e) => setNextStep(e.target.value)} />
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor="leadNewReason">
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input id="leadNewReason" className="form-control" value={reason} onChange={(e) => setReason(e.target.value)} required />
             </div>
@@ -130,10 +141,10 @@ export function NewLeadButton() {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Create lead
+                {t.leadActions.newLead.createSubmit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>
@@ -151,6 +162,8 @@ export function NewLeadButton() {
  * kendi içinde açar.
  */
 export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
+  const lang = useLang();
+  const t = adminGrowth[lang];
   const router = useRouter();
   const toast = useToast();
   const [open, setOpen] = useState(false);
@@ -174,7 +187,7 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!hasChanges) {
-      setError('No changes.');
+      setError(t.leadActions.updateLead.noChanges);
       return;
     }
     setBusy(true);
@@ -187,10 +200,10 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
     setBusy(false);
     if (!res.ok) {
       const body = (await res.json().catch(() => ({}))) as { error?: string };
-      setError(body.error ?? 'Failed — try again.');
+      setError(body.error ?? common[lang].failedTryAgain);
       return;
     }
-    toast('success', 'Lead updated.');
+    toast('success', t.leadActions.updateLead.toast);
     setOpen(false);
     setReason('');
     router.refresh();
@@ -201,7 +214,7 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
       <button
         className="btn btn-sm btn-icon btn-text-secondary rounded-pill"
         type="button"
-        aria-label={`Update ${lead.company}`}
+        aria-label={t.leadActions.updateLead.ariaLabel(lead.company)}
         onClick={() => setOpen(true)}
       >
         <i className="icon-base ti tabler-dots-vertical" />
@@ -209,15 +222,15 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
 
       {open && (
         <StaffDialog
-          title={`Update lead — ${lead.company}`}
-          subtitle="Move the pipeline stage, adjust the seat estimate or record the next step."
-          labelledBy={`Update lead ${lead.company}`}
+          title={t.leadActions.updateLead.dialogTitle(lead.company)}
+          subtitle={t.leadActions.updateLead.subtitle}
+          labelledBy={t.leadActions.updateLead.labelledBy(lead.company)}
           busy={busy}
           onClose={() => setOpen(false)}
         >
           <form className="row g-6" onSubmit={submit}>
             <div className="col-md-6">
-              <label className="form-label" htmlFor={`leadUpdateStage-${lead.id}`}>Stage</label>
+              <label className="form-label" htmlFor={`leadUpdateStage-${lead.id}`}>{t.leadActions.fields.stage}</label>
               <select
                 id={`leadUpdateStage-${lead.id}`}
                 className="form-select"
@@ -228,7 +241,7 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
               </select>
             </div>
             <div className="col-md-6">
-              <label className="form-label" htmlFor={`leadUpdateSeats-${lead.id}`}>Seats</label>
+              <label className="form-label" htmlFor={`leadUpdateSeats-${lead.id}`}>{t.leadActions.fields.seats}</label>
               <input
                 id={`leadUpdateSeats-${lead.id}`}
                 type="number"
@@ -239,7 +252,7 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
               />
             </div>
             <div className="col-12">
-              <label className="form-label" htmlFor={`leadUpdateNextStep-${lead.id}`}>Next step</label>
+              <label className="form-label" htmlFor={`leadUpdateNextStep-${lead.id}`}>{t.shared.nextStepFieldLabel}</label>
               <input
                 id={`leadUpdateNextStep-${lead.id}`}
                 className="form-control"
@@ -249,7 +262,7 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
             </div>
             <div className="col-12">
               <label className="form-label" htmlFor={`leadUpdateReason-${lead.id}`}>
-                Reason <span className="text-danger">*</span>
+                {adminCommon[lang].reason} <span className="text-danger">*</span>
               </label>
               <input
                 id={`leadUpdateReason-${lead.id}`}
@@ -267,10 +280,10 @@ export function LeadUpdateButton({ lead }: { lead: GrowthLeadRow }) {
             <div className="col-12 text-center">
               <button type="submit" className="btn btn-primary me-3" disabled={busy}>
                 {busy && <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />}
-                Save changes
+                {t.leadActions.updateLead.saveSubmit}
               </button>
               <button type="button" className="btn btn-label-secondary" onClick={() => setOpen(false)} disabled={busy}>
-                Cancel
+                {common[lang].cancel}
               </button>
             </div>
           </form>
