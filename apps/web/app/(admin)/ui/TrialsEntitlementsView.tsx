@@ -561,7 +561,7 @@ function TrialPreviewDialog({
                 className="progress mb-3"
                 style={{ height: 8 }}
                 role="progressbar"
-                aria-label={t.row.seatUtilizationAria(row.name)}
+                aria-label={t.preview.entitlementUtilizationAria(row.name)}
                 aria-valuenow={Math.min(100, facts.utilization)}
                 aria-valuemin={0}
                 aria-valuemax={100}
