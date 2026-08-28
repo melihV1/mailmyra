@@ -1,3 +1,4 @@
+import type { Lang, Mirror } from '../../lib/i18n/types';
 import type { ProductAnalyticsSnapshot } from './product-analytics-model';
 
 const DAY = 86_400_000;
@@ -45,6 +46,20 @@ export type SupportPlaybook = {
   icon: string;
 };
 
+/**
+ * `SUPPORT_PLAYBOOKS` KASITLI olarak dile göre çevrilmedi (dalga-sonu cila,
+ * `slaState()`/`onboardingRows()` fixinin YANINDA — bkz. altındaki bu iki
+ * fonksiyon; onlar artık `lang`e göre çeviriyor). Bu içerik personelin takip
+ * ettiği KÜRATÖRLÜ süreç metni — tetikleyici/sonuç/adım cümleleri UI kopyası
+ * değil, `reporting-model.ts`teki `REPORT_LIBRARY[].name` ve task-9'un
+ * öncelik/kategori ham değerleri emsali gibi bilinçli olarak İngilizce
+ * kalan operasyonel içerik. Panel personeli zaten iki dilli çalışıyor
+ * (staff hesapları), playbook adım metni müşteriye hiç gösterilmiyor —
+ * çevirisi CLAUDE.md §YAPILMAYACAKLAR kapsam disiplini gereği bu dalganın
+ * işi değil (`guides-content.en.ts`/`.tr.ts` ayrımının aksine: rehberler
+ * müşteriye dönük SEO/destek içeriği olduğu için tam çevrildi, playbook'lar
+ * iç personel süreç dokümanı olduğu için değil).
+ */
 export const SUPPORT_PLAYBOOKS: readonly SupportPlaybook[] = [
   { id: 'export-failure', title: 'Export failure triage', category: 'Incident', trigger: 'Customer cannot complete or download an export.', outcome: 'Evidence captured, customer unblocked or engineering handoff prepared.', steps: ['Confirm affected sender and export format', 'Check entitlement and active-seat state', 'Capture timestamp and reproducible path', 'Escalate without requesting customer signature content'], tone: 'warning', icon: 'tabler-file-alert' },
   { id: 'invoice-dispute', title: 'Invoice dispute review', category: 'Billing', trigger: 'Customer disputes seats, amount or payment state.', outcome: 'Authoritative invoice and entitlement records reconciled.', steps: ['Open the billing root organization', 'Compare invoice snapshot with active seats', 'Record the customer-provided payment reference', 'Route any adjustment through the approval log'], tone: 'primary', icon: 'tabler-receipt-refund' },
@@ -76,28 +91,73 @@ export function sortSupportQueue(rows: SupportCaseRow[]) {
   });
 }
 
-export function slaState(row: SupportCaseRow, now: number) {
+/**
+ * `label`in iki İngilizce sabiti (ör. "4h overdue"/"4h remaining") dilden
+ * bağımsızdı — `operations-model.ts`teki `HEALTH_SIGNAL_LABELS` kalıbıyla
+ * (dalga-sonu cila) `Record<Lang, …>` tabloya taşındı. TR karşılığı bu
+ * dosyanın kendi görünüm katmanındaki (`SupportOperationsViews.tsx`)
+ * `formatSlaTime()`/`admin-support.ts`teki `queueView.slaTime.overdue`/
+ * `.left` ile AYNI kurulmuş kelimeleri ("saat gecikti"/"saat kaldı")
+ * tekrar kullanır — o ikisi yalnız gelen kutusu satırı içindi, `label` ise
+ * SLA kartı ve vaka ızgarasında doğrudan basılıyordu ve TR'de İngilizce
+ * kalıyordu (bu görevin bulgusu). `remaining`/`tone` zaten sayısal/dilden
+ * bağımsız — yalnız `label` çeviri alıyor.
+ */
+const slaLabelsEn = {
+  overdue: (hours: number) => `${hours}h overdue`,
+  remaining: (hours: number) => `${hours}h remaining`,
+};
+
+const slaLabelsTr: Mirror<typeof slaLabelsEn> = {
+  overdue: (hours) => `${hours} saat gecikti`,
+  remaining: (hours) => `${hours} saat kaldı`,
+};
+
+const SLA_LABELS: Record<Lang, typeof slaLabelsEn> = { en: slaLabelsEn, tr: slaLabelsTr };
+
+export function slaState(row: SupportCaseRow, now: number, lang: Lang = 'en') {
   const created = new Date(row.createdAt).getTime();
   const due = new Date(row.slaDueAt).getTime();
   const elapsed = now - created;
   const window = Math.max(1, due - created);
   const remaining = due - now;
+  const labels = SLA_LABELS[lang];
   return {
     remaining,
     progress: Math.min(100, Math.max(4, Math.round((elapsed / window) * 100))),
     tone: remaining < 0 ? 'danger' : remaining <= 4 * 3_600_000 ? 'warning' : 'success',
-    label: remaining < 0 ? `${Math.max(1, Math.ceil(Math.abs(remaining) / 3_600_000))}h overdue` : `${Math.max(1, Math.ceil(remaining / 3_600_000))}h remaining`,
+    label: remaining < 0 ? labels.overdue(Math.max(1, Math.ceil(Math.abs(remaining) / 3_600_000))) : labels.remaining(Math.max(1, Math.ceil(remaining / 3_600_000))),
   } as const;
 }
 
-export function onboardingRows(source: ProductAnalyticsSnapshot, now: number): OnboardingRow[] {
+/**
+ * `nextStep` cümleleri ve `ownerSignal` etiketi dilden bağımsızdı —
+ * `product-analytics-model.ts`teki `ACTIVATION_STAGE_LABELS` kalıbıyla
+ * (dalga-sonu cila) `Record<Lang, …>` tabloya taşındı. `stage`/`stageIndex`
+ * zaten dilden bağımsız, stabil anahtar (`signalKeys` dersi burada
+ * uygulanacak bir açık yok — hiçbir karşılaştırma bu iki metin alanından
+ * türemiyor).
+ */
+const onboardingLabelsEn = {
+  nextStep: ['Invite the first workspace member', 'Create the first signature', 'Publish an active sender', 'Complete the first export', 'Monitor adoption'] as readonly string[],
+  ownerSignal: { trial: 'Trial workspace', customer: 'Customer workspace' },
+};
+
+const onboardingLabelsTr: Mirror<typeof onboardingLabelsEn> = {
+  nextStep: ['İlk çalışma alanı üyesini davet et', 'İlk imzayı oluştur', 'Aktif bir gönderici yayınla', 'İlk dışa aktarımı tamamla', 'Benimsemeyi izle'],
+  ownerSignal: { trial: 'Deneme çalışma alanı', customer: 'Müşteri çalışma alanı' },
+};
+
+const ONBOARDING_LABELS: Record<Lang, typeof onboardingLabelsEn> = { en: onboardingLabelsEn, tr: onboardingLabelsTr };
+
+export function onboardingRows(source: ProductAnalyticsSnapshot, now: number, lang: Lang = 'en'): OnboardingRow[] {
+  const labels = ONBOARDING_LABELS[lang];
   return source.organizations.map((org) => {
     const ageDays = Math.max(0, Math.floor((now - new Date(org.createdAt).getTime()) / DAY));
     const checks = [true, org.memberCount > 0, org.signatureCount > 0, org.activeSenderCount > 0, org.exportedSenderCount > 0];
     const completed = checks.filter(Boolean).length;
     const stageIndex = Math.min(4, completed - 1);
     const stages = ['workspace', 'identity', 'design', 'publish', 'export'] as const;
-    const next = ['Invite the first workspace member', 'Create the first signature', 'Publish an active sender', 'Complete the first export', 'Monitor adoption'];
     const progress = Math.round((completed / checks.length) * 100);
     const tone: OnboardingRow['tone'] = progress === 100 ? 'success' : ageDays >= 14 && progress < 80 ? 'warning' : progress >= 60 ? 'info' : progress >= 40 ? 'primary' : 'secondary';
     return {
@@ -108,8 +168,8 @@ export function onboardingRows(source: ProductAnalyticsSnapshot, now: number): O
       stageIndex,
       progress,
       tone,
-      nextStep: next[stageIndex]!,
-      ownerSignal: org.entitlementState === 'trial' ? 'Trial workspace' : 'Customer workspace',
+      nextStep: labels.nextStep[stageIndex]!,
+      ownerSignal: org.entitlementState === 'trial' ? labels.ownerSignal.trial : labels.ownerSignal.customer,
     };
   }).sort((a, b) => (a.progress === 100 ? 1 : 0) - (b.progress === 100 ? 1 : 0) || a.progress - b.progress || b.ageDays - a.ageDays);
 }

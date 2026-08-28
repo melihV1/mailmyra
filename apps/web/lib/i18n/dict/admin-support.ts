@@ -68,6 +68,16 @@ import type { Mirror } from '../types';
  * yardımcısı ise (inbox listesindeki "Xh overdue"/"Xh left", `sla.label`
  * ile AYNI kavram ama ayrı, yerel üretilen metin) bu görevin sahipliğinde
  * — `queueView.slaTime` altında dil-anahtarlı hale getirildi.
+ *
+ * REVİZYON (dalga-sonu cila fix, `operations-model.ts`teki
+ * `HEALTH_SIGNAL_LABELS` kalıbı): yukarıdaki paragraf artık KISMEN bayat —
+ * `slaState()`'in `sla.label`'ı ve `onboardingRows()`'un `ownerSignal`/
+ * `nextStep`'i `support-operations-model.ts`nin KENDİ `Record<Lang, …>`
+ * tablolarından artık dile göre çeviriyor (bu dosyaya DOKUNMADAN; buradaki
+ * `queueView.slaTime` ile bilerek AYNI TR kelimeler kullanıldı — "saat
+ * gecikti"/"saat kaldı"). `SUPPORT_PLAYBOOKS` içeriği KASITLI olarak
+ * İngilizce KALDI — küratörlü personel süreç metni, `support-operations-
+ * model.ts`'in kendi dosya başı yorumuna bakın.
  */
 
 const en = {
