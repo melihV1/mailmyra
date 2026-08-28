@@ -15,8 +15,9 @@ import type { Mirror } from '../types';
  * `KPI_DEFINITIONS[].name/description/formula/source/grain/owner/
  * freshness/guardrail` VERİDİR, İngilizce literal olarak KALIR — rapor
  * adları asla çevrilmez (brief sınırı). `reports/{definitions,library,
- * scheduled}/page.tsx` (+ `dev/admin-preview` aynaları) yalnız
- * `AdminPageHeader` prop'ları taşıyor — Task 12'nin kapsamı, dokunulmadı.
+ * scheduled}/page.tsx` (+ `dev/admin-preview` aynaları) taşıdığı
+ * `AdminPageHeader` prop'ları Task 12'de kapatıldı — bkz. dosya sonundaki
+ * `pages` bloğu.
  *
  * Ham durum/kadans/biçim kodu yazdırmaları — `row.status`
  * (`mm-report-schedule--${row.status}` rozeti), `row.cadence`, `row.format`,

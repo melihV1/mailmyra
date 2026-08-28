@@ -1,4 +1,4 @@
-import type { Lang } from '../../lib/i18n/types';
+import type { Lang, Mirror } from '../../lib/i18n/types';
 import type { ProductAnalyticsSnapshot } from './product-analytics-model';
 
 const DAY = 86_400_000;
@@ -94,20 +94,59 @@ export function registrationSeries(source: ProductAnalyticsSnapshot, now: number
   return rows;
 }
 
-export function growthLifecycle(source: ProductAnalyticsSnapshot) {
+type LifecycleStageKey = 'workspace' | 'member-ready' | 'signature-saved' | 'sender-live' | 'export-evidenced';
+
+const LIFECYCLE_STAGE_KEYS: readonly LifecycleStageKey[] = [
+  'workspace',
+  'member-ready',
+  'signature-saved',
+  'sender-live',
+  'export-evidenced',
+];
+
+/**
+ * Dil-anahtarlı, Mirror'lı, dosyada yaşar (`notification-looks.ts`/
+ * AdminQueue `EMPTY_TEXT` emsali — dalga-sonu cila, admin-growth.ts'in
+ * bıraktığı bilinen açığın kapanışı). `key`ler artık çevrilen etiketten
+ * TÜRETİLMEZ (eskiden `label.toLowerCase().replaceAll(' ', '-')`) — dil
+ * değişince React key'i kayıp/yeniden-mount olmasın diye sabit tutulur;
+ * değerleri EN varsayılanda eski türetilmiş dizeyle bayt-bayt aynı.
+ */
+const lifecycleLabelsEn: Record<LifecycleStageKey, string> = {
+  workspace: 'Workspace',
+  'member-ready': 'Member ready',
+  'signature-saved': 'Signature saved',
+  'sender-live': 'Sender live',
+  'export-evidenced': 'Export evidenced',
+};
+
+const lifecycleLabelsTr: Mirror<typeof lifecycleLabelsEn> = {
+  workspace: 'Çalışma alanı',
+  'member-ready': 'Üye hazır',
+  'signature-saved': 'İmza kaydedildi',
+  'sender-live': 'Gönderici yayında',
+  'export-evidenced': 'Dışa aktarım kanıtlandı',
+};
+
+const LIFECYCLE_LABELS: Record<Lang, Record<LifecycleStageKey, string>> = {
+  en: lifecycleLabelsEn,
+  tr: lifecycleLabelsTr,
+};
+
+export function growthLifecycle(source: ProductAnalyticsSnapshot, lang: Lang = 'en') {
   const organizations = source.organizations.length;
   const memberReady = source.organizations.filter((org) => org.memberCount > 0).length;
   const designed = source.organizations.filter((org) => org.signatureCount > 0).length;
   const published = source.organizations.filter((org) => org.activeSenderCount > 0).length;
   const exported = source.organizations.filter((org) => org.exportedSenderCount > 0).length;
   const values = [organizations, memberReady, designed, published, exported] as const;
-  const labels = ['Workspace', 'Member ready', 'Signature saved', 'Sender live', 'Export evidenced'];
-  return labels.map((label, index) => {
+  const labels = LIFECYCLE_LABELS[lang];
+  return LIFECYCLE_STAGE_KEYS.map((key, index) => {
     const value = values[index] ?? 0;
     const previous = index === 0 ? organizations : values[index - 1] ?? 0;
     return {
-      key: label.toLowerCase().replaceAll(' ', '-'),
-      label,
+      key,
+      label: labels[key],
       value,
       rate: organizations ? Math.round((value / organizations) * 100) : 0,
       stepRate: index === 0 ? 100 : previous ? Math.round((value / previous) * 100) : 0,

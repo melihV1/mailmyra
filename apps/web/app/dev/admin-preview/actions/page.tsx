@@ -4,10 +4,13 @@ import { AdminShell } from '../../../(admin)/AdminShell';
 import type { AdminActionLogRow } from '../../../(admin)/action-log-model';
 import { AdminActionLogView } from '../../../(admin)/ui/AdminActionLogView';
 import { AdminPageHeader } from '../../../(admin)/ui/AdminPageHeader';
+import { LangProvider } from '../../../../lib/i18n/LangProvider';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import '../../../(app)/panel-overrides.css';
 
-export default function AdminActionsPreviewPage() {
+export default async function AdminActionsPreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound();
+  const lang = await getLang();
 
   const now = Date.UTC(2026, 7, 20, 9, 30);
   const minute = 60 * 1000;
@@ -66,6 +69,7 @@ export default function AdminActionsPreviewPage() {
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
+      <LangProvider lang={lang}>
       <AdminShell email="staff@voldi.net">
         <section>
           <AdminPageHeader
@@ -76,6 +80,7 @@ export default function AdminActionsPreviewPage() {
           <AdminActionLogView rows={rows} now={now} />
         </section>
       </AdminShell>
+      </LangProvider>
     </>
   );
 }

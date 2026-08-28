@@ -60,7 +60,7 @@ export function GrowthOverviewView({ source, now, preview }: { source: ProductAn
   const t = adminGrowth[lang];
   const facts = growthFacts(source, now);
   const registrations = registrationSeries(source, now, 8, lang);
-  const lifecycle = growthLifecycle(source);
+  const lifecycle = growthLifecycle(source, lang);
   const momentum = momentumRows(source, now).slice(0, 6);
   const recentEvents = source.events.filter((row) => now - new Date(row.createdAt).getTime() <= 30 * 86_400_000);
   return <>
@@ -89,7 +89,7 @@ export function GrowthOverviewView({ source, now, preview }: { source: ProductAn
 export function AcquisitionView({ source, now, preview }: { source: ProductAnalyticsSnapshot; now: number; preview?: boolean }) {
   const lang = useLang();
   const t = adminGrowth[lang];
-  const lifecycle = growthLifecycle(source);
+  const lifecycle = growthLifecycle(source, lang);
   const registrations = registrationSeries(source, now, 10, lang);
   const entitlement = ['trial', 'active', 'past_due', 'cancelled'].map((state) => source.organizations.filter((org) => org.entitlementState === state).length);
   const biggestDrop = lifecycle.slice(1).map((stage, index) => ({ ...stage, loss: (lifecycle[index]?.value ?? 0) - stage.value })).sort((a, b) => b.loss - a.loss)[0];

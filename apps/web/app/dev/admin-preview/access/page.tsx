@@ -4,10 +4,13 @@ import { AdminShell } from '../../../(admin)/AdminShell';
 import type { StaffAccessLogRow } from '../../../(admin)/access-log-model';
 import { AdminPageHeader } from '../../../(admin)/ui/AdminPageHeader';
 import { StaffAccessLogView } from '../../../(admin)/ui/StaffAccessLogView';
+import { LangProvider } from '../../../../lib/i18n/LangProvider';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import '../../../(app)/panel-overrides.css';
 
-export default function StaffAccessPreviewPage() {
+export default async function StaffAccessPreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound();
+  const lang = await getLang();
 
   const now = Date.UTC(2026, 7, 20, 8, 30);
   const minute = 60 * 1000;
@@ -35,6 +38,7 @@ export default function StaffAccessPreviewPage() {
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
+      <LangProvider lang={lang}>
       <AdminShell email="staff@voldi.net">
         <section>
           <AdminPageHeader
@@ -45,6 +49,7 @@ export default function StaffAccessPreviewPage() {
           <StaffAccessLogView rows={rows} now={now} />
         </section>
       </AdminShell>
+      </LangProvider>
     </>
   );
 }

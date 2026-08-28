@@ -4,6 +4,8 @@ import { AdminShell } from '../../(admin)/AdminShell';
 import { buildQueueRows } from '../../(admin)/queue-model';
 import { CommandCenterView } from '../../(admin)/ui/CommandCenterView';
 import type { CustomerRow } from '../../(admin)/ui/CustomerTable';
+import { LangProvider } from '../../../lib/i18n/LangProvider';
+import { getLang } from '../../../lib/i18n/lang.server';
 import '../../(app)/panel-overrides.css';
 
 /**
@@ -13,8 +15,9 @@ import '../../(app)/panel-overrides.css';
  * tek yer burası. Örnek veri TEMSİLİDİR ve buradan öteye gitmez — üretim
  * sayfası aynı `CommandCenterView`ı gerçek repo verisiyle çizer.
  */
-export default function AdminPreviewPage() {
+export default async function AdminPreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound();
+  const lang = await getLang();
 
   const now = Date.UTC(2026, 7, 19, 9, 0);
   const DAY = 24 * 60 * 60 * 1000;
@@ -82,6 +85,7 @@ export default function AdminPreviewPage() {
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
+      <LangProvider lang={lang}>
       <AdminShell email="staff@voldi.net">
         <CommandCenterView
           customerCount={orgs.length}
@@ -148,6 +152,7 @@ export default function AdminPreviewPage() {
           now={now}
         />
       </AdminShell>
+      </LangProvider>
     </>
   );
 }

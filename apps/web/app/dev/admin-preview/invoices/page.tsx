@@ -4,10 +4,13 @@ import { AdminShell } from '../../../(admin)/AdminShell';
 import type { InvoiceWorkbenchRow } from '../../../(admin)/invoice-workbench-model';
 import { AdminPageHeader } from '../../../(admin)/ui/AdminPageHeader';
 import { InvoiceWorkbenchView } from '../../../(admin)/ui/InvoiceWorkbenchView';
+import { LangProvider } from '../../../../lib/i18n/LangProvider';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import '../../../(app)/panel-overrides.css';
 
-export default function InvoicesPreviewPage() {
+export default async function InvoicesPreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound();
+  const lang = await getLang();
 
   const now = Date.UTC(2026, 7, 20, 9, 0);
   const day = 24 * 60 * 60 * 1000;
@@ -56,6 +59,7 @@ export default function InvoicesPreviewPage() {
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
+      <LangProvider lang={lang}>
       <AdminShell email="staff@voldi.net">
         <section>
           <AdminPageHeader
@@ -72,6 +76,7 @@ export default function InvoicesPreviewPage() {
           <InvoiceWorkbenchView rows={rows} now={now} mutationsEnabled={false} />
         </section>
       </AdminShell>
+      </LangProvider>
     </>
   );
 }

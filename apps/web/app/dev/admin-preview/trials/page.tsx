@@ -4,10 +4,13 @@ import { AdminShell } from '../../../(admin)/AdminShell';
 import type { TrialEntitlementRow } from '../../../(admin)/trials-model';
 import { AdminPageHeader } from '../../../(admin)/ui/AdminPageHeader';
 import { TrialsEntitlementsView } from '../../../(admin)/ui/TrialsEntitlementsView';
+import { LangProvider } from '../../../../lib/i18n/LangProvider';
+import { getLang } from '../../../../lib/i18n/lang.server';
 import '../../../(app)/panel-overrides.css';
 
-export default function TrialsPreviewPage() {
+export default async function TrialsPreviewPage() {
   if (process.env.NODE_ENV === 'production') notFound();
+  const lang = await getLang();
 
   const now = Date.UTC(2026, 7, 20, 9, 0);
   const day = 24 * 60 * 60 * 1000;
@@ -92,6 +95,7 @@ export default function TrialsPreviewPage() {
       <link rel="stylesheet" href="/vuexy/core.css" />
       <link rel="stylesheet" href="/vuexy/icons.css" />
       <link rel="stylesheet" href="/vuexy/layout.css" />
+      <LangProvider lang={lang}>
       <AdminShell email="staff@voldi.net">
         <section>
           <AdminPageHeader
@@ -102,6 +106,7 @@ export default function TrialsPreviewPage() {
           <TrialsEntitlementsView rows={rows} now={now} />
         </section>
       </AdminShell>
+      </LangProvider>
     </>
   );
 }

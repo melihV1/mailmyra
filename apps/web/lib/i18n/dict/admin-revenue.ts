@@ -8,8 +8,9 @@ import type { Mirror } from '../types';
  * `invoiceCreateDialog` → orgs/[id]/InvoiceCreateDialog.tsx, `invoiceRowActions`
  * → orgs/[id]/InvoiceRowActions.tsx, `paymentMethod` → ikisi ARASINDA paylaşılan
  * küçük bir tablo (ödeme yöntemi seçenekleri hem kesme formunda hem önizleme
- * salt-okunur alanında görünür), `invoicesPage` → admin/invoices/page.tsx'in
- * AdminPageHeader PROP'ları DIŞINDAKİ (Task 12 kapsamı) tek satırlık kroması.
+ * salt-okunur alanında görünür). Beş sayfanın `AdminPageHeader` prop'ları
+ * Task 12'de kapatıldı — bkz. dosya sonundaki `pages` bloğu (eski
+ * `invoicesPage` tek satırlık kroması oraya taşındı, `pages.invoices`).
  *
  * `currencyControl.ariaLabel` ("Currency ledger") InvoiceWorkbenchView'in
  * kendi para birimi düğme grubunda da BİREBİR aynı metin — orada yeniden

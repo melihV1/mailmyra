@@ -37,11 +37,15 @@ import type { Mirror } from '../types';
  * emsalinin aynısı — paylaşılan model dosyası bu görevin dosya listesinde
  * DEĞİL): `growth-analytics-model.ts`'in ÜRETTİĞİ şu alanlar İngilizce
  * literal olarak KALIR ve sözlüğe girmez:
- * · `growthLifecycle()`'ın `stage.label`'ı ("Workspace"/"Member ready"/
- *   "Signature saved"/"Sender live"/"Export evidenced") — hem
- *   `GrowthOverviewView`'in yaşam döngüsü kartında hem
- *   `AcquisitionView`'in kazanım yolunda VE "en büyük boşluk" cümlesinde
- *   kullanılır (üç yerde de aynı literal İngilizce kalır).
+ * · (Revizyon, dalga-sonu cila — aşağıdaki madde artık GEÇERSİZ):
+ *   `growthLifecycle()`'ın `stage.label`'ı ("Workspace"/"Member ready"/
+ *   "Signature saved"/"Sender live"/"Export evidenced") artık `lang:
+ *   Lang = 'en'` parametresine göre çözülüyor — etiketler KENDİ
+ *   dosyasında yaşayan dil-anahtarlı bir tabloda (`notification-looks.ts`
+ *   emsali, bu sözlüğe girmez); `stage.key` de artık çevrilen etiketten
+ *   TÜRETİLMİYOR, sabit bir tanımlayıcı listesinden geliyor. `GrowthOverview
+ *   View`/`AcquisitionView` gerçek `lang`i geçirir. EN varsayılan çıktı
+ *   bayt-bayt korunur.
  * · `CONTENT_PAGE_REGISTRY`'nin `route`/`title`/`owner` alanları — brief
  *   bunu açıkça VERİ saydı (gerçek pazarlama sayfalarının kaydı).
  * · `MEDIA_ASSET_REGISTRY`'nin `label`/`purpose` alanları (ör. "Primary

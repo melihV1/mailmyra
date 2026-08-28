@@ -12,13 +12,13 @@ import { adminCustomers } from '../../../lib/i18n/dict/admin-customers';
 import { common } from '../../../lib/i18n/dict/common';
 
 /**
- * `getCustomerHealth`in ürettiği `signals` dizisi (operations-model.ts)
- * hâlâ İngilizce ham metin — o dosya bu görevin DIŞI (AdminQueue'nun
- * `queue-model.ts` EMPTY_TEXT'i için bıraktığı emsalin aynısı: model
- * çıktısı, ayrı bir süpürme kapsamı). Aşağıdaki matris SADECE görüntü
- * etiketini çevirir; `.includes('Trial expired')` karşılaştırması model
- * çıktısıyla birebir eşleşmek zorunda olduğu için İngilizce kalır —
- * bkz. Task 5 raporu.
+ * Dalga-sonu cila (Task 5 raporunun bıraktığı açığın kapanışı):
+ * `getCustomerHealth` artık `lang`e göre çeviriyor (operations-model.ts,
+ * AdminQueue'nun `queue-model.ts` EMPTY_TEXT'i emsali — dil-anahtarlı,
+ * Mirror'lı, model dosyasında yaşar). Aşağıdaki matris SADECE görüntü
+ * etiketini çevirir; `trialExpired` satırı artık `health.signalKeys`
+ * (dilden bağımsız, stabil tanımlayıcı) üzerinden eşleşir — `health.
+ * signals`in çevrilmiş metnine `.includes(...)` ile bağlı DEĞİL.
  */
 interface EnrichedOrgRow {
   row: OperationsOrgRow;
@@ -32,7 +32,7 @@ const HEALTH_SIGNAL_MATRIX: ReadonlyArray<{ key: 'pastDue' | 'seatException' | '
   { key: 'noActivity', filter: (item) => item.health.inactiveDays === null, tone: 'secondary' },
   { key: 'inactive14d', filter: (item) => (item.health.inactiveDays ?? 0) >= 14, tone: 'info' },
   { key: 'noActiveSeats', filter: (item) => item.row.activeSeats === 0, tone: 'primary' },
-  { key: 'trialExpired', filter: (item) => item.health.signals.includes('Trial expired'), tone: 'danger' },
+  { key: 'trialExpired', filter: (item) => item.health.signalKeys.includes('trialExpired'), tone: 'danger' },
 ];
 
 export function CustomerUsersView({ rows }: { rows: CustomerUserRow[] }) {
@@ -74,7 +74,7 @@ function Detail({ label, value }: { label: string; value: string }) {
 export function CustomerHealthView({ rows, now }: { rows: OperationsOrgRow[]; now: number }) {
   const lang = useLang();
   const t = adminCustomers[lang].operations.health;
-  const enriched = useMemo(() => rows.map((row) => ({ row, health: getCustomerHealth(row, now), seats: getSeatFacts(row) })).sort((a, b) => a.health.score - b.health.score), [now, rows]);
+  const enriched = useMemo(() => rows.map((row) => ({ row, health: getCustomerHealth(row, now, lang), seats: getSeatFacts(row) })).sort((a, b) => a.health.score - b.health.score), [now, rows, lang]);
   const counts = enriched.reduce((result, item) => { result[item.health.band] += 1; return result; }, { healthy: 0, watch: 0, risk: 0 });
   const average = enriched.length ? Math.round(enriched.reduce((sum, item) => sum + item.health.score, 0) / enriched.length) : 0;
   const inactive = enriched.filter((item) => item.health.inactiveDays === null || item.health.inactiveDays >= 14).length;

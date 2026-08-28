@@ -12,8 +12,12 @@ import type { Mirror } from '../types';
  * `sourceState.connect` ve `snapshot.label` `admin-nav`dan gelir — burada
  * yeniden yazılmaz (bkz. çağrı yerlerindeki `adminCommon`/`adminNav` importları).
  *
- * `AdminPageHeader`e geçen `crumb`/`title`/`support` PROP'ları bu görevin
- * DIŞI (Task 12 sayfa prop'larını çevirir) — o üç literal İngilizce kalır.
+ * `AdminPageHeader`e geçen `crumb`/`title`/`support` PROP'ları Task 12'de
+ * kapatıldı: `crumb`/`title` `adminNav[lang].menu.commandCenter` ile bayt-
+ * bayt aynı olduğu için burada tekrar yazılmaz (bkz. `view` bloğunun kendi
+ * notu), `support` ise aşağıdaki `headerSupport` anahtarından çevrilir.
+ * Sekiz "temel" çalışma alanı sayfasının (henüz kendi ekranı olmayanlar)
+ * prop'ları da aşağıdaki `workspaceFoundation` bloğunda (Task 12 backfill).
  */
 
 const en = {
@@ -349,7 +353,7 @@ const tr: Mirror<typeof en> = {
     stats: {
       activeSeats: { label: 'Aktif koltuklar', support: 'Güncel faturalama ayak izi' },
       billingCustomers: { label: 'Faturalanan müşteriler', support: (n: number) => `${n} toplam çalışma alanı` },
-      billed: { label: 'Faturalanan', support: (n: number) => `${n} yetkili fatura` },
+      billed: { label: 'Faturalanan', support: (n: number) => `${n} resmi fatura` },
       collected: { label: 'Tahsil edilen', support: (pct: number) => `Faturalanan tutarın %${pct}'i` },
       outstanding: {
         label: 'Bekleyen bakiye',
@@ -481,7 +485,7 @@ const tr: Mirror<typeof en> = {
         billed: 'Faturalanan',
         collected: 'Tahsil edilen',
         outstanding: 'Bekleyen bakiye',
-        action: 'Gelir tezgahını aç',
+        action: 'Gelir iş istasyonunu aç',
       },
       growth: {
         eyebrow: 'ANALİTİK BAĞLANTISI GEREKLİ',
@@ -514,7 +518,7 @@ const tr: Mirror<typeof en> = {
       densityGroupAria: 'Panel yoğunluğu',
       density: 'Yoğunluk',
       comfortable: 'Rahat',
-      compact: 'Sıkışık',
+      compact: 'Kompakt',
       visibleSections: 'Görünür bölümler',
       reset: 'Sıfırla',
       done: 'Tamam',

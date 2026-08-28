@@ -44,6 +44,13 @@ import type { Mirror } from '../types';
  * ama etiketi yeniden yazmak ayrı bir süpürme kapsamı sayıldı. `tr`
  * modunda bu başlıklar (ör. "Workspace created") İngilizce kalır —
  * rapor bunu bilinen bir açık olarak işaretler.
+ *
+ * Revizyon (dalga-sonu cila): yukarıdaki açık kapandı.
+ * `activationStages()` artık `lang: Lang = 'en'` alır ve etiketleri
+ * KENDİ dosyasında yaşayan dil-anahtarlı bir tabloda çözer (bu sözlüğe
+ * girmez — `notification-looks.ts` emsali); `ProductOperationsViews.tsx`
+ * çağrı yerlerine gerçek `lang` geçirir. EN varsayılan çıktı bayt-bayt
+ * korunur.
  */
 
 const en = {

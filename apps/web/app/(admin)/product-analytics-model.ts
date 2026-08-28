@@ -1,4 +1,4 @@
-import type { Lang } from '../../lib/i18n/types';
+import type { Lang, Mirror } from '../../lib/i18n/types';
 
 export interface ProductOrgRow {
   id: string;
@@ -77,13 +77,41 @@ export function productFacts(source: ProductAnalyticsSnapshot, now: number) {
   };
 }
 
-export function activationStages(source: ProductAnalyticsSnapshot) {
+/**
+ * Dil-anahtarlı, Mirror'lı, dosyada yaşar (`notification-looks.ts`/
+ * AdminQueue `EMPTY_TEXT` emsali — dalga-sonu cila, admin-product.ts'in
+ * bıraktığı bilinen açığın kapanışı). `key` alanları etiketten bağımsız
+ * sabit tanımlayıcılar; yalnız `label` dile göre değişir.
+ */
+const activationStageLabelsEn = {
+  workspace: 'Workspace created',
+  member: 'Member ready',
+  signature: 'Signature saved',
+  published: 'Sender published',
+  exported: 'Export evidenced',
+};
+
+const activationStageLabelsTr: Mirror<typeof activationStageLabelsEn> = {
+  workspace: 'Çalışma alanı oluşturuldu',
+  member: 'Üye hazır',
+  signature: 'İmza kaydedildi',
+  published: 'Gönderici yayınlandı',
+  exported: 'Dışa aktarım kanıtlandı',
+};
+
+const ACTIVATION_STAGE_LABELS: Record<Lang, typeof activationStageLabelsEn> = {
+  en: activationStageLabelsEn,
+  tr: activationStageLabelsTr,
+};
+
+export function activationStages(source: ProductAnalyticsSnapshot, lang: Lang = 'en') {
+  const labels = ACTIVATION_STAGE_LABELS[lang];
   const stages = [
-    { key: 'workspace', label: 'Workspace created', value: source.organizations.length },
-    { key: 'member', label: 'Member ready', value: source.organizations.filter((row) => row.memberCount > 0).length },
-    { key: 'signature', label: 'Signature saved', value: source.organizations.filter((row) => row.signatureCount > 0).length },
-    { key: 'published', label: 'Sender published', value: source.organizations.filter((row) => row.activeSenderCount > 0).length },
-    { key: 'exported', label: 'Export evidenced', value: source.organizations.filter((row) => row.exportedSenderCount > 0).length },
+    { key: 'workspace', label: labels.workspace, value: source.organizations.length },
+    { key: 'member', label: labels.member, value: source.organizations.filter((row) => row.memberCount > 0).length },
+    { key: 'signature', label: labels.signature, value: source.organizations.filter((row) => row.signatureCount > 0).length },
+    { key: 'published', label: labels.published, value: source.organizations.filter((row) => row.activeSenderCount > 0).length },
+    { key: 'exported', label: labels.exported, value: source.organizations.filter((row) => row.exportedSenderCount > 0).length },
   ];
   return stages.map((stage, index) => ({
     ...stage,

@@ -25,6 +25,7 @@ import {
 } from './OperationsShared';
 import { useLang } from '../../../lib/i18n/LangProvider';
 import { adminProduct, type AdminProductDict } from '../../../lib/i18n/dict/admin-product';
+import { builder } from '../../../lib/i18n/dict/builder';
 import type { Lang } from '../../../lib/i18n/types';
 
 const COLORS = ['#7367f0', '#00bad1', '#28c76f', '#ff9f43', '#ff4c51', '#a8aaae'];
@@ -51,6 +52,34 @@ function templateDisplay(t: AdminProductDict, id: string) {
   const text = (t.templateMeta as Record<string, { name: string; copy: string }>)[id];
   const look = TEMPLATE_LOOKS[id] ?? { icon: 'tabler-template', tone: 'secondary' };
   return { name: text?.name ?? id, copy: text?.copy ?? t.templateFallbackCopy, icon: look.icon, tone: look.tone };
+}
+
+/**
+ * Task 6 leftover (dalga-sonu cila): `row.size`/`row.iconStyle` ham kod
+ * olarak donut etiketiydi. Görünen ad `builder.ts`'in `steps.style.
+ * typography`sinden gelir — builder zaten aynı üç/üç değeri gösteriyor,
+ * ikinci bir TR varyant İCAT EDİLMEZ. Bilinmeyen kod ham haliyle döner.
+ */
+const SIZE_LABEL_KEY: Record<string, 'sizeSmall' | 'sizeMedium' | 'sizeLarge'> = {
+  small: 'sizeSmall',
+  medium: 'sizeMedium',
+  large: 'sizeLarge',
+};
+
+const ICON_STYLE_LABEL_KEY: Record<string, 'iconStyleFilled' | 'iconStyleOutline' | 'iconStyleMono'> = {
+  filled: 'iconStyleFilled',
+  outline: 'iconStyleOutline',
+  mono: 'iconStyleMono',
+};
+
+function sizeLabel(lang: Lang, code: string) {
+  const key = SIZE_LABEL_KEY[code];
+  return key ? builder[lang].steps.style.typography[key] : code;
+}
+
+function iconStyleLabel(lang: Lang, code: string) {
+  const key = ICON_STYLE_LABEL_KEY[code];
+  return key ? builder[lang].steps.style.typography[key] : code;
 }
 
 const EVENT_LOOKS: Record<string, { icon: string; tone: string }> = {
@@ -92,7 +121,7 @@ export function ProductOverviewView({ source, now, preview }: { source: ProductA
   const lang = useLang();
   const t = adminProduct[lang];
   const facts = productFacts(source, now);
-  const funnel = activationStages(source);
+  const funnel = activationStages(source, lang);
   const monthly = monthlyEventSeries(source, now, 6, lang);
   const eventTotal = monthly.map((row) => row.publishes + row.exports + row.brandChanges);
   const adoption = source.organizations.map((org) => ({ ...org, depth: Number(org.signatureCount > 0) + Number(org.activeSenderCount > 0) + Number(org.exportedSenderCount > 0) })).sort((a, b) => b.depth - a.depth || b.activeSenderCount - a.activeSenderCount).slice(0, 6);
@@ -128,7 +157,7 @@ export function ProductOverviewView({ source, now, preview }: { source: ProductA
 export function ActivationFunnelView({ source, preview }: { source: ProductAnalyticsSnapshot; preview?: boolean }) {
   const lang = useLang();
   const t = adminProduct[lang];
-  const stages = activationStages(source);
+  const stages = activationStages(source, lang);
   const biggestLoss = [...stages.slice(1)].sort((a, b) => b.loss - a.loss)[0];
   return <>
     <div className="d-flex justify-content-end mb-4"><PreviewBadge preview={preview} t={t} /></div>
@@ -164,8 +193,8 @@ export function BuilderUsageView({ source, now, preview }: { source: ProductAnal
       <OperationsKpi label={t.builderUsage.kpis.designVariants.label} value={String(new Set(source.signatures.map((row) => row.templateId)).size)} support={t.builderUsage.kpis.designVariants.support} icon="tabler-template" tone="warning" last />
     </OperationsKpiStrip>
     <div className="row g-6 mb-6">
-      <div className="col-lg-4"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title={t.builderUsage.sizeCard.title} support={t.builderUsage.sizeCard.support} /><DonutChart labels={sizes.map((row) => row.label)} series={sizes.map((row) => row.value)} colors={COLORS} centerLabel={t.builderUsage.sizeCard.centerLabel} height={260} /></div></div></div>
-      <div className="col-lg-4"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title={t.builderUsage.iconCard.title} support={t.builderUsage.iconCard.support} /><DonutChart labels={icons.map((row) => row.label)} series={icons.map((row) => row.value)} colors={COLORS.slice(1)} centerLabel={t.builderUsage.iconCard.centerLabel} height={260} /></div></div></div>
+      <div className="col-lg-4"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title={t.builderUsage.sizeCard.title} support={t.builderUsage.sizeCard.support} /><DonutChart labels={sizes.map((row) => sizeLabel(lang, row.label))} series={sizes.map((row) => row.value)} colors={COLORS} centerLabel={t.builderUsage.sizeCard.centerLabel} height={260} /></div></div></div>
+      <div className="col-lg-4"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title={t.builderUsage.iconCard.title} support={t.builderUsage.iconCard.support} /><DonutChart labels={icons.map((row) => iconStyleLabel(lang, row.label))} series={icons.map((row) => row.value)} colors={COLORS.slice(1)} centerLabel={t.builderUsage.iconCard.centerLabel} height={260} /></div></div></div>
       <div className="col-lg-4"><div className="card h-100"><div className="card-body"><OperationsSectionHeader title={t.builderUsage.featureCard.title} support={t.builderUsage.featureCard.support} /><div className="d-grid gap-5 mt-6">{features.map((feature) => { const rate = source.signatures.length ? Math.round((feature.value / source.signatures.length) * 100) : 0; return <div key={feature.label}><div className="d-flex align-items-center gap-3 mb-2"><span className={`avatar avatar-sm bg-label-${feature.tone} rounded`}><span className={`avatar-initial bg-label-${feature.tone}`}><i className={`icon-base ti ${feature.icon}`} /></span></span><span className="flex-grow-1 fw-medium text-heading">{feature.label}</span><strong>{rate}%</strong></div><div className="progress ms-11"><div className={`progress-bar bg-${feature.tone}`} style={{ width: `${rate}%` }} /></div></div>; })}</div></div></div></div>
     </div>
     <div className="card mb-6"><div className="card-body"><OperationsSectionHeader title={t.builderUsage.recentCard.title} support={t.builderUsage.recentCard.support} action={<Link href={templatesHref} className="btn btn-sm btn-label-primary">{t.builderUsage.recentCard.templatePortfolio}<i className="icon-base ti tabler-arrow-right ms-2" /></Link>} /><div className="row g-4">{recent.map((row) => { const meta = templateDisplay(t, row.templateId); const tone = row.assigned ? meta.tone : 'secondary'; return <div className="col-md-6 col-xl-3" key={row.id}><div className={`mm-builder-record-card mm-builder-record-card--${tone}`}><div className="d-flex justify-content-between align-items-start gap-3 mb-5"><InitialAvatar label={row.orgName} tone={tone} /><span className={`avatar avatar-sm`}><span className={`avatar-initial rounded bg-label-${tone} text-${tone}`}><i className={`icon-base ti ${meta.icon}`} /></span></span></div><h6 className="text-truncate mb-1">{row.orgName}</h6><span className={`badge bg-label-${tone} mb-4`}>{row.assigned ? t.builderUsage.recentCard.assignedBadge : t.builderUsage.recentCard.draftBadge}</span><div className="mm-builder-record-card__meta"><span><i className="icon-base ti tabler-layout" />{meta.name}</span><span><i className="icon-base ti tabler-calendar-event" />{formatCompactDate(row.updatedAt, lang)}</span></div></div></div>; })}</div></div></div>

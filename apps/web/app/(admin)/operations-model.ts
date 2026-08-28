@@ -1,4 +1,4 @@
-import type { Lang } from '../../lib/i18n/types';
+import type { Lang, Mirror } from '../../lib/i18n/types';
 import type { InvoiceWorkbenchRow } from './invoice-workbench-model';
 
 export const OPERATIONS_DAY_MS = 24 * 60 * 60 * 1000;
@@ -160,31 +160,79 @@ export function getSeatFacts(row: OperationsOrgRow) {
   } as const;
 }
 
-export function getCustomerHealth(row: OperationsOrgRow, now: number) {
+/**
+ * Stabil, dilden bağımsız tanımlayıcılar — çağıranların (`CustomerOperations
+ * Views.tsx` `HEALTH_SIGNAL_MATRIX`) `signals`in İNGİLİZCE metnine
+ * `.includes(...)` ile eşleşmesi gerekmesin diye (dalga-sonu cila, Task 5
+ * raporunun bıraktığı bilinen açığın kapanışı). `signals` görüntü metni,
+ * `signalKeys` eşleştirme/karar mantığı içindir.
+ */
+export type HealthSignalKey =
+  | 'pastDue'
+  | 'cancelled'
+  | 'trialExpired'
+  | 'seatsOver'
+  | 'noMembers'
+  | 'noActivity'
+  | 'inactiveDays'
+  | 'noActiveSeats';
+
+const healthSignalLabelsEn = {
+  pastDue: 'Past due',
+  cancelled: 'Cancelled',
+  trialExpired: 'Trial expired',
+  seatsOver: (delta: number) => `${delta} seats over`,
+  noMembers: 'No members',
+  noActivity: 'No activity',
+  inactiveDays: (days: number) => `${days}d inactive`,
+  noActiveSeats: 'No active seats',
+};
+
+const healthSignalLabelsTr: Mirror<typeof healthSignalLabelsEn> = {
+  pastDue: 'Ödemesi gecikti',
+  cancelled: 'İptal edildi',
+  trialExpired: 'Deneme süresi doldu',
+  seatsOver: (delta) => `${delta} koltuk aşımı`,
+  noMembers: 'Üye yok',
+  noActivity: 'Etkinlik yok',
+  inactiveDays: (days) => `${days} gün hareketsiz`,
+  noActiveSeats: 'Aktif koltuk yok',
+};
+
+const HEALTH_SIGNAL_LABELS: Record<Lang, typeof healthSignalLabelsEn> = {
+  en: healthSignalLabelsEn,
+  tr: healthSignalLabelsTr,
+};
+
+export function getCustomerHealth(row: OperationsOrgRow, now: number, lang: Lang = 'en') {
   let score = 100;
   const signals: string[] = [];
+  const signalKeys: HealthSignalKey[] = [];
+  const labels = HEALTH_SIGNAL_LABELS[lang];
+  const signal = (key: HealthSignalKey, text: string) => { signalKeys.push(key); signals.push(text); };
   const lastActivity = row.lastActivityAt ? Date.parse(row.lastActivityAt) : null;
   const inactiveDays = lastActivity && Number.isFinite(lastActivity)
     ? Math.max(0, Math.floor((now - lastActivity) / OPERATIONS_DAY_MS))
     : null;
   const seats = getSeatFacts(row);
 
-  if (row.entitlementState === 'past_due') { score -= 35; signals.push('Past due'); }
-  if (row.entitlementState === 'cancelled') { score -= 55; signals.push('Cancelled'); }
+  if (row.entitlementState === 'past_due') { score -= 35; signal('pastDue', labels.pastDue); }
+  if (row.entitlementState === 'cancelled') { score -= 55; signal('cancelled', labels.cancelled); }
   if (row.entitlementState === 'trial' && row.trialEndsAt && Date.parse(row.trialEndsAt) < now) {
-    score -= 30; signals.push('Trial expired');
+    score -= 30; signal('trialExpired', labels.trialExpired);
   }
-  if (seats.over) { score -= 20; signals.push(`${seats.delta} seats over`); }
-  if (row.memberCount === 0) { score -= 20; signals.push('No members'); }
-  if (inactiveDays === null) { score -= 20; signals.push('No activity'); }
-  else if (inactiveDays >= 30) { score -= 25; signals.push(`${inactiveDays}d inactive`); }
-  else if (inactiveDays >= 14) { score -= 12; signals.push(`${inactiveDays}d inactive`); }
-  if (row.activeSeats === 0) { score -= 15; signals.push('No active seats'); }
+  if (seats.over) { score -= 20; signal('seatsOver', labels.seatsOver(seats.delta)); }
+  if (row.memberCount === 0) { score -= 20; signal('noMembers', labels.noMembers); }
+  if (inactiveDays === null) { score -= 20; signal('noActivity', labels.noActivity); }
+  else if (inactiveDays >= 30) { score -= 25; signal('inactiveDays', labels.inactiveDays(inactiveDays)); }
+  else if (inactiveDays >= 14) { score -= 12; signal('inactiveDays', labels.inactiveDays(inactiveDays)); }
+  if (row.activeSeats === 0) { score -= 15; signal('noActiveSeats', labels.noActiveSeats); }
 
   score = Math.max(0, Math.min(100, score));
   return {
     score,
     signals,
+    signalKeys,
     inactiveDays,
     band: score >= 80 ? 'healthy' : score >= 55 ? 'watch' : 'risk',
     tone: score >= 80 ? 'success' : score >= 55 ? 'warning' : 'danger',

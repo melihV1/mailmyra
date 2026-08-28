@@ -844,9 +844,9 @@ const tr: Mirror<typeof en> = {
     cancelDialog: {
       title: (title: string) => `Vazgeç — ${title}`,
       subtitle: 'Talep defterde kalır; yalnız aktif kuyruktan düşer.',
-      labelledBy: (title: string) => `${title} vazgeç`,
-      submit: 'Talebi vazgeç',
-      toast: 'Talep vazgeçildi.',
+      labelledBy: (title: string) => `${title} iptal`,
+      submit: 'Talebi iptal et',
+      toast: 'Talep iptal edildi.',
     },
     newApproval: {
       button: 'Yeni onay talebi',

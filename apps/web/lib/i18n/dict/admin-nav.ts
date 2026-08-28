@@ -204,7 +204,7 @@ const tr: Mirror<typeof en> = {
     product: 'Ürün',
     productOverview: 'Ürün özeti',
     productActivation: 'Aktivasyon hunisi',
-    productBuilder: "Builder kullanımı",
+    productBuilder: 'Builder kullanımı',
     productExports: 'Dışa aktarımlar',
     productTemplates: 'Şablonlar',
     productCohorts: 'Kohortlar ve elde tutma',
@@ -228,7 +228,7 @@ const tr: Mirror<typeof en> = {
     supportQueue: 'Destek kuyruğu',
     supportCases: 'Talepler',
     supportOnboarding: 'Onboarding',
-    supportPlaybooks: "Playbook'lar",
+    supportPlaybooks: 'Playbook\'lar',
 
     platform: 'Platform',
     platformSystemHealth: 'Sistem sağlığı',
@@ -290,7 +290,7 @@ const tr: Mirror<typeof en> = {
       },
       supportCase: {
         label: 'Destek talebi aç',
-        detail: 'Sahiplenilmiş bir müşteri takibi oluştur',
+        detail: 'Kendine ait bir müşteri takibi oluştur',
       },
       dataRequest: {
         label: 'Veri talebi aç',
