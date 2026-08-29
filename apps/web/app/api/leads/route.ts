@@ -77,6 +77,16 @@ function noteFrom(body: Record<string, unknown>): string {
 }
 
 export async function POST(req: Request): Promise<Response> {
+  // Gövde okunmadan önce kaba boyut kapısı: gerçek bir form gönderimi 64KB'a
+  // yaklaşamaz bile; bundan büyüğü ayrıştırmaya değmez (upload ucundaki
+  // content-length dersinin aynısı). Hangi forma ait olduğu henüz
+  // bilinmediği için süslü bir yönlendirme de kurulamaz — düz 413 yeter.
+  const contentLengthHeader = req.headers.get('content-length');
+  const contentLength = contentLengthHeader === null ? NaN : Number(contentLengthHeader);
+  if (Number.isFinite(contentLength) && contentLength > 64 * 1024) {
+    return new Response(null, { status: 413 });
+  }
+
   const { body } = await readBody(req);
 
   const form: FormKey = field(body, 'form') === 'demo' ? 'demo' : 'contact';

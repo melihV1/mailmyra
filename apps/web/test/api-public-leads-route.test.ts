@@ -193,3 +193,21 @@ describe('doğrulama ve koruma', () => {
     );
   });
 });
+
+describe('POST /api/leads — content-length ön-kapısı', () => {
+  it('şişirilmiş content-length gövde hiç okunmadan 413 döner', async () => {
+    const req = new Request('https://app.mailmyra.com/api/leads', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'content-length': '100000',
+      },
+      body: new URLSearchParams({ form: 'demo', name: 'A', email: 'a@a.com', company: 'A' }),
+    });
+
+    const res = await POST(req);
+
+    expect(res.status).toBe(413);
+    expect(createInboundLead).not.toHaveBeenCalled();
+  });
+});
