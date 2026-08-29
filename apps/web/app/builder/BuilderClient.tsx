@@ -35,6 +35,7 @@ export function BuilderClient({
   signedIn = false,
   signatureId,
   initialData,
+  initialTemplateId,
   initialName,
   brand = null,
 }: {
@@ -45,6 +46,8 @@ export function BuilderClient({
   /** Doluysa builder kayıtlı bir imzayı düzenliyor: kaynak sunucu, taslak değil. */
   signatureId?: string;
   initialData?: unknown;
+  /** `/builder?template=` ile gelen şablon. Yalnız anonim/taslak kipinde dolu. */
+  initialTemplateId?: string;
   initialName?: string;
   /** Yalnız düzenleme kipinde (?sig=) dolu — anonim builder'da hep null. */
   brand?: BrandDocument | null;
@@ -89,6 +92,12 @@ export function BuilderClient({
     }
     const draft = loadDraft(window.localStorage, Date.now());
     if (draft) dispatch({ type: 'load', value: mergeWithEmpty(draft) });
+    // Adresteki şablon taslağın üstüne yazar: kullanıcı galeriden belirli bir
+    // şablonu seçerek geldiyse niyeti taslaktakinden tazedir. `load`dan SONRA
+    // gönderilmesi şart — önce gönderilseydi taslak onu ezerdi.
+    if (initialTemplateId) {
+      dispatch({ type: 'patchLayout', value: { templateId: initialTemplateId } });
+    }
     loadedRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

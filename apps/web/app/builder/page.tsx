@@ -9,6 +9,7 @@ import { getBrand } from '../../lib/repo/brand';
 import { primaryOrgId } from '../../lib/repo/senders';
 import { getSignature } from '../../lib/repo/signatures';
 import { BuilderClient } from './BuilderClient';
+import { templateFromParam } from './template-param';
 
 export async function generateMetadata() {
   return { title: builderDict[await getLang()].pageTitle };
@@ -29,6 +30,10 @@ export default async function BuilderPage({
   // adresle export açılmaz (panel-brief §2.2).
   const params = await searchParams;
   const sig = typeof params.sig === 'string' ? params.sig : undefined;
+  // Kayıtlı imza düzenlenirken (`?sig=`) onun şablonu kazanır: bindirilmiş
+  // verinin şablonu zaten kilitli (BuilderClient'taki `applied` yorumu) ve
+  // galeri parametresinin araya girmesi kullanıcının kaydını bozardı.
+  const initialTemplateId = sig ? undefined : templateFromParam(params.template);
   // Oturum HER İSTEKTE çözülür (2026-08-17): yalnız export kapısı ve
   // düzenleme kipi değil, "Save to my signatures" düğmesi de giriş durumunu
   // bilmek zorunda — oturumsuz kullanıcıya kaydet dedirtip 401 yemek yerine
@@ -69,6 +74,7 @@ export default async function BuilderPage({
     <BuilderClient
       gated={gated}
       iconBaseUrl={process.env.CDN_PUBLIC_URL ?? ''}
+      initialTemplateId={initialTemplateId}
       signedIn={Boolean(session)}
       signatureId={editing?.id}
       initialData={editing?.data}
