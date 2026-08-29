@@ -35,12 +35,17 @@ export async function createInboundLead(input: InboundLeadInput): Promise<{ id: 
 
   // Aralık seçeneklerinden gelen değer tam sayı olmayabilir; 1'in altına
   // düşmesine de izin verilmez (şemadaki `@default(1)` ile aynı taban).
+  // Üst sınır INT taşmasına karşı tavan; ziyaretçi girdisi lead değerini
+  // korur (kırpılır), reddedilmez.
   const seats =
     typeof input.seats === 'number' && Number.isInteger(input.seats) && input.seats >= 1
-      ? input.seats
+      ? Math.min(input.seats, 1_000_000)
       : 1;
 
-  const note = input.note?.trim() || null;
+  // `note` TEXT (64KB) kolonuna gidiyor; kolon sınırı sözleşmesinin devamı
+  // (company/contact/source'taki `slice` ile aynı gerekçe) — burada da
+  // sessizce kırpılır, veritabanı hatasına dönüşmez.
+  const note = (input.note?.trim() || null)?.slice(0, 10_000) ?? null;
 
   const lead = await prisma.lead.create({
     data: { company, contact, source, seats, note },

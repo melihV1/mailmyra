@@ -53,12 +53,16 @@ describe('createInboundLead', () => {
       company: 'x'.repeat(400),
       contact: 'y'.repeat(400),
       source: 'z'.repeat(80),
+      note: 'n'.repeat(20_000),
+      seats: 5_000_000_000,
     });
 
     const row = await prisma.lead.findUniqueOrThrow({ where: { id } });
     expect(row.company).toHaveLength(160);
     expect(row.contact).toHaveLength(255);
     expect(row.source).toHaveLength(48);
+    expect(row.note).toHaveLength(10_000);
+    expect(row.seats).toBe(1_000_000);
   });
 
   it('zorunlu alan boşsa reddeder ve satır açmaz', async () => {
