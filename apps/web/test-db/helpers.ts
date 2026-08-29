@@ -9,6 +9,7 @@ export async function truncateAll() {
     prisma.approvalDecision.deleteMany(),
     prisma.approvalRequest.deleteMany(),
     prisma.adminAction.deleteMany(),
+    prisma.lead.deleteMany(),
     prisma.staffAccess.deleteMany(),
     prisma.invoice.deleteMany(),
     prisma.activityEvent.deleteMany(),
