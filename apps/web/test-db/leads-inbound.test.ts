@@ -82,7 +82,7 @@ describe('createInboundLead', () => {
     await createInboundLead({ company: 'Acme', contact: 'ayse@acme.com', source: 'inbound-demo', seats: 3 });
 
     expect(send).toHaveBeenCalledTimes(1);
-    const mail = send.mock.calls[0][0];
+    const mail = send.mock.calls[0]![0];
     expect(mail.to).toBe('hello@mailmyra.com');
     expect(mail.kind).toBe('notification');
     expect(mail.subject).toBe('New enquiry from Acme (inbound-demo)');
