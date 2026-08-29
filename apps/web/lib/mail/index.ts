@@ -9,6 +9,7 @@ export { MemoryMailer } from './memory';
 export {
   emailChangeVerifyEmail,
   emailChangedNoticeEmail,
+  inboundLeadEmail,
   inviteEmail,
   resetEmail,
   seatWarningEmail,

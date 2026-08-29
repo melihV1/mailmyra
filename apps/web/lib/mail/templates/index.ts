@@ -235,3 +235,58 @@ export function emailChangedNoticeEmail({ actionUrl, newEmail }: ChangedNoticeIn
     ),
   };
 }
+
+export interface InboundLeadMailInput {
+  actionUrl: string;
+  company: string;
+  contact: string;
+  source: string;
+  seats: number;
+  note: string | null;
+}
+
+/**
+ * Pazarlama sitesinin formlarından gelen talebin personele bildirimi.
+ * İngilizce — işlemsel e-postalar İngilizce kalır (kilitli karar).
+ *
+ * Talebin kendisi `Lead` satırında duruyor; bu e-posta "bir şey geldi"
+ * demek için. Yine de özet taşır ki personel panele girmeden talebin
+ * ciddiyetini görebilsin. Müşteri metni (`note`) kaçırılarak basılır:
+ * gövde HTML ve içeriği tamamen kullanıcı yazımı.
+ */
+export function inboundLeadEmail({
+  actionUrl,
+  company,
+  contact,
+  source,
+  seats,
+  note,
+}: InboundLeadMailInput): MailBody {
+  const lines = [
+    `Company: ${company}`,
+    `Contact: ${contact}`,
+    `Source: ${source}`,
+    `Seats: ${seats}`,
+  ];
+
+  const detailHtml = note
+    ? [`<strong>Details</strong><br>${escapeHtml(note).replace(/\bon\w+=/g, (match) => match.replace('=', '&#61;')).replace(/\n/g, '<br>')}`]
+    : [];
+
+  return {
+    // Konu satırı HTML değil; ham hâliyle gider.
+    subject: `New enquiry from ${company} (${source})`,
+    html: renderLayout({
+      heading: 'New enquiry',
+      paragraphs: [lines.map((l) => escapeHtml(l)).join('<br>'), ...detailHtml],
+      actionUrl,
+      actionLabel: 'Open in the panel',
+      footnote: 'Sent by the contact and demo forms on mailmyra.com.',
+    }),
+    text: renderText(
+      ['New enquiry', '', ...lines, ...(note ? ['', 'Details', note] : [])],
+      actionUrl,
+      'Sent by the contact and demo forms on mailmyra.com.',
+    ),
+  };
+}
