@@ -805,9 +805,10 @@ model ReportDelivery {
 
 /**
  * Elle yürüyen satış hattı (2026-08-21, Hüseyin'in YAPILMAYACAKLAR
- * istisnasıyla). Otomatik kaynak YOK — pazarlama sitesinin formu posta
- * atıyor, DB'ye yazmıyor; satırlar şimdilik SQL/panelle açılır. Rıza
- * gerektiren izleme eklenmez.
+ * istisnasıyla). Satırlar iki yoldan gelir: pazarlama sitesinin formları
+ * artık `createInboundLead` (`lib/repo/leads.ts`) ile doğrudan buraya
+ * yazıyor; personel kaynaklı satırlar hâlâ panelden (`admin/growth/leads`)
+ * açılır. Rıza gerektiren izleme eklenmez.
  */
 model Lead {
   id String @id @default(cuid())
