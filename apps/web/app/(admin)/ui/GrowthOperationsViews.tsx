@@ -138,6 +138,11 @@ function LeadCard({ lead, tone, preview, t, lang }: { lead: GrowthLeadRow; tone:
           <small className="text-body-secondary d-flex align-items-center gap-1 text-truncate"><i className="icon-base ti tabler-user icon-14px" />{lead.contact}</small>
         </div>
       </div>
+      {lead.note !== null && (
+        <small className="d-block text-body-secondary text-truncate mb-4" title={lead.note}>
+          <i className="icon-base ti tabler-message-2 icon-14px me-1" />{lead.note.split('\n')[0]}
+        </small>
+      )}
       <div className="mm-lead-card__source mb-4">
         <span><i className="icon-base ti tabler-world-share" />{t.shared.sourceLabel}</span>
         <strong>{lead.source}</strong>

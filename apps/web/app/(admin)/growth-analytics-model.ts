@@ -14,6 +14,7 @@ export type GrowthLeadRow = {
   stage: GrowthLeadStage;
   createdAt: string;
   nextStep: string;
+  note: string | null;
 };
 
 export type ContentPageRecord = {

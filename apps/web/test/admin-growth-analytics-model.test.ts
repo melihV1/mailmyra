@@ -44,8 +44,8 @@ describe('growth analytics model', () => {
   it('ranks momentum and groups preview leads by explicit stage', () => {
     expect(momentumRows(source, now)[0]?.name).toBe('One');
     const leads: GrowthLeadRow[] = [
-      { id: 'l1', company: 'A', contact: 'a', source: 'Demo', seats: 2, stage: 'new', createdAt: iso(-1), nextStep: 'Call' },
-      { id: 'l2', company: 'B', contact: 'b', source: 'Referral', seats: 4, stage: 'won', createdAt: iso(-2), nextStep: 'Onboard' },
+      { id: 'l1', company: 'A', contact: 'a', source: 'Demo', seats: 2, stage: 'new', createdAt: iso(-1), nextStep: 'Call', note: null },
+      { id: 'l2', company: 'B', contact: 'b', source: 'Referral', seats: 4, stage: 'won', createdAt: iso(-2), nextStep: 'Onboard', note: null },
     ];
     expect(groupLeads(leads).map((row) => row.rows.length)).toEqual([1, 0, 0, 1, 0]);
   });

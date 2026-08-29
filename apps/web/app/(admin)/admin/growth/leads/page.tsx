@@ -49,6 +49,7 @@ export default async function Page() {
     stage: asStage(r.stage),
     createdAt: r.createdAt.toISOString(),
     nextStep: r.nextStep,
+    note: r.note,
   }));
 
   return (

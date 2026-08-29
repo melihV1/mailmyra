@@ -2975,6 +2975,7 @@ export interface AdminLeadRow {
   seats: number;
   stage: string;
   nextStep: string;
+  note: string | null;
   createdAt: Date;
 }
 
@@ -2996,6 +2997,7 @@ export async function listLeads(staffUserId: string): Promise<AdminLeadRow[]> {
       seats: true,
       stage: true,
       nextStep: true,
+      note: true,
       createdAt: true,
     },
   });
