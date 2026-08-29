@@ -84,7 +84,7 @@ export const primaryNav: NavItem[] = [
           {
             label: 'Template gallery',
             href: `${SITE}/templates`,
-            description: 'Real renders, not screenshots.',
+            description: 'Rendered by the engine that writes your signature.',
           },
         ],
       },
