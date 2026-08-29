@@ -205,3 +205,22 @@ describe('AuthAttempt', () => {
     ).rejects.toThrow();
   });
 });
+
+describe('Lead.note', () => {
+  test('gelen talebin serbest metnini saklar ve boş bırakılabilir', async () => {
+    const withNote = await prisma.lead.create({
+      data: {
+        company: 'Acme',
+        contact: 'Ayşe <ayse@acme.com>',
+        source: 'inbound-demo',
+        note: 'Uzun mesaj '.repeat(50),
+      },
+    });
+    const withoutNote = await prisma.lead.create({
+      data: { company: 'Beta', contact: 'staff girdisi', source: 'referral' },
+    });
+
+    expect(withNote.note).toBe('Uzun mesaj '.repeat(50));
+    expect(withoutNote.note).toBeNull();
+  });
+});

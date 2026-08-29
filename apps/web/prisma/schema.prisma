@@ -820,6 +820,10 @@ model Lead {
   /// 'new' | 'qualified' | 'scheduled' | 'won' | 'lost'
   stage    String @default("new") @db.VarChar(16)
   nextStep String @default("") @db.VarChar(200)
+  /// Gelen formdan düşen serbest metin: mesaj, e-posta platformu, ünvan,
+  /// şirket URL'i. Personel yazmaz — `createInboundLead` doldurur, panel
+  /// yalnız okur. Kişi bilgisi içerebilir: denetim payload'ına GİRMEZ.
+  note     String? @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
