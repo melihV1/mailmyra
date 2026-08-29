@@ -270,7 +270,7 @@ export function inboundLeadEmail({
   ];
 
   const detailHtml = note
-    ? [`<strong>Details</strong><br>${escapeHtml(note).replace(/\bon\w+=/g, (match) => match.replace('=', '&#61;')).replace(/\n/g, '<br>')}`]
+    ? [`<strong>Details</strong><br>${escapeHtml(note).replace(/\n/g, '<br>')}`]
     : [];
 
   return {

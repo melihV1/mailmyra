@@ -33,9 +33,9 @@ describe('inboundLeadEmail', () => {
     });
 
     expect(mail.html).not.toContain('<script>');
-    expect(mail.html).not.toContain('onerror=');
+    expect(mail.html).not.toContain('<img');
     expect(mail.html).toContain('&lt;script&gt;');
-    expect(mail.html).toContain('&lt;img src=x onerror&#61;alert(1)&gt;');
+    expect(mail.html).toContain('&lt;img src=x onerror=alert(1)&gt;');
   });
 
   it('note doluysa Details bölümü gelir, boşsa hiç gelmez', () => {
