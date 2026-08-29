@@ -10,6 +10,7 @@ import {
   verifyPassword,
   verifyPasswordAgainstMaybeHash,
 } from './password';
+import { appUrl } from '../app-url';
 import { clearAttempts, consumeAttempt } from './rate-limit';
 import { createSession, revokeAllSessionsForUser } from './session';
 import { hashToken, newSessionToken } from './token';
@@ -22,11 +23,6 @@ import { hashToken, newSessionToken } from './token';
  * davranış gerçek veritabanına karşı, sunucu ayağa kaldırılmadan test
  * ediliyor (`test-db/auth-flows.test.ts`).
  */
-
-/** Linklerin tabanı. Prod: `https://app.mailmyra.com`. */
-function appUrl(): string {
-  return process.env.APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
-}
 
 const VERIFY_TTL_MS = 24 * 60 * 60 * 1000; // spec §6: 24 saat
 const RESET_TTL_MS = 60 * 60 * 1000; // spec §6: 1 saat

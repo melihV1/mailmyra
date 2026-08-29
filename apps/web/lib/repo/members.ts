@@ -1,5 +1,6 @@
 import { can, canChangeRole, canRemoveMember, type Role } from '@mailmyra/core';
 
+import { appUrl } from '../app-url';
 import { prisma } from '../db';
 import { hashToken, newSessionToken } from '../auth/token';
 import { inviteEmail, type Mailer } from '../mail';
@@ -16,11 +17,6 @@ import { notifyOrgManagers } from './notifications';
  */
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // spec §6: 7 gün
-
-/** Linklerin tabanı — auth/flows ile aynı kural. */
-function appUrl(): string {
-  return process.env.APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
-}
 
 async function managerOrgId(userId: string): Promise<string | null> {
   const m = await prisma.membership.findFirst({

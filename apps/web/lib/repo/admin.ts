@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { renderSignature, type SignatureData } from '@mailmyra/renderer';
 
 import { mergeWithEmpty } from '../../app/builder/reducer';
+import { appUrl } from '../app-url';
 import { applyBrand } from '../brand-apply';
 import { prisma } from '../db';
 import { probeCdn, probeSmtp } from '../health-probes';
@@ -1835,11 +1836,6 @@ export async function setSupportCasePriority(
       ctx,
     });
   });
-}
-
-/** Linklerin tabanı — `repo/senders.ts`/`repo/members.ts`/`auth/flows.ts` emsali. */
-function appUrl(): string {
-  return process.env.APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
 }
 
 /**

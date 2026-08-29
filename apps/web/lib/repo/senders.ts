@@ -9,6 +9,7 @@ import {
 } from '@mailmyra/core';
 import type { Prisma } from '@prisma/client';
 
+import { appUrl } from '../app-url';
 import { prisma } from '../db';
 import { seatWarningEmail, type Mailer } from '../mail';
 import { recordActivity } from './activity';
@@ -68,11 +69,6 @@ async function countActiveSeatsInTree(db: Db, billingOrgId: string): Promise<num
 export async function countActiveSeats(orgId: string): Promise<number> {
   const billingOrgId = await resolveBillingOrgId(prisma, orgId);
   return countActiveSeatsInTree(prisma, billingOrgId);
-}
-
-/** Linklerin tabanı — auth/flows ile aynı kural. */
-function appUrl(): string {
-  return process.env.APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
 }
 
 /**
