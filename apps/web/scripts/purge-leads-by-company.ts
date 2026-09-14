@@ -1,5 +1,4 @@
 import { finishCli } from '../lib/cli-exit';
-import { prisma } from '../lib/db';
 import { loadEnvFiles } from '../lib/env-file';
 
 // Plesk'in "Komut dosyası çalıştır" bağlamı Next'in gördüğü .env dosyalarını
@@ -28,6 +27,12 @@ loadEnvFiles();
  *   exec -- tsx scripts/purge-leads-by-company.ts "SMOKE-TEST-SILINEBILIR"
  */
 async function main(): Promise<void> {
+  // `lib/db` DİNAMİK yüklenir: modül tepesinde `createClient()` koşuyor ve
+  // statik import olsaydı `loadEnvFiles()`ten ÖNCE çalışıp "DATABASE_URL
+  // tanımlı değil" ile ölürdü (canlıda yaşandı). Aynı gerekçe
+  // `lib/mail/index.ts`teki dinamik `import('../db')` yorumunda da yazılı.
+  const { prisma } = await import('../lib/db');
+
   const args = process.argv.slice(2);
   const dry = args.includes('--dry');
   const company = args.find((a) => !a.startsWith('--'));
