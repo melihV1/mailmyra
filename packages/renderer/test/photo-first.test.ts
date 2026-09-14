@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { photoFirst } from '../src/templates/photo-first';
+import { renderSignature } from '../src/render';
 import { fixtures } from '../src/fixtures/samples';
+import type { SignatureData } from '../src/types';
 
 const full = fixtures.find((f) => f.id === 'full')!.data;
 
@@ -258,5 +260,55 @@ describe('photoFirst', () => {
     expect(rootWidth(small)).toContain('max-width:480px');
     expect(rootWidth(medium)).toContain('max-width:540px');
     expect(rootWidth(large)).toContain('max-width:600px');
+  });
+});
+
+describe('photo-first monogram', () => {
+  // SignatureData ile ACIKCA tiplenir: annotation olmadan `fontFamily`
+  // `WebSafeFont` birlesimi yerine `string`e genisliyor ve `tsc --noEmit`
+  // kiriliyor (vitest'in esbuild donusumu bunu yakalamaz, typecheck yakalar).
+  const noPhoto: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827', mutedColor: '#6b7280',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+    },
+    social: [],
+    layout: { templateId: 'photo-first', size: 'medium' as const, iconStyle: 'mono' as const, showDividers: false },
+  };
+
+  it('shows a monogram when there is no photo', () => {
+    const html = renderSignature(noPhoto, 'photo-first');
+    expect(html).toContain('bgcolor="#7b9fd3"');
+    expect(html).toContain('>EK<');
+  });
+  it('shows the photo and no monogram when a photo exists', () => {
+    const html = renderSignature(
+      { ...noPhoto, visuals: { ...noPhoto.visuals, avatarUrl: 'https://cdn.mailmyra.com/a.png' } },
+      'photo-first',
+    );
+    expect(html).toContain('<img');
+    expect(html).not.toContain('>EK<');
+  });
+  it('shows nothing when the monogram is turned off', () => {
+    const html = renderSignature(
+      { ...noPhoto, layout: { ...noPhoto.layout, monogram: 'off' as const } },
+      'photo-first',
+    );
+    expect(html).not.toContain('>EK<');
+  });
+  it('uses this template medium avatar box', () => {
+    expect(renderSignature(noPhoto, 'photo-first')).toContain('height="104"');
+  });
+  it('mirrors this template round avatar with a round monogram', () => {
+    expect(renderSignature(noPhoto, 'photo-first')).toContain('border-radius:50%');
+  });
+  it('keeps the logo spanning both columns when a monogram replaces the photo', () => {
+    const html = renderSignature(
+      { ...noPhoto, visuals: { ...noPhoto.visuals, logoUrl: 'https://cdn.mailmyra.com/l.png' } },
+      'photo-first',
+    );
+    expect(html).toContain('colspan="2"');
   });
 });

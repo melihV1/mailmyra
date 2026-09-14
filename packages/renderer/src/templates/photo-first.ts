@@ -4,6 +4,7 @@ import { styleToString } from '../utils/inline-style';
 import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
 import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
+import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 
 type Size = SignatureData['layout']['size'];
 
@@ -353,7 +354,18 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
           style: { 'padding-right': `${s.gap}px` },
         },
       )
-    : '';
+    : shouldShowMonogram(data)
+      ? cell(
+          monogramCell({
+            initials: initialsFrom(data.identity.fullName),
+            size: s.avatar,
+            brandHex: data.visuals.brandColor,
+            fontFamily: font,
+            borderRadius: '50%',
+          }),
+          { valign: 'top', width: s.avatar, style: { 'padding-right': `${s.gap}px` } },
+        )
+      : '';
 
   const rightCell = cell(rightInner, { valign: 'top' });
   const mainRow = row(leftCell + rightCell);
@@ -373,7 +385,12 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
             width: `${s.logo}px`,
           })}" />`,
           {
-            ...(hasAvatar ? { colspan: 2 } : {}),
+            // Soru "avatar var mı" DEĞİL, "üstte iki hücreli bir satır var
+            // mı" — monogram avatarın yerine geçtiğinde ana satır YİNE iki
+            // hücreli olur (avatar/monogram + içerik), ama `hasAvatar` false
+            // kalır. Yalnız `hasAvatar`'a bakmak logoyu tek kolona sıkıştırır
+            // (bkz. görev raporu — classic-horizontal'daki hatanın aynısı).
+            ...(hasAvatar || shouldShowMonogram(data) ? { colspan: 2 } : {}),
             style: { 'padding-top': `${s.gap}px` },
           },
         ),

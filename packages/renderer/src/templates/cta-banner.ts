@@ -4,6 +4,7 @@ import { styleToString } from '../utils/inline-style';
 import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
 import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
+import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 
 type Size = SignatureData['layout']['size'];
 
@@ -284,7 +285,18 @@ export function ctaBanner(data: SignatureData, opts?: RenderOptions): string {
           style: { 'padding-right': `${s.gap}px` },
         },
       )
-    : '';
+    : shouldShowMonogram(data)
+      ? cell(
+          monogramCell({
+            initials: initialsFrom(data.identity.fullName),
+            size: s.avatar,
+            brandHex: data.visuals.brandColor,
+            fontFamily: font,
+            borderRadius: '4px',
+          }),
+          { valign: 'top', width: s.avatar, style: { 'padding-right': `${s.gap}px` } },
+        )
+      : '';
 
   // ---- Sağ: logo — height'siz/width-ölçekli (canon kural, oran bilinmiyor) ----
   const logoCell = data.visuals.logoUrl

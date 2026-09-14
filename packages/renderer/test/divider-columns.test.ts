@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { dividerColumns } from '../src/templates/divider-columns';
+import { renderSignature } from '../src/render';
 import { fixtures } from '../src/fixtures/samples';
+import type { SignatureData } from '../src/types';
 
 const full = fixtures.find((f) => f.id === 'full')!.data;
 
@@ -261,5 +263,45 @@ describe('dividerColumns', () => {
     expect(rootWidth(small)).toContain('max-width:480px');
     expect(rootWidth(medium)).toContain('max-width:540px');
     expect(rootWidth(large)).toContain('max-width:600px');
+  });
+});
+
+describe('divider-columns monogram', () => {
+  // SignatureData ile ACIKCA tiplenir: annotation olmadan `fontFamily`
+  // `WebSafeFont` birlesimi yerine `string`e genisliyor ve `tsc --noEmit`
+  // kiriliyor (vitest'in esbuild donusumu bunu yakalamaz, typecheck yakalar).
+  const noPhoto: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827', mutedColor: '#6b7280',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+    },
+    social: [],
+    layout: { templateId: 'divider-columns', size: 'medium' as const, iconStyle: 'mono' as const, showDividers: false },
+  };
+
+  it('shows a monogram when there is no photo', () => {
+    const html = renderSignature(noPhoto, 'divider-columns');
+    expect(html).toContain('bgcolor="#7b9fd3"');
+    expect(html).toContain('>EK<');
+  });
+  it('shows the photo and no monogram when a photo exists', () => {
+    const html = renderSignature(
+      { ...noPhoto, visuals: { ...noPhoto.visuals, avatarUrl: 'https://cdn.mailmyra.com/a.png' } },
+      'divider-columns',
+    );
+    expect(html).toContain('<img');
+    expect(html).not.toContain('>EK<');
+  });
+  it('shows nothing when the monogram is turned off', () => {
+    const html = renderSignature(
+      { ...noPhoto, layout: { ...noPhoto.layout, monogram: 'off' as const } },
+      'divider-columns',
+    );
+    expect(html).not.toContain('>EK<');
+  });
+  it('uses this template medium avatar box', () => {
+    expect(renderSignature(noPhoto, 'divider-columns')).toContain('height="90"');
   });
 });

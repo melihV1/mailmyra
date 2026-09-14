@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { stackedMinimal } from '../src/templates/stacked-minimal';
+import { renderSignature } from '../src/render';
 import { fixtures } from '../src/fixtures/samples';
+import type { SignatureData } from '../src/types';
 
 const full = fixtures.find((f) => f.id === 'full')!.data;
 const minimal = fixtures.find((f) => f.id === 'minimal')!.data;
@@ -187,5 +189,45 @@ describe('stackedMinimal', () => {
     const html = stackedMinimal(noSocial);
     expect(html).not.toContain('LinkedIn');
     expect(html).not.toContain('/icons/');
+  });
+});
+
+describe('stacked-minimal monogram', () => {
+  // SignatureData ile ACIKCA tiplenir: annotation olmadan `fontFamily`
+  // `WebSafeFont` birlesimi yerine `string`e genisliyor ve `tsc --noEmit`
+  // kiriliyor (vitest'in esbuild donusumu bunu yakalamaz, typecheck yakalar).
+  const noPhoto: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827', mutedColor: '#6b7280',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+    },
+    social: [],
+    layout: { templateId: 'stacked-minimal', size: 'medium' as const, iconStyle: 'mono' as const, showDividers: false },
+  };
+
+  it('shows a monogram when there is no photo', () => {
+    const html = renderSignature(noPhoto, 'stacked-minimal');
+    expect(html).toContain('bgcolor="#7b9fd3"');
+    expect(html).toContain('>EK<');
+  });
+  it('shows the photo and no monogram when a photo exists', () => {
+    const html = renderSignature(
+      { ...noPhoto, visuals: { ...noPhoto.visuals, avatarUrl: 'https://cdn.mailmyra.com/a.png' } },
+      'stacked-minimal',
+    );
+    expect(html).toContain('<img');
+    expect(html).not.toContain('>EK<');
+  });
+  it('shows nothing when the monogram is turned off', () => {
+    const html = renderSignature(
+      { ...noPhoto, layout: { ...noPhoto.layout, monogram: 'off' as const } },
+      'stacked-minimal',
+    );
+    expect(html).not.toContain('>EK<');
+  });
+  it('uses this template medium avatar box', () => {
+    expect(renderSignature(noPhoto, 'stacked-minimal')).toContain('height="72"');
   });
 });

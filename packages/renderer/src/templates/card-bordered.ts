@@ -4,6 +4,7 @@ import { styleToString } from '../utils/inline-style';
 import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
 import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
+import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 
 type Size = SignatureData['layout']['size'];
 
@@ -113,6 +114,21 @@ export function cardBordered(data: SignatureData, opts?: RenderOptions): string 
           width: `${s.avatar}px`,
           height: `${s.avatar}px`,
         })}" />`,
+        { valign: 'top', width: s.avatar, style: { 'padding-right': `${s.gap}px` } },
+      ),
+    );
+  } else if (shouldShowMonogram(data)) {
+    // Fotoğraf yoksa aynı kutuya monogram: bu şablonun avatar ölçeği ve
+    // avatarıyla AYNI yarıçap (4px) — yeni bir tutarsızlık getirmez.
+    headerCells.push(
+      cell(
+        monogramCell({
+          initials: initialsFrom(data.identity.fullName),
+          size: s.avatar,
+          brandHex: data.visuals.brandColor,
+          fontFamily: font,
+          borderRadius: '4px',
+        }),
         { valign: 'top', width: s.avatar, style: { 'padding-right': `${s.gap}px` } },
       ),
     );
