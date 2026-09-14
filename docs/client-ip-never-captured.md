@@ -86,3 +86,58 @@ kapatılmalı: aksi halde site açıldığı gün 6. ziyaretçiden sonra form he
 
 Süreç: kendi spec'i + planı, sonnet review, fable final — güvenlik kısıtlarına ve hukuki
 kayda dokunuyor, ad-hoc yama yapılmaz.
+
+
+---
+
+# 2026-09-14 GÜNCELLEME — düzeltme kısmen tuttu, iletim ÇALIŞMIYOR
+
+## Yapıldı
+- `web.config`'e (CANLI dosyanın üstüne, Plesk'in blokları korunarak)
+  `<iisnode promoteServerVars="REMOTE_ADDR" />` eklendi. Site sağlam kaldı
+  (kök/login 200), yani bölüm kilitli değil.
+- `client-ip.ts` yeniden yazıldı: **hiçbir istemci başlığına varsayılan
+  güven yok.** `TRUST_IISNODE_REMOTE_ADDR` ve `TRUST_PROXY` ayrı bayraklar,
+  ikisi de kapalı; yedek `'local'`.
+
+## Canlıda ölçülen sonuç
+
+| Test | Sonuç |
+|---|---|
+| Sahte `X-Forwarded-For` ile kovayı atlatma | **Kapandı** ✓ (rate_limited) |
+| Sahte `X-IISNode-Remote_Addr` ile atlatma | Açıktı → bayrakla **kapatıldı** ✓ |
+| `REMOTE_ADDR` iletimi gerçekten çalışıyor mu | **HAYIR** 🔴 |
+
+**Belirleyici test:** kendi gerçek genel IP'miz (`85.96.208.167`) sahte
+`x-iisnode-remote_addr` olarak gönderildiğinde **ayrı kova açıldı**. İletim
+çalışsaydı iisnode üstüne kendi ölçtüğü adresi yazardı ve başlıksız
+isteklerle **aynı** kovaya düşerdi. Demek ki başlıksız istekler hâlâ
+`'local'`'e anahtarlanıyor.
+
+## Bugünkü net durum
+
+- Kapanan: XFF üzerinden kısıt atlatma (ve yerine geçen iisnode açığı).
+- **Kapanmayan:** gerçek IP hâlâ kaydedilmiyor → oturum tablosu, KVKK onay
+  delili ve denetim defteri `'local'` yazmaya devam ediyor; bütün IP tabanlı
+  kısıtlar **tek ortak kovada**.
+
+## 🔴 Bunun acil bir yan etkisi var
+
+`/api/leads` kovası **site geneli 5/saat**. Site Task 4 formları bağladığı
+için, yayına girildiği gün 5 talepten sonra form **herkese** kapanır ve
+ziyaretçi *"Too many messages from this connection"* görür — kendisi hiç
+form doldurmamışken. Yayından önce `LEADS_RATE_LIMIT_PER_HOUR` belirgin
+şekilde yükseltilmeli (öneri: 60). Honeypot zaten botların çoğunu tutuyor.
+
+## Sıradaki araştırma (iletim neden çalışmıyor)
+
+Denenecekler, ucuzdan pahalıya:
+1. iisnode günlük klasörü sunucuda var mı — ayar okunmuş mu görürüz.
+2. `promoteServerVars="REMOTE_ADDR,HTTP_HOST"` gibi çoklu değerle dene;
+   bazı iisnode sürümleri tek değerde sessiz kalıyor.
+3. Plesk'in iisnode ayarlarını site düzeyinde kilitleyip kilitlemediğine bak.
+4. Alternatif: IIS URL Rewrite ile `{REMOTE_ADDR}`i bir başlığa yaz —
+   ⚠️ `<allowedServerVariables>` paylaşımlı hostingde çoğu zaman KİLİTLİ,
+   500 riski var, tek başına denenir.
+5. Hiçbiri olmazsa: IP tabanlı kısıtlardan vazgeçip honeypot + e-posta
+   bazlı kısıta geçmek ve `Session.ip`/KVKK delilini dürüstçe boş bırakmak.
