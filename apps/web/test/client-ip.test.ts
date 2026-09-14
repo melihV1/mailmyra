@@ -47,7 +47,23 @@ describe('clientIp', () => {
   });
 
   /**
-   * CANLI AÇIK REGRESYON KORUMASI (2026-09-14). `promoteServerVars` açık
+   * CANLI ÖLÇÜM (2026-09-14): iisnode kendi ölçtüğü adresi zincirin SONUNA
+   * ekler. Sahte başlıkla gelen istekte parça sayısı 2 ve son parça bizim
+   * gerçek IP'mizdi. Uydurma değer solda kalır ve yok sayılır — kısıt
+   * atlatmanın kapandığı yer burası.
+   */
+  it('iisnode zincirinde EN SAĞDAKİ girdiyi alır — uydurma sol taraf yok sayılır', () => {
+    const request = req({ 'x-iisnode-remote_addr': '192.0.2.250, 85.96.208.167' });
+    expect(clientIp(request, { TRUST_IISNODE_REMOTE_ADDR: '1' })).toBe('85.96.208.167');
+  });
+
+  it('iisnode başlığı tek girdiliyse onu döner', () => {
+    const request = req({ 'x-iisnode-remote_addr': '85.96.208.167' });
+    expect(clientIp(request, { TRUST_IISNODE_REMOTE_ADDR: '1' })).toBe('85.96.208.167');
+  });
+
+  /**
+   * BAYRAK KAPALIYKEN REGRESYON KORUMASI (2026-09-14). `promoteServerVars` açık
    * olmasına rağmen iisnode bu başlığı yazmıyor — ölçüldü: kendi gerçek
    * IP'miz sahte başlık olarak gönderilince AYRI rate-limit kovası açıldı.
    * İletim yokken başlığa güvenmek, istemciye "kendi kovanı seç" demektir;
