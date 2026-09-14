@@ -4,6 +4,10 @@ export interface CellOptions {
   style?: StyleMap;
   align?: 'left' | 'center' | 'right';
   valign?: 'top' | 'middle' | 'bottom';
+  /** Word motoru CSS zeminini her zaman uygulamıyor; attribute ile birlikte verilir. */
+  bgcolor?: string;
+  /** Sabit kutu boyu — Word `height` stilini tek başına tanımıyor. */
+  height?: number | string;
   width?: number | string;
   colspan?: number;
 }
@@ -12,6 +16,8 @@ export function cell(content: string, opts: CellOptions = {}): string {
   const attrs: string[] = [];
   if (opts.align) attrs.push(`align="${opts.align}"`);
   if (opts.valign) attrs.push(`valign="${opts.valign}"`);
+  if (opts.bgcolor) attrs.push(`bgcolor="${opts.bgcolor}"`);
+  if (opts.height !== undefined) attrs.push(`height="${opts.height}"`);
   if (opts.width !== undefined) attrs.push(`width="${opts.width}"`);
   if (opts.colspan) attrs.push(`colspan="${opts.colspan}"`);
   const style = opts.style ? styleToString(opts.style) : '';

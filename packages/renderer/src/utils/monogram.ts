@@ -1,6 +1,7 @@
 import type { SignatureData } from '../types';
 import { normalizeHex, readableTextOn } from './color';
 import { htmlEscape } from './escape';
+import { table, row, cell } from './table';
 
 /**
  * Ad-soyaddan en fazla iki baş harf üretir.
@@ -68,26 +69,31 @@ export function monogramCell(opts: {
   const bg = normalizeHex(opts.brandHex);
   const fg = readableTextOn(bg);
   const fontSize = Math.round(opts.size * 0.4);
-  const style = [
-    `width:${opts.size}px`,
-    `height:${opts.size}px`,
-    `background-color:${bg}`,
-    `color:${fg}`,
-    `font-family:${opts.fontFamily}`,
-    `font-size:${fontSize}px`,
-    'font-weight:bold',
-    'letter-spacing:0.02em',
-    'text-align:center',
-    'mso-line-height-rule:exactly',
-    `line-height:${opts.size}px`,
-    `border-radius:${opts.borderRadius}`,
-  ].join(';');
+  const style = {
+    width: `${opts.size}px`,
+    height: `${opts.size}px`,
+    'background-color': bg,
+    color: fg,
+    'font-family': opts.fontFamily,
+    'font-size': `${fontSize}px`,
+    'font-weight': 'bold',
+    'letter-spacing': '0.02em',
+    'text-align': 'center',
+    'mso-line-height-rule': 'exactly',
+    'line-height': `${opts.size}px`,
+    'border-radius': opts.borderRadius,
+  };
 
-  return (
-    `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${opts.size}" ` +
-    `style="width:${opts.size}px;border-collapse:collapse;"><tr>` +
-    `<td align="center" valign="middle" bgcolor="${bg}" width="${opts.size}" height="${opts.size}" ` +
-    `style="${style}">${htmlEscape(opts.initials)}</td>` +
-    `</tr></table>`
-  );
+  const td = cell(htmlEscape(opts.initials), {
+    align: 'center',
+    valign: 'middle',
+    bgcolor: bg,
+    height: opts.size,
+    width: opts.size,
+    style,
+  });
+
+  // border="0" + border:none + mso-table-lspace/rspace:0pt buradan gelir
+  // (Outlook 2512 kenarlık bug'ı — bkz. table()).
+  return table(row(td), { width: opts.size });
 }

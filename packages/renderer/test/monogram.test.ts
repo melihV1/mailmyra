@@ -115,6 +115,8 @@ describe('monogramCell', () => {
     expect(monogramCell({ initials: '<&', size: 90, brandHex: '#7b9fd3', fontFamily: 'Arial, Helvetica, sans-serif', borderRadius: '4px' })).toContain('&lt;&amp;');
   });
   it('emits no forbidden constructs', () => {
-    expect(html).not.toMatch(/<div|<style|<svg|position:|display:\s*flex|<img/i);
+    expect(html).not.toMatch(
+      /<div|<style|<svg|position:|display:\s*flex|display:\s*grid|float:|<img|webp|base64/i,
+    );
   });
 });
