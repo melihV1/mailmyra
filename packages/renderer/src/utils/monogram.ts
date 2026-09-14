@@ -1,3 +1,7 @@
+import type { SignatureData } from '../types';
+import { normalizeHex, readableTextOn } from './color';
+import { htmlEscape } from './escape';
+
 /**
  * Ad-soyaddan en fazla iki baş harf üretir.
  *
@@ -25,4 +29,65 @@ export function initialsFrom(fullName: string): string {
 
   if (words.length === 1) return first(words[0]!);
   return first(words[0]!) + first(words[words.length - 1]!);
+}
+
+/**
+ * Monogram basılacak mı: fotoğraf YOKSA, kapatılmamışsa ve addan en az bir
+ * harf türetilebiliyorsa. `avatarUrl` varsa monogram fotoğrafın yerini almaz.
+ */
+export function shouldShowMonogram(data: SignatureData): boolean {
+  if (data.visuals.avatarUrl) return false;
+  if ((data.layout.monogram ?? 'auto') === 'off') return false;
+  return initialsFrom(data.identity.fullName).length > 0;
+}
+
+/**
+ * Marka renginde, baş harfleri ortalanmış tek hücrelik tablo.
+ *
+ * Görsel DEĞİL, bilerek: kurumsal Outlook dış görselleri varsayılan
+ * engeller; fotoğrafı olmayan kullanıcı için eklenen fallback'in kendisi
+ * engellenebilir olsaydı tam ihtiyaç anında hiçbir şey göstermezdi.
+ *
+ * `bgcolor` attribute'u ve `background-color` stili BİRLİKTE verilir —
+ * Word motoru CSS zeminini her zaman uygulamıyor. Dikey ortalama için
+ * `valign` + `mso-line-height-rule: exactly` + kutu boyuna eşit
+ * `line-height` birlikte kullanılır (tek satırlık metinde bilinen yöntem).
+ *
+ * Punto kutunun %40'ı: Arial bold büyük harf ≈ 0.72em, iki harf ≈ 1.44em,
+ * `1.44 × 0.4 = 0.576` → baş harfler kutunun ~%58'ini kaplar, her boyutta
+ * rahat sığar. Oranı yükseltmek en küçük kutuda (40px) taşma riski doğurur.
+ */
+export function monogramCell(opts: {
+  initials: string;
+  size: number;
+  brandHex: string;
+  fontFamily: string;
+  /** Şablonun KENDİ avatar yarıçapı — beşi '4px', photo-first '50%'. */
+  borderRadius: string;
+}): string {
+  const bg = normalizeHex(opts.brandHex);
+  const fg = readableTextOn(bg);
+  const fontSize = Math.round(opts.size * 0.4);
+  const style = [
+    `width:${opts.size}px`,
+    `height:${opts.size}px`,
+    `background-color:${bg}`,
+    `color:${fg}`,
+    `font-family:${opts.fontFamily}`,
+    `font-size:${fontSize}px`,
+    'font-weight:bold',
+    'letter-spacing:0.02em',
+    'text-align:center',
+    'mso-line-height-rule:exactly',
+    `line-height:${opts.size}px`,
+    `border-radius:${opts.borderRadius}`,
+  ].join(';');
+
+  return (
+    `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${opts.size}" ` +
+    `style="width:${opts.size}px;border-collapse:collapse;"><tr>` +
+    `<td align="center" valign="middle" bgcolor="${bg}" width="${opts.size}" height="${opts.size}" ` +
+    `style="${style}">${htmlEscape(opts.initials)}</td>` +
+    `</tr></table>`
+  );
 }

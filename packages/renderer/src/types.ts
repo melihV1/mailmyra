@@ -55,6 +55,13 @@ export interface SignatureData {
     size: 'small' | 'medium' | 'large';
     iconStyle: 'filled' | 'outline' | 'mono';
     showDividers: boolean;
+    /**
+     * Fotoğraf yokken baş harf bloğu gösterilsin mi.
+     * Alan YOKSA 'auto' sayılır — kayıtlı eski imzalar da monogram kazanır.
+     * 'off' saf metin görünümü isteyenler içindir.
+     * `visuals.avatarUrl` VARSA bu alan ne olursa olsun monogram basılmaz.
+     */
+    monogram?: 'auto' | 'off';
   };
 }
 
