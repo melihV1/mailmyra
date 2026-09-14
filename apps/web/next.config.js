@@ -1,6 +1,35 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@mailmyra/renderer'],
+
+  /**
+   * app.mailmyra.com'un KÖKÜ pazarlama sitesine gider.
+   *
+   * Sebep: bu rota hâlâ Hafta 3'ün Türkçe landing sayfasını sunuyordu
+   * (`app/(marketing)/page.tsx`) — Agntix sitesi yokken ürünün tek yüzü
+   * oydu, mailmyra.com devralınca yerinde kaldı. Bugün üç sorun birden
+   * yaratıyordu: (a) pazarlama sitesi İngilizce kalır kararına aykırı
+   * Türkçe içerik, (b) kendi menüsüyle gerçek siteyi taklit ediyor,
+   * (c) canonical'ı ve robots yönergesi olmadığı için mailmyra.com ile
+   * AYNI kelimeler için yarışıyordu (siteye 29 canonical eklendiği gün
+   * ölçüldü).
+   *
+   * Kapsam KASITLI olarak yalnız kök: `/privacy`, `/terms` ve `/kvkk` de
+   * bu grupta ama onlar kayıt onayı akışına bağlı (`lib/legal-links.ts` →
+   * `SignupForm`), ve app'teki sürüm sitedekinden FARKLI bir belge
+   * ("Effective 2026-08-13 · Draft, not yet reviewed by counsel" ↔ site
+   * "Last updated: August 14, 2026"). Onları yönlendirmek, geçmiş
+   * `LegalAcceptance` kayıtlarının çözümlendiği metni sessizce
+   * değiştirirdi — ayrı bir karar, burada yapılmaz.
+   *
+   * `Header`ın logo linki (`href="/"`) yalnız bu grupta; auth ve panel
+   * kendi kabuklarını kullandığı için etkilenmez.
+   */
+  async redirects() {
+    return [
+      { source: '/', destination: 'https://mailmyra.com/', permanent: true },
+    ];
+  },
   webpack: (config, { isServer }) => {
     // TUZAK: `instrumentation.ts` içindeki `await import('./lib/db')`,
     // Next'in "instrument" webpack katmanından geçiyor (bkz.
