@@ -14,10 +14,13 @@
  * bu mümkün olmazdı.
  *
  * **Öncelik sırası:**
- * 1. `x-iisnode-remote_addr` — iisnode'un IIS'in `REMOTE_ADDR` sunucu
- *    değişkenini header olarak öne sürdüğü hâli (`web.config`'te
- *    `<iisnode promoteServerVars="REMOTE_ADDR" />`). Bu, IIS'in gördüğü TCP
- *    karşı tarafı — istemcinin göndermesi değil, sunucunun ÖLÇMESi.
+ * 1. `x-iisnode-remote_addr` — YALNIZ `TRUST_IISNODE_REMOTE_ADDR` açıkken.
+ *    Fikir: iisnode IIS'in `REMOTE_ADDR`ini header olarak öne sürer
+ *    (`web.config`'te `<iisnode promoteServerVars="REMOTE_ADDR" />`) ve bu,
+ *    istemcinin GÖNDERDİĞİ değil sunucunun ÖLÇTÜĞÜ adres olur.
+ *    ⚠️ 2026-09-14 itibarıyla BU KURULUMDA ÇALIŞMIYOR: ayar web.config'te
+ *    olmasına rağmen iisnode başlığı yazmıyor, dolayısıyla bayrak KAPALI.
+ *    Açmadan önce doğrula (bkz. `isTrustIisnodeEnabled` yorumu).
  * 2. `x-forwarded-for` — YALNIZ `TRUST_PROXY` env'i açıkken ('1' ya da
  *    'true'). Varsayılan KAPALI: önümüzde XFF'e ekleme yapan güvenilir bir
  *    proxy olmadığı sürece açmak yukarıdaki bypass'ı yeniden açar. Açıldığı
@@ -34,8 +37,10 @@ export function clientIp(
   req: Request,
   env: Record<string, string | undefined> = process.env,
 ): string {
-  const fromIisnode = normalise(req.headers.get('x-iisnode-remote_addr'));
-  if (fromIisnode) return fromIisnode;
+  if (isTrustIisnodeEnabled(env)) {
+    const fromIisnode = normalise(req.headers.get('x-iisnode-remote_addr'));
+    if (fromIisnode) return fromIisnode;
+  }
 
   if (isTrustProxyEnabled(env)) {
     const xff = req.headers.get('x-forwarded-for');
@@ -63,7 +68,27 @@ const MAX_IP_LENGTH = 45;
 
 /** `TRUST_PROXY=1` ya da `TRUST_PROXY=true` (büyük/küçük harf duyarsız). */
 function isTrustProxyEnabled(env: Record<string, string | undefined>): boolean {
-  const value = env.TRUST_PROXY?.trim().toLowerCase();
+  return isOn(env.TRUST_PROXY);
+}
+
+/**
+ * `TRUST_IISNODE_REMOTE_ADDR` — yalnız iisnode'un başlığı GERÇEKTEN yazdığı
+ * (ve istemciden geleni EZDİĞİ) doğrulanmış bir kurulumda açılır.
+ *
+ * Neden bayrak arkasında: 2026-09-14'te canlıda ölçüldü — `web.config`'e
+ * `<iisnode promoteServerVars="REMOTE_ADDR" />` eklendiği hâlde iisnode
+ * başlığı YAZMIYOR. Kanıt: kendi gerçek genel IP'miz sahte başlık olarak
+ * gönderildiğinde AYRI bir rate-limit kovası açıldı; iletim çalışsaydı
+ * iisnode üstüne kendi ölçtüğü adresi yazar ve aynı kovaya düşerdi.
+ * İletim yokken başlığa güvenmek, istemcinin kendi anahtarını seçmesine
+ * izin vermek olurdu — kapattığımız XFF açığının aynısı.
+ */
+function isTrustIisnodeEnabled(env: Record<string, string | undefined>): boolean {
+  return isOn(env.TRUST_IISNODE_REMOTE_ADDR);
+}
+
+function isOn(raw: string | undefined): boolean {
+  const value = raw?.trim().toLowerCase();
   return value === '1' || value === 'true';
 }
 
