@@ -204,8 +204,8 @@ describe('ctaBanner', () => {
     const html = ctaBanner(full);
     expect(html).toContain('Book a meeting');
     expect(html).toContain('background-color:#7b9fd3');
-    // readableTextOn(#7b9fd3) → white (see color.test.ts)
-    expect(html).toContain('color:#ffffff');
+    // readableTextOn(#7b9fd3) → black (higher contrast against brand blue)
+    expect(html).toContain('color:#000000');
     const ctaAnchor = html.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
     expect(ctaAnchor).toContain('font-weight:bold');
   });

@@ -31,8 +31,15 @@ describe('readableTextOn', () => {
   it('returns black text on a light background', () => {
     expect(readableTextOn('#ffffff')).toBe('#000000');
   });
-  it('returns white text on the brand blue', () => {
-    expect(readableTextOn('#719ad1')).toBe('#ffffff');
+  it('returns black text on the brand blue (higher contrast)', () => {
+    expect(readableTextOn('#719ad1')).toBe('#000000');
+  });
+  it('chooses the color with higher contrast', () => {
+    // Brand blue: white gives ~2.7 contrast, black gives ~6.0+
+    const textOnBrandBlue = readableTextOn('#719ad1');
+    const contrastWhite = contrastRatio('#ffffff', '#719ad1');
+    const contrastBlack = contrastRatio('#000000', '#719ad1');
+    expect(contrastRatio(textOnBrandBlue, '#719ad1')).toBe(Math.max(contrastWhite, contrastBlack));
   });
 });
 

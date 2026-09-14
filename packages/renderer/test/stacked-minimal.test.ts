@@ -138,8 +138,8 @@ describe('stackedMinimal', () => {
     const html = stackedMinimal(full);
     expect(html).toContain('href="https://voldi.net/meeting"');
     expect(html).toContain('Book a meeting');
-    // Düğme metni readableTextOn(brandColor) ile seçilir — #7b9fd3 üstünde beyaz
-    expect(html).toContain('color:#ffffff');
+    // Düğme metni readableTextOn(brandColor) ile seçilir — #7b9fd3 üstünde siyah (daha yüksek kontrast)
+    expect(html).toContain('color:#000000');
     const light = stackedMinimal({
       ...full,
       visuals: { ...full.visuals, brandColor: '#ffee00' },

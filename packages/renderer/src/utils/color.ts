@@ -25,7 +25,9 @@ function relativeLuminance(hex: string): number {
 
 /** Verilen arka plan üstünde en okunur metin rengini (siyah/beyaz) döndürür. */
 export function readableTextOn(hexBackground: string): '#ffffff' | '#000000' {
-  return relativeLuminance(hexBackground) > 0.5 ? '#000000' : '#ffffff';
+  const contrastWhite = contrastRatio('#ffffff', hexBackground);
+  const contrastBlack = contrastRatio('#000000', hexBackground);
+  return contrastWhite > contrastBlack ? '#ffffff' : '#000000';
 }
 
 /** WCAG 2.x kontrast oranı (1..21). Girdiler hex renk. */

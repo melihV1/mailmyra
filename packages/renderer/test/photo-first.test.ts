@@ -136,8 +136,8 @@ describe('photoFirst', () => {
     const both = photoFirst(full);
     expect(both).toContain('Book a meeting');
     expect(both).toContain('background-color:#7b9fd3');
-    // readableTextOn(#7b9fd3) → beyaz
-    expect(both).toContain('color:#ffffff');
+    // readableTextOn(#7b9fd3) → siyah (daha yüksek kontrast)
+    expect(both).toContain('color:#000000');
   });
   it('avatar and logo are independent left/bottom slots (logo-only fixture has no avatar <img>)', () => {
     const logoOnly = {
