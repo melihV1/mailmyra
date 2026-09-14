@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useBsPresence } from '../../../components/ui/useBsPresence';
 import { useLang } from '../../../lib/i18n/LangProvider';
@@ -11,6 +12,20 @@ import { common } from '../../../lib/i18n/dict/common';
  * BİREBİR (tema `modal-simple`): aynı zemin rengi, aynı btn-close, aynı
  * ortalanmış başlık, aynı giriş-çıkış animasyonu (`useBsPresence`).
  * Tek yerde durur ki dört admin diyaloğu temadan ayrı ayrı sapamasın.
+ *
+ * GÖVDEYE PORTAL EDİLİR (2026-09-14). Modal `position: fixed` ama CSS'te
+ * `transform`u olan bir ata, `fixed` çocukları için İÇEREN BLOK olur:
+ * konum viewport'a değil o ataya göre hesaplanır. Adaylar ekranındaki
+ * `.mm-lead-card` hem transform hem `overflow: hidden` taşıyor — canlıda
+ * modal kartın içine sıkıştı, başlık dört satıra bölündü ve form alanları
+ * hiç görünmedi. Bootstrap da modalları bu yüzden gövdeye taşır.
+ *
+ * Portal kökü RENDER SIRASINDA senkron okunur, `useEffect` ile DEĞİL:
+ * efektle kurulsaydı ilk kare boş dönerdi, `useBsPresence`in
+ * `useLayoutEffect`i o arada `shown`ı true yapardı ve modal DOM'a
+ * doğrudan `show` sınıfıyla girip geçişi hiç oynatmazdı.
+ * `createPortal` kendi konumunda hiçbir şey basmaz; bu yüzden sunucuda
+ * `null` dönmek istemci çıktısıyla çelişmez (hidrasyon uyuşmazlığı yok).
  */
 export function StaffDialog({
   title,
@@ -48,7 +63,10 @@ export function StaffDialog({
     [],
   );
 
-  return (
+  const portalRoot = typeof document === 'undefined' ? null : document.body;
+  if (!portalRoot) return null;
+
+  return createPortal(
     <div
       className={`modal fade d-block${shown ? ' show' : ''}`}
       style={{ backgroundColor: 'rgba(46, 38, 61, 0.5)' }}
@@ -86,7 +104,8 @@ export function StaffDialog({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    portalRoot,
   );
 }
 
