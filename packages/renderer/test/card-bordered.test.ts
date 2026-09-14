@@ -154,13 +154,18 @@ describe('cardBordered', () => {
     const html = cardBordered(full);
     expect(html).toContain('href="https://voldi.net/meeting"');
     expect(html).toContain('Book a meeting');
-    // readableTextOn(#7b9fd3) → beyaz
-    expect(html).toContain('color:#ffffff');
+    // readableTextOn(#7b9fd3) → siyah (daha yüksek kontrast, bkz. color.test.ts).
+    // Anchor'ı kendi parçası üzerinden doğrula: kartın gövdesi zaten
+    // 'background-color:#ffffff' taşıyor ve 'color:#ffffff' onun alt dizesi —
+    // tüm html üzerinde arasak yanlışlıkla eşleşir (bkz. task-1-report.md).
+    const ctaAnchor = html.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(ctaAnchor).toContain('color:#000000');
     const light = cardBordered({
       ...full,
       visuals: { ...full.visuals, brandColor: '#ffee00' },
     });
-    expect(light).toContain('color:#000000');
+    const lightAnchor = light.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(lightAnchor).toContain('color:#000000');
   });
   it('omits the CTA when only one of label/url is set', () => {
     const half = { ...full, extras: { ...full.extras, ctaUrl: undefined } };

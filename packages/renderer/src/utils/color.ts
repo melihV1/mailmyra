@@ -23,11 +23,20 @@ function relativeLuminance(hex: string): number {
   return 0.2126 * lin(channel(0)) + 0.7152 * lin(channel(2)) + 0.0722 * lin(channel(4));
 }
 
-/** Verilen arka plan üstünde en okunur metin rengini (siyah/beyaz) döndürür. */
+/**
+ * Verilen arka plan üstünde en okunur metin rengini (siyah/beyaz) döndürür.
+ *
+ * Luminans EŞİĞİ kullanmaz. Eskiden `> 0.5` eşiği vardı ve orta tonlu
+ * markalarda kaybedeni seçiyordu: ürünün varsayılan `#7b9fd3`'ünde beyaz
+ * metin 2.71 kontrast veriyordu (AA-large eşiği 3.0'ın bile altı), siyah
+ * 7.74 verirdi. İki adayın kontrastını ölçüp büyüğünü seçmek her zaman
+ * ≥ 4.58 verir — matematiksel en kötü hâl, ikisinin eşitlendiği
+ * luminans 0.179 noktasıdır — yani AA normal metni de geçer.
+ */
 export function readableTextOn(hexBackground: string): '#ffffff' | '#000000' {
-  const contrastWhite = contrastRatio('#ffffff', hexBackground);
-  const contrastBlack = contrastRatio('#000000', hexBackground);
-  return contrastWhite > contrastBlack ? '#ffffff' : '#000000';
+  return contrastRatio(hexBackground, '#ffffff') >= contrastRatio(hexBackground, '#000000')
+    ? '#ffffff'
+    : '#000000';
 }
 
 /** WCAG 2.x kontrast oranı (1..21). Girdiler hex renk. */

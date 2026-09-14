@@ -31,15 +31,24 @@ describe('readableTextOn', () => {
   it('returns black text on a light background', () => {
     expect(readableTextOn('#ffffff')).toBe('#000000');
   });
-  it('returns black text on the brand blue (higher contrast)', () => {
+  // Eski test burada '#ffffff' bekliyordu ve YANLIŞTI: beyaz metin bu zeminde
+  // 2.90 kontrast veriyor, AA-large eşiği olan 3.0'ın bile altında. Siyah 7.25.
+  it('returns black text on the brand blue', () => {
     expect(readableTextOn('#719ad1')).toBe('#000000');
   });
-  it('chooses the color with higher contrast', () => {
-    // Brand blue: white gives ~2.7 contrast, black gives ~6.0+
-    const textOnBrandBlue = readableTextOn('#719ad1');
-    const contrastWhite = contrastRatio('#ffffff', '#719ad1');
-    const contrastBlack = contrastRatio('#000000', '#719ad1');
-    expect(contrastRatio(textOnBrandBlue, '#719ad1')).toBe(Math.max(contrastWhite, contrastBlack));
+  // Urunun VARSAYILAN marka rengi — regresyon kilidi.
+  it('returns black text on the default brand colour', () => {
+    expect(readableTextOn('#7b9fd3')).toBe('#000000');
+  });
+  // Asil garanti: hangi zemin gelirse gelsin secim AA normal metni gecer.
+  it('never returns a choice below 4.5:1 contrast', () => {
+    const samples = [
+      '#f26b21', '#7a8b3c', '#6b8e9f', '#5c9e5c', '#8a8a8a',
+      '#0057b8', '#ffd400', '#7b9fd3', '#719ad1', '#000000', '#ffffff',
+    ];
+    for (const bg of samples) {
+      expect(contrastRatio(bg, readableTextOn(bg))).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });
 
