@@ -47,11 +47,15 @@ export type GrowthPreviewData = {
   leads: GrowthLeadRow[];
 };
 
+// 2026-09-14: bu dort rota app'te DEGIL — pazarlama ve hukuk icerigi
+// mailmyra.com'da yasiyor, app kopyalari kaldirildi ve rotalar oraya
+// 308'liyor (next.config.js). Kayit, sahiplik ve indekslenebilirlik
+// bilgisini korumak icin duruyor; `route` artik mutlak adres.
 export const CONTENT_PAGE_REGISTRY: ContentPageRecord[] = [
-  { route: '/', title: 'Mailmyra — Kurumsal e-posta imzası yönetimi', kind: 'marketing', metadata: true, indexable: true, owner: 'Marketing' },
-  { route: '/privacy', title: 'Privacy Policy — Mailmyra', kind: 'legal', metadata: true, indexable: true, owner: 'Legal' },
-  { route: '/terms', title: 'Terms of Service — Mailmyra', kind: 'legal', metadata: true, indexable: true, owner: 'Legal' },
-  { route: '/kvkk', title: 'KVKK Aydınlatma Metni — Mailmyra', kind: 'legal', metadata: true, indexable: true, owner: 'Legal' },
+  { route: 'https://mailmyra.com/', title: 'Mailmyra — Email signatures built once, rendered everywhere', kind: 'marketing', metadata: true, indexable: true, owner: 'Marketing' },
+  { route: 'https://mailmyra.com/privacy', title: 'Privacy Policy | Mailmyra', kind: 'legal', metadata: true, indexable: true, owner: 'Legal' },
+  { route: 'https://mailmyra.com/terms', title: 'Terms of Service | Mailmyra', kind: 'legal', metadata: true, indexable: true, owner: 'Legal' },
+  { route: 'https://mailmyra.com/kvkk', title: 'KVKK Disclosure | Mailmyra', kind: 'legal', metadata: true, indexable: true, owner: 'Legal' },
 ];
 
 export const MEDIA_ASSET_REGISTRY: MediaAssetRecord[] = [
@@ -62,9 +66,9 @@ export const MEDIA_ASSET_REGISTRY: MediaAssetRecord[] = [
 ];
 
 export const LEGAL_CONTENT_REGISTRY: LegalContentRecord[] = [
-  { route: '/privacy', label: 'Privacy policy', code: 'privacy', published: true, acceptanceTracked: true, support: 'Public route and acceptance evidence exist.' },
-  { route: '/terms', label: 'Terms of service', code: 'terms', published: true, acceptanceTracked: true, support: 'Public route and acceptance evidence exist.' },
-  { route: '/kvkk', label: 'KVKK notice', code: 'kvkk', published: true, acceptanceTracked: false, support: 'Public disclosure route; not an acceptance document type.' },
+  { route: 'https://mailmyra.com/privacy', label: 'Privacy policy', code: 'privacy', published: true, acceptanceTracked: true, support: 'Published on the marketing site; acceptance evidence recorded here.' },
+  { route: 'https://mailmyra.com/terms', label: 'Terms of service', code: 'terms', published: true, acceptanceTracked: true, support: 'Published on the marketing site; acceptance evidence recorded here.' },
+  { route: 'https://mailmyra.com/kvkk', label: 'KVKK notice', code: 'kvkk', published: true, acceptanceTracked: false, support: 'Published on the marketing site; not an acceptance document type.' },
   { route: '', label: 'Data processing agreement', code: 'dpa', published: false, acceptanceTracked: true, support: 'Acceptance type exists, but no public content route is registered.' },
 ];
 

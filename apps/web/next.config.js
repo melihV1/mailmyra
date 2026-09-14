@@ -28,6 +28,14 @@ const nextConfig = {
   async redirects() {
     return [
       { source: '/', destination: 'https://mailmyra.com/', permanent: true },
+      // Hukuki metinler artik SITEDE yasiyor (karar 2026-09-14). App'in
+      // kendi kopyalari kaldirildi; bu satirlar yer imleri, eski e-posta
+      // linkleri ve arama sonuclari icin duruyor. `lib/legal-links.ts`
+      // zaten MUTLAK adres verdigi icin urun ici linkler buraya hic
+      // ugramaz.
+      { source: '/privacy', destination: 'https://mailmyra.com/privacy', permanent: true },
+      { source: '/terms', destination: 'https://mailmyra.com/terms', permanent: true },
+      { source: '/kvkk', destination: 'https://mailmyra.com/kvkk', permanent: true },
     ];
   },
   webpack: (config, { isServer }) => {

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
+import { LEGAL } from '../../lib/legal-links';
 import { useLang } from '../../lib/i18n/LangProvider';
 import { nav } from '../../lib/i18n/dict/nav';
 import { ToastProvider } from './ToastProvider';
@@ -441,13 +442,13 @@ export function PanelShell({
                   <div className="footer-container d-flex align-items-center justify-content-between py-4 flex-md-row flex-column">
                     <div className="text-body">{t.footer.copyright(new Date().getFullYear())}</div>
                     <div className="d-none d-lg-inline-block">
-                      <a href="/terms" className="footer-link me-4">
+                      <a href={LEGAL.terms.path} className="footer-link me-4">
                         {t.footer.terms}
                       </a>
-                      <a href="/privacy" className="footer-link me-4">
+                      <a href={LEGAL.privacy.path} className="footer-link me-4">
                         {t.footer.privacy}
                       </a>
-                      <a href="/kvkk" className="footer-link">
+                      <a href={LEGAL.kvkk.path} className="footer-link">
                         {t.footer.kvkk}
                       </a>
                     </div>
