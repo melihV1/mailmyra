@@ -91,3 +91,26 @@ for (const mode of MODES) {
     }
   }
 }
+
+// Monogram dalı fixture'larda tetiklenmiyor (hepsinin avatari var), bu yuzden
+// yasak yapi kontrolu fotografsiz cikti icin ayrica kosulur.
+describe('guardrails: monogram branch', () => {
+  for (const templateId of TEMPLATE_IDS) {
+    it(`${templateId} emits no forbidden constructs without a photo`, () => {
+      const html = renderSignature(
+        {
+          identity: { fullName: 'Elif Kaya' },
+          contact: { email: 'elif@voldi.net' },
+          visuals: {
+            brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827', mutedColor: '#6b7280',
+            fontFamily: 'Arial, Helvetica, sans-serif',
+          },
+          social: [],
+          layout: { templateId, size: 'medium', iconStyle: 'mono', showDividers: false },
+        },
+        templateId,
+      );
+      expect(html).not.toMatch(/<div|<style|<svg|position:\s*(absolute|fixed|relative)|display:\s*flex|display:\s*grid|float:/i);
+    });
+  }
+});
