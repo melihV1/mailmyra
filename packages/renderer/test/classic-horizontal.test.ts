@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { classicHorizontal } from '../src/templates/classic-horizontal';
+import { renderSignature } from '../src/render';
 import { fixtures } from '../src/fixtures/samples';
+import type { SignatureData } from '../src/types';
 
 const full = fixtures.find((f) => f.id === 'full')!.data;
 
@@ -180,5 +182,42 @@ describe('classicHorizontal', () => {
     const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com/' });
     expect(html).toContain('src="https://cdn.example.com/icons/');
     expect(html).not.toContain('.com//icons/');
+  });
+});
+
+describe('classic-horizontal monogram', () => {
+  const noPhoto: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827', mutedColor: '#6b7280',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+    },
+    social: [],
+    layout: { templateId: 'classic-horizontal', size: 'medium' as const, iconStyle: 'mono' as const, showDividers: false },
+  };
+
+  it('shows a monogram when there is no photo', () => {
+    const html = renderSignature(noPhoto, 'classic-horizontal');
+    expect(html).toContain('bgcolor="#7b9fd3"');
+    expect(html).toContain('>EK<');
+  });
+  it('shows the photo and no monogram when a photo exists', () => {
+    const html = renderSignature(
+      { ...noPhoto, visuals: { ...noPhoto.visuals, avatarUrl: 'https://cdn.mailmyra.com/a.png' } },
+      'classic-horizontal',
+    );
+    expect(html).toContain('<img');
+    expect(html).not.toContain('>EK<');
+  });
+  it('shows nothing when the monogram is turned off', () => {
+    const html = renderSignature(
+      { ...noPhoto, layout: { ...noPhoto.layout, monogram: 'off' as const } },
+      'classic-horizontal',
+    );
+    expect(html).not.toContain('>EK<');
+  });
+  it('uses this template medium avatar box of 90px', () => {
+    expect(renderSignature(noPhoto, 'classic-horizontal')).toContain('height="90"');
   });
 });
