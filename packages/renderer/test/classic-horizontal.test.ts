@@ -92,7 +92,7 @@ describe('classicHorizontal', () => {
     expect(logoImg).toMatch(/\swidth=/i);
     expect(logoImg).not.toMatch(/\sheight=/i);
   });
-  it('renders logo alone when there is no avatar (no ?? fallback anymore)', () => {
+  it('renders the logo when there is no avatar (no ?? fallback anymore; full fixture also draws a monogram here since layout.monogram defaults to auto)', () => {
     const logoOnly = {
       ...full,
       visuals: { ...full.visuals, avatarUrl: undefined, logoUrl: 'https://cdn.test/logo.png' },
@@ -219,5 +219,12 @@ describe('classic-horizontal monogram', () => {
   });
   it('uses this template medium avatar box of 90px', () => {
     expect(renderSignature(noPhoto, 'classic-horizontal')).toContain('height="90"');
+  });
+  it('keeps the gap above the logo when a monogram takes the avatar slot', () => {
+    const html = renderSignature(
+      { ...noPhoto, visuals: { ...noPhoto.visuals, logoUrl: 'https://cdn.mailmyra.com/l.png' } },
+      'classic-horizontal',
+    );
+    expect(html).toContain('padding-top:8px');
   });
 });

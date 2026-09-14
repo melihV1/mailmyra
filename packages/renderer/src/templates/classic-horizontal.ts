@@ -332,7 +332,11 @@ export function classicHorizontal(data: SignatureData, opts?: RenderOptions): st
             border: '0',
             width: `${s.avatar}px`,
           })}" />`,
-          { style: data.visuals.avatarUrl ? { 'padding-top': '8px' } : undefined },
+          // Soru "avatar var mı" DEĞİL, "üstümde bir görsel satırı var mı" —
+          // monogram da avatarUrl yokken o satırı üretir (shouldShowMonogram),
+          // dolayısıyla boşluk ikisinde de gerekir. Yalnız avatarUrl'e
+          // bakmak monogram+logo'yu boşluksuz bırakırdı (bkz. görev raporu).
+          { style: data.visuals.avatarUrl || shouldShowMonogram(data) ? { 'padding-top': '8px' } : undefined },
         ),
       ),
     );
