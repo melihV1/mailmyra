@@ -141,3 +141,54 @@ Denenecekler, ucuzdan pahalıya:
    500 riski var, tek başına denenir.
 5. Hiçbiri olmazsa: IP tabanlı kısıtlardan vazgeçip honeypot + e-posta
    bazlı kısıta geçmek ve `Session.ip`/KVKK delilini dürüstçe boş bırakmak.
+
+
+---
+
+# 2026-09-14 İKİNCİ GÜNCELLEME — ÇÖZÜLDÜ. Hata iletimde değil, ayrıştırmadaydı.
+
+Bir önceki güncelleme "iletim çalışmıyor" diyordu. **Yanlıştı.** `server.js`'e
+geçici bir sonda koyup gelen başlıkları ölçtük (yalnız ad ve yapı, değer değil —
+sonda sonra kaldırıldı):
+
+```
+[hdrprobe] {"names":["x-iisnode-remote_addr","x-original-url"],"parcaSayisi":2,"sonParca":"<gerçek IP>"}   # sahte başlıkla
+[hdrprobe] {"names":["x-original-url","x-iisnode-remote_addr"],"parcaSayisi":1,"sonParca":"<gerçek IP>"}   # temiz istek
+```
+
+**iisnode başlığı YAZIYOR** ve kendi ölçtüğü adresi zincirin **SONUNA EKLİYOR** —
+istemciden geleni ezmiyor, tıpkı düzgün bir proxy gibi. Yani en sağdaki girdi
+her zaman sunucunun ölçümü.
+
+## Gerçek hata
+
+`clientIp()` başlığın **tamamını** anahtar olarak kullanıyordu. Sahte bir değer
+geldiğinde anahtar `"192.0.2.50, <gerçek IP>"` oluyordu — her uydurma farklı bir
+dize, dolayısıyla farklı kova. Bu yüzden çalışan bir özellik bozukmuş gibi
+göründü ve üstüne, arayanın kendi kovasını seçmesine izin verdi.
+
+**Düzeltme:** XFF dalında zaten yapılan şeyin aynısı — `split(',').pop()`.
+Uydurma önek solda kalır, yok sayılır.
+
+## Bugünkü durum
+
+| | Durum |
+|---|---|
+| Gerçek istemci IP'si kaydediliyor mu | **EVET** ✓ |
+| Sahte `x-iisnode-remote_addr` ile kısıt atlatma | **Kapalı** ✓ |
+| Sahte `X-Forwarded-For` ile atlatma | **Kapalı** ✓ (TRUST_PROXY kapalı) |
+| `Session.ip` / KVKK delili / denetim defteri | Bundan sonra gerçek adres yazar |
+
+Sunucuda `TRUST_IISNODE_REMOTE_ADDR=true`. Bayrak korunuyor çünkü
+`promoteServerVars` yapılandırılmamış bir kurulumda başlığa gelen tek şey
+istemcinin uydurduğu değer olur ve "en sağdaki" de o olur.
+
+⚠️ **Eski satırlar `'local'` kalır** — bu düzeltme geriye dönük değil. 14 Eylül
+2026 öncesindeki oturum/onay/denetim kayıtlarında adres yok.
+
+## Ders
+
+İki kez yanlış sonuca vardık çünkü kara kutu testi (rate-limit kovası ayrışıyor
+mu) iki farklı sebebi ayırt edemiyordu: "iletim yok" ile "iletim var ama biz
+yanlış ayrıştırıyoruz" dışarıdan aynı görünüyor. Ölçüm noktasını isteğin
+girdiği yere taşımak (server.js sondası) tek turda cevabı verdi.
