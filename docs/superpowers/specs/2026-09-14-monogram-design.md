@@ -193,9 +193,12 @@ birlikte kullanılır (tek satırlık metin için bilinen yöntem):
 Notlar:
 - `bgcolor` attribute'u **ve** `background-color` stili birlikte verilir —
   Word motoru CSS zeminini her zaman uygulamıyor.
-- `border-radius: 4px` **mevcut avatarla birebir aynı** (`classic-horizontal.ts:299`).
-  Outlook ikisini de yok sayar; yani monogram, avatarın bugünkü davranışına
-  uyum sağlar, yeni bir tutarsızlık getirmez.
+- `border-radius` **sabit değil, şablonun kendi avatar yarıçapını aynalar.**
+  Ölçüldü: beş şablon `4px`, `photo-first` `50%` kullanıyor. Sabit 4px
+  verseydik `photo-first`'te yuvarlak fotoğrafın yanında kare monogram
+  çıkardı. Bu yüzden `monogramCell()` yarıçapı PARAMETRE alır ve her şablon
+  kendi avatarındaki değeri geçer. Outlook ikisini de yok sayar; yani
+  monogram, o şablondaki avatarın bugünkü davranışını birebir tekrarlar.
 - `letter-spacing` **em cinsinden** verilir (px değil): 40px'lik kutuda 1px
   belirgin, 120px'likte görünmez olurdu; `em` her boyutta aynı oranı tutar.
 - `font-family` **imzanın kendi** `visuals.fontFamily` değeridir, sabit değil.
