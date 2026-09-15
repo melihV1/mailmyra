@@ -105,7 +105,7 @@ başına yazılır ve testle kilitlenir.
 Yazma yönü `'auto'`/`'normal'` açıkça yazar, `undefined` bırakmaz —
 kullanıcı bilinçli olarak açtığında bu kayda geçmelidir.
 
-## Karar 6 — Kural SAF FONKSİYONDA yaşar, JSX'in içinde değil
+## Karar 4 — Kural SAF FONKSİYONDA yaşar, JSX'in içinde değil
 
 `apps/web`'de React bileşen testi altyapısı **yok** (ölçüldü: vitest yalnız
 `test/**/*.test.ts` topluyor, jsdom ve testing-library kurulu değil). JSX
@@ -141,7 +141,7 @@ gömülmez. Bu, dosyanın mevcut deseniyle de tutarlı — `templateLooks` ve
 Yan fayda: kurallar tek yerde, ileride "İmzalarım" ekranı ya da toplu
 uygulama aynı fonksiyonu kullanabilir.
 
-## Karar 4 — Kalıcılık: hiçbir şey yapmaya gerek yok
+## Karar 5 — Kalıcılık: hiçbir şey yapmaya gerek yok
 
 Üçü de kendiliğinden saklanır, ve bu doğrulandı:
 
@@ -155,7 +155,7 @@ uygulama aynı fonksiyonu kullanabilir.
 - `createEmptyData()` üç alanı **set ETMEZ**; tanımsız kalırlar ve renderer
   sözleşmesinde bu zaten doğru varsayılandır.
 
-## Karar 5 — Dil
+## Karar 6 — Dil
 
 Anahtar başına bir EN + bir TR metni, `dict/builder.ts` içindeki
 `typography` grubuna.
@@ -178,15 +178,15 @@ bir TR anahtarı derlemeyi kırar ("bekçi test değil derleyicidir",
 |---|---|
 | `packages/renderer/src/render.ts` | **yeni** `TEMPLATE_ACCENT_SURFACE` |
 | `packages/renderer/src/index.ts` | onu ihraç et |
-| `apps/web/app/builder/layout-switches.ts` | **yeni** — saf kural modülü (Karar 6) |
+| `apps/web/app/builder/layout-switches.ts` | **yeni** — saf kural modülü (Karar 4) |
 | `apps/web/app/builder/steps/StyleStep.tsx` | üç `form-check`, kuralı modülden okur |
 | `apps/web/lib/i18n/dict/builder.ts` | 3 EN + 3 TR anahtar |
-| `apps/web/test/builder-layout-switches.test.ts` | **yeni** — Karar 3 ve 6'nın kilitleri |
+| `apps/web/test/builder-layout-switches.test.ts` | **yeni** — Karar 3 ve 4'ün kilitleri |
 | `packages/renderer/test/` | harita ↔ `TEMPLATE_IDS` örtüşmesi |
 
 ## Test
 
-Hepsi saf fonksiyon testi — DOM gerekmez (Karar 6).
+Hepsi saf fonksiyon testi — DOM gerekmez (Karar 4).
 
 1. **Asimetri kilidi.** `layout` tanımsızken `monogram.checked` ve
    `accentBand.checked` **true**, `nameSpacing.checked` **false** gelir.
