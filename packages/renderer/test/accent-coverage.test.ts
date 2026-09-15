@@ -54,11 +54,12 @@ describe('cta-banner', () => {
       'cta-banner',
     );
     expect(html).toContain('Book a meeting');
-    // DIKKAT: bu sablonun CTA bandi zemini YALNIZ CSS ile veriyor
-    // (cta-banner.ts, `'background-color': brand`), `bgcolor` attribute'u
-    // YOK — aksan yardimcilarinin aksine. Bu tutarsizlik gercek ve ayrica
-    // ele alinacak; burada bandin CIZILDIGINI olcuyoruz, nasil boyandigini
-    // degil, yoksa test kendi konusu olmayan bir seyi kilitlerdi.
+    // NOT (guncellendi): bu sablonun CTA bandi artik zemini `bgcolor`
+    // attribute'u VE `background-color` stiliyle BIRLIKTE veriyor (bkz.
+    // cta-banner.test.ts, "the CTA band cell also carries a bgcolor
+    // attribute..." testi) — asagidaki tutarsizlik notu artik GECERSIZ,
+    // duzeltildi. Burada hala bandin CIZILDIGINI olcuyoruz (accentBand
+    // anahtariyla ILGISIZ oldugunu), nasil boyandigini o baska testin isi.
     expect(html).toContain('background-color:#7b9fd3');
   });
 });

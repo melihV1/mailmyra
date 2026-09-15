@@ -364,8 +364,12 @@ export function cardBordered(data: SignatureData, opts?: RenderOptions): string 
             'text-decoration': 'none',
             display: 'inline-block',
           })}">${htmlEscape(data.extras.ctaLabel)}</a>`,
+          // `bgcolor` attribute'u `background-color` stiliyle BİRLİKTE verilir —
+          // Word motoru (Outlook Classic) CSS zeminini her zaman uygulamıyor
+          // (bkz. utils/accent.ts, utils/monogram.ts — aynı gerekçe).
           {
             align: 'center',
+            bgcolor: brand,
             style: {
               'background-color': brand,
               'border-radius': '4px',
@@ -385,6 +389,7 @@ export function cardBordered(data: SignatureData, opts?: RenderOptions): string 
   // hücreye arka plan boyamıyor.
   const stripeCell = cell('&nbsp;', {
     width: s.stripe,
+    bgcolor: brand,
     style: {
       width: `${s.stripe}px`,
       'background-color': brand,
@@ -397,6 +402,7 @@ export function cardBordered(data: SignatureData, opts?: RenderOptions): string 
   // gövde metni okunamaz hale getiriyor.
   const cardBodyCell = cell(table(bodyRows.join(''), { width: '100%' }), {
     valign: 'top',
+    bgcolor: '#ffffff',
     style: {
       'background-color': '#ffffff',
       // Bant AÇIKKEN üst kenarlık çizilmez: bandın kendisi kartın üst

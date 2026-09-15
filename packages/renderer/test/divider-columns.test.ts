@@ -219,6 +219,17 @@ describe('dividerColumns', () => {
     expect(off).toContain('border-left:2px solid #7b9fd3');
   });
 
+  it('gives the horizontal divider line a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = dividerColumns({ ...full, layout: { ...full.layout, showDividers: true } });
+    // mutedColor (#6d6e71) yalnız bu çizgide bgcolor olarak kullanılır — sağ
+    // hücrenin DAİMA çizilen dikey ayracı (`border-left`, brandColor) yalnız
+    // CSS'tir ve bu görev kapsamının dışındadır (bir attribute taşımaz,
+    // `border-left` zaten Outlook'ta CSS ile çalışır).
+    const cell = html.match(/<td bgcolor="#6d6e71"[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#6d6e71');
+  });
+
   it('avatar and logo are independent left-column slots (logo-only fixture has no avatar <img>)', () => {
     const logoOnly = {
       ...full,
@@ -250,6 +261,16 @@ describe('dividerColumns', () => {
     // olurduk.
     const ctaAnchor = both.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
     expect(ctaAnchor).toContain('color:#000000');
+  });
+
+  it('gives the CTA button cell a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = dividerColumns(full);
+    // İğne CTA'nın KENDİ `href`'inin hemen ardından gelen <td>'yi hedefler —
+    // full fixture'da avatarUrl set, monogram hiç tetiklenmez; ayrıca sağ
+    // hücrenin dikey ayracı `border-left` CSS'tir, bgcolor taşımaz.
+    const m = html.match(/<td([^>]*)><a href="https:\/\/voldi\.net\/meeting"/);
+    expect(m).toBeTruthy();
+    expect(m![1]).toContain('bgcolor="#7b9fd3"');
   });
 
   it('root table carries a literal pixel width per size — max-width alone is not enough (Outlook Word engine ignores CSS max-width, and both columns here wrap width="100%" nested content — the divider line and social-icon tables — that would expand to the full reading pane without a bounded pixel ancestor)', () => {

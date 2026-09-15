@@ -294,9 +294,13 @@ export function stackedMinimal(data: SignatureData, opts?: RenderOptions): strin
   // başına asılı kalan ayraç bırakmayız.
   const hasBodyBelow = contactRows.length > 0 || socialRow !== '';
   if (data.layout.showDividers && hasBodyBelow) {
+    // `bgcolor` attribute'u `background-color` stiliyle BİRLİKTE verilir —
+    // Word motoru (Outlook Classic) CSS zeminini her zaman uygulamıyor
+    // (bkz. utils/accent.ts, utils/monogram.ts — aynı gerekçe).
     const bar = table(
       row(
         cell('&nbsp;', {
+          bgcolor: brand,
           style: {
             height: '2px',
             'line-height': '2px',
@@ -334,6 +338,7 @@ export function stackedMinimal(data: SignatureData, opts?: RenderOptions): strin
           })}">${htmlEscape(data.extras.ctaLabel)}</a>`,
           {
             align: 'center',
+            bgcolor: brand,
             style: {
               'background-color': brand,
               'border-radius': '4px',

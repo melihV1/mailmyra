@@ -164,9 +164,13 @@ export function ctaBanner(data: SignatureData, opts?: RenderOptions): string {
   // showDividers açıkken (spec §1.3: "kimlik ile iletişim arasında ...
   // yatay çizgi" — classic-horizontal'ın 1px arka-plan tekniğiyle birebir).
   if (data.layout.showDividers) {
+    // `bgcolor` attribute'u `background-color` stiliyle BİRLİKTE verilir —
+    // Word motoru (Outlook Classic) CSS zeminini her zaman uygulamıyor
+    // (bkz. utils/accent.ts, utils/monogram.ts — aynı gerekçe).
     const line = table(
       row(
         cell('&nbsp;', {
+          bgcolor: muted,
           style: {
             height: '1px',
             'line-height': '1px',
@@ -340,6 +344,7 @@ export function ctaBanner(data: SignatureData, opts?: RenderOptions): string {
           {
             align: 'center',
             width: '100%',
+            bgcolor: brand,
             style: {
               'background-color': brand,
               padding: '14px 16px',

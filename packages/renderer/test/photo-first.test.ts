@@ -146,6 +146,16 @@ describe('photoFirst', () => {
     const ctaAnchor = both.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
     expect(ctaAnchor).toContain('color:#000000');
   });
+  it('gives the CTA button cell a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = photoFirst(full);
+    // İğne CTA'nın KENDİ `href`'inin hemen ardından gelen <td>'yi hedefler —
+    // aynı #7b9fd3 aksan çubuğundan (font-size:2px) ve avatar panelinden
+    // (utils/accent.ts, kapsam dışı) de gelebiliyor; href bağlamı üçünü
+    // ayırır.
+    const m = html.match(/<td([^>]*)><a href="https:\/\/voldi\.net\/meeting"/);
+    expect(m).toBeTruthy();
+    expect(m![1]).toContain('bgcolor="#7b9fd3"');
+  });
   it('avatar and logo are independent left/bottom slots (logo-only fixture has no avatar <img>)', () => {
     const logoOnly = {
       ...full,
@@ -234,6 +244,18 @@ describe('photoFirst', () => {
     expect(on).toContain('width="40"');
     expect(on).toContain('background-color:#7b9fd3');
     expect(off).not.toContain('width="40"');
+  });
+
+  it('gives the accent bar a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = photoFirst({ ...full, layout: { ...full.layout, showDividers: true } });
+    // DİKKAT: `bgcolor="#7b9fd3"` bu şablonda ÜÇ kaynaktan gelebilir — aksan
+    // çubuğu, avatar sütunundaki renk paneli (utils/accent.ts, kapsam dışı)
+    // ve CTA butonu. Çubuğu KENDİ imzasıyla (`font-size:2px` — panelde ve
+    // CTA'da hiç yok, yalnız çubuğun çökertilmiş 2px satır kutusunda var)
+    // izole ederiz.
+    const cell = html.match(/<td bgcolor="#7b9fd3"[^>]*font-size:2px[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#7b9fd3');
   });
 
   it('scales the name font size with layout.size (one step larger than the other templates)', () => {

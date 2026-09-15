@@ -187,9 +187,13 @@ export function dividerColumns(data: SignatureData, opts?: RenderOptions): strin
   // renginde: sağ hücrenin daima çizilen brand renkli dikey ayracıyla
   // karışmasın diye bilerek farklı bir sinyal taşır.
   if (data.layout.showDividers) {
+    // `bgcolor` attribute'u `background-color` stiliyle BİRLİKTE verilir —
+    // Word motoru (Outlook Classic) CSS zeminini her zaman uygulamıyor
+    // (bkz. utils/accent.ts, utils/monogram.ts — aynı gerekçe).
     const line = table(
       row(
         cell('&nbsp;', {
+          bgcolor: muted,
           style: {
             height: '1px',
             'line-height': '1px',
@@ -267,6 +271,7 @@ export function dividerColumns(data: SignatureData, opts?: RenderOptions): strin
           })}">${htmlEscape(data.extras.ctaLabel)}</a>`,
           {
             align: 'center',
+            bgcolor: brand,
             style: {
               'background-color': brand,
               'border-radius': '4px',

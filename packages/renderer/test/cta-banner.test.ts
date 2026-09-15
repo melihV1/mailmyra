@@ -202,6 +202,17 @@ describe('ctaBanner', () => {
     expect(band).toBeTruthy();
   });
 
+  it('the CTA band cell also carries a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = ctaBanner(full);
+    // Bu iğne KENDİNE ÖZGÜ: bandın hücresi tek yerdir hem `bgcolor="#7b9fd3"`
+    // HEM `width="100%"` taşıyan — divider çizgisi mutedColor kullanır,
+    // avatar/monogram bu şablonda #7b9fd3 basar ama width="100%" taşımaz.
+    const band = (html.match(/<td[^>]*>/gi) ?? []).find(
+      (td) => /width="100%"/i.test(td) && /bgcolor="#7b9fd3"/i.test(td),
+    );
+    expect(band).toBeTruthy();
+  });
+
   it('the CTA band renders ctaLabel as a bold link with readableTextOn(brand) text color', () => {
     const html = ctaBanner(full);
     expect(html).toContain('Book a meeting');
@@ -296,6 +307,15 @@ describe('ctaBanner', () => {
     const emailIndex = html.indexOf('href="mailto:ellen@voldi.net"');
     expect(dividerIndex).toBeGreaterThan(companyIndex);
     expect(emailIndex).toBeGreaterThan(dividerIndex);
+  });
+
+  it('gives the divider line a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = ctaBanner({ ...full, layout: { ...full.layout, showDividers: true } });
+    // mutedColor (#6d6e71) yalnız bu çizgide bgcolor olarak kullanılır —
+    // brandColor (#7b9fd3) tabanlı CTA bandıyla karışma riski yok.
+    const cell = html.match(/<td bgcolor="#6d6e71"[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#6d6e71');
   });
 });
 

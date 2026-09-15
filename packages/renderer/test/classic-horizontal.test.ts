@@ -44,6 +44,14 @@ describe('classicHorizontal', () => {
     expect(on).toContain('line-height:1px');
     expect(off).not.toContain('line-height:1px');
   });
+  it('gives the divider line a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = classicHorizontal({ ...full, layout: { ...full.layout, showDividers: true } });
+    // mutedColor (#6d6e71) yalnız bu çizgide bgcolor olarak kullanılır —
+    // brandColor (#7b9fd3) tabanlı CTA'yla karışma riski yok, ayrı bir renk.
+    const cell = html.match(/<td bgcolor="#6d6e71"[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#6d6e71');
+  });
   it('escapes HTML in user-provided fields', () => {
     const evil = {
       ...full,
@@ -182,6 +190,16 @@ describe('classicHorizontal', () => {
     const html = classicHorizontal(full, { iconBaseUrl: 'https://cdn.example.com/' });
     expect(html).toContain('src="https://cdn.example.com/icons/');
     expect(html).not.toContain('.com//icons/');
+  });
+  it('gives the CTA button cell a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = classicHorizontal(full);
+    // İğne CTA'nın KENDİ `href`'inin hemen ardından gelen <td>'yi hedefler —
+    // full fixture'da avatarUrl set, monogram hiç tetiklenmez, dolayısıyla
+    // burada #7b9fd3 tek kaynağı CTA'dır; yine de bağlamsal olarak izole
+    // ediyoruz (diğer şablonlardaki aynı desenle tutarlı kalsın diye).
+    const m = html.match(/<td([^>]*)><a href="https:\/\/voldi\.net\/meeting"/);
+    expect(m).toBeTruthy();
+    expect(m![1]).toContain('bgcolor="#7b9fd3"');
   });
 });
 

@@ -72,6 +72,15 @@ describe('stackedMinimal', () => {
     // classic-horizontal'ın tam genişlik 1px çizgisi burada YOK
     expect(on).not.toContain('line-height:1px');
   });
+  it('gives the accent bar a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = stackedMinimal({ ...full, layout: { ...full.layout, showDividers: true } });
+    // DİKKAT: `bgcolor="#7b9fd3"` CTA butonundan da gelebilir (full fixture
+    // ikisini de içerir). Çubuğu KENDİ imzasıyla (`font-size:2px` — yalnız
+    // çubuğun çökertilmiş 2px satır kutusunda var, CTA'da yok) izole ederiz.
+    const cell = html.match(/<td bgcolor="#7b9fd3"[^>]*font-size:2px[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#7b9fd3');
+  });
   it('omits the accent bar when there is nothing below the identity block', () => {
     const identityOnly = {
       ...full,
@@ -153,6 +162,15 @@ describe('stackedMinimal', () => {
     });
     const lightAnchor = light.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
     expect(lightAnchor).toContain('color:#000000');
+  });
+  it('gives the CTA button cell a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = stackedMinimal(full);
+    // İğne CTA'nın KENDİ `href`'inin hemen ardından gelen <td>'yi hedefler —
+    // aynı #7b9fd3 aksan çubuğundan da gelebiliyor (showDividers açıksa);
+    // href bağlamı ikisini ayırır.
+    const m = html.match(/<td([^>]*)><a href="https:\/\/voldi\.net\/meeting"/);
+    expect(m).toBeTruthy();
+    expect(m![1]).toContain('bgcolor="#7b9fd3"');
   });
   it('omits the CTA when only one of label/url is set', () => {
     const half = { ...full, extras: { ...full.extras, ctaUrl: undefined } };

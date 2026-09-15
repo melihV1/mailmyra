@@ -128,9 +128,13 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
   // Aksan çubuğu — YALNIZ showDividers true iken, ad bloğunun hemen altında
   // (stacked-minimal emsali: kısa 40px marka renginde çubuk).
   if (data.layout.showDividers) {
+    // `bgcolor` attribute'u `background-color` stiliyle BİRLİKTE verilir —
+    // Word motoru (Outlook Classic) CSS zeminini her zaman uygulamıyor
+    // (bkz. utils/accent.ts, utils/monogram.ts — aynı gerekçe).
     const bar = table(
       row(
         cell('&nbsp;', {
+          bgcolor: brand,
           style: {
             height: '2px',
             'line-height': '2px',
@@ -281,6 +285,7 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
           })}">${htmlEscape(data.extras.ctaLabel)}</a>`,
           {
             align: 'center',
+            bgcolor: brand,
             style: {
               'background-color': brand,
               'border-radius': '4px',

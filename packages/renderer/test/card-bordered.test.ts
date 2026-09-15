@@ -32,11 +32,30 @@ describe('cardBordered', () => {
     expect(html).toContain('background-color:#ffffff');
     expect(html).toContain('padding:18px');
   });
+  it('gives the white card body a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = cardBordered(full);
+    // İğne `bgcolor="#ffffff"` + aynı hücrenin stilinde 'background-color:#ffffff'
+    // aranır — bu değer yalnız gövde hücresinde kullanılır, kart şeridi ve CTA
+    // #7b9fd3 (brand) bastığı için çakışma riski yok.
+    const cell = html.match(/<td valign="top" bgcolor="#ffffff"[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#ffffff');
+  });
   it('draws a brand-coloured accent stripe on the left, scaled by layout.size', () => {
     const medium = cardBordered(full);
     expect(medium).toContain('width:4px;background-color:#7b9fd3');
     const large = cardBordered({ ...full, layout: { ...full.layout, size: 'large' } });
     expect(large).toContain('width:6px;background-color:#7b9fd3');
+  });
+  it('gives the accent stripe a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = cardBordered(full);
+    // DİKKAT: `bgcolor="#7b9fd3"` tek başına belirsiz — aynı değeri aksan
+    // bandı (colspan="2") ve CTA butonu (align="center") de basar. Şeridi
+    // KENDİ genişliğiyle (`width="4"`, medium boy) izole ederiz; bu üçlü
+    // yalnız şeritte birlikte geçer.
+    const cell = html.match(/<td bgcolor="#7b9fd3" width="4"[^>]*>/)?.[0];
+    expect(cell).toBeTruthy();
+    expect(cell).toContain('background-color:#7b9fd3');
   });
   it('pins an explicit card width per size, always under the 600px cap', () => {
     // Word max-width tanımadığı için piksel width ŞART (yüzde iç tablolar
@@ -171,6 +190,15 @@ describe('cardBordered', () => {
     });
     const lightAnchor = light.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
     expect(lightAnchor).toContain('color:#000000');
+  });
+  it('gives the CTA button cell a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
+    const html = cardBordered(full);
+    // İğne, CTA'nın KENDİ `href`'inin hemen ardından gelen <td>'yi hedefler —
+    // aksan bandı ve şerit de AYNI #7b9fd3'ü basıyor (bkz. yukarıdaki testler),
+    // bu yüzden değeri bağlamsız arasak yanlış hücreyi de doğrulamış oluruz.
+    const m = html.match(/<td([^>]*)><a href="https:\/\/voldi\.net\/meeting"/);
+    expect(m).toBeTruthy();
+    expect(m![1]).toContain('bgcolor="#7b9fd3"');
   });
   it('omits the CTA when only one of label/url is set', () => {
     const half = { ...full, extras: { ...full.extras, ctaUrl: undefined } };
