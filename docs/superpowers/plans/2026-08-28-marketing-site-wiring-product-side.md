@@ -1175,7 +1175,7 @@ git commit -m "feat(builder): honour ?template= from the marketing gallery"
 
 ### Task 7: Panelin nav'ındaki "Real renders" iddiası
 
-`apps/web/components/nav/menu-data.ts:87` → Template gallery açıklaması **`'Real renders, not screenshots.'`**. Bu cümle site tarafında da 30 sayfanın mega menüsünde geçiyor ve **Plan 2 Task 11 Step 6**'da düzeltiliyor; ikisi ayrı depoda olduğu için ayrı ayrı yapılmalı, yoksa panel ile site çelişir.
+~~`apps/web/components/nav/menu-data.ts:87`~~ → **MONOREPO YARISI ARTIK GEÇERSİZ (2026-09-15).** `menu-data.ts` ve onu kullanan bütün `(marketing)` yüzeyi silindi (`95c7d68`): app.mailmyra.com kökü pazarlama sitesine yönlendiriliyor, panelin kendi mega menüsü yok. Yani "panel ile site çelişir" uyarısı da geçersiz — geriye YALNIZ site tarafı kalıyor ve o zaten yapıldı (site deposu, mega menüde "real render, not a screenshot" ifadesi 58 yerde kaldırıldı). Bu adımı koşma, dosya yok.
 
 **Files:**
 - Modify: `apps/web/components/nav/menu-data.ts:87`

@@ -40,6 +40,16 @@
  * (`MARKETING_ORIGIN` sunucu tarafı yönlendirmeler için, buradaki
  * `NEXT_PUBLIC_MARKETING_ORIGIN` istemci linkleri için) birlikte ayarlamalı.
  */
+/*
+ * ⚠️ `NEXT_PUBLIC_*` DERLEME ANINDA gömülür, çalışma anında okunmaz.
+ * Bu projede deploy `next build` yapıp `.next`i yüklüyor, ortam
+ * değişkenleri SONRADAN Plesk > Node.js panelinden veriliyor — yani bu
+ * değişkeni oraya yazmak SESSİZCE hiçbir şey yapmaz: istemci paketi
+ * derleme anında gömülen origin'i taşımaya devam ederken, çalışma anında
+ * okunan `MARKETING_ORIGIN` (next.config.js ve marketingOrigin()) paneli
+ * izler. İkisi ayrışır ve hata vermez. Üretim dışı bir origin BUILD
+ * ortamında ayarlanmalı, Plesk panelinde değil.
+ */
 const SITE = (process.env.NEXT_PUBLIC_MARKETING_ORIGIN ?? 'https://mailmyra.com').replace(
   /\/+$/,
   '',

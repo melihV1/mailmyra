@@ -128,11 +128,7 @@ maliyeti yok — 404'ten 500'e döner, müşteri etkilenmez.
    çalışır, temiz adres yalnız config yüklüyse çalışır.
 5. İçeriği tekrar yükle (linkler değişti).
 
-**Panel tarafı ayrı deploy ister.** `apps/web/components/nav/menu-data.ts`
-artık pazarlama sayfalarına **mutlak** adres veriyor (`https://mailmyra.com/…`)
-— önceden göreliydi ve `app.mailmyra.com/pricing`'e gidip 404 oluyordu.
-Üç ad dosyayla birebir değil: **For agencies → `solutions-agencies`**,
-**For companies → `solutions-teams`**, **Setup guides → `setup`**.
+~~**Panel tarafı ayrı deploy ister.**~~ — **ARTIK GEÇERSİZ (2026-09-15).** `apps/web/components/nav/menu-data.ts` ve onu kullanan `(marketing)` yüzeyi silindi; app.mailmyra.com kökü pazarlama sitesine yönlendiriliyor. Mega menü yalnız site deposunda yaşıyor, yani bu adım için ikinci bir deploy gerekmiyor.
 
 **Kurulum rehberleri hakkında karar:** 30 karenin 26'sı hâlâ yer tutucu.
 Rehberler yayına bu hâlde girerse arama motoru onları boş kutularla
