@@ -62,6 +62,20 @@ export interface SignatureData {
      * `visuals.avatarUrl` VARSA bu alan ne olursa olsun monogram basılmaz.
      */
     monogram?: 'auto' | 'off';
+    /**
+     * İsim satırı büyük harfe çevrilsin ve harf aralığı açılsın mı.
+     * Alan yoksa 'normal' sayılır — kişisel stil tercihi, herkesin ismini
+     * zorla versal yapmak saldırgan olurdu (uzun isimler versal hâlde sarar).
+     */
+    nameCase?: 'normal' | 'upper';
+    /**
+     * Şablonun aksan alanı çizilsin mi. YERİ şablonun kararı, VARLIĞI
+     * kullanıcının. Alan yoksa 'auto' sayılır: aksan şablonun karakteridir,
+     * kapalı varsayılan galeriyi bugünkü hâlinde bırakırdı.
+     * Yeri tanımlı olmayan şablonlarda (classic-horizontal, divider-columns,
+     * stacked-minimal) ve cta-banner'da SESSİZCE yok sayılır.
+     */
+    accentBand?: 'auto' | 'off';
   };
 }
 
