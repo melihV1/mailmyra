@@ -439,7 +439,10 @@ describe('photo-first accent panel', () => {
     // `padding:8px 8px 8px 0` (solda cerceve YOK) o alt dizeyi ICERIR ve
     // iddia sessizce gecer. Bildirim sinirlarini da esletiyoruz.
     expect(left).toMatch(new RegExp(`(^|;|")padding:${frame}px(;|")`));
-    expect(left).not.toContain('padding-right');
+    // DORT YONU birden koru, yalniz padding-right'i degil: `padding:8px`
+    // + bir `padding-left:0` override'i shorthand'i bozmadan cerceveyi
+    // asimetrik yapar ve `not.toContain('padding-right')` bunu GORMEZ.
+    expect(left).not.toMatch(/padding-(top|right|bottom|left)\s*:/);
     // `width` HER IKI halde de ICERIK genisligi: `<td width>` content
     // kutusuna duser, padding ustune eklenir. `avatar + 2*frame` yazmak
     // content kutusunda bosluk birakir, gorsel sola yaslanir ve cerceve
