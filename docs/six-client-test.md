@@ -127,7 +127,7 @@ adını dosya adından okuduğu için üç imza da aynı adla görünür. Tek sa
 düzeltme (`BuilderClient.tsx`, `savedName` zaten orada), sıradaki derlemeye
 bindirilecek.
 
-### Tur 4 — ⏳ SÜRÜYOR (1/6 istemci tamam)
+### Tur 4 — ✅ GEÇTİ (`eda2c97` için) · ⚠️ `761aa1c` YENİDEN BAKILMALI
 
 Tur tarihi: 2026-09-15 · Commit: `eda2c97` (main = origin/main)
 Malzeme: `scripts/send-test-signatures.mts` ile üretilen 6 taban + 12 varyant.
@@ -140,14 +140,20 @@ renginde olduğu için, varsayılan ayarla panel avatarın üstünde GÖRÜNMEZ 
 alındı — marka rengi zaten kullanıcı ayarı, meşru bir konfigürasyon.
 Sonraki turlarda aynı tuzağa düşülmesin.
 
+**Test eden:** Hüseyin (Outlook Classic + Gmail web/mobil + Yeni Outlook + iOS Mail,
+düzeltilmiş paketle — `~/Desktop/mailmyra-matris`, `OLCUM` varyantları dâhil) ·
+Apple Mail satırı bu oturumda Claude tarafından ölçüldü.
+
 | Şablon | Outlook Classic | Yeni Outlook | Gmail web | Gmail mobil | Apple Mail | iOS Mail |
 |---|---|---|---|---|---|---|
-| classic-horizontal | | | | | geçti | |
-| stacked-minimal | | | | | | |
-| card-bordered | | | | | geçti | |
-| divider-columns | | | | | geçti | |
-| photo-first | | | | | geçti | |
-| cta-banner | | | | | | |
+| classic-horizontal | geçti | geçti | geçti | geçti | geçti | geçti |
+| stacked-minimal | geçti | geçti | geçti | geçti | — | geçti |
+| card-bordered | geçti | geçti | geçti | geçti | geçti | geçti |
+| divider-columns | geçti | geçti | geçti | geçti | geçti | geçti |
+| photo-first | geçti | geçti | geçti | geçti | geçti | geçti |
+| cta-banner | geçti | geçti | geçti | geçti | — | geçti |
+
+(— : o oturumda gözle teyit edilmedi; kusur bildirilmedi.)
 
 Eksenler:
 
@@ -165,13 +171,26 @@ temiz. Yerleşim bozulmadı, sütun kayması yok, renkler ve bağlantılar yerin
 tablo kenarlığı sızmadı. `stacked-minimal` ve `cta-banner` bu oturumda gözle
 teyit edilmedi (kaydırma sırasında atlandı) — kapatılmadan önce bakılmalı.
 
-🔴 **AÇIK — turu bitiren istemci Outlook Classic.** Üç varsayım YALNIZ orada
-sınanabilir ve hiçbiri dize testiyle kapatılamaz:
-1. Word motoru `<td width>`'i content-box mı sayıyor (çerçevenin simetrisi buna bağlı).
-2. `letter-spacing` `em` biriminde uygulanıyor mu (monogramın `0.02em`'i de aynı varsayımda).
-3. Monogram, uzaktan görseller engelliyken görünüyor mu (varlık sebebi).
+**Üç varsayım da Outlook Classic'te kapandı** (sahibi doğruladı): Word motoru
+`<td width>`'i beklediğimiz gibi sayıyor, `em` harf aralığı uygulanıyor, monogram
+uzaktan görseller engelliyken görünüyor.
 
-Gmail web/mobil ve iOS Mail de açık.
+---
+
+🔴 **ÖNEMLİ — bu tur `eda2c97` içindir, HEAD için DEĞİL.**
+
+Tur bittikten sonra panelin dikey taşıması "sınırla" diye karara bağlandı ve
+`761aa1c` ile `photo-first`'ün avatar sütunu YENİDEN YAPILANDIRILDI: renk artık
+hücrenin zemini değil, içine konan bir İÇ TABLONUN hücresi. Yani o sütunda
+**iç içe tablo** var, daha önce yoktu.
+
+İç içe tablo tam da Word motorunun bozduğu yapıdır. Apple Mail'de doğrulandı
+(tile her imza uzunluğunda kare kalıyor), ama **Outlook Classic'te görülmedi.**
+Turu "geçti" sayıp buradan canlıya gitmek, sınanmamış bir yapıyı shiplemek olur.
+
+**Kapatmak için gereken tek şey:** `01/02/05-OLCUM-photo-first-*.htm` dosyalarını
+Outlook Classic'te bir kez açmak — tile kare mi, kenarlık sızıyor mu, sütun kaymış mı.
+Diğer beş şablon ve üç eksen `761aa1c`'de DEĞİŞMEDİ, onlar için tur geçerli.
 
 ### Boş şablon (sonraki turlar için kopyala)
 
