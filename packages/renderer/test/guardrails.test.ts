@@ -150,10 +150,10 @@ describe('guardrails: monogram branch', () => {
   }
 });
 
-// Aksan alani ve versal isim, fixture'larla tetiklenmeyen kod yollari:
+// Aksan alani ve isim harf araligi, fixture'larla tetiklenmeyen kod yollari:
 // fixture'larda `accentBand`/`nameSpacing` alanlari yok, dolayisiyla varsayilan
 // disi kombinasyonlar MODES dongusunden gecmiyor.
-describe('guardrails: accent + name case', () => {
+describe('guardrails: accent + name spacing', () => {
   for (const templateId of TEMPLATE_IDS) {
     it(`${templateId} stays clean with the accent on and the tracking open`, () => {
       const html = renderSignature(
