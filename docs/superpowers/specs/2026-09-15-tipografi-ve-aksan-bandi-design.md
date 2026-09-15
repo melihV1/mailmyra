@@ -62,14 +62,33 @@ kullanıcınındır.
 displayName(fullName, 'upper')  →  'ELİF KAYA'   (+ letter-spacing stili)
 ```
 
-Büyütme `toLocaleUpperCase('tr-TR')` ile yapılır — `initialsFrom`'un kullandığı
-kuralın aynısı (`i` → `İ`). **Bilinen sınır aynı:** tamamen küçük harfle
-yazılmış İngilizce bir isim (`ian smith` → `İAN SMİTH`). Nadir ve müşteri
-kitlesinin doğru tarafında.
+Büyütme **varsayılan `toUpperCase()`** ile yapılır — `initialsFrom`'un
+kullandığı `toLocaleUpperCase('tr-TR')` ile KASITLI OLARAK FARKLI.
 
-⚠️ `initialsFrom`'un `ß` → `SS` tuzağı (monogram turunda yakalandı) burada
-SORUN DEĞİL: orada iki karakter garantisi vardı, burada tam isim basılıyor ve
-`ß` → `SS` zaten doğru Almanca büyük harftir.
+🔴 **Bu, ilk taslağın düzeltilmesidir.** Önce `initialsFrom` ile aynı kuralı
+yazmıştım. Ölçtüğümde gerekçenin tam tersine döndüğü görüldü: Türkçe kural
+isimdeki HER `i`'yi noktalıya çevirir, yalnız ilk harfi değil.
+
+| girdi | `tr-TR` | varsayılan |
+|---|---|---|
+| `İlker Yılmaz` | İLKER YILMAZ ✓ | **İLKER YILMAZ ✓** |
+| `Smith` | SMİTH ✗ | **SMITH ✓** |
+| `Martin` | MARTİN ✗ | **MARTIN ✓** |
+| `Weiß` | WEİSS ✗ | **WEISS ✓** |
+| `ilker yılmaz` | İLKER YILMAZ ✓ | ILKER YILMAZ ✗ |
+
+Düzgün yazılmış Türkçe isim varsayılanla da DOĞRU çıkar (`İ` zaten büyüktür,
+`ı` → `I` doğrudur). Tek bozulan, tamamen küçük harfle yazılmış Türkçe isim —
+`initialsFrom`'un kabul ettiği sınırın aynısı, ama orada bedel tek harfti.
+
+**İki fonksiyon bilerek ayrışır, birleştirilmemeli:** `initialsFrom` tek harf
+üretir ve o harf çoğunlukla Türkçe bir adın baş harfidir → `tr-TR` doğru.
+`displayName` tam ismi basar → varsayılan doğru. Biri diğerine uydurulursa
+karşı taraf bozulur.
+
+`ß` → `SS` katlaması iki kuralda da olur ve burada DOĞRUDUR: `initialsFrom`'da
+sorundu çünkü orada iki karakter garantisi vardı; tam isimde `SS` zaten doğru
+Almanca büyük harftir.
 
 Harf aralığı `em` cinsinden verilir (px değil — 15px ve 23px isimde aynı oranı
 tutsun). `0.04em` önerilir; monogramın `0.02em`'inden geniş çünkü tam bir isim,

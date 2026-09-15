@@ -90,11 +90,22 @@ describe('displayName', () => {
   it('uppercases when upper', () => {
     expect(displayName('Elif Kaya', 'upper')).toBe('ELİF KAYA');
   });
-  it('uses Turkish casing for a lowercase dotted i', () => {
-    expect(displayName('ilker yılmaz', 'upper')).toBe('İLKER YILMAZ');
+  it('keeps a properly written Turkish name correct', () => {
+    // Turkish users write their own name with the dotted capital already
+    // there, and the dotless i uppercases to I under the default locale too —
+    // so the default rule gets this right without Turkish casing.
+    expect(displayName('İlker Yılmaz', 'upper')).toBe('İLKER YILMAZ');
   });
-  it('leaves an already-uppercase Turkish name alone', () => {
-    expect(displayName('İLKER', 'upper')).toBe('İLKER');
+  it('does NOT dot the i of a non-Turkish name', () => {
+    // This is why the default locale is used here and tr-TR is not: Turkish
+    // casing dots EVERY i, so Smith becomes SMİTH and Martin MARTİN.
+    expect(displayName('Ian Smith', 'upper')).toBe('IAN SMITH');
+    expect(displayName('Christina Martin', 'upper')).toBe('CHRISTINA MARTIN');
+  });
+  it('accepts the known limit: an all-lowercase Turkish name loses its dot', () => {
+    // The same limit initialsFrom accepts, in the opposite direction. Costed
+    // and chosen: tr-TR would fix this one name and break every name with an i.
+    expect(displayName('ilker yılmaz', 'upper')).toBe('ILKER YILMAZ');
   });
   it('expands the German sharp s, which is correct here', () => {
     // initialsFrom had to guard against this because it promises at most two
@@ -140,18 +151,25 @@ type NameCase = NonNullable<SignatureData['layout']['nameCase']>;
  * masaüstü Word render motorunda güvenilmez, ama biz zaten çıktıyı üreten
  * tarafız — güvenilmez bir CSS özelliğine bulaşmak için sebep yok.
  *
- * `toLocaleUpperCase('tr-TR')` — `initialsFrom`'un kullandığı kuralın aynısı
- * (`i` → `İ`). Bilinen sınır da aynı: tamamen küçük harfle yazılmış İngilizce
- * bir isim (`ian smith` → `İAN SMİTH`). Nadir ve müşteri kitlesinin doğru
- * tarafında.
+ * VARSAYILAN `toUpperCase()` kullanılır — komşu `initialsFrom`'un
+ * `toLocaleUpperCase('tr-TR')`'ından KASITLI OLARAK FARKLI. Birleştirmeyin.
  *
- * `ß` → `SS` katlaması BURADA SORUN DEĞİL (monogramda sorundu, çünkü orada
- * "en fazla iki karakter" garantisi vardı); tam isimde SS doğru Almanca
- * büyük harftir.
+ * Sebep ölçüldü: Türkçe kural isimdeki HER `i`'yi noktalıya çevirir, yalnız
+ * ilk harfi değil. `Smith` → `SMİTH`, `Martin` → `MARTİN`, `Weiß` → `WEİSS`.
+ * Varsayılan kuralda düzgün yazılmış Türkçe isim de doğru çıkar (`İ` zaten
+ * büyüktür, `ı` → `I` doğrudur): `İlker Yılmaz` → `İLKER YILMAZ`.
+ *
+ * Kabul edilen tek sınır: tamamen küçük harfle yazılmış Türkçe isim
+ * (`ilker yılmaz` → `ILKER YILMAZ`, noktası düşer). `initialsFrom`'un kabul
+ * ettiği sınırın aynısı ama ters yönde — orada bedel tek harf, burada bir
+ * harf; `tr-TR` seçseydik bedel `i` içeren HER isim olurdu.
+ *
+ * `ß` → `SS` katlaması iki kuralda da olur ve burada DOĞRUDUR: tam isimde SS
+ * doğru Almanca büyük harftir.
  */
 export function displayName(fullName: string, nameCase: NameCase | undefined): string {
   if (nameCase !== 'upper') return fullName;
-  return fullName.toLocaleUpperCase('tr-TR');
+  return fullName.toUpperCase();
 }
 
 /**
@@ -170,7 +188,7 @@ export function nameLetterSpacing(nameCase: NameCase | undefined): string | unde
 - [ ] **Step 5: Testlerin geçtiğini gör**
 
 Run: `npx vitest run test/typography.test.ts --root packages/renderer`
-Expected: PASS (10 test)
+Expected: PASS (12 test)
 
 - [ ] **Step 6: Commit**
 
