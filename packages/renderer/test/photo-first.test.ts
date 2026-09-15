@@ -430,41 +430,51 @@ describe('photo-first accent panel', () => {
     { size: 'small' as const, avatar: 88, gap: 12, frame: 6 },
     { size: 'medium' as const, avatar: 104, gap: 16, frame: 8 },
     { size: 'large' as const, avatar: 120, gap: 20, frame: 10 },
-  ])('frames the photo symmetrically at $size and leaves the outer half of the gap unpainted', ({ size, avatar, gap, frame }) => {
+  ])('frames the photo symmetrically at $size without letting the panel grow past the tile', ({ size, avatar, gap, frame }) => {
     const html = renderSignature({ ...base, layout: { ...base.layout, size } }, 'photo-first');
-    const left = html.match(/<td valign="top" bgcolor="#7b9fd3"[^>]*>/)![0];
-    // Cerceve DORT YONLU: tek yonlu padding-right geri gelirse oluk yine
-    // panelin icinde kalir.
-    // DIKKAT: `toContain('padding:8px')` YETMEZ — dort degerli shorthand
-    // `padding:8px 8px 8px 0` (solda cerceve YOK) o alt dizeyi ICERIR ve
-    // iddia sessizce gecer. Bildirim sinirlarini da esletiyoruz.
-    expect(left).toMatch(new RegExp(`(^|;|")padding:${frame}px(;|")`));
-    // DORT YONU birden koru, yalniz padding-right'i degil: `padding:8px`
-    // + bir `padding-left:0` override'i shorthand'i bozmadan cerceveyi
-    // asimetrik yapar ve `not.toContain('padding-right')` bunu GORMEZ.
-    expect(left).not.toMatch(/padding-(top|right|bottom|left)\s*:/);
-    // `width` HER IKI halde de ICERIK genisligi: `<td width>` content
-    // kutusuna duser, padding ustune eklenir. `avatar + 2*frame` yazmak
-    // content kutusunda bosluk birakir, gorsel sola yaslanir ve cerceve
-    // sagda 3 kat kalin olur (bkz. photo-first.ts'teki yorum).
-    expect(left).toContain(`width="${avatar}"`);
-    expect(left).not.toContain(`width="${avatar + frame * 2}"`);
-    // Olugun disardaki, BOYANMAYAN yarisi sag hucrede.
-    const right = html.match(/<td valign="top" style="padding-left:[^"]*">/)![0];
-    expect(right).toContain(`padding-left:${gap - frame}px`);
-    // Degismez kural: cerceve + boyanmayan oluk = panel KAPALIYKEN ki bosluk,
-    // yani panel acilip kapandiginda avatar ile metin arasi mesafe SABIT
-    // kalir. Sagdaki degeri sabit yazmak yerine panel-kapali ciktidan
-    // OLCUYORUZ — `expect(frame + (gap - frame)).toBe(gap)` bir totolojidir
-    // ve hicbir mutasyonda kirmizi olamaz.
+
+    // 🔴 YUKSEKLIK KILIDI. Panel bir IC TABLO hucresidir; DIS hucrenin zemini
+    // DEGILDIR. Renk dis hucreye verilirse zemin SATIR YUKSEKLIGI boyunca
+    // uzar ve panel, kare tile olmaktan cikip tam boy marka sutununa doner
+    // (Apple Mail'de olculdu). Dis hucrede bgcolor GORULURSE bu geri gelmis
+    // demektir.
+    const outer = html.match(/<td valign="top" width="\d+"[^>]*>/)![0];
+    expect(outer).not.toContain('bgcolor');
+    expect(outer).not.toContain('background-color');
+
+    // Dis hucrenin `width`'i ICERIK genisligidir ve icerik artik IC TABLO,
+    // yani cerceveyi zaten iceriyor.
+    expect(outer).toContain(`width="${avatar + frame * 2}"`);
+    // Olugun disardaki, boyanmayan kismi.
+    expect(outer).toContain(`padding-right:${gap - frame}px`);
+
+    // Ic panel hucresi: dort yonlu simetrik cerceve + icerik genisligi.
+    const inner = html.match(/<td bgcolor="#[0-9a-f]{6}" width="\d+"[^>]*>/i)![0];
+    expect(inner).toContain(`width="${avatar}"`);
+    // DIKKAT: `toContain('padding:8px')` YETMEZ — `padding:8px 8px 8px 0`
+    // (solda cerceve YOK) o alt dizeyi ICERIR. Bildirim sinirlarini esletiyoruz,
+    // ve tek yonlu override'lari ayrica yasakliyoruz.
+    expect(inner).toMatch(new RegExp(`(^|;|")padding:${frame}px(;|")`));
+    expect(inner).not.toMatch(/padding-(top|right|bottom|left)\s*:/);
+    // Word CSS background-color'a guvenmez: bgcolor ile CIFT basilmali.
+    expect(inner).toContain('background-color:#');
+
+    // Sag hucre HICBIR halde ek stil tasimaz — oluk tamamen sol taraftadir.
+    const right = html.match(/<td valign="top">/);
+    expect(right).toBeTruthy();
+
+    // Degismez: cerceve + boyanmayan oluk = panel KAPALIYKEN ki bosluk, yani
+    // panel acilip kapandiginda avatar ile metin arasi mesafe SABIT kalir.
+    // Sagdaki degeri sabit yazmak yerine panel-kapali ciktidan OLCUYORUZ —
+    // `expect(frame + (gap - frame)).toBe(gap)` bir totolojidir.
     const off = renderSignature(
       { ...base, layout: { ...base.layout, size, accentBand: 'off' } },
       'photo-first',
     );
     const offLeft = off.match(/<td valign="top" width="\d+" style="padding-right:[^"]*">/)![0];
     const offGap = Number(offLeft.match(/padding-right:(\d+)px/)![1]);
-    const onFrame = Number(left.match(/padding:(\d+)px/)![1]);
-    const onGutter = Number(right.match(/padding-left:(\d+)px/)![1]);
+    const onFrame = Number(inner.match(/padding:(\d+)px/)![1]);
+    const onGutter = Number(outer.match(/padding-right:(\d+)px/)![1]);
     expect(onFrame + onGutter).toBe(offGap);
   });
 

@@ -373,54 +373,64 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
   const panel = hasAvatar && shouldShowAccentBand(data)
     ? accentPanelStyle(data.visuals.brandColor)
     : null;
+  // Avatarın kendisi. Panel açıkken bunu bir İÇ TABLOYA sararız (aşağıda).
+  // 🔴 KOŞULLU olmak ZORUNDA: `sanitizeUrl(undefined)` patlar (`url.trim()`).
+  // Bir turda koşulsuz yazıldı ve avatarsız HER vaka çöktü.
+  const avatarImg = !hasAvatar
+    ? ''
+    : `<img src="${sanitizeUrl(data.visuals.avatarUrl!)}" width="${s.avatar}" height="${s.avatar}" alt="${htmlEscape(
+    data.identity.fullName,
+  )}" border="0" style="${styleToString({
+    display: 'block',
+    border: '0',
+    'border-radius': '50%',
+    width: `${s.avatar}px`,
+    height: `${s.avatar}px`,
+  })}" />`;
+
+  // 🔴 Panel, hücrenin ZEMİNİ DEĞİL, kendi İÇ TABLOSUDUR. Sebep kayda geçsin:
+  // renk `<td>`'nin bgcolor'ı olarak verildiğinde hücre zemini SATIR
+  // YÜKSEKLİĞİ boyunca uzar — uzun imzalarda panel kare bir "tile" olmaktan
+  // çıkıp tam boy bir marka sütununa dönüşüyordu (Apple Mail'de ölçüldü,
+  // 2026-09-15). Sahibinin kararı: yükseklik SINIRLANSIN. İç tablo
+  // içeriğine göre daralır, satırla uzamaz; böylece panel her imza
+  // uzunluğunda `avatar + 2*frame` kare kalır.
+  //
+  // İç tablo `table()`'dan geçer — elle `<table>` yazmak Outlook 2512
+  // kenarlık düzeltmesini (border="0" + border:none) atlardı; monogramda
+  // bu hata bir kez yapıldı.
+  const avatarBox = panel
+    ? table(
+        row(
+          cell(avatarImg, {
+            bgcolor: panel.bgcolor,
+            // Buradaki `width` içerik genişliğidir (görselin eni); çerçeve
+            // padding olarak ÜSTÜNE eklenir. Bkz. aşağıdaki dış hücre yorumu.
+            width: s.avatar,
+            style: { padding: `${s.frame}px`, ...panel.style },
+          }),
+        ),
+      )
+    : avatarImg;
+
   const leftCell = hasAvatar
     ? cell(
-        `<img src="${sanitizeUrl(data.visuals.avatarUrl!)}" width="${s.avatar}" height="${s.avatar}" alt="${htmlEscape(
-          data.identity.fullName,
-        )}" border="0" style="${styleToString({
-          display: 'block',
-          border: '0',
-          'border-radius': '50%',
-          width: `${s.avatar}px`,
-          height: `${s.avatar}px`,
-        })}" />`,
+        avatarBox,
         {
           valign: 'top',
-          // 🔴 `width` HER İKİ HÂLDE DE içerik genişliğidir — panel açıkken
-          // `avatar + 2*frame` YAZMA. Bir tur boyunca öyle yazılmıştı ve
-          // çerçeveyi bozuyordu: `<td width>` CSS `width`'e, yani CONTENT
-          // kutusuna düşer, padding ÜSTÜNE eklenir. `width=120` + 104px
-          // görsel → content kutusunda 16px boşluk kalır, görsel sola yaslı
-          // olduğu için hepsi sağa yığılır: solda 8px, sağda 8+16=24px
-          // çerçeve ve avatar→metin 16 yerine 32 olur. `width = avatar` ile
-          // content kutusu görselin tam eni olur, padding dört yandan eşit
-          // uygulanır. Deponun geri kalanı da böyle yazıyor (panel-KAPALI
-          // hâl, classic-horizontal ve divider-columns'ın monogram
-          // hücreleri: `width` = içerik, padding ayrı).
-          width: s.avatar,
-          // Panelin içine LOGO girmez — yalnız zemin rengi eklenir (Karar 4).
-          //
-          // 🔴 Panel açıkken `padding` DÖRT YÖNLÜ ve simetriktir; tek yönlü
-          // `padding-right` DEĞİL. İki turda buraya gelindi, ikisi de kayda
-          // değer:
-          //  ① Önce `padding-right: gap` boyanan hücrenin içindeydi → hücre
-          //    zemini padding kutusunu da kapladığı için avatar ile isim
-          //    arasındaki oluk marka rengine boyanıyor, gövde metni renk
-          //    bloğuna dayanıyordu.
-          //  ② Sonra padding tamamen kaldırıldı → bu sefer panel TAM
-          //    fotoğrafın ayak izi oldu (104px hücre, 104px görsel) ve
-          //    Outlook Classic border-radius'ı yok saydığı için kısa
-          //    imzalarda HİÇ görünmez hâle geldi; yalnız sağ sütun
-          //    avatardan uzunsa altta taşıyordu.
-          // Simetrik çerçeve ikisini birden çözer: panel fotoğrafın
-          // çevresinde her boyutta görünür bir marka kenarı olur, oluğun
-          // dış yarısı (`rightCell`'in padding-left'i) boyanmadan kalır.
-          ...(panel ? { bgcolor: panel.bgcolor } : {}),
-          style: {
-            ...(panel
-              ? { padding: `${s.frame}px`, ...panel.style }
-              : { 'padding-right': `${s.gap}px` }),
-          },
+          // 🔴 `width` HER ZAMAN İÇERİK genişliğidir — `<td width>` CSS
+          // `width`'e, yani CONTENT kutusuna düşer ve padding ÜSTÜNE eklenir.
+          // Panel KAPALIYKEN içerik `<img>`'dir → `s.avatar`.
+          // Panel AÇIKKEN içerik İÇ TABLO'dur ve onun eni çerçeveyi zaten
+          // içerir → `s.avatar + 2*s.frame`.
+          // Bir turda panel-kapalı hâlde `avatar + 2*frame` yazılmıştı ve
+          // çerçeveyi bozuyordu (solda 8px, sağda 24px); ders kayıtlı.
+          width: panel ? s.avatar + s.frame * 2 : s.avatar,
+          // Oluğun BOYANMAYAN kısmı. Panel açıkken çerçeve (iç tablonun
+          // padding'i) oluğun iç yarısını zaten kaplıyor, burada dış yarısı
+          // kalır: frame + (gap - frame) = gap. Yani panel açılıp
+          // kapandığında avatar ile metin arası mesafe DEĞİŞMEZ.
+          style: { 'padding-right': `${panel ? s.gap - s.frame : s.gap}px` },
         },
       )
     : shouldShowMonogram(data)
@@ -442,15 +452,10 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
         )
       : '';
 
-  const rightCell = cell(rightInner, {
-    valign: 'top',
-    // Oluğun BOYANMAYAN yarısı. Panelin sağ kenarı ile metin arasındaki
-    // nefes buradan gelir; iç yarısı panelin kendi çerçevesidir. İkisinin
-    // toplamı `s.gap` — yani panel açılıp kapandığında avatar ile metin
-    // arası mesafe sabit kalır, yalnız iç yarısının boyalı olup olmadığı
-    // değişir. Panel kapalıyken stil hiç eklenmez, çıktı bayt bayt korunur.
-    ...(panel ? { style: { 'padding-left': `${s.gap - s.frame}px` } } : {}),
-  });
+  // Oluk tamamen SOL hücrede (çerçeve + padding-right). Sağ hücre hiçbir
+  // hâlde ek stil taşımaz — panel açık/kapalı çıktısı burada AYNI.
+  const rightCell = cell(rightInner, { valign: 'top' });
+
   const mainRow = row(leftCell + rightCell);
 
   // Logo alt satırda küçük — avatar sütununun DIŞINDA, imzanın en altında,
