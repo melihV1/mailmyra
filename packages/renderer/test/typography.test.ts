@@ -9,21 +9,31 @@ describe('displayName', () => {
     expect(displayName('Elif Kaya', 'normal')).toBe('Elif Kaya');
   });
   it('uppercases when upper', () => {
-    expect(displayName('Elif Kaya', 'upper')).toBe('ELİF KAYA');
+    // Also an instance of the accepted limit below: the lowercase i in
+    // 'Elif' loses its dot under the default rule, same as 'ilker yılmaz'.
+    expect(displayName('Elif Kaya', 'upper')).toBe('ELIF KAYA');
   });
-  it('uses Turkish casing for a lowercase dotted i', () => {
-    expect(displayName('ilker yılmaz', 'upper')).toBe('İLKER YILMAZ');
+  it('keeps a properly written Turkish name correct', () => {
+    // Turkish users write their own name with the dotted capital already
+    // there, and the dotless i uppercases to I under the default locale too —
+    // so the default rule gets this right without Turkish casing.
+    expect(displayName('İlker Yılmaz', 'upper')).toBe('İLKER YILMAZ');
   });
-  it('leaves an already-uppercase Turkish name alone', () => {
-    expect(displayName('İLKER', 'upper')).toBe('İLKER');
+  it('does NOT dot the i of a non-Turkish name', () => {
+    // This is why the default locale is used here and tr-TR is not: Turkish
+    // casing dots EVERY i, so Smith becomes SMİTH and Martin MARTİN.
+    expect(displayName('Ian Smith', 'upper')).toBe('IAN SMITH');
+    expect(displayName('Christina Martin', 'upper')).toBe('CHRISTINA MARTIN');
+  });
+  it('accepts the known limit: an all-lowercase Turkish name loses its dot', () => {
+    // The same limit initialsFrom accepts, in the opposite direction. Costed
+    // and chosen: tr-TR would fix this one name and break every name with an i.
+    expect(displayName('ilker yılmaz', 'upper')).toBe('ILKER YILMAZ');
   });
   it('expands the German sharp s, which is correct here', () => {
     // initialsFrom had to guard against this because it promises at most two
     // characters; a full name has no such limit and SS is the right capital.
-    // The leading 'i' also picks up the same Turkish dotting verified above
-    // ('ilker' -> 'İlker') — toLocaleUpperCase('tr-TR') applies that rule to
-    // every 'i' in the string, sharp-s or not, so 'İ' here is correct too.
-    expect(displayName('Weiß', 'upper')).toBe('WEİSS');
+    expect(displayName('Weiß', 'upper')).toBe('WEISS');
   });
   it('returns empty for an empty name', () => {
     expect(displayName('', 'upper')).toBe('');

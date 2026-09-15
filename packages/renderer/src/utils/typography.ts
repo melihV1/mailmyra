@@ -9,18 +9,25 @@ type NameCase = NonNullable<SignatureData['layout']['nameCase']>;
  * masaüstü Word render motorunda güvenilmez, ama biz zaten çıktıyı üreten
  * tarafız — güvenilmez bir CSS özelliğine bulaşmak için sebep yok.
  *
- * `toLocaleUpperCase('tr-TR')` — `initialsFrom`'un kullandığı kuralın aynısı
- * (`i` → `İ`). Bilinen sınır da aynı: tamamen küçük harfle yazılmış İngilizce
- * bir isim (`ian smith` → `İAN SMİTH`). Nadir ve müşteri kitlesinin doğru
- * tarafında.
+ * VARSAYILAN `toUpperCase()` kullanılır — komşu `initialsFrom`'un
+ * `toLocaleUpperCase('tr-TR')`'ından KASITLI OLARAK FARKLI. Birleştirmeyin.
  *
- * `ß` → `SS` katlaması BURADA SORUN DEĞİL (monogramda sorundu, çünkü orada
- * "en fazla iki karakter" garantisi vardı); tam isimde SS doğru Almanca
- * büyük harftir.
+ * Sebep ölçüldü: Türkçe kural isimdeki HER `i`'yi noktalıya çevirir, yalnız
+ * ilk harfi değil. `Smith` → `SMİTH`, `Martin` → `MARTİN`, `Weiß` → `WEİSS`.
+ * Varsayılan kuralda düzgün yazılmış Türkçe isim de doğru çıkar (`İ` zaten
+ * büyüktür, `ı` → `I` doğrudur): `İlker Yılmaz` → `İLKER YILMAZ`.
+ *
+ * Kabul edilen tek sınır: tamamen küçük harfle yazılmış Türkçe isim
+ * (`ilker yılmaz` → `ILKER YILMAZ`, noktası düşer). `initialsFrom`'un kabul
+ * ettiği sınırın aynısı ama ters yönde — orada bedel tek harf, burada bir
+ * harf; `tr-TR` seçseydik bedel `i` içeren HER isim olurdu.
+ *
+ * `ß` → `SS` katlaması iki kuralda da olur ve burada DOĞRUDUR: tam isimde SS
+ * doğru Almanca büyük harftir.
  */
 export function displayName(fullName: string, nameCase: NameCase | undefined): string {
   if (nameCase !== 'upper') return fullName;
-  return fullName.toLocaleUpperCase('tr-TR');
+  return fullName.toUpperCase();
 }
 
 /**
