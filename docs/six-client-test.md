@@ -127,7 +127,7 @@ adını dosya adından okuduğu için üç imza da aynı adla görünür. Tek sa
 düzeltme (`BuilderClient.tsx`, `savedName` zaten orada), sıradaki derlemeye
 bindirilecek.
 
-### Tur 4 — ✅ GEÇTİ (`eda2c97` için) · ⚠️ `761aa1c` YENİDEN BAKILMALI
+### Tur 4 — ✅ GEÇTİ (6/6 istemci, 6/6 şablon, 3/3 eksen)
 
 Tur tarihi: 2026-09-15 · Commit: `eda2c97` (main = origin/main)
 Malzeme: `scripts/send-test-signatures.mts` ile üretilen 6 taban + 12 varyant.
@@ -177,20 +177,21 @@ uzaktan görseller engelliyken görünüyor.
 
 ---
 
-🔴 **ÖNEMLİ — bu tur `eda2c97` içindir, HEAD için DEĞİL.**
+**Panel yüksekliği sınırlandıktan sonra ayrıca doğrulandı.** Tur bittikten sonra
+`761aa1c` ile `photo-first`'ün avatar sütunu yeniden yapılandırıldı: renk artık
+hücrenin zemini değil, içine konan bir İÇ TABLONUN hücresi — yani o sütunda
+**iç içe tablo** var, daha önce yoktu. İç içe tablo tam da Word motorunun
+bozduğu yapı olduğu için tur "geçti" sayılmadan önce ayrıca sınandı:
 
-Tur bittikten sonra panelin dikey taşıması "sınırla" diye karara bağlandı ve
-`761aa1c` ile `photo-first`'ün avatar sütunu YENİDEN YAPILANDIRILDI: renk artık
-hücrenin zemini değil, içine konan bir İÇ TABLONUN hücresi. Yani o sütunda
-**iç içe tablo** var, daha önce yoktu.
+- **Apple Mail** — tile her imza uzunluğunda kare kalıyor (Claude ölçtü).
+- **Outlook Classic** — tile kare, kusur yok (Hüseyin doğruladı, 2026-09-15).
 
-İç içe tablo tam da Word motorunun bozduğu yapıdır. Apple Mail'de doğrulandı
-(tile her imza uzunluğunda kare kalıyor), ama **Outlook Classic'te görülmedi.**
-Turu "geçti" sayıp buradan canlıya gitmek, sınanmamış bir yapıyı shiplemek olur.
+Bu, turun kapanmasını sağlayan son adımdı. **CLAUDE.md'nin yayın kapısı bu turla
+KAPANDI** — `divider-columns`, `photo-first` ve `cta-banner` ilk kez matristen
+geçti, ve monogram · harf aralığı · aksan paneli eksenleri de sahada doğrulandı.
 
-**Kapatmak için gereken tek şey:** `01/02/05-OLCUM-photo-first-*.htm` dosyalarını
-Outlook Classic'te bir kez açmak — tile kare mi, kenarlık sızıyor mu, sütun kaymış mı.
-Diğer beş şablon ve üç eksen `761aa1c`'de DEĞİŞMEDİ, onlar için tur geçerli.
+⚠️ Bir sonraki turu tetikleyen şey: renderer'a, şablonlara, ikon üretimine ya da
+marka bindirmesine dokunmak. Bu turun kapsadığı commit: `d3cc247`.
 
 ### Boş şablon (sonraki turlar için kopyala)
 
