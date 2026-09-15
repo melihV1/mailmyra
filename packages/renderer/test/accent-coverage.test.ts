@@ -23,7 +23,18 @@ const base: SignatureData = {
 // açık/kapalı çıktısı arasındaki fark bazen tek bir stil değeri kadar küçük
 // olabilir ve bir alt dizeyle yakalanamaz — burada iddia edilen şey "hiçbir
 // fark yok", bu da yalnızca `toBe` ile kanıtlanabilir.
-const IGNORES_THE_SWITCH = ['classic-horizontal', 'divider-columns', 'stacked-minimal'] as const;
+// `cta-banner` dahil DÖRT şablon (final review ④): bu şablonun kendi CTA
+// bandı var ve `accentBand`'ı hiç okumuyor (bkz. cta-banner.ts) — anahtar
+// onda da tamamen etkisiz. Aşağıdaki `describe('cta-banner', ...)` bloğu
+// CTA'nın anahtar kapalıyken HAYATTA KALDIĞINI kanıtlıyor; bu döngü FARKLI
+// bir iddia kanıtlar — anahtarın çıktıyı hiç DEĞİŞTİRMEDİĞİNİ (`base`
+// fixture'ında zaten CTA yok, dolayısıyla iki ayar da birebir aynı basar).
+const IGNORES_THE_SWITCH = [
+  'classic-horizontal',
+  'divider-columns',
+  'stacked-minimal',
+  'cta-banner',
+] as const;
 
 for (const templateId of IGNORES_THE_SWITCH) {
   it(`${templateId} renders identically whichever way the accent switch is set`, () => {
@@ -54,12 +65,7 @@ describe('cta-banner', () => {
       'cta-banner',
     );
     expect(html).toContain('Book a meeting');
-    // NOT (guncellendi): bu sablonun CTA bandi artik zemini `bgcolor`
-    // attribute'u VE `background-color` stiliyle BIRLIKTE veriyor (bkz.
-    // cta-banner.test.ts, "the CTA band cell also carries a bgcolor
-    // attribute..." testi) — asagidaki tutarsizlik notu artik GECERSIZ,
-    // duzeltildi. Burada hala bandin CIZILDIGINI olcuyoruz (accentBand
-    // anahtariyla ILGISIZ oldugunu), nasil boyandigini o baska testin isi.
+    // Burada yalnız bandın ÇİZİLDİĞİNİ (accentBand'dan bağımsız olduğunu) ölçüyoruz — zeminin `bgcolor`+`background-color` çiftiyle nasıl boyandığı cta-banner.test.ts'in işi (final review ⑧: eski altı satırlık not var olmayan bir "aşağıdaki nota" atıf yapıyordu, tek satıra indirildi).
     expect(html).toContain('background-color:#7b9fd3');
   });
 });
