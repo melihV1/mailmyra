@@ -19,6 +19,14 @@ interface SizeScale {
   logo: number;
   gap: number;
   /**
+   * Aksan paneli AÇIKKEN fotoğrafın çevresindeki marka rengi çerçevenin
+   * kalınlığı. card-bordered'ın bant ölçeğiyle (6/8/10) aynı kademe.
+   * Her boyutta `gap`in tam YARISI: çerçeve + eşit kalınlıkta boyanmamış
+   * oluk = eski toplam boşluk. Yani panel açılıp kapanınca avatar ile
+   * metin arası mesafe DEĞİŞMEZ, yalnız o mesafenin iç yarısı boyanır.
+   */
+  frame: number;
+  /**
    * Kök tablonun toplam genişliği — SABİT piksel, yüzde DEĞİL.
    * Sebep (cta-banner.ts'teki `SizeScale.width` gerekçesiyle birebir, bkz.
    * de card-bordered.ts:23-29): bu şablonun içi `width="100%"` iç içe
@@ -40,9 +48,9 @@ interface SizeScale {
 // AYRI ve KÜÇÜK — "small bottom row" (brief), avatar'ın ~%70'i. `width`
 // cta-banner emsali (bkz. SizeScale.width yorumu) — 480/540/600.
 const SIZES: Record<Size, SizeScale> = {
-  small: { name: 18, title: 12, body: 12, small: 11, avatar: 88, logo: 64, gap: 12, width: 480 },
-  medium: { name: 22, title: 13, body: 13, small: 11, avatar: 104, logo: 76, gap: 16, width: 540 },
-  large: { name: 26, title: 15, body: 14, small: 12, avatar: 120, logo: 88, gap: 20, width: 600 },
+  small: { name: 18, title: 12, body: 12, small: 11, avatar: 88, logo: 64, gap: 12, frame: 6, width: 480 },
+  medium: { name: 22, title: 13, body: 13, small: 11, avatar: 104, logo: 76, gap: 16, frame: 8, width: 540 },
+  large: { name: 26, title: 15, body: 14, small: 12, avatar: 120, logo: 88, gap: 20, frame: 10, width: 600 },
 };
 
 /**
@@ -378,17 +386,32 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
         })}" />`,
         {
           valign: 'top',
-          width: s.avatar,
-          // Panelin içine LOGO girmez — yalnız zemin rengi + metin rengi
-          // eklenir (Karar 4, spec). `padding-right` panel AÇIKKEN 0'a iner
-          // (② — boşluk `rightCell`'e `padding-left` olarak geçer): aksi
-          // hâlde avatar ile isim arasındaki oluk artık panelin İÇİNDE
-          // kalır ve marka rengiyle boyanır. Panel KAPALIYKEN (`accentBand:
-          // 'off'`) bugünkü yerleşim bayt bayt korunur.
+          // Panel AÇIKKEN hücre, çerçeve kadar iki yandan genişler; `width`
+          // açıkça toplam boyanan genişliği söyler (Word `padding`i hücre
+          // genişliğine kendi eklemez, tablo matematiğini tahmine bırakma).
+          width: panel ? s.avatar + s.frame * 2 : s.avatar,
+          // Panelin içine LOGO girmez — yalnız zemin rengi eklenir (Karar 4).
+          //
+          // 🔴 Panel açıkken `padding` DÖRT YÖNLÜ ve simetriktir; tek yönlü
+          // `padding-right` DEĞİL. İki turda buraya gelindi, ikisi de kayda
+          // değer:
+          //  ① Önce `padding-right: gap` boyanan hücrenin içindeydi → hücre
+          //    zemini padding kutusunu da kapladığı için avatar ile isim
+          //    arasındaki oluk marka rengine boyanıyor, gövde metni renk
+          //    bloğuna dayanıyordu.
+          //  ② Sonra padding tamamen kaldırıldı → bu sefer panel TAM
+          //    fotoğrafın ayak izi oldu (104px hücre, 104px görsel) ve
+          //    Outlook Classic border-radius'ı yok saydığı için kısa
+          //    imzalarda HİÇ görünmez hâle geldi; yalnız sağ sütun
+          //    avatardan uzunsa altta taşıyordu.
+          // Simetrik çerçeve ikisini birden çözer: panel fotoğrafın
+          // çevresinde her boyutta görünür bir marka kenarı olur, oluğun
+          // dış yarısı (`rightCell`'in padding-left'i) boyanmadan kalır.
           ...(panel ? { bgcolor: panel.bgcolor } : {}),
           style: {
-            'padding-right': panel ? undefined : `${s.gap}px`,
-            ...(panel ? panel.style : {}),
+            ...(panel
+              ? { padding: `${s.frame}px`, ...panel.style }
+              : { 'padding-right': `${s.gap}px` }),
           },
         },
       )
@@ -413,10 +436,12 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
 
   const rightCell = cell(rightInner, {
     valign: 'top',
-    // Panel açıkken boşluk buraya `padding-left` olarak taşınır — leftCell
-    // yorumundaki ②'nin aynadaki karşılığı. Panel kapalıyken (ya da hiç
-    // yokken) stil hiç eklenmez, bugünkü çıktı bayt bayt korunur.
-    ...(panel ? { style: { 'padding-left': `${s.gap}px` } } : {}),
+    // Oluğun BOYANMAYAN yarısı. Panelin sağ kenarı ile metin arasındaki
+    // nefes buradan gelir; iç yarısı panelin kendi çerçevesidir. İkisinin
+    // toplamı `s.gap` — yani panel açılıp kapandığında avatar ile metin
+    // arası mesafe sabit kalır, yalnız iç yarısının boyalı olup olmadığı
+    // değişir. Panel kapalıyken stil hiç eklenmez, çıktı bayt bayt korunur.
+    ...(panel ? { style: { 'padding-left': `${s.gap - s.frame}px` } } : {}),
   });
   const mainRow = row(leftCell + rightCell);
 

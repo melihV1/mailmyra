@@ -417,14 +417,46 @@ describe('photo-first accent panel', () => {
     expect(say(on)).toBe(1);
   });
 
-  it('moves the avatar/name gap off the panel: padding-right leaves the left cell, padding-left lands on the right cell (final review ②)', () => {
-    // Panel acikken sol hucrenin acilis etiketinde padding-right HIC yok —
-    // aksi halde oluk panelin icinde kalir ve marka rengiyle boyanir.
-    const html = renderSignature(base, 'photo-first');
-    const leftOpen = html.match(/<td valign="top" bgcolor="#7b9fd3"[^>]*>/)![0];
-    expect(leftOpen).not.toContain('padding-right');
-    // Bosluk sag hucreye tasindi (medium boy gap=16px).
-    expect(html).toContain('<td valign="top" style="padding-left:16px">');
+  // final review ② (IKI turda): once padding-right boyanan hucrenin icindeydi
+  // (oluk marka rengine boyaniyordu), sonra padding tamamen kaldirildi ve bu
+  // sefer panel TAM fotografin ayak izi oldu — Outlook Classic border-radius'i
+  // yok saydigi icin kisa imzalarda HIC gorunmuyordu. Cozum simetrik cerceve.
+  //
+  // DIKKAT (igne): asagidaki iddialar sol/sag hucrelerin KENDI acilis
+  // etiketlerine cipalanir. Belge geneline `toContain('padding:8px')` demek
+  // ISE YARAMAZ — bu sablonda baska hucreler de padding basiyor ve iddia
+  // ozellik olmasa da gecebilir (bu projede ayni tuzaga bes kez dusuldu).
+  it.each([
+    { size: 'small' as const, avatar: 88, gap: 12, frame: 6 },
+    { size: 'medium' as const, avatar: 104, gap: 16, frame: 8 },
+    { size: 'large' as const, avatar: 120, gap: 20, frame: 10 },
+  ])('frames the photo symmetrically at $size and leaves the outer half of the gap unpainted', ({ size, avatar, gap, frame }) => {
+    const html = renderSignature({ ...base, layout: { ...base.layout, size } }, 'photo-first');
+    const left = html.match(/<td valign="top" bgcolor="#7b9fd3"[^>]*>/)![0];
+    // Cerceve DORT YONLU: tek yonlu padding-right geri gelirse oluk yine
+    // panelin icinde kalir.
+    expect(left).toContain(`padding:${frame}px`);
+    expect(left).not.toContain('padding-right');
+    // Hucre iki yandan cerceve kadar genisler; `width` toplam boyanan alani
+    // acikca soyler (Word padding'i hucre genisligine kendi eklemez).
+    expect(left).toContain(`width="${avatar + frame * 2}"`);
+    // Olugun disardaki, BOYANMAYAN yarisi sag hucrede.
+    const right = html.match(/<td valign="top" style="padding-left:[^"]*">/)![0];
+    expect(right).toContain(`padding-left:${gap - frame}px`);
+    // Degismez kural: cerceve + boyanmayan oluk = panel KAPALIYKEN ki bosluk,
+    // yani panel acilip kapandiginda avatar ile metin arasi mesafe SABIT
+    // kalir. Sagdaki degeri sabit yazmak yerine panel-kapali ciktidan
+    // OLCUYORUZ — `expect(frame + (gap - frame)).toBe(gap)` bir totolojidir
+    // ve hicbir mutasyonda kirmizi olamaz.
+    const off = renderSignature(
+      { ...base, layout: { ...base.layout, size, accentBand: 'off' } },
+      'photo-first',
+    );
+    const offLeft = off.match(/<td valign="top" width="\d+" style="padding-right:[^"]*">/)![0];
+    const offGap = Number(offLeft.match(/padding-right:(\d+)px/)![1]);
+    const onFrame = Number(left.match(/padding:(\d+)px/)![1]);
+    const onGutter = Number(right.match(/padding-left:(\d+)px/)![1]);
+    expect(onFrame + onGutter).toBe(offGap);
   });
 
   it('keeps the panel-off gap exactly where it always was: padding-right on the left cell, nothing on the right (final review ②, byte-identical guard)', () => {
