@@ -6,6 +6,7 @@ import { normalizeHex, readableTextOn } from '../utils/color';
 import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 import { nameLetterSpacing } from '../utils/typography';
+import { accentPanelStyle, shouldShowAccentBand } from '../utils/accent';
 
 type Size = SignatureData['layout']['size'];
 
@@ -341,6 +342,16 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
 
   // Sol hücre: YALNIZ avatar (baskın, tek görsel yuva — brief §1.2).
   const hasAvatar = Boolean(data.visuals.avatarUrl);
+  // Panel YALNIZ hücre doluyken uygulanır — boş sütunu renge boyamak hem
+  // saçma hem "renkli hücre asla boş olmaz" kuralını kırar (Outlook boş
+  // hücreye zemin boyamıyor, bkz. accent.ts). Koşul, colspan kararıyla
+  // (logoRow altında) AYNI: avatar VEYA monogram.
+  const columnFilled = hasAvatar || shouldShowMonogram(data);
+  // Panel, avatar/monogram ile AYNI hücrede durur: ayrı bir hücre açsaydık
+  // Word'de iki hücrenin yüksekliği ayrışabilirdi.
+  const panel = columnFilled && shouldShowAccentBand(data)
+    ? accentPanelStyle(data.visuals.brandColor)
+    : null;
   const leftCell = hasAvatar
     ? cell(
         `<img src="${sanitizeUrl(data.visuals.avatarUrl!)}" width="${s.avatar}" height="${s.avatar}" alt="${htmlEscape(
@@ -355,7 +366,15 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
         {
           valign: 'top',
           width: s.avatar,
-          style: { 'padding-right': `${s.gap}px` },
+          // 🔴 Panel GÖRSEL İÇERMEZ — logo bu hücreye asla girmez, yalnız
+          // zemin rengi + metin rengi eklenir. Mevcut `padding-right`
+          // KORUNUR, panel stili üstüne yayılır (① — çağıranın style'ını
+          // SİLME, deep-merge yok).
+          ...(panel ? { bgcolor: panel.bgcolor } : {}),
+          style: {
+            'padding-right': `${s.gap}px`,
+            ...(panel ? panel.style : {}),
+          },
         },
       )
     : shouldShowMonogram(data)
@@ -367,7 +386,15 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
             fontFamily: font,
             borderRadius: '50%',
           }),
-          { valign: 'top', width: s.avatar, style: { 'padding-right': `${s.gap}px` } },
+          {
+            valign: 'top',
+            width: s.avatar,
+            ...(panel ? { bgcolor: panel.bgcolor } : {}),
+            style: {
+              'padding-right': `${s.gap}px`,
+              ...(panel ? panel.style : {}),
+            },
+          },
         )
       : '';
 

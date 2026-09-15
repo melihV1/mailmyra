@@ -354,3 +354,58 @@ describe('photo-first name spacing', () => {
     ).not.toMatch(/text-transform/i);
   });
 });
+
+describe('photo-first accent panel', () => {
+  const base: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827',
+      mutedColor: '#6b7280', fontFamily: 'Arial, Helvetica, sans-serif',
+      avatarUrl: 'https://cdn.mailmyra.com/a.png',
+    },
+    social: [],
+    layout: { templateId: 'photo-first', size: 'medium', iconStyle: 'mono', showDividers: false },
+  };
+
+  it('paints the avatar column by default', () => {
+    expect(renderSignature(base, 'photo-first')).toContain('bgcolor="#7b9fd3"');
+  });
+  it('leaves the column unpainted when turned off', () => {
+    const html = renderSignature({ ...base, layout: { ...base.layout, accentBand: 'off' } }, 'photo-first');
+    expect(html).not.toContain('bgcolor="#7b9fd3"');
+  });
+  it('paints the column when a monogram stands in for the photo', () => {
+    // DIKKAT: monogramin KENDISI de `bgcolor="#7b9fd3"` basiyor, yani varligi
+    // olcmek paneli hic eklemesek bile yesil verirdi. Panel AYRI bir hucreye
+    // uygulandigi icin dogru olcum SAYIMDIR: panelliyken iki, panelsizken bir.
+    const { avatarUrl: _drop, ...noAvatar } = base.visuals;
+    const say = (h: string) => (h.match(/bgcolor="#7b9fd3"/g) ?? []).length;
+    const on = renderSignature({ ...base, visuals: noAvatar }, 'photo-first');
+    const off = renderSignature(
+      { ...base, visuals: noAvatar, layout: { ...base.layout, accentBand: 'off' } },
+      'photo-first',
+    );
+    expect(say(off)).toBe(1);
+    expect(say(on)).toBe(2);
+  });
+  // Bu vakada monogram da kapali, yani `bgcolor` hicbir kaynaktan gelmemeli —
+  // varligi olcmek burada guvenli.
+  it('paints nothing when the column is empty', () => {
+    const { avatarUrl: _drop, ...noAvatar } = base.visuals;
+    const html = renderSignature(
+      { ...base, visuals: noAvatar, identity: { fullName: '   ' }, layout: { ...base.layout, monogram: 'off' } },
+      'photo-first',
+    );
+    expect(html).not.toContain('bgcolor="#7b9fd3"');
+  });
+  it('keeps the logo out of the painted column', () => {
+    const html = renderSignature(
+      { ...base, visuals: { ...base.visuals, logoUrl: 'https://cdn.mailmyra.com/l.png' } },
+      'photo-first',
+    );
+    const i = html.indexOf('bgcolor="#7b9fd3"');
+    const cellEnd = html.indexOf('</td>', i);
+    expect(html.slice(i, cellEnd)).not.toContain('l.png');
+  });
+});
