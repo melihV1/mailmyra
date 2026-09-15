@@ -528,13 +528,19 @@ describe('card-bordered accent band', () => {
     layout: { templateId: 'card-bordered', size: 'medium', iconStyle: 'mono', showDividers: false },
   };
 
+  // DIKKAT: `bgcolor="#7b9fd3"` bandin imzasi DEGILDIR — bu fixture'da avatar
+  // yok, dolayisiyla monogram tetikleniyor ve AYNI bgcolor'u basiyor. Bandi
+  // ondan ayiran sey cokertilmis satir kutusu (`font-size:1px` +
+  // `line-height:1px`), ki monogram onu hicbir zaman uretmez.
   it('draws the band by default', () => {
     const html = renderSignature(base, 'card-bordered');
-    expect(html).toContain('bgcolor="#7b9fd3"');
+    expect(html).toContain('font-size:1px');
+    expect(html).toContain('line-height:1px');
     expect(html).toContain('height:8px');
   });
   it('drops the band when turned off', () => {
     const html = renderSignature({ ...base, layout: { ...base.layout, accentBand: 'off' } }, 'card-bordered');
+    expect(html).not.toContain('font-size:1px');
     expect(html).not.toContain('height:8px');
   });
   it('drops the card top border when the band replaces it', () => {
@@ -548,7 +554,7 @@ describe('card-bordered accent band', () => {
       { ...base, visuals: { ...base.visuals, logoUrl: 'https://cdn.mailmyra.com/l.png' } },
       'card-bordered',
     );
-    const band = html.slice(html.indexOf('height:8px'));
+    const band = html.slice(html.indexOf('font-size:1px'));
     const bandEnd = band.indexOf('</tr>');
     expect(band.slice(0, bandEnd)).not.toMatch(/<img/i);
   });
@@ -662,10 +668,21 @@ describe('photo-first accent panel', () => {
     expect(html).not.toContain('bgcolor="#7b9fd3"');
   });
   it('paints the column when a monogram stands in for the photo', () => {
+    // DIKKAT: monogramin KENDISI de `bgcolor="#7b9fd3"` basiyor, yani varligi
+    // olcmek paneli hic eklemesek bile yesil verirdi. Panel AYRI bir hucreye
+    // uygulandigi icin dogru olcum SAYIMDIR: panelliyken iki, panelsizken bir.
     const { avatarUrl: _drop, ...noAvatar } = base.visuals;
-    const html = renderSignature({ ...base, visuals: noAvatar }, 'photo-first');
-    expect(html).toContain('bgcolor="#7b9fd3"');
+    const say = (h: string) => (h.match(/bgcolor="#7b9fd3"/g) ?? []).length;
+    const on = renderSignature({ ...base, visuals: noAvatar }, 'photo-first');
+    const off = renderSignature(
+      { ...base, visuals: noAvatar, layout: { ...base.layout, accentBand: 'off' } },
+      'photo-first',
+    );
+    expect(say(off)).toBe(1);
+    expect(say(on)).toBe(2);
   });
+  // Bu vakada monogram da kapali, yani `bgcolor` hicbir kaynaktan gelmemeli —
+  // varligi olcmek burada guvenli.
   it('paints nothing when the column is empty', () => {
     const { avatarUrl: _drop, ...noAvatar } = base.visuals;
     const html = renderSignature(
