@@ -24,7 +24,16 @@ describe('cardBordered', () => {
     expect(html).toContain('href="tel:+905550000000"');
   });
   it('wraps the body in a bordered, padded, white card', () => {
-    const html = cardBordered(full);
+    // final review ③: accentBand'i AÇIKÇA kapatıyoruz. `accentBand` varsayılan
+    // açık olduğu için kartın kendi üst kenarlığı normalde ÇİZİLMİYOR (bant
+    // onun yerini alıyor, bkz. "drops the card top border when the band
+    // replaces it" testi) — pinlemeden önce bu test yine de yeşildi, ama
+    // yanlış sebeple: `full` fixture'ının `showDividers: true` olması yüzünden
+    // AYNI '#dfdfe0' dizesini basan alakasız bir iç ayraç (iletişim bloğunun
+    // border-top'u) testi kurtarıyordu. Aynı düzeltme dosyada zaten var (bkz.
+    // "draws no divider when there is no contact block at all" testi) — onu
+    // örnek alıyoruz.
+    const html = cardBordered({ ...full, layout: { ...full.layout, accentBand: 'off' } });
     // Kenarlık mutedColor'dan türetilir (#6d6e71 → %78 beyaza karışmış)
     expect(html).toContain('border-top:1px solid #dfdfe0');
     expect(html).toContain('border-right:1px solid #dfdfe0');
