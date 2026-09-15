@@ -140,13 +140,19 @@ describe('stackedMinimal', () => {
     const html = stackedMinimal(full);
     expect(html).toContain('href="https://voldi.net/meeting"');
     expect(html).toContain('Book a meeting');
-    // Düğme metni readableTextOn(brandColor) ile seçilir — #7b9fd3 üstünde siyah (daha yüksek kontrast)
-    expect(html).toContain('color:#000000');
+    // Düğme metni readableTextOn(brandColor) ile seçilir — #7b9fd3 üstünde
+    // siyah (daha yüksek kontrast). Anchor'ın kendi parçası üzerinden
+    // doğrula (bkz. card-bordered.test.ts) — monogram hücresi de
+    // `color:#000000` yayar, tüm belgede arasak fotoğrafsız bir fixture'a
+    // geçildiğinde yanlış sebeple geçen bir test olurduk.
+    const ctaAnchor = html.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(ctaAnchor).toContain('color:#000000');
     const light = stackedMinimal({
       ...full,
       visuals: { ...full.visuals, brandColor: '#ffee00' },
     });
-    expect(light).toContain('color:#000000');
+    const lightAnchor = light.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(lightAnchor).toContain('color:#000000');
   });
   it('omits the CTA when only one of label/url is set', () => {
     const half = { ...full, extras: { ...full.extras, ctaUrl: undefined } };

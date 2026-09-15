@@ -138,8 +138,13 @@ describe('photoFirst', () => {
     const both = photoFirst(full);
     expect(both).toContain('Book a meeting');
     expect(both).toContain('background-color:#7b9fd3');
-    // readableTextOn(#7b9fd3) → siyah (daha yüksek kontrast)
-    expect(both).toContain('color:#000000');
+    // readableTextOn(#7b9fd3) → siyah (daha yüksek kontrast). Anchor'ın
+    // kendi parçası üzerinden doğrula (bkz. card-bordered.test.ts) — `full`
+    // fixture'ı fotoğraflı, ama monogram hücresi de `color:#000000` yayar;
+    // tüm belgede arasak fotoğrafsız bir fixture'a geçildiğinde yanlış
+    // sebeple geçen bir test olurduk.
+    const ctaAnchor = both.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(ctaAnchor).toContain('color:#000000');
   });
   it('avatar and logo are independent left/bottom slots (logo-only fixture has no avatar <img>)', () => {
     const logoOnly = {

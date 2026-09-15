@@ -19,14 +19,27 @@ import { table, row, cell } from './table';
  * Son satır tamamen küçük harfle yazılmış İngilizce bir isim gerektirir;
  * insanlar kendi adını böyle yazmaz. Düz `toUpperCase()` seçilseydi 2.
  * satır `IY` çıkardı — yani gerçek müşteri kitlesinde bozulurdu.
+ *
+ * ⚠️ `toLocaleUpperCase` TAM büyük harf katlaması yapar — girdi TEK kod
+ * noktası olsa bile çıktı birden fazla karakter olabilir (`ß` → `'SS'`,
+ * ligatür `ﬁ` → `'FI'`). Büyütmeden SONRA çıktının da ilk kod noktasına
+ * indirilmesi bu yüzden şart: aksi hâlde `initialsFrom('ßayan Test')` üç
+ * karaktere çıkar (`'SST'`) ve alttaki "en fazla 2 harf" garantisini —
+ * dolayısıyla `monogramCell`'in %40 punto hesabını (bkz. o fonksiyonun
+ * yorumu) — bozar.
  */
 export function initialsFrom(fullName: string): string {
   const words = fullName.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return '';
 
   // [...w][0] — kod noktası güvenli: 'w[0]' astral karakterlerde (emoji)
-  // vekil çiftin yarısını döndürüp bozuk karakter üretirdi.
-  const first = (w: string) => ([...w][0] ?? '').toLocaleUpperCase('tr-TR');
+  // vekil çiftin yarısını döndürüp bozuk karakter üretirdi. Büyütmeden
+  // SONRA `[...upper][0]` ile aynı indirgeme tekrar uygulanır — katlama
+  // (ß→SS, ﬁ→FI) çıktıyı birden fazla kod noktasına genişletebildiği için.
+  const first = (w: string) => {
+    const upper = ([...w][0] ?? '').toLocaleUpperCase('tr-TR');
+    return [...upper][0] ?? '';
+  };
 
   if (words.length === 1) return first(words[0]!);
   return first(words[0]!) + first(words[words.length - 1]!);

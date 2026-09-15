@@ -206,9 +206,13 @@ describe('ctaBanner', () => {
     const html = ctaBanner(full);
     expect(html).toContain('Book a meeting');
     expect(html).toContain('background-color:#7b9fd3');
-    // readableTextOn(#7b9fd3) → black (higher contrast against brand blue)
-    expect(html).toContain('color:#000000');
+    // readableTextOn(#7b9fd3) → black (higher contrast against brand blue).
+    // Scoped to the anchor itself (see card-bordered.test.ts) — the
+    // monogram cell also emits `color:#000000`, so searching the whole
+    // document would pass for the wrong reason once a photo-less fixture
+    // is used here.
     const ctaAnchor = html.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(ctaAnchor).toContain('color:#000000');
     expect(ctaAnchor).toContain('font-weight:bold');
   });
 

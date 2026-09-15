@@ -243,8 +243,13 @@ describe('dividerColumns', () => {
     const both = dividerColumns(full);
     expect(both).toContain('Book a meeting');
     expect(both).toContain('background-color:#7b9fd3');
-    // readableTextOn(#7b9fd3) → siyah (daha yüksek kontrast, bkz. color.test.ts)
-    expect(both).toContain('color:#000000');
+    // readableTextOn(#7b9fd3) → siyah (daha yüksek kontrast, bkz. color.test.ts).
+    // Anchor'ın kendi parçası üzerinden doğrula (bkz. card-bordered.test.ts) —
+    // monogram hücresi de `color:#000000` yayar, tüm belgede arasak
+    // fotoğrafsız bir fixture'a geçildiğinde yanlış sebeple geçen bir test
+    // olurduk.
+    const ctaAnchor = both.match(/<a[^>]*>Book a meeting<\/a>/i)![0];
+    expect(ctaAnchor).toContain('color:#000000');
   });
 
   it('root table carries a literal pixel width per size — max-width alone is not enough (Outlook Word engine ignores CSS max-width, and both columns here wrap width="100%" nested content — the divider line and social-icon tables — that would expand to the full reading pane without a bounded pixel ancestor)', () => {

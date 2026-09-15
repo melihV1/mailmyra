@@ -113,12 +113,20 @@ for (const mode of MODES) {
   }
 }
 
-// Monogram dalı fixture'larda tetiklenmiyor (hepsinin avatari var), bu yuzden
-// yasak yapi kontrolu fotografsiz cikti icin ayrica kosulur. Kontrol listesi
-// MODES döngüsüyle AYNI dizilerden (ALL_FORBIDDEN_CONSTRUCTS) geliyor —
-// böylece bu blok, adının vaat ettiği "no forbidden constructs" kapsamını
-// gerçekten karşılıyor; MODES tarafına yeni bir kontrol eklendiğinde bu
-// blok elle güncellenmeden pariteyi korur.
+// ⚠️ Düzeltme (final review): bu bloğun önceki yorumu "monogram dalı
+// fixture'larda tetiklenmiyor (hepsinin avatari var)" diyordu — YANLIŞ.
+// `src/fixtures/samples.ts`'teki `minimal` ve `noLogo` fixture'larının
+// `avatarUrl`'ü YOK; yani yukarıdaki MODES döngüsü zaten her şablon × bu
+// iki fixture × iki mod için monogram dalını çalıştırıyor. Bu blok var
+// olmayan bir boşluğu KAPATMIYOR — asıl işi, dalı fixture bileşimine
+// güvenmeden AÇIKÇA sabitlemek: MODES'un kapsamı fixture listesi
+// değiştiğinde (ör. bütün fixture'lara avatarUrl eklenirse) sessizce
+// daralabilir, burası her zaman fotoğrafsız bir SignatureData ile
+// çağrıldığı için o riski taşımaz. Bu yüzden SİLİNMEDİ, tutuldu.
+//
+// Paylaşılan-sabit çıkarımı (ALL_FORBIDDEN_CONSTRUCTS, MODES ile AYNI
+// diziler) iyi bir iyileştirme olarak KALDI: MODES tarafına yeni bir
+// kontrol eklendiğinde bu blok elle güncellenmeden pariteyi korur.
 describe('guardrails: monogram branch', () => {
   for (const templateId of TEMPLATE_IDS) {
     it(`${templateId} emits no forbidden constructs without a photo`, () => {

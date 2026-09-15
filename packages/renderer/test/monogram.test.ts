@@ -40,6 +40,15 @@ describe('initialsFrom', () => {
   it('is code-point safe for astral characters', () => {
     expect(initialsFrom('🙂 Kaya')).toBe('🙂K');
   });
+  // M1: `toLocaleUpperCase` tam büyük harf katlaması yapar — bir kod
+  // noktasından birden fazla çıkabilir. Katlama sonrası ilk kod noktasına
+  // indirilmezse "en fazla iki harf" garantisi bozulur.
+  it('folds German ß (uppercases to SS) back down to one letter', () => {
+    expect(initialsFrom('ßayan Test')).toBe('ST');
+  });
+  it('folds the ﬁ ligature (uppercases to FI) back down to one letter', () => {
+    expect(initialsFrom('ﬁrat Yılmaz')).toBe('FY');
+  });
 });
 
 const base: SignatureData = {

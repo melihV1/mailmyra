@@ -227,7 +227,13 @@ Birim (`packages/renderer/test/`):
 - Her şablon için: `avatarUrl` yokken monogram VAR, varken YOK,
   `monogram: 'off'` iken YOK.
 - Guardrail: monogram çıktısında `<div>`, `<style>`, SVG, `position`,
-  `flex` geçmemeli (mevcut `guardrails.test.ts` desenine eklenir).
+  `flex` geçmemeli (mevcut `guardrails.test.ts` desenine eklenir). Bu dalı
+  fixture bileşimine güvenerek DEĞİL, fotoğrafsız bir `SignatureData` ile
+  açıkça çağırarak sabitle — mevcut fixture'ların avatarsız olması (bkz.
+  `minimal`/`noLogo`) bir tesadüf, garanti değil; MODES döngüsünün fixture
+  listesi değişirse bu kapsam sessizce daralabilir (final review'da
+  `guardrails.test.ts`'teki bu blokta bulunan yanlış "fixture'larda hiç
+  tetiklenmiyor" öncülü, bkz. o dosyadaki düzeltilmiş yorum).
 - Regresyon: bu spec'in çıkış noktası olan "fotoğrafsızken sıfır görsel"
   ölçümü, monogramdan SONRA da `<img>` sayısını 0 gösterir — çünkü monogram
   bilerek görsel değil. Testin ölçeceği şey `<img>` sayısı DEĞİL, fotoğrafsız
