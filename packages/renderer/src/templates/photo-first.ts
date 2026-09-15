@@ -347,14 +347,22 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
 
   // Sol hücre: YALNIZ avatar (baskın, tek görsel yuva — brief §1.2).
   const hasAvatar = Boolean(data.visuals.avatarUrl);
-  // Panel YALNIZ hücre doluyken uygulanır — boş sütunu renge boyamak hem
-  // saçma hem "renkli hücre asla boş olmaz" kuralını kırar (Outlook boş
-  // hücreye zemin boyamıyor, bkz. accent.ts). Koşul, colspan kararıyla
-  // (logoRow altında) AYNI: avatar VEYA monogram.
-  const columnFilled = hasAvatar || shouldShowMonogram(data);
-  // Panel, avatar/monogram ile AYNI hücrede durur: ayrı bir hücre açsaydık
-  // Word'de iki hücrenin yüksekliği ayrışabilirdi.
-  const panel = columnFilled && shouldShowAccentBand(data)
+  // Panel YALNIZ gerçek bir FOTOĞRAF varken çizilir — monogram İLE DEĞİL.
+  //
+  // 🔴 Bilerek `hasAvatar`, `hasAvatar || shouldShowMonogram(data)` DEĞİL.
+  // Aşağıdaki `logoRow`'daki colspan koşusuyla (`hasAvatar ||
+  // shouldShowMonogram(data)`) KARIŞTIRMA — bir önceki gözden geçirme
+  // ikisinin AYNI ifade olduğunu doğrulamıştı, bu turda BİLEREK ayrıştırıldı;
+  // sonraki bir okuyan bunu tutarsızlık sanıp geri birleştirmesin diye
+  // açıkça yazıyoruz: colspan "satır iki hücreli mi" sorusunu, panel
+  // "sütunda gerçek bir fotoğraf var mı" sorusunu sorar — aynı şey değiller.
+  // Sebep: panel ile monogram AYNI `brand` hex'ini basıyordu; fotoğrafsız
+  // imzada monogramın disk silueti düz bir renk dikdörtgeninde kayboluyordu
+  // (Outlook Classic `border-radius`'ı da yok saydığı için orada hiçbir
+  // sınır kalmıyordu — bu, fotoğrafsız HER photo-first imzasının varsayılan
+  // hâliydi). Sahibinin kararı: monogram zaten bir renk bloğu, ikinci bir
+  // renk bloğu (panel) gereksiz — monogram varken panel ÇİZİLMEZ.
+  const panel = hasAvatar && shouldShowAccentBand(data)
     ? accentPanelStyle(data.visuals.brandColor)
     : null;
   const leftCell = hasAvatar
@@ -371,13 +379,15 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
         {
           valign: 'top',
           width: s.avatar,
-          // 🔴 Panel GÖRSEL İÇERMEZ — logo bu hücreye asla girmez, yalnız
-          // zemin rengi + metin rengi eklenir. Mevcut `padding-right`
-          // KORUNUR, panel stili üstüne yayılır (① — çağıranın style'ını
-          // SİLME, deep-merge yok).
+          // Panelin içine LOGO girmez — yalnız zemin rengi + metin rengi
+          // eklenir (Karar 4, spec). `padding-right` panel AÇIKKEN 0'a iner
+          // (② — boşluk `rightCell`'e `padding-left` olarak geçer): aksi
+          // hâlde avatar ile isim arasındaki oluk artık panelin İÇİNDE
+          // kalır ve marka rengiyle boyanır. Panel KAPALIYKEN (`accentBand:
+          // 'off'`) bugünkü yerleşim bayt bayt korunur.
           ...(panel ? { bgcolor: panel.bgcolor } : {}),
           style: {
-            'padding-right': `${s.gap}px`,
+            'padding-right': panel ? undefined : `${s.gap}px`,
             ...(panel ? panel.style : {}),
           },
         },
@@ -394,16 +404,20 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
           {
             valign: 'top',
             width: s.avatar,
-            ...(panel ? { bgcolor: panel.bgcolor } : {}),
-            style: {
-              'padding-right': `${s.gap}px`,
-              ...(panel ? panel.style : {}),
-            },
+            // Panel burada UYGULANMAZ — bu dal yalnız fotoğraf YOKKEN
+            // çalışır, panel yalnız fotoğraf VARKEN (yukarıdaki yorum).
+            style: { 'padding-right': `${s.gap}px` },
           },
         )
       : '';
 
-  const rightCell = cell(rightInner, { valign: 'top' });
+  const rightCell = cell(rightInner, {
+    valign: 'top',
+    // Panel açıkken boşluk buraya `padding-left` olarak taşınır — leftCell
+    // yorumundaki ②'nin aynadaki karşılığı. Panel kapalıyken (ya da hiç
+    // yokken) stil hiç eklenmez, bugünkü çıktı bayt bayt korunur.
+    ...(panel ? { style: { 'padding-left': `${s.gap}px` } } : {}),
+  });
   const mainRow = row(leftCell + rightCell);
 
   // Logo alt satırda küçük — avatar sütununun DIŞINDA, imzanın en altında,

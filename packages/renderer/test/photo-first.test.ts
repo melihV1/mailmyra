@@ -397,10 +397,15 @@ describe('photo-first accent panel', () => {
     const html = renderSignature({ ...base, layout: { ...base.layout, accentBand: 'off' } }, 'photo-first');
     expect(html).not.toContain('bgcolor="#7b9fd3"');
   });
-  it('paints the column when a monogram stands in for the photo', () => {
+  it('does NOT paint the column when a monogram stands in for the photo (final review ①: panel is for a real photo only)', () => {
     // DIKKAT: monogramin KENDISI de `bgcolor="#7b9fd3"` basiyor, yani varligi
-    // olcmek paneli hic eklemesek bile yesil verirdi. Panel AYRI bir hucreye
-    // uygulandigi icin dogru olcum SAYIMDIR: panelliyken iki, panelsizken bir.
+    // olcmek tek basina hicbir sey kanitlamaz — dogru olcum SAYIMDIR. Panel
+    // artik monogramla ASLA aynı hücreye eklenmiyor (①): iki hücre de fotoğraf
+    // olmadığı için panelsiz, ikisinde de SAYI 1 (yalnız monogramın kendi
+    // bgcolor'u). Bu testin adı önceki turda "paints the column..." idi ve
+    // SAYI 2 bekliyordu — o davranış BİLEREK tersine çevrildi (bkz.
+    // photo-first.ts panel yorumu): panel + monogram aynı `brand` hex'ini
+    // basınca fotoğrafsız imzada disk silueti düz bir renk bloğunda kayboluyordu.
     const { avatarUrl: _drop, ...noAvatar } = base.visuals;
     const say = (h: string) => (h.match(/bgcolor="#7b9fd3"/g) ?? []).length;
     const on = renderSignature({ ...base, visuals: noAvatar }, 'photo-first');
@@ -409,7 +414,29 @@ describe('photo-first accent panel', () => {
       'photo-first',
     );
     expect(say(off)).toBe(1);
-    expect(say(on)).toBe(2);
+    expect(say(on)).toBe(1);
+  });
+
+  it('moves the avatar/name gap off the panel: padding-right leaves the left cell, padding-left lands on the right cell (final review ②)', () => {
+    // Panel acikken sol hucrenin acilis etiketinde padding-right HIC yok —
+    // aksi halde oluk panelin icinde kalir ve marka rengiyle boyanir.
+    const html = renderSignature(base, 'photo-first');
+    const leftOpen = html.match(/<td valign="top" bgcolor="#7b9fd3"[^>]*>/)![0];
+    expect(leftOpen).not.toContain('padding-right');
+    // Bosluk sag hucreye tasindi (medium boy gap=16px).
+    expect(html).toContain('<td valign="top" style="padding-left:16px">');
+  });
+
+  it('keeps the panel-off gap exactly where it always was: padding-right on the left cell, nothing on the right (final review ②, byte-identical guard)', () => {
+    const off = renderSignature({ ...base, layout: { ...base.layout, accentBand: 'off' } }, 'photo-first');
+    expect(off).toContain('<td valign="top" width="104" style="padding-right:16px">');
+    expect(off).not.toContain('padding-left:16px');
+    // Fotografsiz (monogram) dalinda da panel hic uygulanmadigi icin AYNI
+    // yerlesim gecerli — bkz. yukaridaki "does NOT paint the column" testi.
+    const { avatarUrl: _drop, ...noAvatar } = base.visuals;
+    const monogram = renderSignature({ ...base, visuals: noAvatar }, 'photo-first');
+    expect(monogram).toContain('<td valign="top" width="104" style="padding-right:16px">');
+    expect(monogram).not.toContain('padding-left:16px');
   });
   // Bu vakada monogram da kapali, yani `bgcolor` hicbir kaynaktan gelmemeli —
   // varligi olcmek burada guvenli.
