@@ -386,10 +386,18 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
         })}" />`,
         {
           valign: 'top',
-          // Panel AÇIKKEN hücre, çerçeve kadar iki yandan genişler; `width`
-          // açıkça toplam boyanan genişliği söyler (Word `padding`i hücre
-          // genişliğine kendi eklemez, tablo matematiğini tahmine bırakma).
-          width: panel ? s.avatar + s.frame * 2 : s.avatar,
+          // 🔴 `width` HER İKİ HÂLDE DE içerik genişliğidir — panel açıkken
+          // `avatar + 2*frame` YAZMA. Bir tur boyunca öyle yazılmıştı ve
+          // çerçeveyi bozuyordu: `<td width>` CSS `width`'e, yani CONTENT
+          // kutusuna düşer, padding ÜSTÜNE eklenir. `width=120` + 104px
+          // görsel → content kutusunda 16px boşluk kalır, görsel sola yaslı
+          // olduğu için hepsi sağa yığılır: solda 8px, sağda 8+16=24px
+          // çerçeve ve avatar→metin 16 yerine 32 olur. `width = avatar` ile
+          // content kutusu görselin tam eni olur, padding dört yandan eşit
+          // uygulanır. Deponun geri kalanı da böyle yazıyor (panel-KAPALI
+          // hâl, classic-horizontal ve divider-columns'ın monogram
+          // hücreleri: `width` = içerik, padding ayrı).
+          width: s.avatar,
           // Panelin içine LOGO girmez — yalnız zemin rengi eklenir (Karar 4).
           //
           // 🔴 Panel açıkken `padding` DÖRT YÖNLÜ ve simetriktir; tek yönlü

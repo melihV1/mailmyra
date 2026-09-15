@@ -435,11 +435,17 @@ describe('photo-first accent panel', () => {
     const left = html.match(/<td valign="top" bgcolor="#7b9fd3"[^>]*>/)![0];
     // Cerceve DORT YONLU: tek yonlu padding-right geri gelirse oluk yine
     // panelin icinde kalir.
-    expect(left).toContain(`padding:${frame}px`);
+    // DIKKAT: `toContain('padding:8px')` YETMEZ — dort degerli shorthand
+    // `padding:8px 8px 8px 0` (solda cerceve YOK) o alt dizeyi ICERIR ve
+    // iddia sessizce gecer. Bildirim sinirlarini da esletiyoruz.
+    expect(left).toMatch(new RegExp(`(^|;|")padding:${frame}px(;|")`));
     expect(left).not.toContain('padding-right');
-    // Hucre iki yandan cerceve kadar genisler; `width` toplam boyanan alani
-    // acikca soyler (Word padding'i hucre genisligine kendi eklemez).
-    expect(left).toContain(`width="${avatar + frame * 2}"`);
+    // `width` HER IKI halde de ICERIK genisligi: `<td width>` content
+    // kutusuna duser, padding ustune eklenir. `avatar + 2*frame` yazmak
+    // content kutusunda bosluk birakir, gorsel sola yaslanir ve cerceve
+    // sagda 3 kat kalin olur (bkz. photo-first.ts'teki yorum).
+    expect(left).toContain(`width="${avatar}"`);
+    expect(left).not.toContain(`width="${avatar + frame * 2}"`);
     // Olugun disardaki, BOYANMAYAN yarisi sag hucrede.
     const right = html.match(/<td valign="top" style="padding-left:[^"]*">/)![0];
     expect(right).toContain(`padding-left:${gap - frame}px`);
