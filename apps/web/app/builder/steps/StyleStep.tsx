@@ -4,6 +4,7 @@ import type { SignatureData, WebSafeFont } from '@mailmyra/renderer';
 import { contrastRatio, TEMPLATE_IDS } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, LockHint } from '../fields';
+import { layoutSwitches, layoutSwitchPatch, type SwitchName } from '../layout-switches';
 import { WEB_SAFE_FONTS } from '../../../lib/brand-doc';
 import type { BrandFieldName } from '../../../lib/brand-apply';
 import { builder as builderDict, type BuilderDict } from '../../../lib/i18n/dict/builder';
@@ -152,6 +153,10 @@ export function StyleStep({
   const warnings = contrastWarnings(applied.visuals, lang);
   const templateLocked = locked.has('templateId');
   const TEMPLATE_LOOKS = templateLooks(builderDict[lang]);
+  // Marka bindirilmiş veriden okunur, ham `data`'dan DEĞİL: `templateId`
+  // kilitlenebilir ve aksan anahtarının görünürlüğü gerçekten render
+  // edilecek şablona bağlıdır (bkz. layout-switches.ts).
+  const switches = layoutSwitches(applied);
 
   return (
     <div>
@@ -293,6 +298,30 @@ export function StyleStep({
           <span className="form-check-label">{t.typography.showDividers}</span>
         </label>
         </div>
+
+        {(['nameSpacing', 'monogram', 'accentBand'] as const).map((name: SwitchName) =>
+          switches[name].visible ? (
+            <div key={name} className="col-12 col-md-6 d-flex align-items-end">
+              <label className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  checked={switches[name].checked}
+                  onChange={(e) =>
+                    dispatch({ type: 'patchLayout', value: layoutSwitchPatch(name, e.target.checked) })
+                  }
+                />{' '}
+                <span className="form-check-label">
+                  {name === 'nameSpacing'
+                    ? t.typography.nameSpacingWide
+                    : name === 'monogram'
+                      ? t.typography.monogramFallback
+                      : t.typography.accentBandOn}
+                </span>
+              </label>
+            </div>
+          ) : null,
+        )}
 
         <div className="col-12 col-md-6">
           <label className="form-label">{t.typography.iconStyle}</label>
