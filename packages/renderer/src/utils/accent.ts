@@ -75,7 +75,10 @@ export function accentBandRow(opts: {
  */
 export function accentPanelStyle(brandHex: string): {
   bgcolor: string;
-  style: Record<string, string>;
+  // Dönüş tipi BİLEREK dar: `Record<string, string>` olsaydı `color`'ın
+  // yokluğu yalnız bir test iddiasıyla korunurdu. Böyle yazınca geri
+  // eklemek DERLEYİCİ kapısından geçer — kural tipte yaşıyor.
+  style: { 'background-color': string };
 } {
   const bg = normalizeHex(brandHex);
   return {

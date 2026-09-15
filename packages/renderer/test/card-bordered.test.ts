@@ -24,22 +24,30 @@ describe('cardBordered', () => {
     expect(html).toContain('href="tel:+905550000000"');
   });
   it('wraps the body in a bordered, padded, white card', () => {
-    // final review ③: accentBand'i AÇIKÇA kapatıyoruz. `accentBand` varsayılan
-    // açık olduğu için kartın kendi üst kenarlığı normalde ÇİZİLMİYOR (bant
-    // onun yerini alıyor, bkz. "drops the card top border when the band
-    // replaces it" testi) — pinlemeden önce bu test yine de yeşildi, ama
-    // yanlış sebeple: `full` fixture'ının `showDividers: true` olması yüzünden
-    // AYNI '#dfdfe0' dizesini basan alakasız bir iç ayraç (iletişim bloğunun
-    // border-top'u) testi kurtarıyordu. Aynı düzeltme dosyada zaten var (bkz.
-    // "draws no divider when there is no contact block at all" testi) — onu
-    // örnek alıyoruz.
+    // 🔴 final review ③ (İKİ TURDA kapandı — ilk denemem YETMEDİ, kaydı duruyor):
+    // `accentBand` varsayılan açık olduğu için kartın kendi üst kenarlığı
+    // normalde ÇİZİLMİYOR (bant onun yerini alıyor, bkz. "drops the card top
+    // border when the band replaces it"). Bu test yine de yeşildi ama YANLIŞ
+    // SEBEPLE: `full` fixture'ının `showDividers: true` olması yüzünden
+    // iletişim bloğunun border-top'u (card-bordered.ts:324) BİREBİR aynı
+    // '#dfdfe0' dizesini basıyor.
+    //
+    // İlk düzeltme yalnız `accentBand: 'off'` pinlemişti — İŞE YARAMADI,
+    // çünkü o ayraç accentBand'dan TAMAMEN BAĞIMSIZ ve `toContain` bütün
+    // belgeyi tarıyor. Kanıt: kartın kendi border-top'unu silen mutasyon
+    // testi yine yeşil bırakıyordu. Asıl gereken pin değil ÇIPA'ydı:
+    // iddiayı gövde hücresinin KENDİ açılış etiketine daralt. Çıpa ayrıca
+    // dört kenarlığın AYNI hücrede olduğunu da kanıtlıyor — belge geneline
+    // yayılmış dört ayrı `toContain` bunu hiçbir zaman söylemiyordu.
     const html = cardBordered({ ...full, layout: { ...full.layout, accentBand: 'off' } });
+    const body = html.match(/<td valign="top" bgcolor="#ffffff"[^>]*>/)?.[0];
+    expect(body).toBeTruthy();
     // Kenarlık mutedColor'dan türetilir (#6d6e71 → %78 beyaza karışmış)
-    expect(html).toContain('border-top:1px solid #dfdfe0');
-    expect(html).toContain('border-right:1px solid #dfdfe0');
-    expect(html).toContain('border-bottom:1px solid #dfdfe0');
-    expect(html).toContain('background-color:#ffffff');
-    expect(html).toContain('padding:18px');
+    expect(body).toContain('border-top:1px solid #dfdfe0');
+    expect(body).toContain('border-right:1px solid #dfdfe0');
+    expect(body).toContain('border-bottom:1px solid #dfdfe0');
+    expect(body).toContain('background-color:#ffffff');
+    expect(body).toContain('padding:18px');
   });
   it('gives the white card body a bgcolor attribute alongside its background-color style (Outlook Classic ignores CSS-only fills)', () => {
     const html = cardBordered(full);

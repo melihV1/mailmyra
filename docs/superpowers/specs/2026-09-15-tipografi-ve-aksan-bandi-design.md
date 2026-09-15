@@ -147,9 +147,14 @@ değiştirir.** Müşteri sayısı tek haneli olduğu için kabul edildi.
 
 ## Üretilecek HTML
 
-Metin rengi her iki bantta da `readableTextOn(brand)` ile seçilir — 2026-09-14'te
-düzeltilen hâliyle, yani iki kontrastı karşılaştırıp büyüğünü alan sürüm
-(her zaman ≥ 4.58 kontrast).
+Metin rengi **hiçbir bantta seçilmez** — ikisi de metin taşımaz, yalnız zemin
+basar. (Bu satır önce "her iki bantta da `readableTextOn(brand)` ile seçilir"
+diyordu; yanlıştı. `accentBandRow()` hiçbir zaman `color` basmadı, panelin
+`color`'ı ise uygulamada ölüydü — tek tüketicisi bir `<img>` hücresi ve `<img>`
+CSS `color`'dan etkilenmez — ve final review ⑤'te kaldırıldı.) İleride panele
+metin girerse `readableTextOn(brand)` o an eklenir: 2026-09-14'te düzeltilen
+hâliyle, yani iki kontrastı karşılaştırıp büyüğünü alan sürüm (her zaman
+≥ 4.58 kontrast).
 
 **Bant/panel `table()`/`cell()` yardımcılarıyla kurulur**, elle `<table>` yazılmaz.
 Monogram turunun dersi: elle kurulan tablo, CLAUDE.md'nin her tabloda zorunlu
@@ -197,8 +202,9 @@ Birim:
 - `shouldShowAccentBand()` — `'off'` kapatır, alan yokken `'auto'` sayılır,
   yeri tanımsız şablonda her hâlükârda false.
 - `accentBandRow()` / `accentPanelStyle()` — `bgcolor` + `background-color`
-  birlikte, metin rengi `readableTextOn`, yasak yapı yok, **`<img>` içermiyor**
-  (Karar 4'ün makine kontrolü).
+  birlikte, yasak yapı yok, **`<img>` içermiyor** (Karar 4'ün makine kontrolü).
+  Metin rengi basılmaz; `accentPanelStyle`'ın dönüş tipi bunu derleyici
+  seviyesinde tutar (`style: { 'background-color': string }`).
 
 Şablon başına:
 - `card-bordered`: `accentBand` açıkken bant VAR, `'off'` iken YOK, bandın

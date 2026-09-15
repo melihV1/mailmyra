@@ -66,6 +66,12 @@ describe('accentPanelStyle', () => {
   // accent.ts `accentPanelStyle` yorumu). Bu yüzden panelin metin rengi
   // TAŞIMADIĞINI makine kontrolüne bağlıyoruz.
   it('carries no text colour — the panel never wraps text, only an <img>', () => {
-    expect(panel.style.color).toBeUndefined();
+    // 🔴 `panel.style.color` diye YAZAMIYORUZ: dönüş tipi artık
+    // `{ 'background-color': string }` ve tsc bunu derlemiyor. Kural tipte
+    // yaşadığı için çalışma zamanı iddiası gereksizleşti — ama testi silmek
+    // yerine anahtar SAYIMINA çeviriyoruz: tip, `color` dışında bir metin
+    // stilinin (ör. `font-size`) sonradan sızmasını engellemez, bu sayım
+    // engeller.
+    expect(Object.keys(panel.style)).toEqual(['background-color']);
   });
 });
