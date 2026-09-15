@@ -149,3 +149,29 @@ describe('guardrails: monogram branch', () => {
     });
   }
 });
+
+// Aksan alani ve versal isim, fixture'larla tetiklenmeyen kod yollari:
+// fixture'larda `accentBand`/`nameSpacing` alanlari yok, dolayisiyla varsayilan
+// disi kombinasyonlar MODES dongusunden gecmiyor.
+describe('guardrails: accent + name case', () => {
+  for (const templateId of TEMPLATE_IDS) {
+    it(`${templateId} stays clean with the accent on and the tracking open`, () => {
+      const html = renderSignature(
+        {
+          identity: { fullName: 'Elif Kaya' },
+          contact: { email: 'elif@voldi.net' },
+          visuals: {
+            brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827',
+            mutedColor: '#6b7280', fontFamily: 'Arial, Helvetica, sans-serif',
+          },
+          social: [],
+          layout: { templateId, size: 'medium', iconStyle: 'mono', showDividers: false, accentBand: 'auto', nameSpacing: 'wide' },
+        },
+        templateId,
+      );
+      for (const pattern of ALL_FORBIDDEN_CONSTRUCTS) {
+        expect(html).not.toMatch(pattern);
+      }
+    });
+  }
+});
