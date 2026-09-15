@@ -1,43 +1,26 @@
 import type { SignatureData } from '../types';
 
-type NameCase = NonNullable<SignatureData['layout']['nameCase']>;
+type NameSpacing = NonNullable<SignatureData['layout']['nameSpacing']>;
 
 /**
- * İsim satırının basılacak hâli.
+ * Geniş aralıklı isimde harf aralığı.
  *
- * Büyük harf CSS ile DEĞİL burada üretilir: `text-transform` Outlook'un
- * masaüstü Word render motorunda güvenilmez, ama biz zaten çıktıyı üreten
- * tarafız — güvenilmez bir CSS özelliğine bulaşmak için sebep yok.
+ * Bu dosya bir zamanlar `displayName()` de içeriyordu ve ismi büyük harfe
+ * çeviriyordu. KALDIRILDI (2026-09-15) çünkü ölçüldü: hangi büyütme kuralı
+ * seçilirse seçilsin isimlerin bir kısmı bozuluyor — varsayılan kural
+ * `Elif` → `ELIF`, Türkçe kural `Smith` → `SMİTH`. Bir ismi dilini bilmeden
+ * doğru büyütmek mümkün değil. **Geri eklemeyin**; ancak `SignatureData`
+ * kişi başına bir dil sinyali taşırsa mümkün olur.
  *
- * VARSAYILAN `toUpperCase()` kullanılır — komşu `initialsFrom`'un
- * `toLocaleUpperCase('tr-TR')`'ından KASITLI OLARAK FARKLI. Birleştirmeyin.
+ * `em` cinsinden — px verseydik 15px ve 23px isimde aynı oranı tutmazdı.
+ * Monogramın `0.02em`'inden geniş, çünkü orada iki harf var, burada tam bir
+ * isim.
  *
- * Sebep ölçüldü: Türkçe kural isimdeki HER `i`'yi noktalıya çevirir, yalnız
- * ilk harfi değil. `Smith` → `SMİTH`, `Martin` → `MARTİN`, `Weiß` → `WEİSS`.
- * Varsayılan kuralda düzgün yazılmış Türkçe isim de doğru çıkar (`İ` zaten
- * büyüktür, `ı` → `I` doğrudur): `İlker Yılmaz` → `İLKER YILMAZ`.
- *
- * Kabul edilen tek sınır: tamamen küçük harfle yazılmış Türkçe isim
- * (`ilker yılmaz` → `ILKER YILMAZ`, noktası düşer). `initialsFrom`'un kabul
- * ettiği sınırın aynısı ama ters yönde — orada bedel tek harf, burada bir
- * harf; `tr-TR` seçseydik bedel `i` içeren HER isim olurdu.
- *
- * `ß` → `SS` katlaması iki kuralda da olur ve burada DOĞRUDUR: tam isimde SS
- * doğru Almanca büyük harftir.
+ * `undefined` dönmesi kasıtlı: `utils/inline-style.ts` içindeki
+ * `styleToString` `undefined` ve `''` değerleri filtreliyor, yani çağıran
+ * bunu doğrudan stil nesnesine koyabilir ve `normal` hâlde anahtar hiç
+ * basılmaz — bugünkü çıktı bayt bayt korunur.
  */
-export function displayName(fullName: string, nameCase: NameCase | undefined): string {
-  if (nameCase !== 'upper') return fullName;
-  return fullName.toUpperCase();
-}
-
-/**
- * Versal isimde harf aralığı. `em` cinsinden — px verseydik 15px ve 23px
- * isimde aynı oranı tutmazdı. Monogramın `0.02em`'inden geniş, çünkü orada
- * iki harf var, burada tam bir isim.
- *
- * `undefined` dönmesi kasıtlı: çağıran bunu doğrudan `styleToString`'e
- * verebilsin, `normal` hâlde stile hiçbir şey eklenmesin.
- */
-export function nameLetterSpacing(nameCase: NameCase | undefined): string | undefined {
-  return nameCase === 'upper' ? '0.04em' : undefined;
+export function nameLetterSpacing(nameSpacing: NameSpacing | undefined): string | undefined {
+  return nameSpacing === 'wide' ? '0.04em' : undefined;
 }

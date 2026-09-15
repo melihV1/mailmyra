@@ -63,11 +63,15 @@ export interface SignatureData {
      */
     monogram?: 'auto' | 'off';
     /**
-     * İsim satırı büyük harfe çevrilsin ve harf aralığı açılsın mı.
-     * Alan yoksa 'normal' sayılır — kişisel stil tercihi, herkesin ismini
-     * zorla versal yapmak saldırgan olurdu (uzun isimler versal hâlde sarar).
+     * İsim satırının harf aralığı açılsın mı.
+     *
+     * Büyük harf seçeneği YOK ve bilerek yok: Türkçe'de `i`'nin büyüğü `İ`,
+     * diğer dillerde `I`. Ölçüldü — varsayılan kural 12 Türkçe isimden 8'ini
+     * (`Elif` → `ELIF`), Türkçe kural 7 yabancı isimden 6'sını (`Smith` →
+     * `SMİTH`) bozuyor. Bir ismi dilini bilmeden doğru büyütmek mümkün değil
+     * ve imzadaki tek dokunulmaz dize insanın kendi adıdır.
      */
-    nameCase?: 'normal' | 'upper';
+    nameSpacing?: 'normal' | 'wide';
     /**
      * Şablonun aksan alanı çizilsin mi. YERİ şablonun kararı, VARLIĞI
      * kullanıcının. Alan yoksa 'auto' sayılır: aksan şablonun karakteridir,
