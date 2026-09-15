@@ -45,8 +45,29 @@ sessizce sunmamaya devam ederdi: **hata değil, sessizlik** — en kötü tür.
 
 **Seçilen:** renderer, şablon başına yetenek haritası ihraç eder.
 
+🔴 **Önce `TEMPLATES`'in BİLDİRİMİ değişmek zorunda.** Şu an
+`Record<string, TemplateFn>` olarak **anotasyonlu**, yani
+`keyof typeof TEMPLATES` literal birleşim değil düpedüz `string`, ve
+`satisfies` koruması hiçbir şey garanti etmez. Ölçüldü: eksik anahtarlı
+bir harita mevcut bildirime karşı **hatasız** geçiyor. Anotasyon
+`satisfies`'e çevrilir; bu da `renderSignature`'ın `string` ile indeksleme
+yaptığı yeri etkiler.
+
 ```ts
-// packages/renderer/src/render.ts — TEMPLATES'in hemen altında
+// packages/renderer/src/render.ts
+type TemplateFn = (data: SignatureData, opts?: RenderOptions) => string;
+
+const TEMPLATES = {
+  'classic-horizontal': classicHorizontal,
+  'stacked-minimal': stackedMinimal,
+  'card-bordered': cardBordered,
+  'divider-columns': dividerColumns,
+  'photo-first': photoFirst,
+  'cta-banner': ctaBanner,
+} satisfies Record<string, TemplateFn>;   // ← anotasyon DEĞİL
+
+export const TEMPLATE_IDS = Object.keys(TEMPLATES);
+
 export const TEMPLATE_ACCENT_SURFACE = {
   'classic-horizontal': false,
   'stacked-minimal': false,
@@ -55,12 +76,17 @@ export const TEMPLATE_ACCENT_SURFACE = {
   'photo-first': true,
   'cta-banner': false,
 } satisfies Record<keyof typeof TEMPLATES, boolean>;
+
+// renderSignature içinde: literal anahtarlı nesne `string` ile
+// indekslenemez, çalışma zamanı kontrolü korunacak şekilde genişletilir.
+const template = (TEMPLATES as Record<string, TemplateFn>)[templateId];
 ```
 
-`satisfies Record<keyof typeof TEMPLATES, boolean>` bilinçli: yeni bir
-şablon eklendiğinde **derleme kırılır** ve yazan kişi o şablonun aksan
-alanı olup olmadığına karar vermek zorunda kalır. Sapma tipte kapanır,
-yorumla değil. `index.ts`'ten de ihraç edilir.
+Bu hâl doğrulandı: `tsc` temiz geçiyor **ve** haritadan bir anahtar
+silindiğinde tam da istenen hatayı veriyor (`TS1360: Property 'cta-banner'
+is missing`). Yani yeni bir şablon eklendiğinde **derleme kırılır** ve
+yazan kişi o şablonun aksan alanı olup olmadığına karar vermek zorunda
+kalır. Sapma tipte kapanır, yorumla değil. `index.ts`'ten de ihraç edilir.
 
 > **Monogram için böyle bir haritaya GEREK YOK.** `monogramCell` altı
 > şablonun altısında da kullanılıyor (ölçüldü), yani koşul şablona değil
@@ -176,7 +202,7 @@ bir TR anahtarı derlemeyi kırar ("bekçi test değil derleyicidir",
 
 | Dosya | Değişiklik |
 |---|---|
-| `packages/renderer/src/render.ts` | **yeni** `TEMPLATE_ACCENT_SURFACE` |
+| `packages/renderer/src/render.ts` | `TEMPLATES` bildirimi `satisfies`'e çevrilir + **yeni** `TEMPLATE_ACCENT_SURFACE` |
 | `packages/renderer/src/index.ts` | onu ihraç et |
 | `apps/web/app/builder/layout-switches.ts` | **yeni** — saf kural modülü (Karar 4) |
 | `apps/web/app/builder/steps/StyleStep.tsx` | üç `form-check`, kuralı modülden okur |
