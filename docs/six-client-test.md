@@ -7,8 +7,13 @@ hale getirir: her turda aynı adımlar, aynı bakılacaklar, aynı sonuç tablos
 bindirmesine dokunulduğunda. Panel/builder arayüz değişiklikleri bu turu
 gerektirmez — imza HTML'i değişmiyorsa çıktı da değişmez.
 
-**Kapsam:** 3 şablon (`classic-horizontal`, `stacked-minimal`,
-`card-bordered`) × 6 istemci. Her hücre "geçti / kusurlu / kırık".
+**Kapsam:** 6 şablon × 6 istemci. Her hücre "geçti / kusurlu / kırık".
+(2026-08-26'da 3 yeni şablon onaylandı: `divider-columns`, `photo-first`,
+`cta-banner`. Tur 3'e kadar kapsam 3 şablondu — o yüzden eski tablolar üç satır.)
+
+**Şablondan bağımsız EKSENLER de sınanır** (2026-09-15'te eklendi): monogram,
+isim harf aralığı (`nameSpacing`), aksan bandı/paneli (`accentBand`). Bunlar
+şablon satırlarına sığmaz, kendi tablolarında raporlanır.
 
 ---
 
@@ -121,6 +126,52 @@ kurulum yolu — kurulum rehberlerinde anlatacağımız adım ve toplu zip
 adını dosya adından okuduğu için üç imza da aynı adla görünür. Tek satırlık
 düzeltme (`BuilderClient.tsx`, `savedName` zaten orada), sıradaki derlemeye
 bindirilecek.
+
+### Tur 4 — ⏳ SÜRÜYOR (1/6 istemci tamam)
+
+Tur tarihi: 2026-09-15 · Commit: `eda2c97` (main = origin/main)
+Malzeme: `scripts/send-test-signatures.mts` ile üretilen 6 taban + 12 varyant.
+Varyantlar `accentBand`/`nameSpacing`/monogram eksenlerini ayrı ayrı izole eder.
+
+⚠️ **Malzemede bir tuzak çıktı, kayda geçsin:** `brand-fixture/avatar.png`
+MARKA MAVİSİNİN KENDİSİ (mavi kare, beyaz "EM"). Aksan paneli de marka
+renginde olduğu için, varsayılan ayarla panel avatarın üstünde GÖRÜNMEZ ve
+ölçülemez. Ölçüm varyantlarında marka rengi koyu kırmızıya (`#8B1A1A`)
+alındı — marka rengi zaten kullanıcı ayarı, meşru bir konfigürasyon.
+Sonraki turlarda aynı tuzağa düşülmesin.
+
+| Şablon | Outlook Classic | Yeni Outlook | Gmail web | Gmail mobil | Apple Mail | iOS Mail |
+|---|---|---|---|---|---|---|
+| classic-horizontal | | | | | geçti | |
+| stacked-minimal | | | | | | |
+| card-bordered | | | | | geçti | |
+| divider-columns | | | | | geçti | |
+| photo-first | | | | | geçti | |
+| cta-banner | | | | | | |
+
+Eksenler:
+
+| Eksen | Apple Mail | Outlook Classic | Kalan 4 |
+|---|---|---|---|
+| Aksan çerçevesi yatayda simetrik mi | **geçti** — sol/sağ boşluk eşit | | |
+| Aksan bandı kartın üst kenarlığını değiştiriyor mu | **geçti** — bantlı kartta üst kenarlık yok, bantsız kontrolde var | | |
+| `em` harf aralığı uygulanıyor mu | **geçti** — aynı isim ≈371px'e karşı ≈327px | | |
+| Geniş aralıklı uzun isim 600px'te sarıyor mu | **geçti** — sarmıyor | | |
+| Monogram varken panel çizilmiyor mu | **geçti** — disk var, arkasında panel yok | | |
+| Panelin dikey taşması | ölçüldü: panel satır boyunca uzayıp tam boy marka sütunu oluyor — **KARAR BEKLİYOR** (kusur değil, tasarım tercihi) | | |
+
+**Apple Mail (2026-09-15, macOS Mail):** altı şablonun dördü ve beş eksen
+temiz. Yerleşim bozulmadı, sütun kayması yok, renkler ve bağlantılar yerinde,
+tablo kenarlığı sızmadı. `stacked-minimal` ve `cta-banner` bu oturumda gözle
+teyit edilmedi (kaydırma sırasında atlandı) — kapatılmadan önce bakılmalı.
+
+🔴 **AÇIK — turu bitiren istemci Outlook Classic.** Üç varsayım YALNIZ orada
+sınanabilir ve hiçbiri dize testiyle kapatılamaz:
+1. Word motoru `<td width>`'i content-box mı sayıyor (çerçevenin simetrisi buna bağlı).
+2. `letter-spacing` `em` biriminde uygulanıyor mu (monogramın `0.02em`'i de aynı varsayımda).
+3. Monogram, uzaktan görseller engelliyken görünüyor mu (varlık sebebi).
+
+Gmail web/mobil ve iOS Mail de açık.
 
 ### Boş şablon (sonraki turlar için kopyala)
 
