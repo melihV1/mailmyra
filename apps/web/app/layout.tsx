@@ -14,7 +14,10 @@ export const viewport = { colorScheme: 'only light' };
 export default function RootLayout({ children }: { children: ReactNode }) {
   /* Ürün dili İngilizce (karar 2026-08-10) — lang="tr" kalınca
      text-transform: uppercase Türkçe kuralla i→İ üretiyordu ("JOB TİTLE").
-     Türkçe tek sayfa /kvkk kendi lang'ını LegalDoc üstünden taşır. */
+     /kvkk artık app'te YOK (karar 2026-09-14): sayfa da onu taşıyan
+     `LegalDoc` bileşeni de silindi, metin artık mailmyra.com'da yaşıyor
+     (bkz. lib/legal-links.ts). Bu satırın kendi Türkçe lang'ı yok — kök
+     `lang="en"` app'in tamamı için geçerli. */
   return (
     <html lang="en">
       <body>

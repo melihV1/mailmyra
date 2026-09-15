@@ -1,6 +1,7 @@
 import { sessionCookieHeader } from '../../../../lib/auth/cookie';
 import { register } from '../../../../lib/auth/flows';
 import { clientIp } from '../../../../lib/client-ip';
+import { LEGAL } from '../../../../lib/legal-links';
 import { getMailer } from '../../../../lib/mail';
 import { field, formErrorRedirect, json, readBody, seeOther } from '../_shared';
 
@@ -25,7 +26,17 @@ export async function POST(req: Request): Promise<Response> {
       email: field(body, 'email'),
       password: field(body, 'password'),
       orgName: field(body, 'orgName'),
-      termsVersion: field(body, 'termsVersion') || 'unversioned',
+      // Kabul edilen sürüm istemciden ASLA okunmaz — `termsVersion` gövdede
+      // gelse bile (eski site sürümü canlıdayken register.html hâlâ o gizli
+      // alanı yollayabilir) burada sessizce yok sayılır, hata verilmez.
+      // Gerekçe: tarayıcının gönderdiği sürüm dizesi kanıt değildir,
+      // istemcinin KENDİSİ hakkındaki bir iddiasıdır — kabul delilini
+      // sunucu belirler. Bu tam olarak C1'in düzelttiği hatanın ta kendisi:
+      // register.html'in gizli `termsVersion` alanı 13 Ağustos taslağında
+      // donup kaldığı hâlde site 14 Ağustos metnini gösteriyordu, uç da
+      // farkı görmeden aynen kaydediyordu. Tek kaynak `LEGAL.terms.version`
+      // (bkz. `lib/legal-links.ts`).
+      termsVersion: LEGAL.terms.version,
       ip: clientIp(req),
     },
     getMailer(),

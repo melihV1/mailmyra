@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { LEGAL } from '../lib/legal-links';
+
 /**
  * Route seviyesinde davranış testi: aynı uç iki istemciye iki farklı cevap
  * veriyor — panele JSON, pazarlama sitesinin düz formuna 303 yönlendirme.
@@ -205,12 +207,41 @@ describe('register ucu', () => {
       }),
     );
 
+    // termsVersion burada BİLEREK sunucunun kendi sürümü — gövdede
+    // '2026-08-13' gönderilmiş olsa da akışa geçen değer istemciden değil
+    // `LEGAL.terms.version`'dan gelir (bkz. aşağıdaki dedike test ve
+    // route.ts'teki gerekçe yorumu).
     expect(register).toHaveBeenCalledWith(
       expect.objectContaining({
         email: 'a@b.com',
         orgName: 'Northwind Studio',
-        termsVersion: '2026-08-13',
+        termsVersion: LEGAL.terms.version,
       }),
+      expect.anything(),
+    );
+  });
+
+  // C1(b): kayıt onayının damgaladığı sürüm İSTEMCİDEN GELMEZ. register.html
+  // (site deposu) gizli bir `termsVersion` alanı taşıyor ve site metni
+  // güncellendiğinde bu alanı güncellemek unutulabilir — nitekim tam da bu
+  // yüzden 13 Ağustos'ta donup kalmıştı. Uç, gövdede ne gelirse gelsin
+  // `LEGAL.terms.version`'ı yazar; kanıt sunucudan gelir, istemcinin kendi
+  // iddiasından değil.
+  it('istemcinin termsVersion alanı yok sayılır — kaydedilen sürüm daima sunucunun kendi sürümü', async () => {
+    register.mockResolvedValue({ ok: true, sessionToken: 't', verificationMailSent: false });
+
+    await registerPOST(
+      formReq('https://app.mailmyra.com/api/auth/register', {
+        email: 'a@b.com',
+        password: 'correct-horse-battery',
+        password_confirmation: 'correct-horse-battery',
+        orgName: 'Northwind Studio',
+        termsVersion: '1999-01-01',
+      }),
+    );
+
+    expect(register).toHaveBeenCalledWith(
+      expect.objectContaining({ termsVersion: LEGAL.terms.version }),
       expect.anything(),
     );
   });

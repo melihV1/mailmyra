@@ -21,8 +21,29 @@
  * gördü ve kayıt bunu dürüstçe söylemeye devam eder. Kodda saklanan
  * sürümü güncelle karşılaştıran bir "yeniden onayla" kapısı yok
  * (arandı), yani bu değişiklik kimseyi yeniden onaya zorlamaz.
+ *
+ * Silinen 13 Ağustos taslakları bugün yalnız git geçmişinde yaşıyor:
+ * `6f06328` (kökün siteye yönlendirildiği, ama üç hukuki sayfanın henüz
+ * silinmediği commit — bir sonraki commit onları kaldırdı) taslakların
+ * SON hâlini taşır. Talep gelirse:
+ *   git show 6f06328:"apps/web/app/(marketing)/privacy/page.tsx"
+ * (aynı şekilde `terms` ve `kvkk` için).
+ *
+ * Origin `NEXT_PUBLIC_MARKETING_ORIGIN`den okunur, `MARKETING_ORIGIN`den
+ * DEĞİL — ikisi ayrı env değişkeni ve kasıtlı: bu dosyayı `SignupForm.tsx`
+ * import ediyor, o da bir `'use client'` bileşeni, yani tarayıcıda çalışıyor.
+ * Next.js yalnız `NEXT_PUBLIC_` önekli değişkenleri DERLEME sırasında
+ * istemci paketine gömer; sunucu-yalnız `process.env.MARKETING_ORIGIN`
+ * (bkz. `api/auth/_shared.ts` → `marketingOrigin()`) istemcide her zaman
+ * `undefined` okunur — bu dosya o deseni KULLANAMAZ. Staging gibi
+ * mailmyra.com dışı bir origin'e geçen bir deploy, iki değişkeni de
+ * (`MARKETING_ORIGIN` sunucu tarafı yönlendirmeler için, buradaki
+ * `NEXT_PUBLIC_MARKETING_ORIGIN` istemci linkleri için) birlikte ayarlamalı.
  */
-const SITE = 'https://mailmyra.com';
+const SITE = (process.env.NEXT_PUBLIC_MARKETING_ORIGIN ?? 'https://mailmyra.com').replace(
+  /\/+$/,
+  '',
+);
 
 export const LEGAL = {
   terms: { path: `${SITE}/terms`, version: '2026-08-14', title: 'Terms of Service' },

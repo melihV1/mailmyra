@@ -9,8 +9,14 @@ describe('legal-links', () => {
   });
 
   for (const key of ['terms', 'privacy', 'kvkk'] as const) {
-    it(`${key}: path starts with "/"`, () => {
-      expect(LEGAL[key].path.startsWith('/')).toBe(true);
+    // MUTLAK adres (karar 2026-09-14, bkz. legal-links.ts docblock): app
+    // artık kendi /privacy /terms /kvkk kopyalarını sunmuyor, link doğrudan
+    // siteye gider. Sabit "mailmyra.com" dizesine değil desene bakılır —
+    // origin `NEXT_PUBLIC_MARKETING_ORIGIN`den geliyor (I3) ve staging'de
+    // farklı olabilir; test hangi origin olursa olsun "mutlak https + doğru
+    // yol" değişmezini sınar.
+    it(`${key}: path is an absolute https URL ending in /${key}`, () => {
+      expect(LEGAL[key].path).toMatch(new RegExp(`^https://[^/]+/${key}$`));
     });
 
     it(`${key}: version matches YYYY-MM-DD`, () => {

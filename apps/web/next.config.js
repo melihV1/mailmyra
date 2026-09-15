@@ -7,35 +7,62 @@ const nextConfig = {
    *
    * Sebep: bu rota hâlâ Hafta 3'ün Türkçe landing sayfasını sunuyordu
    * (`app/(marketing)/page.tsx`) — Agntix sitesi yokken ürünün tek yüzü
-   * oydu, mailmyra.com devralınca yerinde kaldı. Bugün üç sorun birden
+   * oydu, mailmyra.com devralınca yerinde kaldı. O gün üç sorun birden
    * yaratıyordu: (a) pazarlama sitesi İngilizce kalır kararına aykırı
    * Türkçe içerik, (b) kendi menüsüyle gerçek siteyi taklit ediyor,
    * (c) canonical'ı ve robots yönergesi olmadığı için mailmyra.com ile
    * AYNI kelimeler için yarışıyordu (siteye 29 canonical eklendiği gün
    * ölçüldü).
    *
-   * Kapsam KASITLI olarak yalnız kök: `/privacy`, `/terms` ve `/kvkk` de
-   * bu grupta ama onlar kayıt onayı akışına bağlı (`lib/legal-links.ts` →
-   * `SignupForm`), ve app'teki sürüm sitedekinden FARKLI bir belge
-   * ("Effective 2026-08-13 · Draft, not yet reviewed by counsel" ↔ site
-   * "Last updated: August 14, 2026"). Onları yönlendirmek, geçmiş
-   * `LegalAcceptance` kayıtlarının çözümlendiği metni sessizce
-   * değiştirirdi — ayrı bir karar, burada yapılmaz.
+   * Kapsam ÖNCE kasıtlı olarak yalnız köktü (commit `6f06328`): `/privacy`,
+   * `/terms` ve `/kvkk` de bu grupta ama app'teki sürüm sitedekinden FARKLI
+   * bir belgeydi ("Effective 2026-08-13 · Draft, not yet reviewed by
+   * counsel" ↔ site "Last updated: August 14, 2026") ve kayıt onayı akışı
+   * (`lib/legal-links.ts` → `SignupForm`) app'in kendi kopyasına link
+   * veriyordu — onları yönlendirmek geçmiş `LegalAcceptance` kayıtlarının
+   * çözümlendiği metni sessizce değiştirirdi.
    *
-   * `Header`ın logo linki (`href="/"`) yalnız bu grupta; auth ve panel
-   * kendi kabuklarını kullandığı için etkilenmez.
+   * Kapsam SONRA genişledi (karar 2026-09-14): site sürümü geçerli sayıldı,
+   * app'in kendi `(marketing)/privacy|terms|kvkk` sayfaları TAMAMEN
+   * SİLİNDİ, `lib/legal-links.ts` artık siteye MUTLAK adres veriyor. Yani
+   * "onları yönlendirmek ayrı bir karardır" cümlesi artık geçmişte kaldı —
+   * o karar verildi ve aşağıdaki üç satır onun sonucu. Bugün buradalar
+   * çünkü: yer imleri, eski e-posta linkleri ve arama sonuçları hâlâ
+   * `/privacy` gibi göreli adreslere işaret edebilir; `lib/legal-links.ts`
+   * zaten mutlak adres verdiği için ürün İÇİ linkler buraya hiç uğramaz.
+   *
+   * `Header`ın logo linki (`href="/"`) yalnız `(marketing)` grubundaydı;
+   * o grup I5 ile silindi, auth ve panel kendi kabuklarını kullandığı
+   * için zaten etkilenmiyordu.
    */
   async redirects() {
+    // `lib/auth/_shared.ts`'teki `marketingOrigin()` ile AYNI mantık, elle
+    // tekrarlanıyor — IMPORT edilmiyor çünkü bu dosya Next'in kendi
+    // yükleyicisiyle düz Node CommonJS olarak, proje TypeScript
+    // dönüştürücüsünden ÖNCE çalışıyor; bir `.ts` dosyasını buradan
+    // `require` etmek derlemeyi patlatır. İki satırlık saf fonksiyonu
+    // kopyalamak, yalnızca bunun için bir derleme adımı eklemekten ucuz.
+    const site = (process.env.MARKETING_ORIGIN ?? 'https://mailmyra.com').replace(/\/+$/, '');
+
     return [
-      { source: '/', destination: 'https://mailmyra.com/', permanent: true },
+      // 307 (permanent:false), 308 DEĞİL: kök bugün pazarlama sitesine
+      // gidiyor ama `app.mailmyra.com/` ileride ürünün kendi giriş kapısı
+      // olabilir (panel/dashboard). 308 tarayıcıda SÜRESİZ önbelleklenir ve
+      // geri alınamaz — kökü bir kez 308 ile gören kullanıcı o cihazda
+      // sonsuza dek siteye çivilenir, gelecekte kökü panele çevirsek bile.
+      // Alttaki üç hukuki rota FARKLI: onlar gerçekten geri gelmeyecek
+      // (app kendi privacy/terms/kvkk sayfasını bir daha sunmayacak, karar
+      // 2026-09-14), o yüzden 308'de kalıyorlar — kalıcı önbellekleme orada
+      // arzu edilen davranış.
+      { source: '/', destination: `${site}/`, permanent: false },
       // Hukuki metinler artik SITEDE yasiyor (karar 2026-09-14). App'in
       // kendi kopyalari kaldirildi; bu satirlar yer imleri, eski e-posta
       // linkleri ve arama sonuclari icin duruyor. `lib/legal-links.ts`
       // zaten MUTLAK adres verdigi icin urun ici linkler buraya hic
       // ugramaz.
-      { source: '/privacy', destination: 'https://mailmyra.com/privacy', permanent: true },
-      { source: '/terms', destination: 'https://mailmyra.com/terms', permanent: true },
-      { source: '/kvkk', destination: 'https://mailmyra.com/kvkk', permanent: true },
+      { source: '/privacy', destination: `${site}/privacy`, permanent: true },
+      { source: '/terms', destination: `${site}/terms`, permanent: true },
+      { source: '/kvkk', destination: `${site}/kvkk`, permanent: true },
     ];
   },
   webpack: (config, { isServer }) => {
