@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { shouldShowAccentBand, accentBandRow, accentPanelStyle } from '../src/utils/accent';
-import { contrastRatio } from '../src/utils/color';
 import type { SignatureData } from '../src/types';
 
 const base: SignatureData = {
@@ -60,7 +59,13 @@ describe('accentPanelStyle', () => {
     expect(panel.bgcolor).toBe('#7b9fd3');
     expect(panel.style['background-color']).toBe('#7b9fd3');
   });
-  it('picks a readable text colour for the panel', () => {
-    expect(contrastRatio('#7b9fd3', panel.style.color!)).toBeGreaterThanOrEqual(4.5);
+  // final review ⑤: eski "picks a readable text colour" testi kaldırıldı.
+  // Panel yalnız `photo-first`'in avatar hücresine uygulanıyor, içeriği her
+  // zaman bir `<img>` — `color` hiçbir glif tarafından miras alınmıyordu,
+  // yani kontrast iddiası ölü koda karşı hiçbir şeyi ısırmıyordu (bkz.
+  // accent.ts `accentPanelStyle` yorumu). Bu yüzden panelin metin rengi
+  // TAŞIMADIĞINI makine kontrolüne bağlıyoruz.
+  it('carries no text colour — the panel never wraps text, only an <img>', () => {
+    expect(panel.style.color).toBeUndefined();
   });
 });

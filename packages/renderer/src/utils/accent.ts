@@ -1,5 +1,5 @@
 import type { SignatureData } from '../types';
-import { normalizeHex, readableTextOn } from './color';
+import { normalizeHex } from './color';
 import { cell, row } from './table';
 
 /**
@@ -61,11 +61,17 @@ export function accentBandRow(opts: {
  *
  * Bant gibi kendi satırını kurmaz; çağıran bunu mevcut bir `cell()`
  * çağrısına yayar (`...accentPanelStyle(brand)`). Böylece panel, içindeki
- * avatar/monogram ile AYNI hücrede kalır ve Word'de hücre yüksekliği
- * uyuşmazlığı riski doğmaz.
+ * avatar ile AYNI hücrede kalır ve Word'de hücre yüksekliği uyuşmazlığı
+ * riski doğmaz.
  *
- * Metin rengi `readableTextOn` ile seçilir — 2026-09-14'te düzeltilen
- * hâliyle iki kontrastı karşılaştırır, sonuç her zaman ≥ 4.58.
+ * Metin rengi BİLEREK dönmez (final review ⑤ — önceki turda `color:
+ * readableTextOn(bg)` vardı, kaldırıldı). Tek tüketici `photo-first.ts`'in
+ * avatar hücresi: içeriği her zaman bir `<img>`, hiçbir glif bu stili miras
+ * almaz — `<img>` CSS `color`'dan etkilenmez. Ölü bir kontrast hesabını
+ * canlı tutmak yerine kaldırmayı seçtik: kullanılmayan kod "ileride lazım
+ * olur" diye tutulursa hiç doğrulanmadan bozulabilir. İleride panelin
+ * içine metin taşıyan bir varyant eklenirse `readableTextOn(bg)` o an
+ * geri eklenir (bkz. `utils/color.ts`) — tek satırlık bir ekleme.
  */
 export function accentPanelStyle(brandHex: string): {
   bgcolor: string;
@@ -74,6 +80,6 @@ export function accentPanelStyle(brandHex: string): {
   const bg = normalizeHex(brandHex);
   return {
     bgcolor: bg,
-    style: { 'background-color': bg, color: readableTextOn(bg) },
+    style: { 'background-color': bg },
   };
 }
