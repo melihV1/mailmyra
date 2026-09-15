@@ -43,7 +43,12 @@ for (const templateId of TEMPLATE_IDS) {
     it('never lets the monogram fall below 4.5:1 contrast', () => {
       // Adini tutan test: rengi OKUYUP kontrasti gercekten hesaplar.
       // Yalnizca "siyah ya da beyaz mi" diye bakmak bu iddiayi kanitlamaz.
-      const cellMatch = html.match(/bgcolor="(#[0-9a-f]{6})"[^>]*style="([^"]*)"/i);
+      // `align="center" valign="middle"` monogramCell'e ozgu (bkz.
+      // monogram.ts) — sade `bgcolor="..."` yeterli değil: card-bordered'da
+      // aksan bandı da AYNI marka hex'ini bgcolor olarak basıyor (bilerek,
+      // bkz. accent.ts) ve HTML'de monogramdan ÖNCE geliyor, bu yüzden
+      // ayraçsız bir arama bandı yakalayıp `color:` bulamadan patlardı.
+      const cellMatch = html.match(/align="center" valign="middle" bgcolor="(#[0-9a-f]{6})"[^>]*style="([^"]*)"/i);
       expect(cellMatch).not.toBeNull();
       const bg = cellMatch![1]!;
       const fg = cellMatch![2]!.match(/(?:^|;)color:(#[0-9a-f]{6})/i)![1]!;

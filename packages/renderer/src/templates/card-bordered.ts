@@ -6,6 +6,7 @@ import { normalizeHex, readableTextOn } from '../utils/color';
 import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 import { nameLetterSpacing } from '../utils/typography';
+import { accentBandRow, shouldShowAccentBand } from '../utils/accent';
 
 type Size = SignatureData['layout']['size'];
 
@@ -22,6 +23,9 @@ interface SizeScale {
   pad: number;
   /** Sol marka şeridinin kalınlığı. */
   stripe: number;
+  /** Kartın üstündeki yatay aksan bandının kalınlığı. Şeridin yaklaşık iki
+   *  katı: dikey şerit ince bir aksan, yatay bant ise kartın üst kenarı. */
+  band: number;
   /**
    * Kartın toplam genişliği — SABİT, yüzde DEĞİL.
    * Sebep: kartın içi `width="100%"` iç içe tablolarla kurulu ve Word
@@ -33,9 +37,9 @@ interface SizeScale {
 }
 
 const SIZES: Record<Size, SizeScale> = {
-  small: { name: 15, title: 11, body: 12, small: 10, avatar: 48, logo: 90, handSig: 120, gap: 10, pad: 14, stripe: 3, width: 460 },
-  medium: { name: 18, title: 13, body: 13, small: 11, avatar: 60, logo: 110, handSig: 150, gap: 12, pad: 18, stripe: 4, width: 520 },
-  large: { name: 21, title: 14, body: 14, small: 12, avatar: 72, logo: 130, handSig: 170, gap: 14, pad: 22, stripe: 6, width: 580 },
+  small: { name: 15, title: 11, body: 12, small: 10, avatar: 48, logo: 90, handSig: 120, gap: 10, pad: 14, stripe: 3, band: 6, width: 460 },
+  medium: { name: 18, title: 13, body: 13, small: 11, avatar: 60, logo: 110, handSig: 150, gap: 12, pad: 18, stripe: 4, band: 8, width: 520 },
+  large: { name: 21, title: 14, body: 14, small: 12, avatar: 72, logo: 130, handSig: 170, gap: 14, pad: 22, stripe: 6, band: 10, width: 580 },
 };
 
 /**
@@ -388,19 +392,31 @@ export function cardBordered(data: SignatureData, opts?: RenderOptions): string 
       'line-height': '1px',
     },
   });
+  const bandOn = shouldShowAccentBand(data);
   // Kartın arka planı açıkça beyaz: koyu mod uygulayan istemcilerde şeffaf
   // gövde metni okunamaz hale getiriyor.
   const cardBodyCell = cell(table(bodyRows.join(''), { width: '100%' }), {
     valign: 'top',
     style: {
       'background-color': '#ffffff',
-      'border-top': `1px solid ${borderColor}`,
+      // Bant AÇIKKEN üst kenarlık çizilmez: bandın kendisi kartın üst
+      // kenarıdır, ikisi üst üste gelirse 1px'lik gri bir çizgi bandın
+      // altında kalır ve kirli görünür.
+      ...(bandOn ? {} : { 'border-top': `1px solid ${borderColor}` }),
       'border-right': `1px solid ${borderColor}`,
       'border-bottom': `1px solid ${borderColor}`,
       padding: `${s.pad}px`,
     },
   });
-  const card = table(row(stripeCell + cardBodyCell), { width: '100%' });
+  const cardRows = row(stripeCell + cardBodyCell);
+  // Bant kartın TAMAMININ üstünde (şerit dahil) — kartın üst kenarı olur.
+  // Bant satırı TEK hücreli, kart satırı İKİ hücreli (şerit + gövde); aynı
+  // tabloda farklı sütun sayısı Word'de hizasızlık üretir, bu yüzden
+  // bandın `colspan: 2` vermesi ŞARTTIR.
+  const card = table(
+    (bandOn ? accentBandRow({ brandHex: data.visuals.brandColor, height: s.band, colspan: 2 }) : '') + cardRows,
+    { width: '100%' },
+  );
 
   const outerRows: string[] = [row(cell(card))];
   if (data.extras?.disclaimer) {

@@ -103,9 +103,12 @@ describe('cardBordered', () => {
       ...full,
       contact: {},
       extras: undefined,
-      layout: { ...full.layout, showDividers: true },
+      layout: { ...full.layout, showDividers: true, accentBand: 'off' as const },
     };
     const html = cardBordered(identityOnly);
+    // Bandi acikca kapatiyoruz: bu test iletisim bloğu yokken fazladan
+    // ayraç eklenmediğini doğruluyor, bandın kendi üst kenarlığı yutma
+    // davranışıyla (bkz. accent band testleri) karışmasın.
     // Yalnız kartın kendi üst kenarlığı kalır
     expect((html.match(/border-top:1px solid #dfdfe0/g) ?? []).length).toBe(1);
   });
@@ -287,5 +290,54 @@ describe('card-bordered name spacing', () => {
     expect(
       renderSignature({ ...base, layout: { ...base.layout, nameSpacing: 'wide' } }, 'card-bordered'),
     ).not.toMatch(/text-transform/i);
+  });
+});
+
+describe('card-bordered accent band', () => {
+  const base: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827',
+      mutedColor: '#6b7280', fontFamily: 'Arial, Helvetica, sans-serif',
+    },
+    social: [],
+    layout: { templateId: 'card-bordered', size: 'medium', iconStyle: 'mono', showDividers: false },
+  };
+
+  // DIKKAT: `bgcolor="#7b9fd3"` bandin imzasi DEGILDIR — bu fixture'da avatar
+  // yok, dolayisiyla monogram tetikleniyor ve AYNI bgcolor'u basiyor. Bandi
+  // ondan ayiran sey cokertilmis satir kutusu (`font-size:1px` +
+  // `line-height:1px`), ki monogram onu hicbir zaman uretmez.
+  it('draws the band by default', () => {
+    const html = renderSignature(base, 'card-bordered');
+    expect(html).toContain('font-size:1px');
+    expect(html).toContain('line-height:1px');
+    expect(html).toContain('height:8px');
+  });
+  it('drops the band when turned off', () => {
+    const html = renderSignature({ ...base, layout: { ...base.layout, accentBand: 'off' } }, 'card-bordered');
+    // NOT: `font-size:1px` burada guvenilir bir ayrac DEGIL — kartin sol
+    // dikey seridi (bandla ILGISIZ, bu task'tan ONCE var olan kod) AYNI
+    // Outlook cokertme desenini (font-size:1px + line-height:1px) zaten
+    // kosulsuz basiyor. Bandin KENDINE ozgu imzasi yalniz `height:8px`
+    // (boy olcegine gore degisen satir yuksekligi) — baska hicbir yerde
+    // uretilmiyor.
+    expect(html).not.toContain('height:8px');
+  });
+  it('drops the card top border when the band replaces it', () => {
+    const withBand = renderSignature(base, 'card-bordered');
+    const without = renderSignature({ ...base, layout: { ...base.layout, accentBand: 'off' } }, 'card-bordered');
+    expect(without).toContain('border-top:1px solid');
+    expect(withBand).not.toContain('border-top:1px solid');
+  });
+  it('keeps the logo out of the band', () => {
+    const html = renderSignature(
+      { ...base, visuals: { ...base.visuals, logoUrl: 'https://cdn.mailmyra.com/l.png' } },
+      'card-bordered',
+    );
+    const band = html.slice(html.indexOf('font-size:1px'));
+    const bandEnd = band.indexOf('</tr>');
+    expect(band.slice(0, bandEnd)).not.toMatch(/<img/i);
   });
 });
