@@ -331,6 +331,21 @@ describe('card-bordered accent band', () => {
     expect(without).toContain('border-top:1px solid');
     expect(withBand).not.toContain('border-top:1px solid');
   });
+  // `colspan: 2` planin "SARTTIR" dedigi sey ve YALNIZ Outlook'ta bozulur:
+  // bant satiri tek hucreli, kart satiri iki hucreli (serit + govde). Colspan
+  // dusunce Word bandi ilk kolonun (birkac px'lik seridin) genisligine
+  // sikistirir. accent.test.ts yalnizca ilkeli dogruluyor (verilirse basiyor);
+  // bu test CAGRI YERINI kilitler — biri argumani silerse burasi kirmizi olur.
+  it('spans both columns of the card', () => {
+    const html = renderSignature(base, 'card-bordered');
+    // `font-size:1px` STIL icinde; `colspan` attribute olarak ondan ONCE
+    // geliyor (cell() sirasi: align, valign, bgcolor, height, width, colspan,
+    // style). Bu yuzden bandin <tr>'sinin BASINA geri sayilir.
+    const i = html.indexOf('font-size:1px');
+    const band = html.slice(html.lastIndexOf('<tr', i), html.indexOf('</tr>', i));
+    expect(band).toContain('colspan="2"');
+  });
+
   it('keeps the logo out of the band', () => {
     const html = renderSignature(
       { ...base, visuals: { ...base.visuals, logoUrl: 'https://cdn.mailmyra.com/l.png' } },
