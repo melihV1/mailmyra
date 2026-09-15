@@ -64,6 +64,18 @@ describe('layoutSwitches — visibility', () => {
     };
     expect(layoutSwitches(withPhoto).monogram.visible).toBe(false);
   });
+
+  it('falls back to a hidden accent switch for an unknown templateId, and does not throw', () => {
+    // Saved signature can carry an older or deleted template id.
+    // TEMPLATE_ACCENT_SURFACE will not know the key; the module falls back
+    // to ?? false — hiding the switch is safer than showing it for an
+    // unknown template.
+    const s = layoutSwitches(withLayout({ templateId: 'deleted-template' }));
+    expect(s.accentBand.visible).toBe(false);
+    // The other two switches are template-agnostic, unaffected.
+    expect(s.nameSpacing.visible).toBe(true);
+    expect(s.monogram.visible).toBe(true);
+  });
 });
 
 describe('layoutSwitchPatch — write direction', () => {
