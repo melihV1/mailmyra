@@ -5,6 +5,7 @@ import { ensureHttp, htmlEscape, sanitizeUrl } from '../utils/escape';
 import { normalizeHex, readableTextOn } from '../utils/color';
 import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
+import { nameLetterSpacing } from '../utils/typography';
 
 type Size = SignatureData['layout']['size'];
 
@@ -94,6 +95,9 @@ export function dividerColumns(data: SignatureData, opts?: RenderOptions): strin
           'font-weight': 'bold',
           color: text,
           'line-height': '1.2',
+          // `undefined` ise styleToString bu anahtarı hiç basmaz — normal
+          // hâlde bugünkü çıktı bayt bayt korunur.
+          'letter-spacing': nameLetterSpacing(data.layout.nameSpacing),
         })}">${htmlEscape(data.identity.fullName)}</span>`,
         { style: { 'padding-bottom': '2px' } },
       ),

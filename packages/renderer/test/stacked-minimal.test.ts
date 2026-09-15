@@ -237,3 +237,40 @@ describe('stacked-minimal monogram', () => {
     expect(renderSignature(noPhoto, 'stacked-minimal')).toContain('height="72"');
   });
 });
+
+describe('stacked-minimal name spacing', () => {
+  const base: SignatureData = {
+    identity: { fullName: 'Elif Kaya' },
+    contact: {},
+    visuals: {
+      brandColor: '#7b9fd3', iconColor: '#7b9fd3', textColor: '#111827',
+      mutedColor: '#6b7280', fontFamily: 'Arial, Helvetica, sans-serif',
+    },
+    social: [],
+    layout: { templateId: 'stacked-minimal', size: 'medium', iconStyle: 'mono', showDividers: false },
+  };
+
+  it('adds no tracking by default', () => {
+    expect(renderSignature(base, 'stacked-minimal')).not.toContain('letter-spacing:0.04em');
+  });
+  it('opens the tracking when asked', () => {
+    expect(
+      renderSignature({ ...base, layout: { ...base.layout, nameSpacing: 'wide' } }, 'stacked-minimal'),
+    ).toContain('letter-spacing:0.04em');
+  });
+  // Versal BIRAKILDI: hicbir ayar ismin harflerine dokunmaz. Bu testin
+  // kirmizi olmasi, birinin buyuk harfi geri getirdigi anlamina gelir.
+  it('never changes the letters of the name', () => {
+    for (const ns of [undefined, 'normal', 'wide'] as const) {
+      const html = renderSignature({ ...base, layout: { ...base.layout, nameSpacing: ns } }, 'stacked-minimal');
+      expect(html).toContain('>Elif Kaya<');
+      expect(html).not.toContain('ELIF');
+      expect(html).not.toContain('ELİF');
+    }
+  });
+  it('never uses text-transform', () => {
+    expect(
+      renderSignature({ ...base, layout: { ...base.layout, nameSpacing: 'wide' } }, 'stacked-minimal'),
+    ).not.toMatch(/text-transform/i);
+  });
+});
