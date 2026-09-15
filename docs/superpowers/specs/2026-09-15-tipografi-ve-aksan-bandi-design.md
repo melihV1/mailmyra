@@ -31,15 +31,15 @@ hattına girdiği için **ayrı bir spec**; burada kapsam dışı.
   kullanıcıya nasıl gösterileceği ayrı iş (bkz. Açık sorular 1).
 - **Şablon sayısını artırmak.** CLAUDE.md 6'da kilitli; bu tur mevcut altısına
   uygulanır.
-- **`text-transform` CSS özelliği.** Gerekçe Karar 2'de.
+- **Versal (büyük harf) isim.** Ölçüldü, her iki kural da isimlerin bir kısmını bozuyor — gerekçe Karar 2'de. `text-transform` de kullanılmaz.
 
 ---
 
 ## Karar 1 — İki yeni `layout` alanı, kullanıcı kontrollü
 
 ```ts
-/** İsim satırı büyük harfe çevrilsin ve harf aralığı açılsın mı. */
-nameCase?: 'normal' | 'upper';
+/** İsim satırının harf aralığı açılsın mı. Büyük harf YOK — bkz. Karar 2. */
+nameSpacing?: 'normal' | 'wide';
 /** Şablonun aksan bandı çizilsin mi. Yeri şablonun kararı, varlığı kullanıcının. */
 accentBand?: 'auto' | 'off';
 ```
@@ -53,46 +53,50 @@ Uzlaştırma: **şablon nerede olacağına, kullanıcı açık mı kapalı mı o
 karar verir.** Aksan bandının YERİ kompozisyonun parçasıdır (Karar 3), VARLIĞI
 kullanıcınındır.
 
-## Karar 2 — Büyük harf CSS ile değil, renderer'da üretilir
+## Karar 2 — Versal YOK. Yalnız harf aralığı.
 
-`text-transform`, Outlook'un Word render motorunda güvenilmez. Ama biz çıktıyı
-üreten tarafız: renderer doğrudan `ELİF KAYA` basabilir.
+🔴 **Bu, iki turda düzeltilen bir tasarım hatasıdır. Gerekçesi kayda geçsin,
+çünkü ileride "büyük harf ekleyelim" önerisi kaçınılmaz olarak gelecek.**
 
-```ts
-displayName(fullName, 'upper')  →  'ELİF KAYA'   (+ letter-spacing stili)
+İlk taslak ismi büyük harfe çeviriyordu. Hangi kuralı seçersek seçelim
+isimlerin bir kısmını bozduğu ölçüldü:
+
+```
+varsayılan toUpperCase()   →  12 Türkçe isimden 8'ini bozuyor
+                              Elif→ELIF · Ali→ALI · Emine→EMINE · Halil
+                              Cemil → Fatih → Kerim → Sibel
+
+toLocaleUpperCase('tr-TR') →  7 yabancı isimden 6'sını bozuyor
+                              Smith→SMİTH · Martin→MARTİN · Christina
+                              Philip → Weiß→WEİSS · David
 ```
 
-Büyütme **varsayılan `toUpperCase()`** ile yapılır — `initialsFrom`'un
-kullandığı `toLocaleUpperCase('tr-TR')` ile KASITLI OLARAK FARKLI.
+Sebep: Türkçe'de `i`'nin büyüğü `İ`, diğer dillerde `I`. Bir ismi **dilini
+bilmeden** doğru büyütmek mümkün değil. Ve imzadaki tek dokunulmaz dize
+insanın kendi adıdır.
 
-🔴 **Bu, ilk taslağın düzeltilmesidir.** Önce `initialsFrom` ile aynı kuralı
-yazmıştım. Ölçtüğümde gerekçenin tam tersine döndüğü görüldü: Türkçe kural
-isimdeki HER `i`'yi noktalıya çevirir, yalnız ilk harfi değil.
+**Karar (Hüseyin, 2026-09-15): versal tamamen bırakıldı.** İsim yazıldığı gibi
+basılır; tipografik araç olarak yalnız **harf aralığı** eklenir. Tek yanlış
+cevabı olmayan seçenek buydu: hiçbir ismi bozmaz, yine de "tasarlanmış" hissi
+verir.
 
-| girdi | `tr-TR` | varsayılan |
-|---|---|---|
-| `İlker Yılmaz` | İLKER YILMAZ ✓ | **İLKER YILMAZ ✓** |
-| `Smith` | SMİTH ✗ | **SMITH ✓** |
-| `Martin` | MARTİN ✗ | **MARTIN ✓** |
-| `Weiß` | WEİSS ✗ | **WEISS ✓** |
-| `ilker yılmaz` | İLKER YILMAZ ✓ | ILKER YILMAZ ✗ |
+Reddedilen alternatif: `identity.nameLocale` gibi bir dil sinyali eklemek.
+Daha doğru sonuç verirdi ama yeni alan + builder arayüzü işi demek, ve sinyal
+KİŞİ başına olmalı (Türkçe arayüz kullanan birinin yabancı ismi olabilir).
+İleride o sinyal gelirse versal bu kararın üstüne eklenebilir.
 
-Düzgün yazılmış Türkçe isim varsayılanla da DOĞRU çıkar (`İ` zaten büyüktür,
-`ı` → `I` doğrudur). Tek bozulan, tamamen küçük harfle yazılmış Türkçe isim —
-`initialsFrom`'un kabul ettiği sınırın aynısı, ama orada bedel tek harfti.
+Alan bu yüzden `nameCase` değil **`nameSpacing`**:
 
-**İki fonksiyon bilerek ayrışır, birleştirilmemeli:** `initialsFrom` tek harf
-üretir ve o harf çoğunlukla Türkçe bir adın baş harfidir → `tr-TR` doğru.
-`displayName` tam ismi basar → varsayılan doğru. Biri diğerine uydurulursa
-karşı taraf bozulur.
+```ts
+nameSpacing?: 'normal' | 'wide';
+```
 
-`ß` → `SS` katlaması iki kuralda da olur ve burada DOĞRUDUR: `initialsFrom`'da
-sorundu çünkü orada iki karakter garantisi vardı; tam isimde `SS` zaten doğru
-Almanca büyük harftir.
+`'wide'` → isim satırına `letter-spacing: 0.04em`. `em` cinsinden, px değil —
+15px ve 23px isimde aynı oranı tutsun. Monogramın `0.02em`'inden geniş çünkü
+orada iki harf var, burada tam bir isim.
 
-Harf aralığı `em` cinsinden verilir (px değil — 15px ve 23px isimde aynı oranı
-tutsun). `0.04em` önerilir; monogramın `0.02em`'inden geniş çünkü tam bir isim,
-iki harf değil.
+`text-transform` da kullanılmaz — zaten büyütme yapmıyoruz, ve o özellik
+Word motorunda güvenilmez.
 
 ## Karar 3 — Aksan bandının yeri: şablon başına, hepsinde değil
 
@@ -125,7 +129,7 @@ Uygulayan, bandın içine logo koyan bir yerleşim üretirse bu bir spec ihlalid
 
 | alan | varsayılan | gerekçe |
 |---|---|---|
-| `nameCase` | `'normal'` | Kişisel stil tercihi. Herkesin ismini zorla büyük harfe çevirmek saldırgan; uzun isimler versal hâlde sarar. |
+| `nameSpacing` | `'normal'` | Kişisel stil tercihi; geniş aralık her isme yakışmaz ve uzun isimler 600px sınırında daha erken sarar. |
 | `accentBand` | `'auto'` (açık) | Şablonun KARAKTERİ, kişisel tercih değil. Kapalı olsaydı galeri bugünkü basic hâlinde kalırdı — şikâyetin kendisi buydu. |
 
 Monogramla tutarlı: alan yoksa `'auto'` sayılır, yani kayıtlı eski imzalar da
@@ -152,11 +156,12 @@ parametrelerini destekliyor (monogram turunda eklendi).
 `bgcolor` attribute'u **ve** `background-color` stili birlikte verilir — Word
 motoru CSS zeminini her zaman uygulamıyor.
 
-İsim satırı, `nameCase === 'upper'` iken:
+İsim satırı, `nameSpacing === 'wide'` iken stile YALNIZ bir anahtar ekler:
 ```
-font-size:<mevcut>px; font-weight:<mevcut>; letter-spacing:0.04em;
+letter-spacing:0.04em
 ```
-metin zaten büyük harf olarak basılır. `text-transform` KULLANILMAZ.
+Metnin kendisine dokunulmaz — isim `htmlEscape(data.identity.fullName)` olarak,
+kullanıcının yazdığı gibi basılır. `text-transform` KULLANILMAZ.
 
 ## Bilinen risk — dark mode
 
@@ -170,20 +175,21 @@ hesabımız o istemcide geçersiz olur ve karar yeniden düşünülür.
 
 | dosya | ne |
 |---|---|
-| `packages/renderer/src/types.ts` | `layout.nameCase?`, `layout.accentBand?` |
-| `packages/renderer/src/utils/typography.ts` | **yeni** — `displayName()` + `nameLetterSpacing()` |
+| `packages/renderer/src/types.ts` | `layout.nameSpacing?`, `layout.accentBand?` |
+| `packages/renderer/src/utils/typography.ts` | **yeni** — `nameLetterSpacing()` (tek fonksiyon; `displayName` GEREKMİYOR, isim yazıldığı gibi basılıyor) |
 | `packages/renderer/src/utils/accent.ts` | **yeni** — `shouldShowAccentBand()` + `accentBandRow()` / `accentPanelCell()` |
 | `packages/renderer/src/templates/card-bordered.ts` | üst bant |
 | `packages/renderer/src/templates/photo-first.ts` | avatar sütunu paneli |
-| diğer 4 şablon | yalnız `displayName()` çağrısı (isim satırı) |
+| diğer 4 şablon | yalnız `nameLetterSpacing()` çağrısı (isim satırının stili) |
 
 `apps/web` HİÇ DEĞİŞMEZ.
 
 ## Test planı
 
 Birim:
-- `displayName()` — `'normal'` aynen geçer; `'upper'` Türkçe kuralıyla büyütür
-  (`ilker` → `İLKER`), `ß` → `SS` doğru kabul edilir, boş ad boş döner.
+- `nameLetterSpacing()` — `'wide'` iken `0.04em`, aksi hâlde `undefined`.
+- **Altı şablonda: isim HİÇBİR ayarda değişmez.** `Elif Kaya` her zaman
+  `Elif Kaya` basılır — versalin bırakıldığının makine kontrolü.
 - `shouldShowAccentBand()` — `'off'` kapatır, alan yokken `'auto'` sayılır,
   yeri tanımsız şablonda her hâlükârda false.
 - `accentBandRow()` / `accentPanelCell()` — `bgcolor` + `background-color`
@@ -201,14 +207,16 @@ Birim:
   sessizce yok etmediğimizin kilidi.
 - `photo-first`: ne avatar ne monogram varken (boş ad) panel ÇİZİLMEZ —
   renkli boş sütun regresyonunun kilidi.
-- Altısında: `nameCase: 'upper'` isim satırını büyütür ve `letter-spacing`
-  ekler; `'normal'` bugünkü çıktıyı korur.
+- Altısında: `nameSpacing: 'wide'` yalnız `letter-spacing` ekler, ismin
+  KENDİSİNE dokunmaz; `'normal'` bugünkü çıktıyı bayt bayt korur.
 
 Çapraz:
 - Guardrail: yeni kod yolları da `ALL_FORBIDDEN_CONSTRUCTS`'tan geçer
   (monogram turunda kurulan paylaşılan liste).
-- `nameCase: 'upper'` + monogram birlikte: baş harfler ZATEN büyük, çift
-  büyütme bozulma yapmamalı.
+- **Altı şablonda: isim hiçbir ayarda DEĞİŞMEZ.** `Elif Kaya` her zaman
+  `Elif Kaya` basılır (`ELIF` de `ELİF` de çıkmaz) — versalin bırakıldığının
+  makine kontrolü. Bu test kırmızıya dönerse biri büyük harfi geri getirmiş
+  demektir.
 
 6-istemci matrisi (YAYIN ŞARTI):
 1. **Bandın dark mode davranışı** — en riskli, ilk bakılacak.

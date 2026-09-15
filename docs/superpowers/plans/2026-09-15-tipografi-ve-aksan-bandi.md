@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Görsel sözlüğe iki araç eklemek — isim satırında versal + harf aralığı (altı şablonda, kullanıcı seçeneği) ve marka renginde aksan alanı (iki şablonda, yeri şablonun kararı).
+**Goal:** Görsel sözlüğe iki araç eklemek — isim satırında harf aralığı (altı şablonda, kullanıcı seçeneği) ve marka renginde aksan alanı (iki şablonda, yeri şablonun kararı).
 
 **Architecture:** İki yeni saf yardımcı (`utils/typography.ts`, `utils/accent.ts`). Tipografi altı şablonda BİREBİR AYNI tek satırlık düzenleme. Aksan alanı yalnız `card-bordered` (üst bant) ve `photo-first` (avatar sütunu paneli); diğer dördü alanı sessizce yok sayar. Hepsi mevcut `table()`/`row()`/`cell()` yardımcılarıyla kurulur.
 
@@ -17,7 +17,7 @@
 - **Renkli hücrenin içeriği ASLA boş olmaz.** `card-bordered.ts:376` yorumu: *"İçeriği `&nbsp;` çünkü Outlook boş hücreye arka plan boyamıyor."* Dekoratif bant `&nbsp;` + `font-size:1px` + `line-height:1px` taşır — şerit hücresinin birebir deseni.
 - **`bgcolor` attribute'u VE `background-color` stili birlikte** verilir; Word motoru CSS zeminini her zaman uygulamıyor.
 - **Aksan alanı LOGOYU ASLA İÇERMEZ** (spec Karar 4). Şeffaf PNG logo koyu zeminde kaybolur ve açık/koyu varyantımız yok. Bu makine kontrollüdür: testler alanın içinde `<img>` olmadığını doğrular.
-- **`text-transform` KULLANILMAZ.** Büyük harf renderer'da üretilir.
+- **Versal (büyük harf) isim YAPILMAZ.** Ölçüldü: her iki büyütme kuralı da isimlerin bir kısmını bozuyor (varsayılan `Elif`→`ELIF`, Türkçe `Smith`→`SMİTH`). `text-transform` da kullanılmaz.
 - `apps/web` HİÇ DEĞİŞMEZ.
 - Test: `npm test -w packages/renderer` · tek dosya: `npx vitest run test/<dosya> --root packages/renderer` · `npm run typecheck -w packages/renderer`
 
@@ -27,8 +27,8 @@
 
 | dosya | sorumluluk |
 |---|---|
-| `packages/renderer/src/types.ts` | **değişir** — `layout.nameCase?`, `layout.accentBand?` |
-| `packages/renderer/src/utils/typography.ts` | **yeni** — `displayName()`, `nameLetterSpacing()` |
+| `packages/renderer/src/types.ts` | **değişir** — `layout.nameSpacing?`, `layout.accentBand?` |
+| `packages/renderer/src/utils/typography.ts` | **sadeleşir** — yalnız `nameLetterSpacing()`; `displayName()` SİLİNİR |
 | `packages/renderer/src/utils/accent.ts` | **yeni** — `shouldShowAccentBand()`, `accentBandRow()`, `accentPanelStyle()` |
 | `packages/renderer/src/templates/*.ts` (6) | isim satırı; ikisinde ayrıca aksan alanı |
 | `packages/renderer/test/typography.test.ts` | **yeni** |
@@ -37,85 +37,56 @@
 
 ---
 
-### Task 1: `displayName()` ve `nameLetterSpacing()`
+### Task 1: `nameLetterSpacing()`
 
 **Files:**
 - Modify: `packages/renderer/src/types.ts` (`layout` bloğu)
-- Create: `packages/renderer/src/utils/typography.ts`
-- Test: `packages/renderer/test/typography.test.ts`
+- Modify: `packages/renderer/src/utils/typography.ts` (mevcut — sadeleştirilecek)
+- Test: `packages/renderer/test/typography.test.ts` (mevcut — sadeleştirilecek)
 
 **Interfaces:**
-- Consumes: yok (saf string işlemi).
-- Produces:
-  - `displayName(fullName: string, nameCase: NameCase | undefined): string`
-  - `nameLetterSpacing(nameCase: NameCase | undefined): string | undefined`
-  - `type NameCase = 'normal' | 'upper'`
+- Consumes: yok.
+- Produces: `nameLetterSpacing(nameSpacing: NameSpacing | undefined): string | undefined`
+  ve `type NameSpacing = 'normal' | 'wide'`.
 
-- [ ] **Step 1: Tipi ekle**
+🔴 **Bu task bir GERİ ALMA içeriyor.** Daha önceki bir turda `displayName()`
+yazıldı ve ismi büyük harfe çeviriyordu. Ölçüldü ki hangi kural seçilirse
+seçilsin isimlerin bir kısmı bozuluyor: varsayılan `toUpperCase()` 12 Türkçe
+isimden 8'ini (`Elif`→`ELIF`, `Ali`→`ALI`), `toLocaleUpperCase('tr-TR')` ise
+7 yabancı isimden 6'sını (`Smith`→`SMİTH`, `Weiß`→`WEİSS`). Bir ismi dilini
+bilmeden doğru büyütmek mümkün değil.
 
-`packages/renderer/src/types.ts` içindeki `layout` bloğuna, mevcut `monogram?` alanının ALTINA:
+**Karar: versal tamamen bırakıldı.** `displayName()` SİLİNİR, `nameCase` alanı
+`nameSpacing` olur, geriye yalnız harf aralığı kalır.
+
+- [ ] **Step 1: Tipi düzelt**
+
+`packages/renderer/src/types.ts` içindeki `layout` bloğunda, önceki turda
+eklenen `nameCase?: 'normal' | 'upper';` alanını (varsa docstring'iyle
+birlikte) ŞUNUNLA DEĞİŞTİR:
 
 ```ts
     /**
-     * İsim satırı büyük harfe çevrilsin ve harf aralığı açılsın mı.
-     * Alan yoksa 'normal' sayılır — kişisel stil tercihi, herkesin ismini
-     * zorla versal yapmak saldırgan olurdu (uzun isimler versal hâlde sarar).
+     * İsim satırının harf aralığı açılsın mı.
+     *
+     * Büyük harf seçeneği YOK ve bilerek yok: Türkçe'de `i`'nin büyüğü `İ`,
+     * diğer dillerde `I`. Ölçüldü — varsayılan kural 12 Türkçe isimden 8'ini
+     * (`Elif` → `ELIF`), Türkçe kural 7 yabancı isimden 6'sını (`Smith` →
+     * `SMİTH`) bozuyor. Bir ismi dilini bilmeden doğru büyütmek mümkün değil
+     * ve imzadaki tek dokunulmaz dize insanın kendi adıdır.
      */
-    nameCase?: 'normal' | 'upper';
-    /**
-     * Şablonun aksan alanı çizilsin mi. YERİ şablonun kararı, VARLIĞI
-     * kullanıcının. Alan yoksa 'auto' sayılır: aksan şablonun karakteridir,
-     * kapalı varsayılan galeriyi bugünkü hâlinde bırakırdı.
-     * Yeri tanımlı olmayan şablonlarda (classic-horizontal, divider-columns,
-     * stacked-minimal) ve cta-banner'da SESSİZCE yok sayılır.
-     */
-    accentBand?: 'auto' | 'off';
+    nameSpacing?: 'normal' | 'wide';
 ```
 
-- [ ] **Step 2: Failing test yaz**
+`accentBand?` alanı önceki turda eklendiyse OLDUĞU GİBİ KALIR.
 
-`packages/renderer/test/typography.test.ts` oluştur:
+- [ ] **Step 2: Testi yeniden yaz**
+
+`packages/renderer/test/typography.test.ts` dosyasının TAMAMINI şununla değiştir:
 
 ```ts
 import { describe, it, expect } from 'vitest';
-import { displayName, nameLetterSpacing } from '../src/utils/typography';
-
-describe('displayName', () => {
-  it('passes the name through unchanged by default', () => {
-    expect(displayName('Elif Kaya', undefined)).toBe('Elif Kaya');
-  });
-  it('passes the name through unchanged when normal', () => {
-    expect(displayName('Elif Kaya', 'normal')).toBe('Elif Kaya');
-  });
-  it('uppercases when upper', () => {
-    expect(displayName('Elif Kaya', 'upper')).toBe('ELİF KAYA');
-  });
-  it('keeps a properly written Turkish name correct', () => {
-    // Turkish users write their own name with the dotted capital already
-    // there, and the dotless i uppercases to I under the default locale too —
-    // so the default rule gets this right without Turkish casing.
-    expect(displayName('İlker Yılmaz', 'upper')).toBe('İLKER YILMAZ');
-  });
-  it('does NOT dot the i of a non-Turkish name', () => {
-    // This is why the default locale is used here and tr-TR is not: Turkish
-    // casing dots EVERY i, so Smith becomes SMİTH and Martin MARTİN.
-    expect(displayName('Ian Smith', 'upper')).toBe('IAN SMITH');
-    expect(displayName('Christina Martin', 'upper')).toBe('CHRISTINA MARTIN');
-  });
-  it('accepts the known limit: an all-lowercase Turkish name loses its dot', () => {
-    // The same limit initialsFrom accepts, in the opposite direction. Costed
-    // and chosen: tr-TR would fix this one name and break every name with an i.
-    expect(displayName('ilker yılmaz', 'upper')).toBe('ILKER YILMAZ');
-  });
-  it('expands the German sharp s, which is correct here', () => {
-    // initialsFrom had to guard against this because it promises at most two
-    // characters; a full name has no such limit and SS is the right capital.
-    expect(displayName('Weiß', 'upper')).toBe('WEISS');
-  });
-  it('returns empty for an empty name', () => {
-    expect(displayName('', 'upper')).toBe('');
-  });
-});
+import { nameLetterSpacing } from '../src/utils/typography';
 
 describe('nameLetterSpacing', () => {
   it('is undefined by default', () => {
@@ -124,8 +95,8 @@ describe('nameLetterSpacing', () => {
   it('is undefined when normal', () => {
     expect(nameLetterSpacing('normal')).toBeUndefined();
   });
-  it('opens the tracking when upper', () => {
-    expect(nameLetterSpacing('upper')).toBe('0.04em');
+  it('opens the tracking when wide', () => {
+    expect(nameLetterSpacing('wide')).toBe('0.04em');
   });
 });
 ```
@@ -133,88 +104,80 @@ describe('nameLetterSpacing', () => {
 - [ ] **Step 3: Testin başarısız olduğunu gör**
 
 Run: `npx vitest run test/typography.test.ts --root packages/renderer`
-Expected: FAIL — "Failed to resolve import '../src/utils/typography'"
+Expected: FAIL — `displayName` importu kalktığı için eski testler yok; yeni
+testler `nameSpacing` tipini tanımayan imza yüzünden kırmızı.
 
-- [ ] **Step 4: Implementasyonu yaz**
+- [ ] **Step 4: Implementasyonu sadeleştir**
 
-`packages/renderer/src/utils/typography.ts` oluştur:
+`packages/renderer/src/utils/typography.ts` dosyasının TAMAMINI şununla değiştir:
 
 ```ts
 import type { SignatureData } from '../types';
 
-type NameCase = NonNullable<SignatureData['layout']['nameCase']>;
+type NameSpacing = NonNullable<SignatureData['layout']['nameSpacing']>;
 
 /**
- * İsim satırının basılacak hâli.
+ * Geniş aralıklı isimde harf aralığı.
  *
- * Büyük harf CSS ile DEĞİL burada üretilir: `text-transform` Outlook'un
- * masaüstü Word render motorunda güvenilmez, ama biz zaten çıktıyı üreten
- * tarafız — güvenilmez bir CSS özelliğine bulaşmak için sebep yok.
+ * Bu dosya bir zamanlar `displayName()` de içeriyordu ve ismi büyük harfe
+ * çeviriyordu. KALDIRILDI (2026-09-15) çünkü ölçüldü: hangi büyütme kuralı
+ * seçilirse seçilsin isimlerin bir kısmı bozuluyor — varsayılan kural
+ * `Elif` → `ELIF`, Türkçe kural `Smith` → `SMİTH`. Bir ismi dilini bilmeden
+ * doğru büyütmek mümkün değil. **Geri eklemeyin**; ancak `SignatureData`
+ * kişi başına bir dil sinyali taşırsa mümkün olur.
  *
- * VARSAYILAN `toUpperCase()` kullanılır — komşu `initialsFrom`'un
- * `toLocaleUpperCase('tr-TR')`'ından KASITLI OLARAK FARKLI. Birleştirmeyin.
+ * `em` cinsinden — px verseydik 15px ve 23px isimde aynı oranı tutmazdı.
+ * Monogramın `0.02em`'inden geniş, çünkü orada iki harf var, burada tam bir
+ * isim.
  *
- * Sebep ölçüldü: Türkçe kural isimdeki HER `i`'yi noktalıya çevirir, yalnız
- * ilk harfi değil. `Smith` → `SMİTH`, `Martin` → `MARTİN`, `Weiß` → `WEİSS`.
- * Varsayılan kuralda düzgün yazılmış Türkçe isim de doğru çıkar (`İ` zaten
- * büyüktür, `ı` → `I` doğrudur): `İlker Yılmaz` → `İLKER YILMAZ`.
- *
- * Kabul edilen tek sınır: tamamen küçük harfle yazılmış Türkçe isim
- * (`ilker yılmaz` → `ILKER YILMAZ`, noktası düşer). `initialsFrom`'un kabul
- * ettiği sınırın aynısı ama ters yönde — orada bedel tek harf, burada bir
- * harf; `tr-TR` seçseydik bedel `i` içeren HER isim olurdu.
- *
- * `ß` → `SS` katlaması iki kuralda da olur ve burada DOĞRUDUR: tam isimde SS
- * doğru Almanca büyük harftir.
+ * `undefined` dönmesi kasıtlı: `utils/inline-style.ts` içindeki
+ * `styleToString` `undefined` ve `''` değerleri filtreliyor, yani çağıran
+ * bunu doğrudan stil nesnesine koyabilir ve `normal` hâlde anahtar hiç
+ * basılmaz — bugünkü çıktı bayt bayt korunur.
  */
-export function displayName(fullName: string, nameCase: NameCase | undefined): string {
-  if (nameCase !== 'upper') return fullName;
-  return fullName.toUpperCase();
-}
-
-/**
- * Versal isimde harf aralığı. `em` cinsinden — px verseydik 15px ve 23px
- * isimde aynı oranı tutmazdı. Monogramın `0.02em`'inden geniş, çünkü orada
- * iki harf var, burada tam bir isim.
- *
- * `undefined` dönmesi kasıtlı: çağıran bunu doğrudan `styleToString`'e
- * verebilsin, `normal` hâlde stile hiçbir şey eklenmesin.
- */
-export function nameLetterSpacing(nameCase: NameCase | undefined): string | undefined {
-  return nameCase === 'upper' ? '0.04em' : undefined;
+export function nameLetterSpacing(nameSpacing: NameSpacing | undefined): string | undefined {
+  return nameSpacing === 'wide' ? '0.04em' : undefined;
 }
 ```
 
 - [ ] **Step 5: Testlerin geçtiğini gör**
 
 Run: `npx vitest run test/typography.test.ts --root packages/renderer`
-Expected: PASS (12 test)
+Expected: PASS (3 test)
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 6: Tüm paket + typecheck**
+
+Run: `npm test -w packages/renderer`
+Run: `npm run typecheck -w packages/renderer`
+Expected: ikisi de temiz. `displayName`'e başka bir yerden atıf kalmışsa
+typecheck yakalar — kalmamalı, çünkü şablonlara henüz uygulanmadı.
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add packages/renderer/src/types.ts packages/renderer/src/utils/typography.ts packages/renderer/test/typography.test.ts
-git commit -m "feat(renderer): emit the name in caps ourselves instead of asking text-transform"
+git commit -m "fix(renderer): drop uppercase names — no rule gets both languages right"
 ```
 
 ---
 
-### Task 2: Tipografiyi altı şablona uygula
+### Task 2: Harf aralığını altı şablona uygula
 
 **Files:**
-- Modify: `packages/renderer/src/templates/card-bordered.ts:141-146`
-- Modify: `packages/renderer/src/templates/classic-horizontal.ts:54-60`
-- Modify: `packages/renderer/src/templates/cta-banner.ts:111-117`
-- Modify: `packages/renderer/src/templates/divider-columns.ts:91-97`
-- Modify: `packages/renderer/src/templates/photo-first.ts:111-117`
-- Modify: `packages/renderer/src/templates/stacked-minimal.ts:139-145`
+- Modify: `packages/renderer/src/templates/card-bordered.ts`
+- Modify: `packages/renderer/src/templates/classic-horizontal.ts`
+- Modify: `packages/renderer/src/templates/cta-banner.ts`
+- Modify: `packages/renderer/src/templates/divider-columns.ts`
+- Modify: `packages/renderer/src/templates/photo-first.ts`
+- Modify: `packages/renderer/src/templates/stacked-minimal.ts`
 - Test: her şablonun kendi `test/<ad>.test.ts`
 
 **Interfaces:**
-- Consumes: `displayName()`, `nameLetterSpacing()` (Task 1).
+- Consumes: `nameLetterSpacing()` (Task 1).
 - Produces: yok.
 
-**Bu görev BİREBİR TEKDÜZE.** Altı şablonun isim satırı karakter karakter aynı; doğrulandı (her dosyada tam 1 eşleşme):
+**Bu görev BİREBİR TEKDÜZE.** Altı şablonun isim satırı karakter karakter aynı;
+doğrulandı (her dosyada tam 1 eşleşme):
 
 ```ts
         `<span style="${styleToString({
@@ -228,12 +191,12 @@ git commit -m "feat(renderer): emit the name in caps ourselves instead of asking
 
 - [ ] **Step 1: Failing test yaz (altı dosyaya)**
 
-Her şablonun test dosyasına aşağıdaki bloğu ekle. `TID` yerine o dosyanın şablon kimliğini yaz (`'card-bordered'`, `'classic-horizontal'`, `'cta-banner'`, `'divider-columns'`, `'photo-first'`, `'stacked-minimal'`).
-
-Dosyanın import bloğunda `import type { SignatureData } from '../src/types';` yoksa ekle.
+Her şablonun test dosyasına aşağıdaki bloğu ekle. `TID` yerine o dosyanın
+şablon kimliğini yaz. Dosyanın import bloğunda
+`import type { SignatureData } from '../src/types';` yoksa ekle.
 
 ```ts
-describe('TID name case', () => {
+describe('TID name spacing', () => {
   const base: SignatureData = {
     identity: { fullName: 'Elif Kaya' },
     contact: {},
@@ -245,24 +208,27 @@ describe('TID name case', () => {
     layout: { templateId: TID, size: 'medium', iconStyle: 'mono', showDividers: false },
   };
 
-  it('prints the name as typed by default', () => {
-    const html = renderSignature(base, TID);
-    expect(html).toContain('>Elif Kaya<');
-    expect(html).not.toContain('>ELİF KAYA<');
-  });
-  it('prints the name in caps when asked', () => {
-    const html = renderSignature({ ...base, layout: { ...base.layout, nameCase: 'upper' } }, TID);
-    expect(html).toContain('>ELİF KAYA<');
-  });
-  it('opens the tracking only in caps', () => {
+  it('adds no tracking by default', () => {
     expect(renderSignature(base, TID)).not.toContain('letter-spacing:0.04em');
+  });
+  it('opens the tracking when asked', () => {
     expect(
-      renderSignature({ ...base, layout: { ...base.layout, nameCase: 'upper' } }, TID),
+      renderSignature({ ...base, layout: { ...base.layout, nameSpacing: 'wide' } }, TID),
     ).toContain('letter-spacing:0.04em');
+  });
+  // Versal BIRAKILDI: hicbir ayar ismin harflerine dokunmaz. Bu testin
+  // kirmizi olmasi, birinin buyuk harfi geri getirdigi anlamina gelir.
+  it('never changes the letters of the name', () => {
+    for (const ns of [undefined, 'normal', 'wide'] as const) {
+      const html = renderSignature({ ...base, layout: { ...base.layout, nameSpacing: ns } }, TID);
+      expect(html).toContain('>Elif Kaya<');
+      expect(html).not.toContain('ELIF');
+      expect(html).not.toContain('ELİF');
+    }
   });
   it('never uses text-transform', () => {
     expect(
-      renderSignature({ ...base, layout: { ...base.layout, nameCase: 'upper' } }, TID),
+      renderSignature({ ...base, layout: { ...base.layout, nameSpacing: 'wide' } }, TID),
     ).not.toMatch(/text-transform/i);
   });
 });
@@ -271,17 +237,18 @@ describe('TID name case', () => {
 - [ ] **Step 2: Testlerin başarısız olduğunu gör**
 
 Run: `npm test -w packages/renderer`
-Expected: FAIL — altı dosyada "prints the name in caps when asked" kırmızı.
+Expected: FAIL — altı dosyada "opens the tracking when asked" kırmızı.
 
 - [ ] **Step 3: Altı şablonda isim satırını değiştir**
 
 Her dosyanın başına import ekle:
 
 ```ts
-import { displayName, nameLetterSpacing } from '../utils/typography';
+import { nameLetterSpacing } from '../utils/typography';
 ```
 
-Ve o dosyadaki TEK eşleşmeyi şununla değiştir:
+Ve o dosyadaki TEK eşleşmeyi şununla değiştir — **`htmlEscape(data.identity.fullName)`
+kısmına DOKUNMA**, yalnız stile bir anahtar eklenir:
 
 ```ts
         `<span style="${styleToString({
@@ -292,14 +259,12 @@ Ve o dosyadaki TEK eşleşmeyi şununla değiştir:
           'line-height': '1.2',
           // `undefined` ise styleToString bu anahtarı hiç basmaz — normal
           // hâlde bugünkü çıktı bayt bayt korunur.
-          'letter-spacing': nameLetterSpacing(data.layout.nameCase),
-        })}">${htmlEscape(displayName(data.identity.fullName, data.layout.nameCase))}</span>`,
+          'letter-spacing': nameLetterSpacing(data.layout.nameSpacing),
+        })}">${htmlEscape(data.identity.fullName)}</span>`,
 ```
 
 ℹ️ Bu güvenli, doğrulandı: `utils/inline-style.ts` içindeki `styleToString`
-`undefined` ve `''` değerleri `.filter()` ile atıyor. Yani `nameCase` normalken
-`letter-spacing` anahtarı stile HİÇ basılmaz ve bugünkü çıktı bayt bayt korunur.
-Koşullu yayma (`...(x ? {} : {})`) biçimine gerek yok.
+`undefined` ve `''` değerleri `.filter()` ile atıyor.
 
 - [ ] **Step 4: Testlerin geçtiğini gör**
 
@@ -310,7 +275,7 @@ Expected: PASS
 
 ```bash
 git add packages/renderer/src/templates packages/renderer/test
-git commit -m "feat(renderer): let every template print its name in caps on request"
+git commit -m "feat(renderer): let every template open the tracking on its name line"
 ```
 
 ---
@@ -839,11 +804,11 @@ Expected: PASS. **Başarısız olursa üretim kodunda gerçek bir kusur buldun**
 
 ```ts
 // Aksan alani ve versal isim, fixture'larla tetiklenmeyen kod yollari:
-// fixture'larda `accentBand`/`nameCase` alanlari yok, dolayisiyla varsayilan
+// fixture'larda `accentBand`/`nameSpacing` alanlari yok, dolayisiyla varsayilan
 // disi kombinasyonlar MODES dongusunden gecmiyor.
 describe('guardrails: accent + name case', () => {
   for (const templateId of TEMPLATE_IDS) {
-    it(`${templateId} stays clean with the accent on and the name in caps`, () => {
+    it(`${templateId} stays clean with the accent on and the tracking open`, () => {
       const html = renderSignature(
         {
           identity: { fullName: 'Elif Kaya' },
@@ -853,7 +818,7 @@ describe('guardrails: accent + name case', () => {
             mutedColor: '#6b7280', fontFamily: 'Arial, Helvetica, sans-serif',
           },
           social: [],
-          layout: { templateId, size: 'medium', iconStyle: 'mono', showDividers: false, accentBand: 'auto', nameCase: 'upper' },
+          layout: { templateId, size: 'medium', iconStyle: 'mono', showDividers: false, accentBand: 'auto', nameSpacing: 'wide' },
         },
         templateId,
       );
