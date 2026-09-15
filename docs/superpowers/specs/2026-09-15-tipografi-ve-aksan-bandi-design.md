@@ -1,4 +1,8 @@
-# Görsel sözlük, Aşama 1 — versal tipografi + aksan bandı
+# Görsel sözlük, Aşama 1 — harf aralığı + aksan bandı
+
+<!-- final review ⑦: başlık "versal tipografi" diyordu ama versal Karar 2'de
+     tamamen bırakıldı (bkz. aşağıda) — başlık kendi kararıyla çelişiyordu,
+     düzeltildi. -->
 
 **Tarih:** 2026-09-15 · **Onay:** Hüseyin (sözlü) · **Kapsam:** `packages/renderer`
 **Önceki adım:** monogram (`2026-09-14-monogram-design.md`) · **Sonraki adım:** yuvarlak avatar (ayrı spec)
@@ -106,7 +110,7 @@ görünüyor" sorununu renkli hâliyle yeniden üretirdi.
 | şablon | karar | gerekçe |
 |---|---|---|
 | **card-bordered** | ✅ kartın ÜSTÜNE tam genişlik marka renginde bant | Zaten kart yapısı var (beyaz gövde + sol aksan şeridi); bant oturacağı yeri hazır buluyor. Şeridin rengiyle aynı, kimlik güçlenir. |
-| **photo-first** | ✅ avatar SÜTUNUNUN arkasına renk paneli | "Yaratıcı vurgu" şablonu, en büyük avatar kutusu (88/104/120) onda; monogram zaten oraya renk koyuyor, panel onu çerçeveler. **Sol hücre BOŞKEN panel de çizilmez** — ne avatar ne monogram varsa (adı boş bir imza) `leftCell` `''` olur ve renkli boş bir sütun saçma durur. Koşul: `hasAvatar \|\| shouldShowMonogram(data)`, yani `colspan` kararıyla AYNI koşul. |
+| **photo-first** | ✅ avatar SÜTUNUNUN arkasına renk paneli, **YALNIZ gerçek fotoğraf varken** | "Yaratıcı vurgu" şablonu, en büyük avatar kutusu (88/104/120) onda. Koşul BİLEREK yalnız `hasAvatar` — `colspan` kararından (`hasAvatar \|\| shouldShowMonogram(data)`) FARKLI. ⚠️ **Revizyon (final review ①, kod bittikten sonra):** ilk sürümde koşul `colspan` ile AYNIYDI ("monogram zaten oraya renk koyuyor, panel onu çerçeveler" deniyordu) — YANLIŞ çıktı. Panel ile monogram AYNI `brand` hex'ini basıyordu; fotoğrafsız imzada monogramın disk silueti düz bir renk dikdörtgeninde kayboluyordu, ve Outlook Classic `border-radius`'ı da yok saydığı için orada hiç sınır kalmıyordu — bu, fotoğrafsız HER photo-first imzasının varsayılan hâliydi. Sahibinin kararı: monogram zaten bir renk bloğu, ikinci bir renk bloğu gereksiz — panel artık monogram varken ÇİZİLMEZ. **Sol hücre BOŞKEN de panel çizilmez** — ne avatar ne monogram varsa (adı boş bir imza) `leftCell` `''` olur ve renkli boş bir sütun saçma durur. |
 | **cta-banner** | ⏸️ ZATEN VAR | CTA bandı zaten `background-color: brand` ve şablonun kimliği. İkinci renk alanı ikisini yarıştırır. `accentBand` bu şablonda **tamamen yok sayılır** — `'off'` bile CTA bandını KAPATMAZ. O bant `extras.ctaLabel`'a bağlıdır, aksan bandı değildir; karıştırmak kullanıcının CTA'sını sessizce yok ederdi. |
 | **divider-columns** | ❌ | Kimliği 2px'lik dikey ayraç; renk alanı onu boğar. Kurumsal ölçülülük amacın kendisi. |
 | **stacked-minimal** | ❌ | "Minimal" brief'in kendisi. |
@@ -177,7 +181,7 @@ hesabımız o istemcide geçersiz olur ve karar yeniden düşünülür.
 |---|---|
 | `packages/renderer/src/types.ts` | `layout.nameSpacing?`, `layout.accentBand?` |
 | `packages/renderer/src/utils/typography.ts` | **yeni** — `nameLetterSpacing()` (tek fonksiyon; `displayName` GEREKMİYOR, isim yazıldığı gibi basılıyor) |
-| `packages/renderer/src/utils/accent.ts` | **yeni** — `shouldShowAccentBand()` + `accentBandRow()` / `accentPanelCell()` |
+| `packages/renderer/src/utils/accent.ts` | **yeni** — `shouldShowAccentBand()` + `accentBandRow()` / `accentPanelStyle()` |
 | `packages/renderer/src/templates/card-bordered.ts` | üst bant |
 | `packages/renderer/src/templates/photo-first.ts` | avatar sütunu paneli |
 | diğer 4 şablon | yalnız `nameLetterSpacing()` çağrısı (isim satırının stili) |
@@ -192,7 +196,7 @@ Birim:
   `Elif Kaya` basılır — versalin bırakıldığının makine kontrolü.
 - `shouldShowAccentBand()` — `'off'` kapatır, alan yokken `'auto'` sayılır,
   yeri tanımsız şablonda her hâlükârda false.
-- `accentBandRow()` / `accentPanelCell()` — `bgcolor` + `background-color`
+- `accentBandRow()` / `accentPanelStyle()` — `bgcolor` + `background-color`
   birlikte, metin rengi `readableTextOn`, yasak yapı yok, **`<img>` içermiyor**
   (Karar 4'ün makine kontrolü).
 
@@ -224,7 +228,11 @@ Birim:
    hizalı mı.
 3. `photo-first` paneli avatar sütunuyla aynı yükseklikte mi (Word'de hücre
    yüksekliği tuzağı).
-4. Versal isim uzun adlarda sarıyor mu (600px sınırında).
+4. `letter-spacing`'in `em` biriminde Outlook Classic'te uygulanıp
+   uygulanmadığı (kimse doğrulamadı; monogram da `0.02em` ile aynı varsayım
+   altında shiplendi) ve geniş aralıklı uzun bir ismin 600px sınırında sarıp
+   sarmadığı. (final review ⑦: madde eskiden "Versal isim uzun adlarda
+   sarıyor mu" diyordu — Karar 2'de silinen bir özelliği sınıyordu.)
 
 ## Açık sorular (kapsam dışı)
 

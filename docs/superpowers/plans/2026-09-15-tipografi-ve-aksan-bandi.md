@@ -852,6 +852,10 @@ CLAUDE.md: şablon başına 6-istemci test matrisi yayın şartıdır. Öncelik 
 1. **Bandın ve panelin DARK MODE davranışı** — en riskli, ilk bakılacak. Bazı istemciler (Outlook.com) zemini zorla ters çevirir; ters çevrilirse kontrast hesabımız o istemcide geçersizdir ve karar yeniden düşünülür.
 2. `card-bordered` bandı Outlook Classic'te tam genişlik mi, şeridin üstünü de kaplıyor mu, altında gri çizgi kalmış mı.
 3. `photo-first` paneli avatar sütunuyla aynı yükseklikte mi (Word hücre yüksekliği tuzağı).
-4. Versal isim uzun adlarda 600px sınırında sarıyor mu.
+4. `letter-spacing`'in `em` biriminde Outlook Classic'te uygulanıp
+   uygulanmadığı (kimse doğrulamadı; monogram da `0.02em` ile aynı varsayım
+   altında shiplendi) ve geniş aralıklı uzun bir ismin 600px sınırında sarıp
+   sarmadığı. (final review ⑦: madde eskiden "Versal isim uzun adlarda
+   sarıyor mu" diyordu — Karar 2'de silinen bir özelliği sınıyordu.)
 
 ⚠️ `divider-columns`, `photo-first`, `cta-banner` matristen HİÇ geçmedi; monogram borcu büyüttü, bu tur `photo-first`'ü yeniden değiştirdiği için daha da büyütüyor.
