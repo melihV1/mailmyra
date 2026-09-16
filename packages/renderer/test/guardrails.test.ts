@@ -37,6 +37,52 @@ const ALL_FORBIDDEN_CONSTRUCTS = [
 // Spec (§3c): guardrail suite'i her şablon×fixture için İKİ modda koşar —
 // metin-link (iconBaseUrl'süz) ve ikonlu. İkon <img> kuralları ancak ikinci
 // modda tetiklenir.
+/**
+ * Zemin rengi taşıyan hücreleri, İÇERİKLERİYLE birlikte çıkarır.
+ *
+ * Neden elle tarayıcı: `<td ...>(.*?)</td>` gibi tembel bir regex iç içe
+ * tabloda YANLIŞ kapanışı yakalar — panel hücresi gibi içinde tablo taşıyan
+ * hücreler bu şablonlarda var (`photo-first`). Derinlik sayarak eşleşen
+ * kapanışı buluyoruz.
+ */
+function paintedCells(html: string): { open: string; inner: string }[] {
+  const out: { open: string; inner: string }[] = [];
+  const openTag = /<t[dh]\b[^>]*>/gi;
+  let m: RegExpExecArray | null;
+  while ((m = openTag.exec(html)) !== null) {
+    const tag = m[0];
+    const painted = /\sbgcolor\s*=/i.test(tag) || /background-color\s*:/i.test(tag);
+    if (!painted) continue;
+    // Eşleşen kapanışı derinlik sayarak bul.
+    const scan = /<t[dh]\b[^>]*>|<\/t[dh]>/gi;
+    scan.lastIndex = openTag.lastIndex;
+    let depth = 1;
+    let end = -1;
+    let n: RegExpExecArray | null;
+    while ((n = scan.exec(html)) !== null) {
+      if (n[0].startsWith('</')) {
+        depth -= 1;
+        if (depth === 0) { end = n.index; break; }
+      } else {
+        depth += 1;
+      }
+    }
+    if (end === -1) continue; // kapanışsız hücre — ayrı bir sorun, burada değil
+    out.push({ open: tag, inner: html.slice(openTag.lastIndex, end) });
+  }
+  return out;
+}
+
+/**
+ * Hücre GÖRSEL OLARAK boş mu. `&nbsp;` içerik SAYILIR (kuralın çözümü odur),
+ * bir `<img>` ya da iç tablo da içeriktir — iç tablonun kendi hücreleri aynı
+ * kuralla ayrıca denetlenir.
+ */
+function looksEmpty(inner: string): boolean {
+  if (/<img\b|<table\b/i.test(inner)) return false;
+  return inner.replace(/<[^>]*>/g, '').trim() === '';
+}
+
 const MODES = [
   { name: 'text-link', opts: undefined },
   { name: 'icons', opts: { iconBaseUrl: 'https://cdn.example.com' } },
@@ -66,6 +112,18 @@ for (const mode of MODES) {
           for (const t of tables) {
             expect(t).toContain('border="0"');
             expect(t).toContain('border:none');
+          }
+        });
+
+        it('never paints a cell that renders empty (Outlook skips the fill)', () => {
+          // CLAUDE.md: "Outlook boş hücreye arka plan boyamıyor." Zemin rengi
+          // verilen her hücrenin görünür bir içeriği olmalı; çözüm `&nbsp;`.
+          //
+          // DİKKAT: iddia hücrenin KENDİ alt ağacına bakar, belgenin tamamına
+          // değil — belge genelinde `&nbsp;` aramak, bir hücrenin boşluğunu
+          // BAŞKA bir hücrenin içeriğiyle örtbas ederdi.
+          for (const { open, inner } of paintedCells(html)) {
+            expect({ cell: open, empty: looksEmpty(inner) }).toEqual({ cell: open, empty: false });
           }
         });
 
@@ -127,6 +185,37 @@ for (const mode of MODES) {
 // Paylaşılan-sabit çıkarımı (ALL_FORBIDDEN_CONSTRUCTS, MODES ile AYNI
 // diziler) iyi bir iyileştirme olarak KALDI: MODES tarafına yeni bir
 // kontrol eklendiğinde bu blok elle güncellenmeden pariteyi korur.
+describe('guardrails: the empty-painted-cell rule is not vacuous', () => {
+  // Yukarıdaki kural, hiç boyalı hücre bulunmazsa sessizce "geçer". Bu blok
+  // taramanın gerçekten iş gördüğünü kilitler.
+  const found: { tpl: string; cells: number; nested: number }[] = [];
+  for (const templateId of TEMPLATE_IDS) {
+    let cells = 0;
+    let nested = 0;
+    for (const fx of fixtures) {
+      const html = renderSignature(fx.data, templateId, { iconBaseUrl: 'https://cdn.example.com' });
+      for (const c of paintedCells(html)) {
+        cells += 1;
+        if (/<table\b/i.test(c.inner)) nested += 1;
+      }
+    }
+    found.push({ tpl: templateId, cells, nested });
+  }
+
+  it('finds painted cells in every template', () => {
+    for (const f of found) {
+      expect({ tpl: f.tpl, any: f.cells > 0 }).toEqual({ tpl: f.tpl, any: true });
+    }
+  });
+
+  it('exercises the nested-table path (a painted cell that wraps a table)', () => {
+    // Derinlik sayan tarayıcının varlık sebebi. Bu vaka kaybolursa tembel bir
+    // `<td>(.*?)</td>` regex'i de yeterdi — ve o regex iç içe tabloda YANLIŞ
+    // kapanışı yakalayıp kuralı sessizce bozardı.
+    expect(found.some((f) => f.nested > 0)).toBe(true);
+  });
+});
+
 describe('guardrails: monogram branch', () => {
   for (const templateId of TEMPLATE_IDS) {
     it(`${templateId} emits no forbidden constructs without a photo`, () => {
