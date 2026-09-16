@@ -4,7 +4,7 @@ import type { SignatureData, WebSafeFont } from '@mailmyra/renderer';
 import { contrastRatio, TEMPLATE_IDS } from '@mailmyra/renderer';
 import type { BuilderAction } from '../reducer';
 import { FieldGroup, LockHint } from '../fields';
-import { layoutSwitches, layoutSwitchPatch, type SwitchName } from '../layout-switches';
+import { layoutSwitches, layoutSwitchPatch, switchLabel, SWITCH_NAMES } from '../layout-switches';
 import { WEB_SAFE_FONTS } from '../../../lib/brand-doc';
 import type { BrandFieldName } from '../../../lib/brand-apply';
 import { builder as builderDict, type BuilderDict } from '../../../lib/i18n/dict/builder';
@@ -299,7 +299,7 @@ export function StyleStep({
         </label>
         </div>
 
-        {(['nameSpacing', 'monogram', 'accentBand'] as const).map((name: SwitchName) =>
+        {SWITCH_NAMES.map((name) =>
           switches[name].visible ? (
             <div key={name} className="col-12 col-md-6 d-flex align-items-end">
               <label className="form-check mb-2">
@@ -311,13 +311,7 @@ export function StyleStep({
                     dispatch({ type: 'patchLayout', value: layoutSwitchPatch(name, e.target.checked) })
                   }
                 />{' '}
-                <span className="form-check-label">
-                  {name === 'nameSpacing'
-                    ? t.typography.nameSpacingWide
-                    : name === 'monogram'
-                      ? t.typography.monogramFallback
-                      : t.typography.accentBandOn}
-                </span>
+                <span className="form-check-label">{switchLabel(t.typography, name)}</span>
               </label>
             </div>
           ) : null,

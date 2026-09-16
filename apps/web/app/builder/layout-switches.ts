@@ -1,7 +1,18 @@
 import type { SignatureData } from '@mailmyra/renderer';
-import { TEMPLATE_ACCENT_SURFACE } from '@mailmyra/renderer';
+import { accentSurfaceAvailable } from '@mailmyra/renderer';
+import type { BuilderDict } from '../../lib/i18n/dict/builder';
 
 export type SwitchName = 'nameSpacing' | 'monogram' | 'accentBand';
+
+/**
+ * Üç anahtarın adı, tek yerde. `StyleStep.tsx`'teki elle yazılmış
+ * `['nameSpacing', 'monogram', 'accentBand'] as const` dizisinin YERİNİ
+ * ALIR — ikinci bir elle tutulan liste olmasın diye (final review ③).
+ * `apps/web/test/builder-layout-switches.test.ts` bunun `layoutSwitches`'in
+ * döndürdüğü anahtarlarla (yani gerçek `SwitchName` kapsamıyla) birebir
+ * aynı olduğunu kilitler.
+ */
+export const SWITCH_NAMES: readonly SwitchName[] = ['nameSpacing', 'monogram', 'accentBand'] as const;
 
 export interface SwitchState {
   /** Anahtar hiç gösterilsin mi — işe yaramayacağı yerde GİZLENİR (spec Karar 2). */
@@ -26,8 +37,11 @@ export interface SwitchState {
  */
 export function layoutSwitches(data: SignatureData): Record<SwitchName, SwitchState> {
   const { layout, visuals } = data;
-  const accentTemplate: boolean =
-    (TEMPLATE_ACCENT_SURFACE as Record<string, boolean>)[layout.templateId] ?? false;
+  // Tek yüklem `capabilities.ts`'ten (final review ①): şablonlar VE arayüz
+  // AYNI fonksiyonu çağırır, koşul iki yerde ayrı ayrı tarif edilmez.
+  // `data` bütünüyle verilir, yalnız `layout.templateId` değil — yüklem
+  // photo-first'te `visuals.avatarUrl`'a de bakar.
+  const accentTemplate: boolean = accentSurfaceAvailable(data, layout.templateId);
 
   return {
     // Harf aralığı altı şablonda da çalışır — koşulsuz görünür.
@@ -70,4 +84,29 @@ export function layoutSwitchPatch(
     case 'accentBand':
       return { accentBand: checked ? 'auto' : 'off' };
   }
+}
+
+/**
+ * Anahtarın onay kutusu etiketi.
+ *
+ * BİLEREK JSX'in dışında (final review ③): `StyleStep.tsx`'te iç içe
+ * ternary ile seçiliyordu, sınanmayan mantık JSX'te yaşıyordu. `Record<
+ * SwitchName, string>` kullanılır — bir ternary zincirinden farklı olarak,
+ * dördüncü bir `SwitchName` eklendiğinde eksik dal DERLEMEYİ KIRAR; ternary
+ * sessizce yanlış (ya da `undefined`) etiket basardı.
+ *
+ * `t` parametresinin tipi sözlükten TÜRETİLİR
+ * (`BuilderDict['steps']['style']['typography']`) — metnin kendisi bu
+ * modüle KOPYALANMAZ, tek kaynak `lib/i18n/dict/builder.ts` kalır.
+ */
+export function switchLabel(
+  t: BuilderDict['steps']['style']['typography'],
+  name: SwitchName,
+): string {
+  const labels: Record<SwitchName, string> = {
+    nameSpacing: t.nameSpacingWide,
+    monogram: t.monogramFallback,
+    accentBand: t.accentBandOn,
+  };
+  return labels[name];
 }
