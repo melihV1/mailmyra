@@ -399,6 +399,14 @@ async function main() {
     }
     if (!plan.upload.length) {
       console.log('\nYüklenecek dosya yok.');
+      // Yalnız sunucuya gitmeyen dosyalar (README, scripts/) değiştiyse damga
+      // yerinde kalırsa her koşuda aynı boş planı yeniden hesaplar ve "geride
+      // kalmış" gibi görünür. Yükleyecek bir şey olmadığına göre sunucu zaten
+      // HEAD'in yüklenebilir içeriğiyle aynı — damgayı ilerlet.
+      if (!opts.files && !opts.all && !opts.dryRun && marker) {
+        await writeMarker(client, head, 0);
+        console.log(`Damga yine de ${head.slice(0, 7)}'e ilerletildi (değişenlerin hiçbiri sunucuya gitmiyor).`);
+      }
       return;
     }
 
