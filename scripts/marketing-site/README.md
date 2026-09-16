@@ -56,6 +56,48 @@ görünsün — SEO ve erişilebilirlik için şart) ve sayfa sonundaki `MM_PRIC
 objesine (hesaplayıcı oradan okur). `LAUNCH_OFFER["active"] = True` yapınca
 kampanya kutusu HTML'e eklenir; `False` iken hiç yazılmaz.
 
+## Yükleme — `npm run deploy:site`
+
+Site artık elle FTP'lenmiyor: `scripts/deploy-site.js`. Hedef sunucudaki
+**`/site`** (panelin `scripts/deploy.js`'i ile karıştırma, onun hedefi
+`/app.mailmyra.com/apps/web`). Aynı `.env.deploy`'u okur.
+
+```
+npm run deploy:site                 # son yüklemeden HEAD'e olan farkı gönder
+npm run deploy:site -- --audit      # hiçbir şey yükleme, sapmayı ölç
+npm run deploy:site -- --dry-run    # planı gör
+npm run deploy:site -- --help
+```
+
+**Neden yazıldı:** 2026-09-16'da `0d1eaa1`, `6153713` ve `db2cf9d` commit
+edilmiş ama sunucuya HİÇ çıkmamıştı — canlıda üç ekran görüntüsü 404
+veriyor, biri bayat kopya duruyordu. **Commit ≠ canlı.**
+
+Nasıl çalışır: en son yüklenen commit'i sunucuda `/.mailmyra-site-deploy.json`
+içinde tutar (belge kökünün DIŞINDA, HTTP'den okunamaz — doğrulandı, 404) ve
+farkı `git diff` ile hesaplar. Damga yalnız bu script'in yüklemelerini bilir;
+elle FTP yapılmışsa yalan söyler, o yüzden şüphede `--audit` koş — o damgaya
+hiç bakmaz, 199 dosyanın boyutunu tek tek sunucuyla karşılaştırır.
+
+İki bekçi var:
+- **`scripts/`, `README.md`, `.gitignore`, `.DS_Store` gönderilmez.**
+  `web.config` de gönderilmez — Plesk onu kendi yeniden üretiyor ve yanlışı
+  siteyi 0 baytlık 500'e düşürüyor (2026-07-27). Gerekirse
+  `--with-web-config`.
+- **`main.css` değişip hiçbir sayfanın `?v=` damgası değişmediyse DURUR.**
+  `db2cf9d` tam olarak bunu yaptı: sunucu yeni CSS'i servis ediyordu ama
+  sayfa eskisini çiziyordu (main.css'te `Cache-Control` yok, tarayıcı
+  `Last-Modified`'a bakıp sezgisel önbellekliyor). Bilerek geçmek için
+  `--skip-stamp-check`.
+
+Yüklemeden sonra her dosya iki kez doğrulanır: FTP'de boyut, sonra canlı
+adresten `HEAD`. ⚠️ O `HEAD` `accept-encoding: identity` ile gider —
+varsayılan başlıkla IIS brotli uyguluyor ve `content-length` sıkıştırılmış
+boyutu bildiriyor (98324 yerine 15487). Doğrulama başarısızsa damga
+GÜNCELLENMEZ.
+
+Saf yardımcıların testi: `npm run test:scripts` (kök `npm test` de koşturur).
+
 ## ⚠️ KAYNAK KLASÖR DEĞİŞTİ — `~/Desktop/mailmyra edit`
 
 Yayına girecek site artık `~/Desktop/mailmyra ham` DEĞİL, **`~/Desktop/mailmyra

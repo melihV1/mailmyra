@@ -6,12 +6,14 @@
     "packages/*"
   ],
   "scripts": {
-    "test": "npm run test --workspaces --if-present",
+    "test": "npm run test:scripts && npm run test --workspaces --if-present",
+    "test:scripts": "node --test \"scripts/*.test.js\"",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "build:log": "node scripts/build-log.js",
     "package": "node scripts/package-build.js",
     "deploy": "node scripts/deploy.js",
+    "deploy:site": "node scripts/deploy-site.js",
     "dev:web": "npm run dev -w apps/web",
     "clean": "node scripts/clean.js",
     "clean:all": "node scripts/clean.js --all",
