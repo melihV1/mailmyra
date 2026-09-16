@@ -147,13 +147,19 @@ Apple Mail satırı bu oturumda Claude tarafından ölçüldü.
 | Şablon | Outlook Classic | Yeni Outlook | Gmail web | Gmail mobil | Apple Mail | iOS Mail |
 |---|---|---|---|---|---|---|
 | classic-horizontal | geçti | geçti | geçti | geçti | geçti | geçti |
-| stacked-minimal | geçti | geçti | geçti | geçti | — | geçti |
+| stacked-minimal | geçti | geçti | geçti | geçti | geçti | geçti |
 | card-bordered | geçti | geçti | geçti | geçti | geçti | geçti |
 | divider-columns | geçti | geçti | geçti | geçti | geçti | geçti |
 | photo-first | geçti | geçti | geçti | geçti | geçti | geçti |
-| cta-banner | geçti | geçti | geçti | geçti | — | geçti |
+| cta-banner | geçti | geçti | geçti | geçti | geçti | geçti |
 
-(— : o oturumda gözle teyit edilmedi; kusur bildirilmedi.)
+**Apple Mail satırı 2026-09-16'da tamamlandı.** Tur 4'te `stacked-minimal` ve
+`cta-banner` kaydırma sırasında atlanmıştı; ikisi de sonradan açıkça denetlendi
+(commit `1e42f32` çıktısıyla, üçer varyant: tam · monogram · uzun içerik).
+`stacked-minimal` tek dar sütununu koruyor, görseller üstte, uzun ad/ünvan taşmıyor.
+`cta-banner`'ın tam genişlik eylem bandı üç varyantta da yerinde ve dolgusunu koruyor.
+İkisinde de sütun kayması, yatay kaydırma ya da sızan tablo kenarlığı yok; telefon,
+e-posta, site, sosyal ve CTA bağlantılarının hepsi erişilebilirlik ağacında tıklanabilir.
 
 Eksenler:
 
