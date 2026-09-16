@@ -193,6 +193,30 @@ geçti, ve monogram · harf aralığı · aksan paneli eksenleri de sahada doğr
 ⚠️ Bir sonraki turu tetikleyen şey: renderer'a, şablonlara, ikon üretimine ya da
 marka bindirmesine dokunmak. Bu turun kapsadığı commit: `d3cc247`.
 
+### Tur 5 — ⏭️ ATLANDI (bilinçli, gerekçeli)
+
+Tarih: 2026-09-16 · Karar: Hüseyin · Commit: `1f93fa8` (canlıdaki `1b430b4`'ten sonra)
+
+Bu sürüm renderer'a DOKUNDU — yeni `packages/renderer/src/capabilities.ts`, ve
+`card-bordered` ile `photo-first`'ün aksan koşulu ortak bir yükleme
+(`accentSurfaceAvailable`) bağlandı. Bu belgenin "ne zaman koşulur" kuralına göre
+normalde yeni bir tur gerekirdi.
+
+**Atlandı, çünkü imza HTML'i DEĞİŞMEDİ.** Ölçüldü: altı şablon × dört fixture ×
+`accentBand`/`monogram`/`nameSpacing`'in 3×3×3 kombinasyonu × avatarın üç hâli =
+**1944 render**, `1b430b4` ve `1f93fa8` için tek bir SHA-256'da buluştu
+(`a2650d00b0c1569baf7856e8dc6183eea06017c88ba59f0eecc27cdfb0cc445c`). Şablonların
+koşulu yeniden İFADE edildi, davranışı değişmedi:
+`card-bordered`'da yüklem koşulsuz `true`, `photo-first`'te tam olarak eski `hasAvatar`.
+
+Yani sınanacak bir çıktı farkı yok; matris turu aynı baytları ikinci kez doğrulardı.
+
+⚠️ **Bu muafiyet dar.** Renderer'a bir daha dokunulduğunda aynı ölçüm YENİDEN yapılmalı;
+"geçen sefer atlamıştık" gerekçe değildir. Çıktı bir bayt bile oynarsa tur koşulur.
+Gerçekten değişen şey builder ARAYÜZÜ (Stil sekmesindeki üç anahtar) ve o, bu belgenin
+kendi kapsam notuna göre zaten matris gerektirmiyor: *"Panel/builder arayüz
+değişiklikleri bu turu gerektirmez — imza HTML'i değişmiyorsa çıktı da değişmez."*
+
 ### Boş şablon (sonraki turlar için kopyala)
 
 Tur tarihi: ……  ·  Test eden: ……  ·  Commit: ……
