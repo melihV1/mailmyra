@@ -12,9 +12,9 @@ type TemplateFn = (data: SignatureData, opts?: RenderOptions) => string;
 /**
  * 🔴 Bu nesne `Record<string, TemplateFn>` diye ANOTASYONLANMAZ — `satisfies`
  * ile bildirilir. Sebep: anotasyon anahtarları `string`e genişletir ve
- * aşağıdaki `TEMPLATE_ACCENT_SURFACE`'in `satisfies` koruması hiçbir şeyi
- * tutmaz hâle gelir (eksik anahtarlı harita hatasız derlenir — ölçüldü).
- * `satisfies` ile literal anahtarlar korunur, koruma ısırır.
+ * `keyof typeof TEMPLATES` düpedüz `string` olur; o zaman aşağıdaki iki
+ * eksiksizlik iddiası hiçbir şey tutmaz (eksik anahtarlı bir aksan haritası
+ * hatasız derlenir — ölçüldü). `satisfies` ile literal anahtarlar korunur.
  */
 const TEMPLATES = {
   'classic-horizontal': classicHorizontal,
@@ -40,6 +40,18 @@ export const TEMPLATE_IDS = Object.keys(TEMPLATES);
  */
 const _accentCoverage: Record<keyof typeof TEMPLATES, unknown> = TEMPLATE_ACCENT_SURFACE;
 void _accentCoverage;
+
+/**
+ * Aynı iddianın TERS yönü. Üsttekinin tek başına yetmediği ölçüldü: EKSİK
+ * anahtarı yakalıyor ama FAZLA anahtarı yakalamıyor — aksan haritasında
+ * `TEMPLATES`'te karşılığı olmayan hayalet bir şablon derlemeden temiz
+ * geçiyordu. (Harita `render.ts`'teyken `satisfies` bunu taze nesne
+ * değişmezi üzerindeki fazla-özellik denetimiyle yakalıyordu; harita
+ * `capabilities.ts`'e taşınınca o denetim kayboldu.) Çalışma zamanında
+ * `template-capabilities.test.ts` yakalıyor, ama bekçilik derleyicide olsun.
+ */
+const _noExtraAccentKeys: Record<keyof typeof TEMPLATE_ACCENT_SURFACE, unknown> = TEMPLATES;
+void _noExtraAccentKeys;
 
 export function renderSignature(
   data: SignatureData,
