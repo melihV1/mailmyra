@@ -1,4 +1,5 @@
-export { renderSignature, TEMPLATE_IDS, TEMPLATE_ACCENT_SURFACE } from './render';
+export { renderSignature, TEMPLATE_IDS } from './render';
+export { accentSurfaceAvailable, TEMPLATE_ACCENT_SURFACE } from './capabilities';
 export type { SignatureData, WebSafeFont, RenderOptions } from './types';
 export { fixtures } from './fixtures/samples';
 export type { Fixture } from './fixtures/samples';

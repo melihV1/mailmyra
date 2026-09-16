@@ -7,6 +7,7 @@ import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 import { nameLetterSpacing } from '../utils/typography';
 import { accentBandRow, shouldShowAccentBand } from '../utils/accent';
+import { accentSurfaceAvailable } from '../capabilities';
 
 type Size = SignatureData['layout']['size'];
 
@@ -397,7 +398,11 @@ export function cardBordered(data: SignatureData, opts?: RenderOptions): string 
       'line-height': '1px',
     },
   });
-  const bandOn = shouldShowAccentBand(data);
+  // 🔴 `accentSurfaceAvailable(data, 'card-bordered')` bu şablon için her
+  // zaman `true` döner (yükleme 'always') — davranış `shouldShowAccentBand`
+  // ile birebir aynı kalır, yalnız yüklem artık tek bir merkezi fonksiyondan
+  // okunuyor (bkz. `capabilities.ts`).
+  const bandOn = accentSurfaceAvailable(data, 'card-bordered') && shouldShowAccentBand(data);
   // Kartın arka planı açıkça beyaz: koyu mod uygulayan istemcilerde şeffaf
   // gövde metni okunamaz hale getiriyor.
   const cardBodyCell = cell(table(bodyRows.join(''), { width: '100%' }), {

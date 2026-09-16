@@ -7,6 +7,7 @@ import { PLATFORM_LABELS, socialIconPath } from '../utils/social';
 import { initialsFrom, monogramCell, shouldShowMonogram } from '../utils/monogram';
 import { nameLetterSpacing } from '../utils/typography';
 import { accentPanelStyle, shouldShowAccentBand } from '../utils/accent';
+import { accentSurfaceAvailable } from '../capabilities';
 
 type Size = SignatureData['layout']['size'];
 
@@ -357,20 +358,23 @@ export function photoFirst(data: SignatureData, opts?: RenderOptions): string {
   const hasAvatar = Boolean(data.visuals.avatarUrl);
   // Panel YALNIZ gerçek bir FOTOĞRAF varken çizilir — monogram İLE DEĞİL.
   //
-  // 🔴 Bilerek `hasAvatar`, `hasAvatar || shouldShowMonogram(data)` DEĞİL.
-  // Aşağıdaki `logoRow`'daki colspan koşusuyla (`hasAvatar ||
-  // shouldShowMonogram(data)`) KARIŞTIRMA — bir önceki gözden geçirme
-  // ikisinin AYNI ifade olduğunu doğrulamıştı, bu turda BİLEREK ayrıştırıldı;
-  // sonraki bir okuyan bunu tutarsızlık sanıp geri birleştirmesin diye
-  // açıkça yazıyoruz: colspan "satır iki hücreli mi" sorusunu, panel
-  // "sütunda gerçek bir fotoğraf var mı" sorusunu sorar — aynı şey değiller.
-  // Sebep: panel ile monogram AYNI `brand` hex'ini basıyordu; fotoğrafsız
-  // imzada monogramın disk silueti düz bir renk dikdörtgeninde kayboluyordu
-  // (Outlook Classic `border-radius`'ı da yok saydığı için orada hiçbir
-  // sınır kalmıyordu — bu, fotoğrafsız HER photo-first imzasının varsayılan
-  // hâliydi). Sahibinin kararı: monogram zaten bir renk bloğu, ikinci bir
-  // renk bloğu (panel) gereksiz — monogram varken panel ÇİZİLMEZ.
-  const panel = hasAvatar && shouldShowAccentBand(data)
+  // 🔴 Bilerek `accentSurfaceAvailable(data, 'photo-first')` — ki bu şablon
+  // için tam olarak `hasAvatar` ile aynı sonucu verir ('needs-avatar'
+  // yüklemi `Boolean(data.visuals.avatarUrl)` döner, bkz. `capabilities.ts`) —
+  // `hasAvatar || shouldShowMonogram(data)` DEĞİL. Aşağıdaki `logoRow`'daki
+  // colspan koşusuyla (`hasAvatar || shouldShowMonogram(data)`) KARIŞTIRMA —
+  // bir önceki gözden geçirme ikisinin AYNI ifade olduğunu doğrulamıştı, bu
+  // turda BİLEREK ayrıştırıldı; sonraki bir okuyan bunu tutarsızlık sanıp
+  // geri birleştirmesin diye açıkça yazıyoruz: colspan "satır iki hücreli
+  // mi" sorusunu, panel "sütunda gerçek bir fotoğraf var mı" sorusunu
+  // sorar — aynı şey değiller. Sebep: panel ile monogram AYNI `brand`
+  // hex'ini basıyordu; fotoğrafsız imzada monogramın disk silueti düz bir
+  // renk dikdörtgeninde kayboluyordu (Outlook Classic `border-radius`'ı da
+  // yok saydığı için orada hiçbir sınır kalmıyordu — bu, fotoğrafsız HER
+  // photo-first imzasının varsayılan hâliydi). Sahibinin kararı: monogram
+  // zaten bir renk bloğu, ikinci bir renk bloğu (panel) gereksiz —
+  // monogram varken panel ÇİZİLMEZ.
+  const panel = accentSurfaceAvailable(data, 'photo-first') && shouldShowAccentBand(data)
     ? accentPanelStyle(data.visuals.brandColor)
     : null;
   // Avatarın kendisi. Panel açıkken bunu bir İÇ TABLOYA sararız (aşağıda).

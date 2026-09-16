@@ -5,6 +5,7 @@ import { cardBordered } from './templates/card-bordered';
 import { dividerColumns } from './templates/divider-columns';
 import { photoFirst } from './templates/photo-first';
 import { ctaBanner } from './templates/cta-banner';
+import { TEMPLATE_ACCENT_SURFACE } from './capabilities';
 
 type TemplateFn = (data: SignatureData, opts?: RenderOptions) => string;
 
@@ -27,22 +28,18 @@ const TEMPLATES = {
 export const TEMPLATE_IDS = Object.keys(TEMPLATES);
 
 /**
- * Hangi şablonun aksan alanı (bant/panel) var. `layout.accentBand` yalnız
- * burada `true` olanlarda bir şey yapar; builder anahtarı da yalnız onlarda
- * gösterir. Arayüz bu listeyi KOPYALAMAZ, buradan okur — yoksa yedinci
- * şablona aksan eklendiğinde arayüz sessizce sunmamaya devam ederdi.
+ * Hangi şablonun aksan yükleme haritasında karşılığı var — derleme zamanı
+ * eksiksizlik koruması. Harita artık `./capabilities`'te yaşıyor (şablonlar
+ * onu ithal edip `accentSurfaceAvailable` çağıracak, döngü oluşmasın diye);
+ * ama TEMPLATES burada, o yüzden koruma da burada kalmalı.
  *
- * `satisfies Record<keyof typeof TEMPLATES, boolean>` bilinçli: yeni şablon
- * eklendiğinde DERLEME KIRILIR ve yazan kişi karar vermek zorunda kalır.
+ * Bu atama yalnız tip düzeyinde bir iddia — değeri hiç okunmaz. `capabilities.ts`
+ * içindeki `ACCENT_SURFACE`'ten bir şablon anahtarı EKSİLİRSE (ör. yeni bir
+ * şablon `TEMPLATES`'e eklenip orada unutulursa) bu satır DERLEMEYİ KIRAR:
+ * `Record<keyof typeof TEMPLATES, unknown>` her anahtarın var olmasını ister.
  */
-export const TEMPLATE_ACCENT_SURFACE = {
-  'classic-horizontal': false,
-  'stacked-minimal': false,
-  'card-bordered': true,
-  'divider-columns': false,
-  'photo-first': true,
-  'cta-banner': false,
-} satisfies Record<keyof typeof TEMPLATES, boolean>;
+const _accentCoverage: Record<keyof typeof TEMPLATES, unknown> = TEMPLATE_ACCENT_SURFACE;
+void _accentCoverage;
 
 export function renderSignature(
   data: SignatureData,
